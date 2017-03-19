@@ -1,0 +1,29 @@
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile     'com.google.code.findbugs:jsr305:3.0.0'
+    testCompile 'junit:junit:+'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+        resources {
+            srcDir 'src'
+        }
+    }
+    test {
+        java {
+            srcDir 'test'
+        }
+        resources {
+            srcDir 'test'
+        }
+    }
+}
