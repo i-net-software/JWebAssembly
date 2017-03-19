@@ -1,0 +1,7 @@
+# Use docker-based build environment (instead of openvz)
+sudo: false
+
+language: java
+jdk:
+  - oraclejdk8
+script: gradle check
