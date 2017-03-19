@@ -23,4 +23,27 @@ package de.inetsoftware.jwebassembly;
  */
 public class CompileException extends Exception {
 
+    /**
+     * Create a new instance with a cause.
+     * 
+     * @param cause
+     *            the cause
+     */
+    CompileException( Throwable cause ) {
+        super( cause );
+    }
+
+    /**
+     * Create a wrapped exception needed.
+     * 
+     * @param cause
+     *            the wrapped cause
+     * @return a new instance
+     */
+    public static CompileException create( Throwable cause ) {
+        if( cause instanceof CompileException ) {
+            return (CompileException)cause;
+        }
+        return new CompileException( cause );
+    }
 }
