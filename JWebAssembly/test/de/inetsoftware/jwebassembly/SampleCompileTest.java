@@ -37,9 +37,11 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith( Parameterized.class )
 public class SampleCompileTest {
 
+    private final String testName;
     private final File classFile;
 
-    public SampleCompileTest( String testname, File classFile ) {
+    public SampleCompileTest( String testName, File classFile ) {
+        this.testName = testName;
         this.classFile = classFile;
     }
 
@@ -56,7 +58,8 @@ public class SampleCompileTest {
     private static void params( ArrayList<Object[]> params, File dir, int baseLength ) {
         for( File file : dir.listFiles() ) {
             if( file.getName().endsWith( ".class" ) ) {
-                params.add( new Object[] { file.getPath().substring( baseLength ), file } );
+                String path = file.getPath();
+                params.add( new Object[] { path.substring( baseLength, path.length() - 6 ), file } );
             } else if( file.isDirectory() ) {
                 params( params, file, baseLength );
             }
@@ -64,11 +67,9 @@ public class SampleCompileTest {
     }
 
     @Test
-    public void sExpressions() throws Exception {
-        String basename = classFile.getName();
-        basename = basename.substring( 0, basename.length() - 6 );
-        String watname = basename + ".wat";
-        File watFile = new File( classFile.getParent(), watname );
+    public void compileToText() throws Exception {
+        URL url = SampleCompileTest.class.getResource( "samples/" + testName + ".wat" );
+        File watFile = new File( url.toURI() );
         String expected = new String( Files.readAllBytes( watFile.toPath() ) );
         JWebAssembly webAsm = new JWebAssembly();
         webAsm.addFile( classFile );
