@@ -23,6 +23,21 @@ package de.inetsoftware.jwebassembly;
  */
 public class CompileException extends Exception {
 
+    private final int lineNumber;
+
+    /**
+     * Create a new instance.
+     * 
+     * @param message
+     *            the error message
+     * @param lineNumber
+     *            the line number in Java Code
+     */
+    public CompileException( String message, int lineNumber ) {
+        super( message );
+        this.lineNumber = lineNumber;
+    }
+
     /**
      * Create a new instance with a cause.
      * 
@@ -31,6 +46,7 @@ public class CompileException extends Exception {
      */
     CompileException( Throwable cause ) {
         super( cause );
+        lineNumber = -1;
     }
 
     /**
@@ -45,5 +61,14 @@ public class CompileException extends Exception {
             return (CompileException)cause;
         }
         return new CompileException( cause );
+    }
+
+    /**
+     * Get the line number in Java code on which the error occurred.
+     * 
+     * @return the line number or -1
+     */
+    public int getLineNumber() {
+        return lineNumber;
     }
 }
