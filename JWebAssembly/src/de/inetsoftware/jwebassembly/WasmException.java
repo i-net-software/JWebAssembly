@@ -21,7 +21,7 @@ package de.inetsoftware.jwebassembly;
  * @author Volker Berlin
  *
  */
-public class CompileException extends Exception {
+public class WasmException extends Exception {
 
     private final int lineNumber;
 
@@ -33,7 +33,7 @@ public class CompileException extends Exception {
      * @param lineNumber
      *            the line number in Java Code
      */
-    public CompileException( String message, int lineNumber ) {
+    public WasmException( String message, int lineNumber ) {
         super( message );
         this.lineNumber = lineNumber;
     }
@@ -44,7 +44,7 @@ public class CompileException extends Exception {
      * @param cause
      *            the cause
      */
-    CompileException( Throwable cause ) {
+    WasmException( Throwable cause ) {
         super( cause );
         lineNumber = -1;
     }
@@ -56,11 +56,11 @@ public class CompileException extends Exception {
      *            the wrapped cause
      * @return a new instance
      */
-    public static CompileException create( Throwable cause ) {
-        if( cause instanceof CompileException ) {
-            return (CompileException)cause;
+    public static WasmException create( Throwable cause ) {
+        if( cause instanceof WasmException ) {
+            return (WasmException)cause;
         }
-        return new CompileException( cause );
+        return new WasmException( cause );
     }
 
     /**
