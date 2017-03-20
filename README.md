@@ -1,7 +1,7 @@
 JWebAssembly
 ======
 
-[![Build Status](https://travis-ci.org/i-net-software/jlessc.svg)](https://travis-ci.org/i-net-software/jwebassembly)
+[![Build Status](https://travis-ci.org/i-net-software/JWebAssembly.svg)](https://travis-ci.org/i-net-software/JWebAssembly)
 [![License](https://img.shields.io/github/license/i-net-software/jwebassembly.svg)](https://github.com/i-net-software/jwebassembly/blob/master/LICENSE.txt)
 
 JWebAssembly is a Java to WebAssembly compiler. It uses Java class files as input.
