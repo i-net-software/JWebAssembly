@@ -15,11 +15,16 @@
  */
 package de.inetsoftware.jwebassembly;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+
+import de.inetsoftware.classparser.ClassFile;
+import de.inetsoftware.jwebassembly.text.TextModulWriter;
 
 /**
  * The main class of the compiler.
@@ -50,10 +55,19 @@ public class JWebAssembly {
      * Convert the added files to a WebAssembly module in text representation.
      * 
      * @return the module as string
-     * @throws CompileException
+     * @throws WasmException
      *             if any conversion error occurs
      */
-    public String compileToText() throws CompileException {
-        return null;
+    public String compileToText() throws WasmException {
+        StringBuilder output = new StringBuilder();
+        try (TextModulWriter writer = new TextModulWriter( output )) {
+            for( File file : classFiles ) {
+                ClassFile classFile = new ClassFile( new BufferedInputStream( new FileInputStream( file ) ) );
+                writer.write( classFile );
+            }
+        } catch( Exception ex ) {
+            throw WasmException.create( ex );
+        }
+        return output.toString();
     }
 }
