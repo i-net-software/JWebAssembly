@@ -1,4 +1,4 @@
 (module
-  (func $singleInt(param i32)
+  (func $singleInt (param i32)
   )
 )
