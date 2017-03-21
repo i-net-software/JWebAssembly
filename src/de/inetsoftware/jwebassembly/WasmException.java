@@ -23,7 +23,7 @@ package de.inetsoftware.jwebassembly;
  */
 public class WasmException extends Exception {
 
-    private final int lineNumber;
+    private int lineNumber;
 
     /**
      * Create a new instance.
@@ -44,9 +44,26 @@ public class WasmException extends Exception {
      * @param cause
      *            the cause
      */
-    WasmException( Throwable cause ) {
+    private WasmException( Throwable cause ) {
         super( cause );
         lineNumber = -1;
+    }
+
+    /**
+     * Create a wrapped exception needed.
+     * 
+     * @param cause
+     *            the wrapped cause
+     * @param lineNumber
+     *            the line number in Java Code
+     * @return a new instance
+     */
+    public static WasmException create( Throwable cause, int lineNumber ) {
+        WasmException wasmEx = create( cause );
+        if( wasmEx.lineNumber < 0 ) {
+            wasmEx.lineNumber = lineNumber;
+        }
+        return wasmEx;
     }
 
     /**
