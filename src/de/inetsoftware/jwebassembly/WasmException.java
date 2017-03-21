@@ -88,4 +88,16 @@ public class WasmException extends Exception {
     public int getLineNumber() {
         return lineNumber;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        String str = super.toString();
+        if( lineNumber > 0 ) {
+            str += " at line: " + lineNumber;
+        }
+        return str;
+    }
 }
