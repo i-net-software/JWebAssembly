@@ -15,13 +15,10 @@
  */
 package de.inetsoftware.jwebassembly.text;
 
-import java.io.Closeable;
 import java.io.IOException;
 
-import de.inetsoftware.classparser.ClassFile;
-import de.inetsoftware.classparser.Code;
-import de.inetsoftware.classparser.MethodInfo;
-import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.modul.ModulWriter;
+import de.inetsoftware.jwebassembly.modul.ValueType;
 
 /**
  * Module Writer for text format with S-expressions.
@@ -29,7 +26,7 @@ import de.inetsoftware.jwebassembly.WasmException;
  * @author Volker Berlin
  *
  */
-public class TextModulWriter implements Closeable {
+public class TextModulWriter extends ModulWriter {
 
     private Appendable output;
 
@@ -50,7 +47,7 @@ public class TextModulWriter implements Closeable {
     }
 
     /**
-     * 
+     * {@inheritDoc}
      */
     @Override
     public void close() throws IOException {
@@ -60,100 +57,77 @@ public class TextModulWriter implements Closeable {
     }
 
     /**
-     * Write the content of the class to the
-     * 
-     * @param classFile
-     *            the class file
-     * @throws IOException
-     *             if any I/O error occur
-     * @throws WasmException
-     *             if some Java code can't converted
+     * {@inheritDoc}
      */
-    public void write( ClassFile classFile ) throws IOException, WasmException {
-        MethodInfo[] methods = classFile.getMethods();
-        for( MethodInfo method : methods ) {
-            Code code = method.getCode();
-            if( method.getName().equals( "<init>" ) && method.getDescription().equals( "()V" )
-                            && code.isSuperInitReturn( classFile.getSuperClass() ) ) {
-                continue; //default constructor
-            }
-            writeMethod( method );
-        }
+    @Override
+    protected void writeMethodStart( String name ) throws IOException {
+        newline();
+        output.append( "(func $" );
+        output.append( name );
+        inset++;
     }
 
     /**
-     * Write the content of a method.
-     * 
-     * @param method
-     *            the method
-     * @throws IOException
-     *             if any I/O error occur
-     * @throws WasmException
-     *             if some Java code can't converted
+     * {@inheritDoc}
      */
-    private void writeMethod( MethodInfo method ) throws IOException, WasmException {
-        newline();
-        output.append( "(func $" );
-        output.append( method.getName() );
-        writeMethodSignature( method );
-        inset++;
+    @Override
+    protected void writeMethodParam( String kind, ValueType valueType ) throws IOException {
+        output.append( " (" ).append( kind ).append( ' ' ).append( valueType.toString() ).append( ')' );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeMethodFinish() throws IOException {
         inset--;
         newline();
         output.append( ')' );
     }
 
     /**
-     * Write the parameter and return signatures
-     * 
-     * @param method
-     *            the method
-     * @throws IOException
-     *             if any I/O error occur
-     * @throws WasmException
-     *             if some Java code can't converted
+     * {@inheritDoc}
      */
-    private void writeMethodSignature( MethodInfo method ) throws IOException, WasmException {
-        String signature = method.getDescription();
-        String kind = "param";
-        for( int i = 1; i < signature.length(); i++ ) {
-            String javaType;
-            switch( signature.charAt( i ) ) {
-                case '[': // array
-                    javaType = "array";
-                    break;
-                case 'L':
-                    javaType = "object";
-                    break;
-                case 'B': // byte
-                    javaType = "byte";
-                    break;
-                case 'C': // char
-                    javaType = "char";
-                    break;
-                case 'D': // double
-                    output.append( " (" ).append( kind ).append( " f64)" );
-                    continue;
-                case 'F': // float
-                    output.append( " (" ).append( kind ).append( " f32)" );
-                    continue;
-                case 'I': // int
-                    output.append( " (" ).append( kind ).append( " i32)" );
-                    continue;
-                case 'J': // long
-                    output.append( " (" ).append( kind ).append( " i64)" );
-                    continue;
-                case 'V': // void
-                    continue;
-                case ')':
-                    kind = "return";
-                    continue;
-                default:
-                    javaType = signature.substring( i, i + 1 );
-            }
-            Code code = method.getCode();
-            int lineNumber = code == null ? -1 : code.getFirstLineNr();
-            throw new WasmException( "Not supported Java data type in method signature: " + javaType, lineNumber );
-        }
+    @Override
+    protected void writeConstInt( int value ) throws IOException {
+        newline();
+        output.append( "i32.const " ).append( Integer.toString( value ));
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeLoadInt( int idx ) throws IOException {
+        newline();
+        output.append( "get_local " ).append( Integer.toString( idx ) );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeStoreInt( int idx ) throws IOException {
+        newline();
+        output.append( "set_local " ).append( Integer.toString( idx ) );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeAddInt() throws IOException {
+        newline();
+        output.append( "i32.add" );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeReturn() throws IOException {
+        newline();
+        output.append( "return" );
     }
 
     /**
