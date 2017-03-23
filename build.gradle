@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    compile     'com.google.code.findbugs:jsr305:3.0.0'
+    compile     'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'junit:junit:+'
 }
 
