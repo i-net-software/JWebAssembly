@@ -19,8 +19,30 @@ package de.inetsoftware.jwebassembly.module;
  * @author Volker Berlin
  */
 public enum ValueType {
-    i32,
-    i64,
-    f32,
-    f64
+    i32(-1),
+    i64(-2),
+    f32(-3),
+    f64(-4),
+    func(-0x20);
+
+    private int code;
+
+    /**
+     * Create instance of the enum
+     * 
+     * @param code
+     *            the operation code in WebAssembly
+     */
+    private ValueType( int code ) {
+        this.code = code;
+    }
+
+    /**
+     * The operation code in WebAssembly.
+     * 
+     * @return the code
+     */
+    public int getCode() {
+        return code;
+    }
 }
