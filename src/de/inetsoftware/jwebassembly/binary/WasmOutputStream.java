@@ -16,7 +16,9 @@
 package de.inetsoftware.jwebassembly.binary;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nonnegative;
@@ -24,15 +26,34 @@ import javax.annotation.Nonnegative;
 /**
  * @author Volker Berlin
  */
-class WasmOutputStream extends ByteArrayOutputStream {
+class WasmOutputStream extends FilterOutputStream {
+
+    /**
+     * Create a in memory stream.
+     */
+    WasmOutputStream() {
+        super( new ByteArrayOutputStream() );
+    }
+
+    /**
+     * Create a wrapped stream.
+     * 
+     * @param output
+     *            the target of data
+     */
+    WasmOutputStream( OutputStream output ) {
+        super( output );
+    }
 
     /**
      * Write a integer little endian (ever 4 bytes)
      * 
      * @param value
      *            the value
+     * @throws IOException
+     *             if an I/O error occurs.
      */
-    void writeInt32( int value ) {
+    void writeInt32( int value ) throws IOException {
         write( (value >>> 0) & 0xFF );
         write( (value >>> 8) & 0xFF );
         write( (value >>> 16) & 0xFF );
@@ -44,8 +65,10 @@ class WasmOutputStream extends ByteArrayOutputStream {
      * 
      * @param value
      *            the value
+     * @throws IOException
+     *             if an I/O error occurs.
      */
-    void writeVaruint32( @Nonnegative int value ) {
+    void writeVaruint32( @Nonnegative int value ) throws IOException {
         do {
             int b = value & 0x7F; // low 7 bits
             value >>= 7;
@@ -61,8 +84,10 @@ class WasmOutputStream extends ByteArrayOutputStream {
      * 
      * @param value
      *            the value
+     * @throws IOException
+     *             if an I/O error occurs.
      */
-    void writeVarint32( int value ) {
+    void writeVarint32( int value ) throws IOException {
         while( true ) {
             int b = value & 0x7F;
             value >>= 7;
@@ -78,25 +103,27 @@ class WasmOutputStream extends ByteArrayOutputStream {
     }
 
     /**
-     * Write a section header.
+     * Write a section with header and data.
      * 
      * @param type
      *            the name of the section
-     * @param dataSize
-     *            the size of the data
+     * @param data
+     *            the data of the section
      * @param name
      *            the name, must be set if the id == 0
      * @throws IOException
      *             if any I/O error occur
      */
-    void writeSectionHeader( SectionType type, int dataSize, String name ) throws IOException {
+    void writeSection( SectionType type, WasmOutputStream data, String name ) throws IOException {
+        ByteArrayOutputStream baos = (ByteArrayOutputStream)data.out;
         writeVaruint32( type.ordinal() );
-        writeVaruint32( dataSize );
+        writeVaruint32( baos.size() );
         if( type == SectionType.Custom ) {
             byte[] bytes = name.getBytes( StandardCharsets.ISO_8859_1 );
             writeVaruint32( bytes.length );
             write( bytes );
         }
+        baos.writeTo( this );
     }
 
 }
