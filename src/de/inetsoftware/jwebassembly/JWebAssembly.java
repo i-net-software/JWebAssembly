@@ -16,15 +16,18 @@
 package de.inetsoftware.jwebassembly;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
+import de.inetsoftware.jwebassembly.binary.BinaryModuleWriter;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
 
@@ -76,6 +79,35 @@ public class JWebAssembly {
      */
     public void compileToText( Appendable output ) throws WasmException {
         try (TextModuleWriter writer = new TextModuleWriter( output )) {
+            compile( writer );
+        } catch( Exception ex ) {
+            throw WasmException.create( ex );
+        }
+    }
+
+    /**
+     * Convert the added files to a WebAssembly module in binary representation.
+     * 
+     * @return the module as string
+     * @throws WasmException
+     *             if any conversion error occurs
+     */
+    public byte[] compileToBinary() throws WasmException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        compileToBinary( output );
+        return output.toByteArray();
+    }
+
+    /**
+     * Convert the added files to a WebAssembly module in binary representation.
+     * 
+     * @param output
+     *            the target for the module data
+     * @throws WasmException
+     *             if any conversion error occurs
+     */
+    public void compileToBinary( OutputStream output ) throws WasmException {
+        try (BinaryModuleWriter writer = new BinaryModuleWriter( output )) {
             compile( writer );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
