@@ -24,7 +24,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
-import de.inetsoftware.jwebassembly.text.TextModulWriter;
+import de.inetsoftware.jwebassembly.text.TextModuleWriter;
 
 /**
  * The main class of the compiler.
@@ -60,7 +60,7 @@ public class JWebAssembly {
      */
     public String compileToText() throws WasmException {
         StringBuilder output = new StringBuilder();
-        try (TextModulWriter writer = new TextModulWriter( output )) {
+        try (TextModuleWriter writer = new TextModuleWriter( output )) {
             for( File file : classFiles ) {
                 ClassFile classFile = new ClassFile( new BufferedInputStream( new FileInputStream( file ) ) );
                 writer.write( classFile );

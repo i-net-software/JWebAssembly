@@ -17,8 +17,8 @@ package de.inetsoftware.jwebassembly.text;
 
 import java.io.IOException;
 
-import de.inetsoftware.jwebassembly.modul.ModulWriter;
-import de.inetsoftware.jwebassembly.modul.ValueType;
+import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.ValueType;
 
 /**
  * Module Writer for text format with S-expressions.
@@ -26,7 +26,7 @@ import de.inetsoftware.jwebassembly.modul.ValueType;
  * @author Volker Berlin
  *
  */
-public class TextModulWriter extends ModulWriter {
+public class TextModuleWriter extends ModuleWriter {
 
     private Appendable output;
 
@@ -40,7 +40,7 @@ public class TextModulWriter extends ModulWriter {
      * @throws IOException
      *             if any I/O error occur
      */
-    public TextModulWriter( Appendable output ) throws IOException {
+    public TextModuleWriter( Appendable output ) throws IOException {
         this.output = output;
         output.append( "(module" );
         inset++;

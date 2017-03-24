@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.inetsoftware.jwebassembly.modul;
+package de.inetsoftware.jwebassembly.module;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import de.inetsoftware.jwebassembly.WasmException;
  * 
  * @author Volker Berlin
  */
-public abstract class ModulWriter implements Closeable {
+public abstract class ModuleWriter implements Closeable {
 
     /**
      * Write the content of the class to the
