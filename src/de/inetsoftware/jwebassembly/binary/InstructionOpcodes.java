@@ -23,7 +23,21 @@ package de.inetsoftware.jwebassembly.binary;
  */
 interface InstructionOpcodes {
 
+    // === Control flow operators ====
+
+    static final int BLOCK     = 0x02;
+
+    static final int LOOP      = 0x03;
+
+    static final int IF        = 0x04;
+
+    static final int ELSE      = 0x05;
+
+    static final int END       = 0x0B;
+
     static final int RETURN    = 0x0F;
+
+    // === Variable access ===========
 
     static final int GET_LOCAL = 0x20;
 
