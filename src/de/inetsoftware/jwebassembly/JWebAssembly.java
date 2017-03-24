@@ -18,12 +18,14 @@ package de.inetsoftware.jwebassembly;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
+import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
 
 /**
@@ -60,14 +62,40 @@ public class JWebAssembly {
      */
     public String compileToText() throws WasmException {
         StringBuilder output = new StringBuilder();
+        compileToText( output );
+        return output.toString();
+    }
+
+    /**
+     * Convert the added files to a WebAssembly module in text representation.
+     * 
+     * @param output
+     *            the target for the module data
+     * @throws WasmException
+     *             if any conversion error occurs
+     */
+    public void compileToText( Appendable output ) throws WasmException {
         try (TextModuleWriter writer = new TextModuleWriter( output )) {
-            for( File file : classFiles ) {
-                ClassFile classFile = new ClassFile( new BufferedInputStream( new FileInputStream( file ) ) );
-                writer.write( classFile );
-            }
+            compile( writer );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
         }
-        return output.toString();
+    }
+
+    /**
+     * Convert the added files to a WebAssembly module.
+     * 
+     * @param writer
+     *            the formatter
+     * @throws IOException
+     *             if any I/O error occur
+     * @throws WasmException
+     *             if any conversion error occurs
+     */
+    private void compile( ModuleWriter writer ) throws IOException, WasmException {
+        for( File file : classFiles ) {
+            ClassFile classFile = new ClassFile( new BufferedInputStream( new FileInputStream( file ) ) );
+            writer.write( classFile );
+        }
     }
 }
