@@ -72,7 +72,7 @@ public class ClassFile {
         }
         minorVersion = input.readUnsignedShort();
         majorVersion = input.readUnsignedShort();
-        System.err.println( majorVersion + "." + minorVersion );
+
         constantPool = new ConstantPool( input );
         accessFlags = input.readUnsignedShort();
         thisClass = (ConstantClass)constantPool.get( input.readUnsignedShort() );
