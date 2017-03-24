@@ -116,8 +116,12 @@ class WasmOutputStream extends FilterOutputStream {
      */
     void writeSection( SectionType type, WasmOutputStream data, String name ) throws IOException {
         ByteArrayOutputStream baos = (ByteArrayOutputStream)data.out;
+        int size = baos.size();
+        if( size == 0 ) {
+            return;
+        }
         writeVaruint32( type.ordinal() );
-        writeVaruint32( baos.size() );
+        writeVaruint32( size );
         if( type == SectionType.Custom ) {
             byte[] bytes = name.getBytes( StandardCharsets.ISO_8859_1 );
             writeVaruint32( bytes.length );
