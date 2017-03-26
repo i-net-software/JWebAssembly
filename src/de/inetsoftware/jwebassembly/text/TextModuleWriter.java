@@ -31,6 +31,8 @@ public class TextModuleWriter extends ModuleWriter {
 
     private Appendable output;
 
+    private StringBuilder methodOutput = new StringBuilder();
+
     private int        inset;
 
     /**
@@ -53,7 +55,7 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     public void close() throws IOException {
         inset--;
-        newline();
+        newline( output );
         output.append( ')' );
     }
 
@@ -62,10 +64,11 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodStart( String name ) throws IOException {
-        newline();
+        newline( output );
         output.append( "(func $" );
         output.append( name );
         inset++;
+        methodOutput.setLength( 0 );
     }
 
     /**
@@ -81,8 +84,12 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
+        for( ValueType valueType : locals ) {
+            output.append( " (local " ).append( valueType.toString() ).append( ')' );
+        }
+        output.append( methodOutput );
         inset--;
-        newline();
+        newline( output );
         output.append( ')' );
     }
 
@@ -91,8 +98,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeConstInt( int value ) throws IOException {
-        newline();
-        output.append( "i32.const " ).append( Integer.toString( value ) );
+        newline( methodOutput );
+        methodOutput.append( "i32.const " ).append( Integer.toString( value ) );
     }
 
     /**
@@ -100,8 +107,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeLoad( int idx ) throws IOException {
-        newline();
-        output.append( "get_local " ).append( Integer.toString( idx ) );
+        newline( methodOutput );
+        methodOutput.append( "get_local " ).append( Integer.toString( idx ) );
     }
 
     /**
@@ -109,8 +116,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeStore( int idx ) throws IOException {
-        newline();
-        output.append( "set_local " ).append( Integer.toString( idx ) );
+        newline( methodOutput );
+        methodOutput.append( "set_local " ).append( Integer.toString( idx ) );
     }
 
     /**
@@ -118,8 +125,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeAddInt() throws IOException {
-        newline();
-        output.append( "i32.add" );
+        newline( methodOutput );
+        methodOutput.append( "i32.add" );
     }
 
     /**
@@ -127,8 +134,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeReturn() throws IOException {
-        newline();
-        output.append( "return" );
+        newline( methodOutput );
+        methodOutput.append( "return" );
     }
 
     /**
@@ -137,7 +144,7 @@ public class TextModuleWriter extends ModuleWriter {
      * @throws IOException
      *             if any I/O error occur
      */
-    private void newline() throws IOException {
+    private void newline( Appendable output ) throws IOException {
         output.append( '\n' );
         for( int i = 0; i < inset; i++ ) {
             output.append( ' ' );
