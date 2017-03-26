@@ -155,4 +155,12 @@ class WasmOutputStream extends FilterOutputStream {
         ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
         return baos.size();
     }
+
+    /**
+     * Reset the stream. Work only for in memory stream.
+     */
+    void reset() {
+        ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
+        baos.reset();
+    }
 }
