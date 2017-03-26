@@ -69,6 +69,9 @@ class WasmOutputStream extends FilterOutputStream {
      *             if an I/O error occurs.
      */
     void writeVaruint32( @Nonnegative int value ) throws IOException {
+        if( value < 0 ) {
+            throw new IOException( "Invalid negative value" );
+        }
         do {
             int b = value & 0x7F; // low 7 bits
             value >>= 7;
