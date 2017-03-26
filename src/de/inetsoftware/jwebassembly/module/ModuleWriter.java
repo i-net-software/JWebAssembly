@@ -95,7 +95,7 @@ public abstract class ModuleWriter implements Closeable {
                 CodeInputStream byteCode = code.getByteCode();
                 writeCodeChunk( byteCode, -1 );
             }
-            for( int i = 0; i < paramCount; i++ ) {
+            for( int i = Math.min( paramCount, locals.size() ); i > 0; i-- ) {
                 locals.remove( 0 );
             }
             writeMethodFinish( locals );
