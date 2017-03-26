@@ -32,20 +32,23 @@ import de.inetsoftware.jwebassembly.module.ValueType;
  */
 public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcodes {
 
-    private static final byte[] WASM_BINARY_MAGIC   = { 0, 'a', 's', 'm' };
+    private static final byte[]   WASM_BINARY_MAGIC   = { 0, 'a', 's', 'm' };
 
-    private static final int    WASM_BINARY_VERSION = 1;
+    private static final int      WASM_BINARY_VERSION = 1;
 
-    private WasmOutputStream    wasm;
+    private WasmOutputStream      wasm;
 
-    private WasmOutputStream    codeStream          = new WasmOutputStream();
+    private WasmOutputStream      codeStream          = new WasmOutputStream();
 
-    private List<FunctionType>  functionTypes = new ArrayList<>();
+    private WasmOutputStream      functionsStream     = new WasmOutputStream();
 
-    private Map<String,Function> functions = new LinkedHashMap<>();
-    
-    private Function            function;
-    private FunctionType        functionType;
+    private List<FunctionType>    functionTypes       = new ArrayList<>();
+
+    private Map<String, Function> functions           = new LinkedHashMap<>();
+
+    private Function              function;
+
+    private FunctionType          functionType;
 
     /**
      * Create new instance.
@@ -74,6 +77,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         wasm.close();
     }
 
+    /**
+     * Write the type section to the output. This section contains the signatures of the functions.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
     private void writeTypeSection() throws IOException {
         int count = functionTypes.size();
         if( count > 0 ) {
@@ -96,6 +105,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
     }
 
+    /**
+     * Write the function section to the output. This section contains a mapping from the function index to the type signature index.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
     private void writeFunctionSection() throws IOException {
         int count = functions.size();
         if( count > 0 ) {
@@ -108,10 +123,20 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
     }
 
+    /**
+     * Write the code section to the output. This section contains the byte code.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
     private void writeCodeSection() throws IOException {
+        int size = functions.size();
+        if( size == 0 ) {
+            return;
+        }
         WasmOutputStream stream = new WasmOutputStream();
-        stream.writeVaruint32( functions.size() );
-        codeStream.writeTo( stream );
+        stream.writeVaruint32( size );
+        functionsStream.writeTo( stream );
         wasm.writeSection( SectionType.Code, stream, null );
     }
 
@@ -124,6 +149,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         function.id = functions.size();
         functions.put( name, function );
         functionType = new FunctionType();
+        codeStream.reset();
     }
 
     /**
@@ -145,11 +171,22 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodFinish() throws IOException {
+    protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
         // TODO optimize and search for duplicates
         function.typeId = functionTypes.size();
         functionTypes.add( functionType );
-        codeStream.write( END );
+
+        
+        WasmOutputStream localsStream = new WasmOutputStream();
+        localsStream.writeVaruint32( locals.size() );
+        for( ValueType valueType : locals ) {
+            localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
+            localsStream.writeVarint32( valueType.getCode() );
+        }
+        functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
+        localsStream.writeTo( functionsStream );
+        codeStream.writeTo( functionsStream );
+        functionsStream.write( END );
     }
 
     /**
@@ -165,7 +202,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeLoadInt( int idx ) throws IOException {
+    protected void writeLoad( int idx ) throws IOException {
         codeStream.write( GET_LOCAL );
         codeStream.writeVaruint32( idx );
     }
@@ -174,7 +211,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeStoreInt( int idx ) throws IOException {
+    protected void writeStore( int idx ) throws IOException {
         codeStream.write( SET_LOCAL );
         codeStream.writeVaruint32( idx );
     }

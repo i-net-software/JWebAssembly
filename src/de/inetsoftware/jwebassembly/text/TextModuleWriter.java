@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.text;
 
 import java.io.IOException;
+import java.util.List;
 
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -79,7 +80,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodFinish() throws IOException {
+    protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
         inset--;
         newline();
         output.append( ')' );
@@ -91,14 +92,14 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeConstInt( int value ) throws IOException {
         newline();
-        output.append( "i32.const " ).append( Integer.toString( value ));
+        output.append( "i32.const " ).append( Integer.toString( value ) );
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeLoadInt( int idx ) throws IOException {
+    protected void writeLoad( int idx ) throws IOException {
         newline();
         output.append( "get_local " ).append( Integer.toString( idx ) );
     }
@@ -107,7 +108,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeStoreInt( int idx ) throws IOException {
+    protected void writeStore( int idx ) throws IOException {
         newline();
         output.append( "set_local " ).append( Integer.toString( idx ) );
     }

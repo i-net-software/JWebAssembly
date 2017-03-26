@@ -17,6 +17,11 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
@@ -31,6 +36,10 @@ import de.inetsoftware.jwebassembly.WasmException;
  * @author Volker Berlin
  */
 public abstract class ModuleWriter implements Closeable {
+
+    private int                  paramCount;
+
+    private ArrayList<ValueType> locals = new ArrayList<>();
 
     /**
      * Write the content of the class to the
@@ -65,10 +74,11 @@ public abstract class ModuleWriter implements Closeable {
      *             if some Java code can't converted
      */
     private void writeMethod( MethodInfo method ) throws IOException, WasmException {
-        writeMethodStart( method.getName() );
-        writeMethodSignature( method );
         Code code = method.getCode();
-        if( code != null ) {
+        if( code != null ) { // abstract methods and interface methods does not have code
+            writeMethodStart( method.getName() );
+            writeMethodSignature( method );
+            locals.clear();
             LineNumberTable lineNumberTable = code.getLineNumberTable();
             if( lineNumberTable != null ) {
                 int lineNumber;
@@ -85,8 +95,11 @@ public abstract class ModuleWriter implements Closeable {
                 CodeInputStream byteCode = code.getByteCode();
                 writeCodeChunk( byteCode, -1 );
             }
+            for( int i = 0; i < paramCount; i++ ) {
+                locals.remove( 0 );
+            }
+            writeMethodFinish( locals );
         }
-        writeMethodFinish();
     }
 
     /**
@@ -112,7 +125,9 @@ public abstract class ModuleWriter implements Closeable {
     private void writeMethodSignature( MethodInfo method ) throws IOException, WasmException {
         String signature = method.getDescription();
         String kind = "param";
+        int paramCount = 0;
         for( int i = 1; i < signature.length(); i++ ) {
+            paramCount++;
             String javaType;
             switch( signature.charAt( i ) ) {
                 case '[': // array
@@ -142,13 +157,13 @@ public abstract class ModuleWriter implements Closeable {
                 case 'V': // void
                     continue;
                 case ')':
+                    this.paramCount = paramCount - 1;
                     kind = "return";
                     continue;
                 default:
                     javaType = signature.substring( i, i + 1 );
             }
-            Code code = method.getCode();
-            int lineNumber = code == null ? -1 : code.getFirstLineNr();
+            int lineNumber = method.getCode().getFirstLineNr();
             throw new WasmException( "Not supported Java data type in method signature: " + javaType, lineNumber );
         }
     }
@@ -168,10 +183,13 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Complete the method
      * 
+     * @param locals
+     *            a list with types of local variables
+     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodFinish() throws IOException;
+    protected abstract void writeMethodFinish( List<ValueType> locals ) throws IOException;
 
     /**
      * Write a chunk of byte code.
@@ -192,10 +210,16 @@ public abstract class ModuleWriter implements Closeable {
                         writeConstInt( 1 );
                         break;
                     case 26: // iload_0
-                        writeLoadInt( 0 );
+                    case 27: // iload_1
+                    case 28: // iload_2
+                    case 29: // iload_3
+                        writeLoadStore( true, ValueType.i32, op - 26 );
                         break;
+                    case 59: // istore_0
                     case 60: // istore_1
-                        writeStoreInt( 1 );
+                    case 61: // istore_2
+                    case 62: // istore_3
+                        writeLoadStore( false, ValueType.i32, op - 59 );
                         break;
                     case 96: // iadd
                         writeAddInt();
@@ -213,7 +237,7 @@ public abstract class ModuleWriter implements Closeable {
     }
 
     /**
-     * Write a const integer value
+     * Write a constant integer value
      * 
      * @param value
      *            the value
@@ -222,25 +246,41 @@ public abstract class ModuleWriter implements Closeable {
      */
     protected abstract void writeConstInt( int value ) throws IOException;
 
-    /**
-     * Write a load integer
-     * 
-     * @param idx
-     *            the index of the parameter variable
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    protected abstract void writeLoadInt( int idx ) throws IOException;
+    private void writeLoadStore( boolean load, @Nonnull ValueType valueType, @Nonnegative int idx ) throws WasmException, IOException {
+        while( locals.size() <= idx ) {
+            locals.add( null );
+        }
+        ValueType oldType = locals.get( idx );
+        if( oldType != null && oldType != valueType ) {
+            throw new WasmException( "Redefine local variable type from " + oldType + " to " + valueType, -1 );
+        }
+        locals.set( idx, valueType );
+        if( load ) {
+            writeLoad( idx );
+        } else {
+            writeStore( idx );
+        }
+    }
 
     /**
-     * Write a store integer.
+     * Write a variable load.
      * 
      * @param idx
      *            the index of the parameter variable
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeStoreInt( int idx ) throws IOException;
+    protected abstract void writeLoad( int idx ) throws IOException;
+
+    /**
+     * Write a variable store.
+     * 
+     * @param idx
+     *            the index of the parameter variable
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeStore( int idx ) throws IOException;
 
     /**
      * Write a add operator
