@@ -142,4 +142,14 @@ class WasmOutputStream extends FilterOutputStream {
         ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
         baos.writeTo( output );
     }
+
+    /**
+     * The count of bytes in the stream. Work only for in memory stream.
+     * 
+     * @return the data size
+     */
+    int size() {
+        ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
+        return baos.size();
+    }
 }
