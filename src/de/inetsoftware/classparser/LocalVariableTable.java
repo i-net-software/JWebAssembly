@@ -31,9 +31,7 @@ public class LocalVariableTable {
 
     private LocalVariable[] table;
 
-    protected LocalVariableTable() {
-
-    }
+    private int count;
 
     /**
      * @param maxLocals the count of local variables in the memory
@@ -53,7 +51,7 @@ public class LocalVariableTable {
      * @throws IOException
      */
     void read( DataInputStream input, boolean withPositions ) throws IOException {
-        int count = input.readUnsignedShort();
+        count = input.readUnsignedShort();
         if( count > table.length ) {
             table = new LocalVariable[count];
             tablePosition = new LocalVariable[count];
@@ -68,6 +66,22 @@ public class LocalVariableTable {
         }
     }
 
+    /**
+     * Get the count of variables.
+     * @return the count
+     */
+    public int getPositionSize() {
+        return count;
+    }
+
+    /**
+     * Get the count of storage places a 4 bytes for local variables. Double and long variables need 2 of this places.
+     * 
+     * @return the local stack size
+     */
+    public int getSize() {
+        return table.length;
+    }
 
     /**
      * Get the LocalVariable with it position. The position is continue also with double and long variables. Or if a variable is reused from a other block.
@@ -81,7 +95,7 @@ public class LocalVariableTable {
     }
 
     /**
-     * Get the LocalVariable with it position. The index has empty places with double and long variables.
+     * Get the LocalVariable with its memory location. The index has empty places with double and long variables.
      *
      * @param idx
      *            the index in the memory
