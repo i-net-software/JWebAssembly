@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.binary;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,6 +47,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Function> functions           = new LinkedHashMap<>();
 
+    private Map<String, String>   exports             = new LinkedHashMap<>();
+
     private Function              function;
 
     private FunctionType          functionType;
@@ -72,6 +75,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
         writeTypeSection();
         writeFunctionSection();
+        writeExportSection();
         writeCodeSection();
 
         wasm.close();
@@ -124,6 +128,30 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     }
 
     /**
+     * Write the export section to the output. This section contains a mapping from the external index to the type signature index.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeExportSection() throws IOException {
+        int count = exports.size();
+        if( count > 0 ) {
+            WasmOutputStream stream = new WasmOutputStream();
+            stream.writeVaruint32( count );
+            for( Map.Entry<String,String> entry : exports.entrySet() ) {
+                String exportName = entry.getKey();
+                byte[] bytes = exportName.getBytes( StandardCharsets.UTF_8 );
+                stream.writeVaruint32( bytes.length );
+                stream.write( bytes );
+                stream.writeVaruint32( ExternalKind.Function.ordinal() );
+                int id = functions.get( entry.getValue() ).id;
+                stream.writeVaruint32( id );
+            }
+            wasm.writeSection( SectionType.Export, stream, null );
+        }
+    }
+
+    /**
      * Write the code section to the output. This section contains the byte code.
      * 
      * @throws IOException
@@ -138,6 +166,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         stream.writeVaruint32( size );
         functionsStream.writeTo( stream );
         wasm.writeSection( SectionType.Code, stream, null );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeExport( String methodName, String exportName ) throws IOException {
+        exports.put( exportName, methodName );
     }
 
     /**

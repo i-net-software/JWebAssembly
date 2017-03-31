@@ -19,10 +19,12 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.classparser.Annotations;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
@@ -76,7 +78,9 @@ public abstract class ModuleWriter implements Closeable {
     private void writeMethod( MethodInfo method ) throws IOException, WasmException {
         Code code = method.getCode();
         if( code != null ) { // abstract methods and interface methods does not have code
-            writeMethodStart( method.getName() );
+            String methodName = method.getName(); // TODO naming conversion rule
+            writeExport( methodName, method );
+            writeMethodStart( methodName );
             writeMethodSignature( method );
             locals.clear();
             LineNumberTable lineNumberTable = code.getLineNumberTable();
@@ -101,6 +105,38 @@ public abstract class ModuleWriter implements Closeable {
             writeMethodFinish( locals );
         }
     }
+
+    /**
+     * Look for a Export annotation and if there write an export directive.
+     * @param methodName
+     * @param method
+     * @throws IOException
+     */
+    private void writeExport( String methodName, MethodInfo method ) throws IOException {
+        Annotations annotations = method.getRuntimeInvisibleAnnotations();
+        if( annotations != null ) {
+            Map<String,Object> export = annotations.get( "org.webassembly.annotation.Export" );
+            if( export != null ) {
+                String exportName = (String)export.get( "name" );
+                if( exportName == null ) {
+                    exportName = methodName;
+                }
+                writeExport( methodName, exportName );
+            }
+        }
+    }
+
+    /**
+     * Write an export directive
+     * 
+     * @param methodName
+     *            the method name
+     * @param exportName
+     *            the export name, if null then the same like the method name
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeExport( String methodName, String exportName ) throws IOException;
 
     /**
      * Write the method header.

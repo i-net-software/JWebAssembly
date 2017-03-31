@@ -63,6 +63,15 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
+    protected void writeExport( String methodName, String exportName ) throws IOException {
+        newline( output );
+        output.append( "(export \"" ).append( exportName ).append( "\" (func $" ).append( methodName ).append( "))" );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeMethodStart( String name ) throws IOException {
         newline( output );
         output.append( "(func $" );
