@@ -18,6 +18,8 @@ package de.inetsoftware.classparser;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import de.inetsoftware.classparser.Attributes.AttributeInfo;
 
@@ -134,5 +136,17 @@ public class MethodInfo {
             exceptions = new Exceptions( data.getDataInputStream(), constantPool );
         }
         return exceptions;
+    }
+
+    /**
+     * Get the annotations with @Retention(RetentionPolicy.CLASS)
+     * @return the annotations if there any exists else null
+     */
+    public Annotations getRuntimeInvisibleAnnotations() throws IOException {
+        AttributeInfo data = attributes.get( "RuntimeInvisibleAnnotations" );
+        if( data != null ) {
+            return new Annotations( data.getDataInputStream(), constantPool );
+        }
+        return null;
     }
 }
