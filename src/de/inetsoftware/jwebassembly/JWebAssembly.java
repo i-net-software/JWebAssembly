@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -96,6 +97,22 @@ public class JWebAssembly {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         compileToBinary( output );
         return output.toByteArray();
+    }
+
+    /**
+     * Convert the added files to a WebAssembly module in binary representation.
+     * 
+     * @param file
+     *            the target for the module data
+     * @throws WasmException
+     *             if any conversion error occurs
+     */
+    public void compileToBinary( File file ) throws WasmException {
+        try (FileOutputStream output = new FileOutputStream( file )) {
+            compileToBinary( output );
+        } catch( Exception ex ) {
+            throw WasmException.create( ex );
+        }
     }
 
     /**
