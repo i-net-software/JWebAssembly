@@ -245,6 +245,9 @@ public abstract class ModuleWriter implements Closeable {
                     case 4: // iconst_1
                         writeConstInt( 1 );
                         break;
+                    case 16: //bipush
+                        writeConstInt( byteCode.readByte() );
+                        break;
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
@@ -260,6 +263,7 @@ public abstract class ModuleWriter implements Closeable {
                     case 96: // iadd
                         writeAddInt();
                         break;
+                    case 172: // ireturn
                     case 177: // return void
                         writeReturn();
                         break;
