@@ -18,10 +18,11 @@ package de.inetsoftware.jwebassembly;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ import de.inetsoftware.jwebassembly.text.TextModuleWriter;
  */
 public class JWebAssembly {
 
-    private List<File> classFiles = new ArrayList<File>();
+    private List<URL> classFiles = new ArrayList<>();
 
     /**
      * Create a instance.
@@ -54,6 +55,20 @@ public class JWebAssembly {
      *            the file
      */
     public void addFile( @Nonnull File classFile ) {
+        try {
+            classFiles.add( classFile.toURI().toURL() );
+        } catch( MalformedURLException ex ) {
+            throw new IllegalArgumentException( ex );
+        }
+    }
+
+    /**
+     * Add a classFile to compile
+     * 
+     * @param classFile
+     *            the file
+     */
+    public void addFile( @Nonnull URL classFile ) {
         classFiles.add( classFile );
     }
 
@@ -142,8 +157,8 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compile( ModuleWriter writer ) throws IOException, WasmException {
-        for( File file : classFiles ) {
-            ClassFile classFile = new ClassFile( new BufferedInputStream( new FileInputStream( file ) ) );
+        for( URL url : classFiles ) {
+            ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             writer.write( classFile );
         }
     }
