@@ -32,9 +32,18 @@ sourceSets {
     }
 }
 
-test.dependsOn 'nodeSetup'
-
 node {
-    version = '7.7.4'
-//    download = true
+    version = '7.8.0'
+    download = true
+}
+
+task nodeVersion(type: NodeTask) {
+    test.dependsOn it
+    options = ['-v']
+    script = file('scriptDoesNotExists.js')
+    doLast {
+        def nodeDir = nodeSetup.getNodeDir()
+        println nodeDir
+        test.systemProperty 'node.dir', nodeDir
+    }
 }
