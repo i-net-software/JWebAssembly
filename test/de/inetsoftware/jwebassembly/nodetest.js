@@ -18,6 +18,6 @@ dependencies["global.Math"] = Math;
 
 
 instantiate( ret, dependencies ).then( 
-  instance => console.log( instance.exports[process.argv[2]]( process.argv.slice(3) ) ),
+  instance => console.log( instance.exports[process.argv[2]]( ...process.argv.slice(3) ) ),
   reason => console.log(reason)
 );

@@ -16,6 +16,6 @@ dependencies["global.Math"] = Math;
 
 
 instantiate( ret, dependencies ).then( 
-  instance => console.log( instance.exports[scriptArgs[0]]( scriptArgs.slice(1) ) ),
+  instance => console.log( instance.exports[scriptArgs[0]]( ...scriptArgs.slice(1) ) ),
   reason => console.log(reason)
 );
