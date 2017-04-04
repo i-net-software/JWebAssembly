@@ -47,3 +47,9 @@ task nodeVersion(type: NodeTask) {
         test.systemProperty 'node.dir', nodeDir
     }
 }
+
+test {
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
+}
+
