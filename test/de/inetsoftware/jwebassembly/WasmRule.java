@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -32,13 +33,17 @@ import org.junit.rules.TemporaryFolder;
  * 
  * @author Volker Berlin
  */
-public class WasmNodeRule extends TemporaryFolder {
+public class WasmRule extends TemporaryFolder {
 
-    private final Class<?>[] classes;
+    private static final SpiderMonkey spiderMonkey = new SpiderMonkey();
 
-    private File             wasmFile;
+    private final Class<?>[]          classes;
 
-    private File             scriptFile;
+    private File                      wasmFile;
+
+    private File                      nodeScript;
+
+    private File                      spiderMonkeyScript;
 
     /**
      * Compile the given classes to a Wasm and save it to a file.
@@ -46,7 +51,7 @@ public class WasmNodeRule extends TemporaryFolder {
      * @param classes
      *            list of classes to compile
      */
-    public WasmNodeRule( Class<?>... classes ) {
+    public WasmRule( Class<?>... classes ) {
         if( classes == null || classes.length == 0 ) {
             throw new IllegalArgumentException( "You need to set minimum one test class" );
         }
@@ -68,16 +73,31 @@ public class WasmNodeRule extends TemporaryFolder {
             }
             wasm.compileToBinary( wasmFile );
 
-            scriptFile = newFile( "test.js" );
-            URL scriptUrl = getClass().getResource( "nodetest.js" );
-            String expected = readStream( scriptUrl.openStream() );
-            expected = expected.replace( "{test.wasm}", wasmFile.getAbsolutePath().replace( '\\', '/' ) );
-            try (FileOutputStream scriptStream = new FileOutputStream( scriptFile )) {
-                scriptStream.write( expected.getBytes( StandardCharsets.UTF_8 ) );
-            }
+            nodeScript = createScript( "nodetest.js" );
+            spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
         } catch( Exception ex ) {
             throwException( ex );
         }
+    }
+
+    /**
+     * Load a script resource, patch it and save it
+     * 
+     * @param name
+     *            the resource name
+     * @return The saved file name
+     * @throws IOException
+     *             if any IO error occur
+     */
+    private File createScript( String name ) throws IOException {
+        File file = newFile( name );
+        URL scriptUrl = getClass().getResource( name );
+        String expected = readStream( scriptUrl.openStream() );
+        expected = expected.replace( "{test.wasm}", wasmFile.getName() );
+        try (FileOutputStream scriptStream = new FileOutputStream( file )) {
+            scriptStream.write( expected.getBytes( StandardCharsets.UTF_8 ) );
+        }
+        return file;
     }
 
     /**
@@ -86,10 +106,13 @@ public class WasmNodeRule extends TemporaryFolder {
      * 
      * @param methodName
      *            the method name of the test.
+     * @param script
+     *            The script engine
      * @param params
      *            the parameters for the method
      */
-    public void test( String methodName, Object... params ) {
+    public void test( ScriptEngine script, String methodName, Object... params ) {
+        Object expected;
         try {
             Class<?>[] types = new Class[params.length];
             for( int i = 0; i < types.length; i++ ) {
@@ -113,27 +136,58 @@ public class WasmNodeRule extends TemporaryFolder {
                 }
             }
             method.setAccessible( true );
-            Object expected = method.invoke( null, params );
+            expected = method.invoke( null, params );
 
-            String command = System.getProperty( "node.dir" );
-            command = command == null ? "node" : command + "/node";
-            ProcessBuilder processBuilder =
-                            new ProcessBuilder( command, scriptFile.getAbsolutePath(), methodName );
+            ProcessBuilder processBuilder;
+            switch( script ) {
+                case SpiderMonkey:
+                    processBuilder = spiderMonkeyCommand();
+                    break;
+                case NodeJS:
+                    processBuilder = nodeJsCommand();
+                    break;
+                default:
+                    throw new IllegalStateException( script.toString() );
+            }
+            processBuilder.command().add( methodName );
             for( int i = 0; i < params.length; i++ ) {
                 processBuilder.command().add( String.valueOf( params[i] ) );
-
             }
+            processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
-            String result = readStream( process.getInputStream() );
+            String actual = readStream( process.getInputStream() ).trim();
             if( exitCode != 0 ) {
                 String errorMessage = readStream( process.getErrorStream() );
                 assertEquals( errorMessage, 0, exitCode );
             }
-            assertEquals( String.valueOf( expected ), result );
+            assertEquals( String.valueOf( expected ), actual );
         } catch( Exception ex ) {
             throwException( ex );
+            return;
         }
+    }
+
+    /**
+     * Create a ProcessBuilder for spider monkey script shell.
+     * 
+     * @return the value from the script
+     * @throws IOException
+     *             if the download failed
+     */
+    private ProcessBuilder spiderMonkeyCommand() throws IOException {
+        return new ProcessBuilder( spiderMonkey.getCommand(), spiderMonkeyScript.getAbsolutePath() );
+    }
+
+    /**
+     * Create a ProcessBuilder for node.js
+     * 
+     * @return the value from the script
+     */
+    private ProcessBuilder nodeJsCommand() {
+        String command = System.getProperty( "node.dir" );
+        command = command == null ? "node" : command + "/node";
+        return new ProcessBuilder( command, nodeScript.getAbsolutePath() );
     }
 
     /**
@@ -144,7 +198,7 @@ public class WasmNodeRule extends TemporaryFolder {
      * @return the string
      */
     public static String readStream( InputStream input ) {
-        try (Scanner scanner = new Scanner( input ).useDelimiter( "\\A" ) ) {
+        try (Scanner scanner = new Scanner( input ).useDelimiter( "\\A" )) {
             return scanner.hasNext() ? scanner.next() : "";
         }
     }
