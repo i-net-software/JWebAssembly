@@ -82,6 +82,9 @@ public class SpiderMonkey {
 
             Files.copy( zip, file.toPath(), StandardCopyOption.REPLACE_EXISTING );
             file.setLastModified( entry.getTime() );
+            if( "js".equals( file.getName() ) ) {
+                file.setExecutable( true );
+            }
         } while( true );
         target.setLastModified( lastModfied );
     }
