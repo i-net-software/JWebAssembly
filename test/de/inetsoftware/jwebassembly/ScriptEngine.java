@@ -15,10 +15,19 @@
  */
 package de.inetsoftware.jwebassembly;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 /**
  * @author Volker Berlin
  */
 public enum ScriptEngine {
     NodeJS,
-    SpiderMonkey,
+    SpiderMonkey;
+
+    public static Collection<Object[]> testParams() {
+        Object[][] val = {{ScriptEngine.SpiderMonkey}/*,{ScriptEngine.NodeJS}*/};
+        return Arrays.asList(val);
+    }
 }
+
