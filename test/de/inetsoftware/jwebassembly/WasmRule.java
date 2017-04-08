@@ -104,10 +104,10 @@ public class WasmRule extends TemporaryFolder {
      * Run a test single test. It run the method in Java and call it via node in the WenAssembly. If the result are
      * different it fire an error.
      * 
-     * @param methodName
-     *            the method name of the test.
      * @param script
      *            The script engine
+     * @param methodName
+     *            the method name of the test.
      * @param params
      *            the parameters for the method
      */
@@ -138,6 +138,27 @@ public class WasmRule extends TemporaryFolder {
             method.setAccessible( true );
             expected = method.invoke( null, params );
 
+            String actual = evalWasm( script, methodName, params );
+            assertEquals( String.valueOf( expected ), actual );
+        } catch( Exception ex ) {
+            throwException( ex );
+            return;
+        }
+    }
+
+    /**
+     * Evaluate the wasm exported function.
+     * 
+     * @param script
+     *            The script engine
+     * @param methodName
+     *            the method name of the test.
+     * @param params
+     *            the parameters for the method
+     * @return the output of the script
+     */
+    public String evalWasm( ScriptEngine script, String methodName, Object... params ) {
+        try {
             ProcessBuilder processBuilder;
             switch( script ) {
                 case SpiderMonkey:
@@ -156,15 +177,15 @@ public class WasmRule extends TemporaryFolder {
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
-            String actual = readStream( process.getInputStream() ).trim();
+            String result = readStream( process.getInputStream() ).trim();
             if( exitCode != 0 ) {
                 String errorMessage = readStream( process.getErrorStream() );
                 assertEquals( errorMessage, 0, exitCode );
             }
-            assertEquals( String.valueOf( expected ), actual );
+            return result;
         } catch( Exception ex ) {
             throwException( ex );
-            return;
+            return null;
         }
     }
 
