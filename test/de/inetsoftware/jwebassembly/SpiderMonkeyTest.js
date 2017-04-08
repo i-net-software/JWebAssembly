@@ -14,8 +14,15 @@ var dependencies = {
 };
 dependencies["global.Math"] = Math;
 
+function callExport(instance) {
+    try{
+        console.log( instance.exports[scriptArgs[0]]( ...scriptArgs.slice(1) ) );
+    }catch(err){
+        console.log(err)
+    }
+}
 
 instantiate( ret, dependencies ).then( 
-  instance => console.log( instance.exports[scriptArgs[0]]( ...scriptArgs.slice(1) ) ),
+  instance => callExport(instance),
   reason => console.log(reason)
 );
