@@ -18,8 +18,6 @@ package de.inetsoftware.classparser;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 
 import de.inetsoftware.classparser.Attributes.AttributeInfo;
 
@@ -148,5 +146,13 @@ public class MethodInfo {
             return new Annotations( data.getDataInputStream(), constantPool );
         }
         return null;
+    }
+
+    /**
+     * Get the constant pool of the the current class.
+     * @return the constant pool
+     */
+    public ConstantPool getConstantPool() {
+        return constantPool;
     }
 }
