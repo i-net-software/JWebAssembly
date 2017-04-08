@@ -90,9 +90,9 @@ class WasmOutputStream extends FilterOutputStream {
      * @throws IOException
      *             if an I/O error occurs.
      */
-    void writeVarint32( int value ) throws IOException {
+    void writeVarint( long value ) throws IOException {
         while( true ) {
-            int b = value & 0x7F;
+            int b = (int)value & 0x7F;
             value >>= 7;
 
             /* sign bit of byte is second high order bit (0x40) */

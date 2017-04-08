@@ -93,16 +93,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             WasmOutputStream stream = new WasmOutputStream();
             stream.writeVaruint32( count );
             for( FunctionType type : functionTypes ) {
-                stream.writeVarint32( ValueType.func.getCode() );
+                stream.writeVarint( ValueType.func.getCode() );
                 stream.writeVaruint32( type.params.size() );
                 for( ValueType valueType : type.params ) {
-                    stream.writeVarint32( valueType.getCode() );
+                    stream.writeVarint( valueType.getCode() );
                 }
                 if( type.result == null ) {
                     stream.writeVaruint32( 0 );
                 } else {
                     stream.writeVaruint32( 1 );
-                    stream.writeVarint32( type.result.getCode() );
+                    stream.writeVarint( type.result.getCode() );
                 }
             }
             wasm.writeSection( SectionType.Type, stream, null );
@@ -217,7 +217,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         localsStream.writeVaruint32( locals.size() );
         for( ValueType valueType : locals ) {
             localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
-            localsStream.writeVarint32( valueType.getCode() );
+            localsStream.writeVarint( valueType.getCode() );
         }
         functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
         localsStream.writeTo( functionsStream );
@@ -231,7 +231,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void writeConstInt( int value ) throws IOException {
         codeStream.write( I32_CONST );
-        codeStream.writeVarint32( value );
+        codeStream.writeVarint( value );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeConstLong( long value ) throws IOException {
+        codeStream.write( I64_CONST );
+        codeStream.writeVarint( value );
     }
 
     /**

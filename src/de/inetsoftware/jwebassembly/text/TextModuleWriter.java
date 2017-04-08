@@ -115,6 +115,15 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
+    protected void writeConstLong( long value ) throws IOException {
+        newline( methodOutput );
+        methodOutput.append( "i64.const " ).append( Long.toString( value ) );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeLoad( int idx ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "get_local " ).append( Integer.toString( idx ) );

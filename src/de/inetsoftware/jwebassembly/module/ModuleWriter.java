@@ -28,6 +28,7 @@ import de.inetsoftware.classparser.Annotations;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
+import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.LineNumberTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
@@ -93,11 +94,11 @@ public abstract class ModuleWriter implements Closeable {
                                     i + 1 == lineNumberTable.size() ? code.getCodeSize()
                                                     : lineNumberTable.getStartOffset( i + 1 );
                     CodeInputStream byteCode = code.getByteCode( offset, nextOffset - offset );
-                    writeCodeChunk( byteCode, lineNumber );
+                    writeCodeChunk( byteCode, lineNumber, method.getConstantPool() );
                 }
             } else {
                 CodeInputStream byteCode = code.getByteCode();
-                writeCodeChunk( byteCode, -1 );
+                writeCodeChunk( byteCode, -1, method.getConstantPool() );
             }
             for( int i = Math.min( paramCount, locals.size() ); i > 0; i-- ) {
                 locals.remove( 0 );
@@ -237,7 +238,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeCodeChunk( CodeInputStream byteCode, int lineNumber ) throws WasmException {
+    private void writeCodeChunk( CodeInputStream byteCode, int lineNumber, ConstantPool constantPool  ) throws WasmException {
         try {
             while( byteCode.available() > 0 ) {
                 int op = byteCode.readUnsignedByte();
@@ -247,6 +248,9 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 16: //bipush
                         writeConstInt( byteCode.readByte() );
+                        break;
+                    case 20: //ldc2_w
+                        writeConstLong( (Long)constantPool.get( byteCode.readUnsignedShort() ) );
                         break;
                     case 26: // iload_0
                     case 27: // iload_1
@@ -264,6 +268,7 @@ public abstract class ModuleWriter implements Closeable {
                         writeAddInt();
                         break;
                     case 172: // ireturn
+                    case 173: // lreturn
                     case 177: // return void
                         writeReturn();
                         break;
@@ -286,6 +291,30 @@ public abstract class ModuleWriter implements Closeable {
      */
     protected abstract void writeConstInt( int value ) throws IOException;
 
+    /**
+     * Write a constant long value
+     * 
+     * @param value
+     *            the value
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeConstLong( long value ) throws IOException;
+
+    /**
+     * Write or Load a local variable.
+     * 
+     * @param load
+     *            true: if load
+     * @param valueType
+     *            the type of the variable
+     * @param idx
+     *            the idx of the variable
+     * @throws WasmException
+     *             occur a if a variable was used for a different type
+     * @throws IOException
+     *             if any I/O error occur
+     */
     private void writeLoadStore( boolean load, @Nonnull ValueType valueType, @Nonnegative int idx ) throws WasmException, IOException {
         while( locals.size() <= idx ) {
             locals.add( null );
