@@ -45,8 +45,7 @@ public class MathOperations {
 
     @Parameters(name="{0}")
     public static Collection<Object[]> data() {
-        Object[][] val = {{ScriptEngine.SpiderMonkey}/*,{ScriptEngine.NodeJS}*/};
-        return Arrays.asList(val);
+        return ScriptEngine.testParams();
     }
 
     @Test
