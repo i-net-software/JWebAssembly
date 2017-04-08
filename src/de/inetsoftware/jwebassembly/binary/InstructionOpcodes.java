@@ -45,6 +45,12 @@ interface InstructionOpcodes {
 
     static final int I32_CONST = 0x41;
 
+    static final int I64_CONST = 0x42;
+
+    static final int F32_CONST = 0x43;
+
+    static final int F64_CONST = 0x44;
+
     static final int I32_ADD   = 0x6A;
 
 }
