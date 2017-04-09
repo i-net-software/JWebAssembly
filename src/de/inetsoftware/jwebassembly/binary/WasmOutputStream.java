@@ -54,10 +54,10 @@ class WasmOutputStream extends FilterOutputStream {
      *             if an I/O error occurs.
      */
     void writeInt32( int value ) throws IOException {
-        write( (value >>> 0) & 0xFF );
-        write( (value >>> 8) & 0xFF );
-        write( (value >>> 16) & 0xFF );
-        write( (value >>> 24) & 0xFF );
+        write( value >>> 0 );
+        write( value >>> 8 );
+        write( value >>> 16 );
+        write( value >>> 24 );
     }
 
     /**
@@ -103,6 +103,48 @@ class WasmOutputStream extends FilterOutputStream {
                 write( b | 0x80 );
             }
         }
+    }
+
+    /**
+     * Write an float value.
+     * 
+     * @param value
+     *            the value
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    void writeFloat( float value ) throws IOException {
+        int i = Float.floatToIntBits( value );
+        writeInt( i );
+    }
+
+    /**
+     * Write an integer value as big endian (ever 4 bytes).
+     * 
+     * @param value
+     *            the value
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    void writeInt( int value ) throws IOException {
+        write( value >>> 24 );
+        write( value >>> 16 );
+        write( value >>> 8 );
+        write( value >>> 0 );
+    }
+
+    /**
+     * Write an double value.
+     * 
+     * @param value
+     *            the value
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    void writeDouble( double value ) throws IOException {
+        long l = Double.doubleToLongBits(value);
+        writeInt( (int)(l >>> l) );
+        writeInt( (int)l );
     }
 
     /**
