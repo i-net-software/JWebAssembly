@@ -124,6 +124,24 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
+    protected void writeConstFloat( float value ) throws IOException {
+        newline( methodOutput );
+        methodOutput.append( "f32.const " ).append( Float.toString( value ) );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeConstDouble( double value ) throws IOException {
+        newline( methodOutput );
+        methodOutput.append( "f64.const " ).append( Double.toString( value ) );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeLoad( int idx ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "get_local " ).append( Integer.toString( idx ) );

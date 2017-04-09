@@ -249,8 +249,11 @@ public abstract class ModuleWriter implements Closeable {
                     case 16: //bipush
                         writeConstInt( byteCode.readByte() );
                         break;
+                    case 18: //ldc
+                        writeConst( constantPool.get( byteCode.readUnsignedByte() ) );
+                        break;
                     case 20: //ldc2_w
-                        writeConstLong( (Long)constantPool.get( byteCode.readUnsignedShort() ) );
+                        writeConst( constantPool.get( byteCode.readUnsignedShort() ) );
                         break;
                     case 26: // iload_0
                     case 27: // iload_1
@@ -269,6 +272,8 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 172: // ireturn
                     case 173: // lreturn
+                    case 174: // freturn
+                    case 175: // dreturn
                     case 177: // return void
                         writeReturn();
                         break;
@@ -278,6 +283,21 @@ public abstract class ModuleWriter implements Closeable {
             }
         } catch( Exception ex ) {
             throw WasmException.create( ex, lineNumber );
+        }
+    }
+
+    private void writeConst( Object value ) throws IOException, WasmException {
+        Class<?> clazz = value.getClass();
+        if( clazz == Integer.class ) {
+            writeConstInt( ((Integer)value).intValue() );
+        } else if( clazz == Long.class ) {
+            writeConstLong( ((Long)value).longValue() );
+        } else if( clazz == Float.class ) {
+            writeConstFloat( ((Float)value).floatValue() );
+        } else if( clazz == Double.class ) {
+            writeConstDouble( ((Double)value).doubleValue() );
+        } else {
+            throw new WasmException( "Not supported constant type: " + clazz, -1 );
         }
     }
 
@@ -300,6 +320,26 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeConstLong( long value ) throws IOException;
+
+    /**
+     * Write a constant float value
+     * 
+     * @param value
+     *            the value
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeConstFloat( float value ) throws IOException;
+
+    /**
+     * Write a constant double value
+     * 
+     * @param value
+     *            the value
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeConstDouble( double value ) throws IOException;
 
     /**
      * Write or Load a local variable.

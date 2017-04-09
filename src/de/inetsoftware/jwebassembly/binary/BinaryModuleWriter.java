@@ -247,6 +247,24 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
+    protected void writeConstFloat( float value ) throws IOException {
+        codeStream.write( F32_CONST );
+        codeStream.writeFloat( value );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeConstDouble( double value ) throws IOException {
+        codeStream.write( F64_CONST );
+        codeStream.writeDouble( value );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeLoad( int idx ) throws IOException {
         codeStream.write( GET_LOCAL );
         codeStream.writeVaruint32( idx );
