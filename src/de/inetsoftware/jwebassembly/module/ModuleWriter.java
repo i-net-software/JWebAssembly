@@ -297,8 +297,14 @@ public abstract class ModuleWriter implements Closeable {
                     case 96: // iadd
                         writeAdd( ValueType.i32);
                         break;
+                    case 97: // ladd
+                        writeAdd( ValueType.i64 );
+                        break;
                     case 98: // fadd
                         writeAdd( ValueType.f32 );
+                        break;
+                    case 99: // dadd
+                        writeAdd( ValueType.f64 );
                         break;
                     case 172: // ireturn
                     case 173: // lreturn
