@@ -44,6 +44,8 @@ public abstract class ModuleWriter implements Closeable {
 
     private ArrayList<ValueType> locals = new ArrayList<>();
 
+    private String               sourceFile;
+
     /**
      * Write the content of the class to the
      * 
@@ -55,6 +57,10 @@ public abstract class ModuleWriter implements Closeable {
      *             if some Java code can't converted
      */
     public void write( ClassFile classFile ) throws IOException, WasmException {
+        sourceFile = classFile.getSourceFile();
+        if( sourceFile == null ) {
+            sourceFile = classFile.getThisClass().getName();
+        }
         MethodInfo[] methods = classFile.getMethods();
         for( MethodInfo method : methods ) {
             Code code = method.getCode();
@@ -201,7 +207,7 @@ public abstract class ModuleWriter implements Closeable {
                     javaType = signature.substring( i, i + 1 );
             }
             int lineNumber = method.getCode().getFirstLineNr();
-            throw new WasmException( "Not supported Java data type in method signature: " + javaType, lineNumber );
+            throw new WasmException( "Not supported Java data type in method signature: " + javaType, sourceFile, lineNumber );
         }
     }
 
@@ -235,6 +241,8 @@ public abstract class ModuleWriter implements Closeable {
      *            a stream of byte code
      * @param lineNumber
      *            the current line number
+     * @param constantPool
+     *            the constant pool of the the current class
      * @throws WasmException
      *             if some Java code can't converted
      */
@@ -278,14 +286,24 @@ public abstract class ModuleWriter implements Closeable {
                         writeReturn();
                         break;
                     default:
-                        throw new WasmException( "Unimplemented byte code operation: " + op, lineNumber );
+                        throw new WasmException( "Unimplemented byte code operation: " + op, sourceFile, lineNumber );
                 }
             }
         } catch( Exception ex ) {
-            throw WasmException.create( ex, lineNumber );
+            throw WasmException.create( ex, sourceFile, lineNumber );
         }
     }
 
+    /**
+     * Write a constant value.
+     * 
+     * @param value
+     *            the value
+     * @throws IOException
+     *             if any I/O error occur
+     * @throws WasmException
+     *             if the value type is not supported
+     */
     private void writeConst( Object value ) throws IOException, WasmException {
         Class<?> clazz = value.getClass();
         if( clazz == Integer.class ) {
@@ -297,7 +315,7 @@ public abstract class ModuleWriter implements Closeable {
         } else if( clazz == Double.class ) {
             writeConstDouble( ((Double)value).doubleValue() );
         } else {
-            throw new WasmException( "Not supported constant type: " + clazz, -1 );
+            throw new WasmException( "Not supported constant type: " + clazz, sourceFile, -1 );
         }
     }
 
@@ -361,7 +379,7 @@ public abstract class ModuleWriter implements Closeable {
         }
         ValueType oldType = locals.get( idx );
         if( oldType != null && oldType != valueType ) {
-            throw new WasmException( "Redefine local variable type from " + oldType + " to " + valueType, -1 );
+            throw new WasmException( "Redefine local variable type from " + oldType + " to " + valueType, sourceFile, -1 );
         }
         locals.set( idx, valueType );
         if( load ) {

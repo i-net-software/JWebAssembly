@@ -23,18 +23,23 @@ package de.inetsoftware.jwebassembly;
  */
 public class WasmException extends Exception {
 
-    private int lineNumber;
+    private int    lineNumber;
+
+    private String sourceFile;
 
     /**
      * Create a new instance.
      * 
      * @param message
      *            the error message
+     * @param sourceFile
+     *            the sourceFile of the Java code
      * @param lineNumber
      *            the line number in Java Code
      */
-    public WasmException( String message, int lineNumber ) {
+    public WasmException( String message, String sourceFile, int lineNumber ) {
         super( message );
+        this.sourceFile = sourceFile;
         this.lineNumber = lineNumber;
     }
 
@@ -54,12 +59,17 @@ public class WasmException extends Exception {
      * 
      * @param cause
      *            the wrapped cause
+     * @param sourceFile
+     *            the sourceFile of the Java code
      * @param lineNumber
      *            the line number in Java Code
      * @return a new instance
      */
-    public static WasmException create( Throwable cause, int lineNumber ) {
+    public static WasmException create( Throwable cause, String sourceFile, int lineNumber ) {
         WasmException wasmEx = create( cause );
+        if( wasmEx.sourceFile == null ) {
+            wasmEx.sourceFile = sourceFile;
+        }
         if( wasmEx.lineNumber < 0 ) {
             wasmEx.lineNumber = lineNumber;
         }
@@ -95,8 +105,11 @@ public class WasmException extends Exception {
     @Override
     public String toString() {
         String str = super.toString();
-        if( lineNumber > 0 ) {
-            str += " at line: " + lineNumber;
+        if( sourceFile != null || lineNumber > 0 ) {
+            str += " at " + (sourceFile != null ? sourceFile : "line");
+            if( lineNumber > 0 ) {
+                str += ":" + lineNumber;
+            }
         }
         return str;
     }
