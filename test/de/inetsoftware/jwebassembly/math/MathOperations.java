@@ -54,6 +54,16 @@ public class MathOperations {
     }
 
     @Test
+    public void floatConst() {
+        rule.test( script, "floatConst" );
+    }
+
+    @Test
+    public void doubleConst() {
+        rule.test( script, "doubleConst" );
+    }
+
+    @Test
     public void plus() {
         rule.test( script, "plus", 1, 3 );
     }
@@ -63,6 +73,16 @@ public class MathOperations {
         @Export
         static int intConst() {
             return 42;
+        }
+
+        @Export
+        static float floatConst() {
+            return 42.5F;
+        }
+
+        @Export
+        static double doubleConst() {
+            return 42.5;
         }
 
         @Export
