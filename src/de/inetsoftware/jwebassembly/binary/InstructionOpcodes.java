@@ -53,4 +53,9 @@ interface InstructionOpcodes {
 
     static final int I32_ADD   = 0x6A;
 
+    static final int I64_ADD   = 0x7C;
+
+    static final int F32_ADD   = 0x92;
+
+    static final int F64_ADD   = 0xA0;
 }
