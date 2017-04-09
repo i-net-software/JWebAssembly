@@ -121,6 +121,15 @@ public class WasmRule extends TemporaryFolder {
                     case "java.lang.Integer":
                         type = int.class;
                         break;
+                    case "java.lang.Long":
+                        type = long.class;
+                        break;
+                    case "java.lang.Float":
+                        type = float.class;
+                        break;
+                    case "java.lang.Double":
+                        type = double.class;
+                        break;
                 }
                 types[i] = type;
             }
