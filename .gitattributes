@@ -16,5 +16,5 @@
 *.rtf	 diff=astextplain
 *.RTF	 diff=astextplain
 
-*.java text
+*.java text eol=lf
 *.java diff=java
