@@ -31,6 +31,7 @@ import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.LineNumberTable;
+import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 
@@ -44,6 +45,8 @@ public abstract class ModuleWriter implements Closeable {
     private int                  paramCount;
 
     private ArrayList<ValueType> locals = new ArrayList<>();
+
+    private LocalVariableTable   localTable;
 
     private String               sourceFile;
 
@@ -91,6 +94,7 @@ public abstract class ModuleWriter implements Closeable {
             writeMethodStart( methodName );
             writeMethodSignature( method );
             locals.clear();
+            localTable = code.getLocalVariableTable();
             LineNumberTable lineNumberTable = code.getLineNumberTable();
             if( lineNumberTable != null ) {
                 int lineNumber;
@@ -395,13 +399,14 @@ public abstract class ModuleWriter implements Closeable {
      * @param valueType
      *            the type of the variable
      * @param idx
-     *            the idx of the variable
+     *            the memory/slot idx of the variable
      * @throws WasmException
      *             occur a if a variable was used for a different type
      * @throws IOException
      *             if any I/O error occur
      */
     private void writeLoadStore( boolean load, @Nonnull ValueType valueType, @Nonnegative int idx ) throws WasmException, IOException {
+        idx = localTable.get( idx ).getPosition(); // translate slot index to position index
         while( locals.size() <= idx ) {
             locals.add( null );
         }
