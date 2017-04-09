@@ -23,6 +23,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Annotations;
 import de.inetsoftware.classparser.ClassFile;
@@ -269,6 +270,24 @@ public abstract class ModuleWriter implements Closeable {
                     case 29: // iload_3
                         writeLoadStore( true, ValueType.i32, op - 26 );
                         break;
+                    case 30: // lload_0
+                    case 31: // lload_1
+                    case 32: // lload_2
+                    case 33: // lload_3
+                        writeLoadStore( true, ValueType.i64, op - 30 );
+                        break;
+                    case 34: // fload_0
+                    case 35: // fload_1
+                    case 36: // fload_2
+                    case 37: // fload_3
+                        writeLoadStore( true, ValueType.f32, op - 34 );
+                        break;
+                    case 38: // dload_0
+                    case 39: // dload_1
+                    case 40: // dload_2
+                    case 41: // dload_3
+                        writeLoadStore( true, ValueType.f64, op - 38 );
+                        break;
                     case 59: // istore_0
                     case 60: // istore_1
                     case 61: // istore_2
@@ -276,7 +295,10 @@ public abstract class ModuleWriter implements Closeable {
                         writeLoadStore( false, ValueType.i32, op - 59 );
                         break;
                     case 96: // iadd
-                        writeAddInt();
+                        writeAdd( ValueType.i32);
+                        break;
+                    case 98: // fadd
+                        writeAdd( ValueType.f32 );
                         break;
                     case 172: // ireturn
                     case 173: // lreturn
@@ -412,10 +434,13 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Write a add operator
      * 
+     * @param valueType
+     *            the type of the parameters
+     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeAddInt() throws IOException;
+    protected abstract void writeAdd( @Nullable ValueType valueType ) throws IOException;
 
     /**
      * Write a return

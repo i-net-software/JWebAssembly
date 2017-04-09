@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueType;
 
@@ -283,8 +285,21 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeAddInt() throws IOException {
-        codeStream.write( I32_ADD );
+    protected void writeAdd( @Nullable ValueType valueType ) throws IOException {
+        switch( valueType ) {
+            case i32:
+                codeStream.write( I32_ADD );
+                break;
+            case i64:
+                codeStream.write( I64_ADD );
+                break;
+            case f32:
+                codeStream.write( F32_ADD );
+                break;
+            case f64:
+                codeStream.write( F64_ADD );
+                break;
+        }
     }
 
     /**

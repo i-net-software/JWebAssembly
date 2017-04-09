@@ -18,6 +18,8 @@ package de.inetsoftware.jwebassembly.text;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueType;
 
@@ -160,9 +162,9 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeAddInt() throws IOException {
+    protected void writeAdd( @Nullable ValueType valueType ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( "i32.add" );
+        methodOutput.append( valueType ).append( ".add" );
     }
 
     /**
