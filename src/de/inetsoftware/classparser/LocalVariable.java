@@ -34,11 +34,9 @@ public class LocalVariable {
 
     private int index;
 
-    private boolean declared;
+    private int position;
 
-    protected LocalVariable() {
-        // nothing
-    }
+    private boolean declared;
 
     /**
      * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.13
@@ -47,21 +45,33 @@ public class LocalVariable {
      * @param input
      *            the stream of the class
      * @throws IOException
+     *             if any I/O error occurs.
      */
-    LocalVariable( DataInputStream input ) throws IOException {
+    LocalVariable( DataInputStream input, int position ) throws IOException {
         start_pc = input.readUnsignedShort();
         length = input.readUnsignedShort();
         name_index = input.readUnsignedShort();
         descriptor_index = input.readUnsignedShort();
         index = input.readUnsignedShort();
+        this.position = position;
     }
 
     /**
-     * Get the index in the local variable table.
+     * Get the index in the local variable table (memory location/slot).
+     * 
      * @return the index.
      */
     public int getIndex() {
         return index;
+    }
+
+    /**
+     * Get the position in the local variable table.
+     * 
+     * @return the position
+     */
+    public int getPosition() {
+        return position;
     }
 
     /**

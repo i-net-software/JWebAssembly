@@ -47,8 +47,10 @@ public class LocalVariableTable {
      *
      * @param input
      *            the stream of the class
-     * @param withPositions a hack if we find a better solution to map the positions LocalVariableTypeTable
+     * @param withPositions
+     *            a hack if we find a better solution to map the positions LocalVariableTypeTable
      * @throws IOException
+     *             if any I/O error occurs.
      */
     void read( DataInputStream input, boolean withPositions ) throws IOException {
         count = input.readUnsignedShort();
@@ -57,7 +59,7 @@ public class LocalVariableTable {
             tablePosition = new LocalVariable[count];
         }
         for( int i = 0; i < count; i++ ) {
-            LocalVariable var = new LocalVariable( input );
+            LocalVariable var = new LocalVariable( input, i );
             int idx = var.getIndex();
             if( withPositions ) {
                 tablePosition[i] = var;
@@ -95,7 +97,7 @@ public class LocalVariableTable {
     }
 
     /**
-     * Get the LocalVariable with its memory location. The index has empty places with double and long variables.
+     * Get the LocalVariable with its memory location (slot). The index has empty places with double and long variables.
      *
      * @param idx
      *            the index in the memory
