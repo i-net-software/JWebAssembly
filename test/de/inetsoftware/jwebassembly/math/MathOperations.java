@@ -64,8 +64,18 @@ public class MathOperations {
     }
 
     @Test
-    public void plus() {
-        rule.test( script, "plus", 1, 3 );
+    public void addInt() {
+        rule.test( script, "addInt", 1, 3 );
+    }
+
+    @Test
+    public void addFloat() {
+        rule.test( script, "addFloat", 1F, 3.5F );
+    }
+
+    @Test
+    public void addDouble() {
+        rule.test( script, "addDouble", 1.0, 3.5 );
     }
 
     static class TestClass {
@@ -86,7 +96,17 @@ public class MathOperations {
         }
 
         @Export
-        static int plus( int a, int b ) {
+        static int addInt( int a, int b ) {
+            return a + b;
+        }
+
+        @Export
+        static float addFloat( float a, float b ) {
+            return a + b;
+        }
+
+        @Export
+        static double addDouble( double a, double b ) {
             return a + b;
         }
     }
