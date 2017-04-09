@@ -32,7 +32,7 @@ import de.inetsoftware.jwebassembly.WasmRule;
 /**
  * @author Volker Berlin
  */
-@RunWith(Parameterized.class)
+@RunWith( Parameterized.class )
 public class RuntimeErrors {
 
     @ClassRule
