@@ -58,4 +58,9 @@ interface InstructionOpcodes {
     static final int F32_ADD   = 0x92;
 
     static final int F64_ADD   = 0xA0;
+
+    // === data type conversions =====
+
+    static final int I32_WRAP_I64           = 0xA7;
+
 }
