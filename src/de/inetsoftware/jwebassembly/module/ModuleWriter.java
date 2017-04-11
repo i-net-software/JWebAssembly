@@ -310,6 +310,9 @@ public abstract class ModuleWriter implements Closeable {
                     case 99: // dadd
                         writeAdd( ValueType.f64 );
                         break;
+                    case 136: // l2i
+                        writeCast( ValueTypeConvertion.l2i );
+                        break;
                     case 172: // ireturn
                     case 173: // lreturn
                     case 174: // freturn
@@ -452,6 +455,16 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeAdd( @Nullable ValueType valueType ) throws IOException;
+
+    /**
+     * Cast a value from one type to another
+     * 
+     * @param cast
+     *            the operator
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeCast( ValueTypeConvertion cast ) throws IOException;
 
     /**
      * Write a return

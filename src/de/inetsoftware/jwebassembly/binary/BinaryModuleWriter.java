@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueType;
+import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 
 /**
  * Module Writer for binary format. http://webassembly.org/docs/binary-encoding/
@@ -300,6 +301,22 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.write( F64_ADD );
                 break;
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeCast( ValueTypeConvertion cast ) throws IOException {
+        int op;
+        switch( cast ) {
+            case l2i:
+                op = I32_WRAP_I64;
+                break;
+            default:
+                throw new Error( "Unknown cast: " + cast );
+        }
+        codeStream.write( op );
     }
 
     /**

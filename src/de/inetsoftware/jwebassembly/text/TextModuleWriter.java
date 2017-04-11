@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueType;
+import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 
 /**
  * Module Writer for text format with S-expressions.
@@ -165,6 +166,23 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeAdd( @Nullable ValueType valueType ) throws IOException {
         newline( methodOutput );
         methodOutput.append( valueType ).append( ".add" );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeCast( ValueTypeConvertion cast ) throws IOException {
+        String op;
+        switch( cast ) {
+            case l2i:
+                op = "i32.wrap/i64";
+                break;
+            default:
+                throw new Error( "Unknown cast: " + cast );
+        }
+        newline( methodOutput );
+        methodOutput.append( op );
     }
 
     /**
