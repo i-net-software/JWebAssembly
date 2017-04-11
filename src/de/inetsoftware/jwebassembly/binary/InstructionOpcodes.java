@@ -51,13 +51,23 @@ interface InstructionOpcodes {
 
     static final int F64_CONST = 0x44;
 
+    // === numerical operations ======
+
     static final int I32_ADD   = 0x6A;
+
+    static final int I32_SUB   = 0x6B; 
 
     static final int I64_ADD   = 0x7C;
 
+    static final int I64_SUB   = 0x7D;
+
     static final int F32_ADD   = 0x92;
 
+    static final int F32_SUB   = 0x93;
+
     static final int F64_ADD   = 0xA0;
+
+    static final int F64_SUB   = 0xA1;
 
     // === data type conversions =====
 

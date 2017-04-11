@@ -16,7 +16,6 @@
 package de.inetsoftware.jwebassembly.math;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.ClassRule;
@@ -60,6 +59,10 @@ public class MathOperations {
             addParam( list, script, "addLong" );
             addParam( list, script, "addFloat", 1F, 3.5F );
             addParam( list, script, "addDouble", 1.0, 3.5 );
+            addParam( list, script, "subInt", 1, 3 );
+            addParam( list, script, "subLong" );
+            addParam( list, script, "subFloat", 1F, 3.5F );
+            addParam( list, script, "subDouble", 1.0, 3.5 );
         }
         return list;
     }
@@ -110,6 +113,28 @@ public class MathOperations {
         @Export
         static double addDouble( double a, double b ) {
             return a + b;
+        }
+
+        @Export
+        static int subInt( int a, int b ) {
+            return a - b;
+        }
+
+        @Export
+        static int subLong() {
+            long a = 1L;
+            long b = 3L;
+            return (int)(a - b);
+        }
+
+        @Export
+        static float subFloat( float a, float b ) {
+            return a - b;
+        }
+
+        @Export
+        static double subDouble( double a, double b ) {
+            return a - b;
         }
     }
 }

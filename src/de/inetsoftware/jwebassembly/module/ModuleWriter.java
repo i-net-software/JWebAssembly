@@ -315,16 +315,28 @@ public abstract class ModuleWriter implements Closeable {
                         writeLoadStore( false, ValueType.i64, op - 63 );
                         break;
                     case 96: // iadd
-                        writeAdd( ValueType.i32);
+                        writeNumericOperator( NumericOperator.add, ValueType.i32);
                         break;
                     case 97: // ladd
-                        writeAdd( ValueType.i64 );
+                        writeNumericOperator( NumericOperator.add, ValueType.i64 );
                         break;
                     case 98: // fadd
-                        writeAdd( ValueType.f32 );
+                        writeNumericOperator( NumericOperator.add, ValueType.f32 );
                         break;
                     case 99: // dadd
-                        writeAdd( ValueType.f64 );
+                        writeNumericOperator( NumericOperator.add, ValueType.f64 );
+                        break;
+                    case 100: // isub
+                        writeNumericOperator( NumericOperator.sub, ValueType.i32 );
+                        break;
+                    case 101: // lsub
+                        writeNumericOperator( NumericOperator.sub, ValueType.i64 );
+                        break;
+                    case 102: // fsub
+                        writeNumericOperator( NumericOperator.sub, ValueType.f32 );
+                        break;
+                    case 103: // dsub
+                        writeNumericOperator( NumericOperator.sub, ValueType.f64 );
                         break;
                     case 136: // l2i
                         writeCast( ValueTypeConvertion.l2i );
@@ -463,14 +475,14 @@ public abstract class ModuleWriter implements Closeable {
 
     /**
      * Write a add operator
-     * 
+     * @param numOp TODO
      * @param valueType
      *            the type of the parameters
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeAdd( @Nullable ValueType valueType ) throws IOException;
+    protected abstract void writeNumericOperator( NumericOperator numOp, @Nullable ValueType valueType ) throws IOException;
 
     /**
      * Cast a value from one type to another

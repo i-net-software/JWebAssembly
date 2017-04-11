@@ -26,6 +26,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 
@@ -286,21 +287,46 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeAdd( @Nullable ValueType valueType ) throws IOException {
-        switch( valueType ) {
-            case i32:
-                codeStream.write( I32_ADD );
+    protected void writeNumericOperator( NumericOperator numOp, @Nullable ValueType valueType ) throws IOException {
+        int op = 0;
+        switch( numOp ) {
+            case add:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_ADD;
+                        break;
+                    case i64:
+                        op = I64_ADD;
+                        break;
+                    case f32:
+                        op = F32_ADD;
+                        break;
+                    case f64:
+                        op = F64_ADD;
+                        break;
+                }
                 break;
-            case i64:
-                codeStream.write( I64_ADD );
-                break;
-            case f32:
-                codeStream.write( F32_ADD );
-                break;
-            case f64:
-                codeStream.write( F64_ADD );
+            case sub:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_SUB;
+                        break;
+                    case i64:
+                        op = I64_SUB;
+                        break;
+                    case f32:
+                        op = F32_SUB;
+                        break;
+                    case f64:
+                        op = F64_SUB;
+                        break;
+                }
                 break;
         }
+        if( op == 0 ) {
+            throw new Error();
+        }
+        codeStream.write( op );
     }
 
     /**

@@ -21,6 +21,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 
@@ -163,9 +164,9 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeAdd( @Nullable ValueType valueType ) throws IOException {
+    protected void writeNumericOperator( NumericOperator numOp, @Nullable ValueType valueType ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( valueType ).append( ".add" );
+        methodOutput.append( valueType ).append( '.' ).append( numOp );
     }
 
     /**
