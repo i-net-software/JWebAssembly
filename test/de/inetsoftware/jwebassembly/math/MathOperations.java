@@ -69,6 +69,11 @@ public class MathOperations {
     }
 
     @Test
+    public void addLong() {
+        rule.test( script, "addLong" );
+    }
+
+    @Test
     public void addFloat() {
         rule.test( script, "addFloat", 1F, 3.5F );
     }
@@ -98,6 +103,13 @@ public class MathOperations {
         @Export
         static int addInt( int a, int b ) {
             return a + b;
+        }
+
+        @Export
+        static int addLong() {
+            long a = 1L;
+            long b = 3L;
+            return (int)(a + b);
         }
 
         @Export
