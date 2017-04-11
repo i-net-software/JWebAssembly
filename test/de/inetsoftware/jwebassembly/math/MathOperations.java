@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.math;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -38,49 +39,38 @@ public class MathOperations {
     public static WasmRule rule = new WasmRule( TestClass.class ); 
 
     private final ScriptEngine script;
+    private final String method;
+    private final Object[] params;
 
-    public MathOperations( ScriptEngine script) {
+    public MathOperations( ScriptEngine script, String method, Object[] params ) {
         this.script = script;
+        this.method = method;
+        this.params = params;
     }
 
-    @Parameters(name="{0}")
+    @Parameters(name="{0}-{1}")
     public static Collection<Object[]> data() {
-        return ScriptEngine.testParams();
+        ArrayList<Object[]> list = new ArrayList<>();
+        for( Object[] val : ScriptEngine.testParams() ) {
+            ScriptEngine script = (ScriptEngine)val[0];
+            addParam( list, script, "intConst" );
+            addParam( list, script, "floatConst" );
+            addParam( list, script, "doubleConst" );
+            addParam( list, script, "addInt", 1, 3 );
+            addParam( list, script, "addLong" );
+            addParam( list, script, "addFloat", 1F, 3.5F );
+            addParam( list, script, "addDouble", 1.0, 3.5 );
+        }
+        return list;
+    }
+
+    private static void addParam( ArrayList<Object[]> list, ScriptEngine script, String method, Object ...params ) {
+        list.add( new Object[]{script, method, params} );
     }
 
     @Test
-    public void intConst() {
-        rule.test( script, "intConst" );
-    }
-
-    @Test
-    public void floatConst() {
-        rule.test( script, "floatConst" );
-    }
-
-    @Test
-    public void doubleConst() {
-        rule.test( script, "doubleConst" );
-    }
-
-    @Test
-    public void addInt() {
-        rule.test( script, "addInt", 1, 3 );
-    }
-
-    @Test
-    public void addLong() {
-        rule.test( script, "addLong" );
-    }
-
-    @Test
-    public void addFloat() {
-        rule.test( script, "addFloat", 1F, 3.5F );
-    }
-
-    @Test
-    public void addDouble() {
-        rule.test( script, "addDouble", 1.0, 3.5 );
+    public void test() {
+        rule.test( script, method, params );
     }
 
     static class TestClass {
