@@ -256,16 +256,26 @@ public abstract class ModuleWriter implements Closeable {
             while( byteCode.available() > 0 ) {
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
+                    case 2: // iconst_m1
+                    case 3: // iconst_0
                     case 4: // iconst_1
-                        writeConstInt( 1 );
+                    case 5: // iconst_2
+                    case 6: // iconst_3
+                    case 7: // iconst_4
+                    case 8: // iconst_5
+                        writeConstInt( op - 3 );
                         break;
-                    case 16: //bipush
+                    case 9:  // lconst_0
+                    case 10: // lconst_1
+                        writeConstLong( op - 9 );
+                        break;
+                    case 16: // bipush
                         writeConstInt( byteCode.readByte() );
                         break;
-                    case 18: //ldc
+                    case 18: // ldc
                         writeConst( constantPool.get( byteCode.readUnsignedByte() ) );
                         break;
-                    case 20: //ldc2_w
+                    case 20: // ldc2_w
                         writeConst( constantPool.get( byteCode.readUnsignedShort() ) );
                         break;
                     case 26: // iload_0
@@ -297,6 +307,12 @@ public abstract class ModuleWriter implements Closeable {
                     case 61: // istore_2
                     case 62: // istore_3
                         writeLoadStore( false, ValueType.i32, op - 59 );
+                        break;
+                    case 63: // lstore_0
+                    case 64: // lstore_1
+                    case 65: // lstore_2
+                    case 66: // lstore_3
+                        writeLoadStore( false, ValueType.i64, op - 63 );
                         break;
                     case 96: // iadd
                         writeAdd( ValueType.i32);
