@@ -269,8 +269,20 @@ public abstract class ModuleWriter implements Closeable {
                     case 10: // lconst_1
                         writeConstLong( op - 9 );
                         break;
+                    case 11: // fconst_0
+                    case 12: // fconst_1
+                    case 13: // fconst_2
+                        writeConstFloat( op - 11 );
+                        break;
+                    case 14: // dconst_0
+                    case 15: // dconst_1
+                        writeConstDouble( op - 14 );
+                        break;
                     case 16: // bipush
                         writeConstInt( byteCode.readByte() );
+                        break;
+                    case 17: // sipush
+                        writeConstInt( byteCode.readShort() );
                         break;
                     case 18: // ldc
                         writeConst( constantPool.get( byteCode.readUnsignedByte() ) );
@@ -314,6 +326,18 @@ public abstract class ModuleWriter implements Closeable {
                     case 66: // lstore_3
                         writeLoadStore( false, ValueType.i64, op - 63 );
                         break;
+                    case 67: // fstore_0
+                    case 68: // fstore_1
+                    case 69: // fstore_2
+                    case 70: // fstore_3
+                        writeLoadStore( false, ValueType.f32, op - 67 );
+                        break;
+                    case 71: // dstore_0
+                    case 72: // dstore_1
+                    case 73: // dstore_2
+                    case 74: // dstore_3
+                        writeLoadStore( false, ValueType.f64, op - 71 );
+                        break;
                     case 96: // iadd
                         writeNumericOperator( NumericOperator.add, ValueType.i32);
                         break;
@@ -338,6 +362,39 @@ public abstract class ModuleWriter implements Closeable {
                     case 103: // dsub
                         writeNumericOperator( NumericOperator.sub, ValueType.f64 );
                         break;
+                    case 104: // imul;
+                        writeNumericOperator( NumericOperator.mul, ValueType.i32 );
+                        break;
+                    case 105: // lmul
+                        writeNumericOperator( NumericOperator.mul, ValueType.i64 );
+                        break;
+                    case 106: // fmul
+                        writeNumericOperator( NumericOperator.mul, ValueType.f32 );
+                        break;
+                    case 107: // dmul
+                        writeNumericOperator( NumericOperator.mul, ValueType.f64 );
+                        break;
+                    case 108: // idiv
+                        writeNumericOperator( NumericOperator.div, ValueType.i32 );
+                        break;
+                    case 109: // ldiv
+                        writeNumericOperator( NumericOperator.div, ValueType.i64 );
+                        break;
+                    case 110: // fdiv
+                        writeNumericOperator( NumericOperator.div, ValueType.f32 );
+                        break;
+                    case 111: // ddiv
+                        writeNumericOperator( NumericOperator.div, ValueType.f64 );
+                        break;
+                    case 112: // irem
+                        writeNumericOperator( NumericOperator.rem, ValueType.i32 );
+                        break;
+                    case 113: // lrem
+                        writeNumericOperator( NumericOperator.rem, ValueType.i64 );
+                        break;
+                    case 114: // frem
+                    case 115: // drem
+                        throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, lineNumber );
                     case 136: // l2i
                         writeCast( ValueTypeConvertion.l2i );
                         break;

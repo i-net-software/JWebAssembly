@@ -16,7 +16,10 @@
 package de.inetsoftware.jwebassembly.err;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.Collection;
 
 import org.junit.ClassRule;
@@ -27,6 +30,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.webassembly.annotation.Export;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
+import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.WasmRule;
 
 /**
@@ -59,6 +63,27 @@ public class RuntimeErrors {
         @Export
         static long longReturn() {
             return Long.MAX_VALUE;
+        }
+    }
+
+    @Test
+    public void floatRem() throws IOException {
+        WasmRule wasm = new WasmRule( TestModulo.class );
+        try {
+            wasm.compile();
+            fail( "Floating modulo is not supported" );
+        } catch( WasmException ex ) {
+            assertTrue( ex.toString(), ex.getMessage().contains( "Modulo/Remainder" ) );
+        } finally {
+            wasm.delete();
+        }
+    }
+
+    static class TestModulo {
+        @Export
+        static float longReturn() {
+            float a = 3.4F;
+            return a % 2F;
         }
     }
 }

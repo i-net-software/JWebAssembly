@@ -21,4 +21,7 @@ package de.inetsoftware.jwebassembly.module;
 public enum NumericOperator {
     add,
     sub,
+    mul,
+    div,
+    rem,
 }

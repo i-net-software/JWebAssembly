@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -319,6 +320,48 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                     case f64:
                         op = F64_SUB;
+                        break;
+                }
+                break;
+            case mul:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_MUL;
+                        break;
+                    case i64:
+                        op = I64_MUL;
+                        break;
+                    case f32:
+                        op = F32_MUL;
+                        break;
+                    case f64:
+                        op = F64_MUL;
+                        break;
+                }
+                break;
+            case div:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_DIV_S;
+                        break;
+                    case i64:
+                        op = I64_DIV_S;
+                        break;
+                    case f32:
+                        op = F32_DIV;
+                        break;
+                    case f64:
+                        op = F64_DIV;
+                        break;
+                }
+                break;
+            case rem:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_REM_S;
+                        break;
+                    case i64:
+                        op = I64_REM_S;
                         break;
                 }
                 break;

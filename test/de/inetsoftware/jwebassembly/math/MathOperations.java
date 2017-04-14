@@ -63,6 +63,10 @@ public class MathOperations {
             addParam( list, script, "subLong" );
             addParam( list, script, "subFloat", 1F, 3.5F );
             addParam( list, script, "subDouble", 1.0, 3.5 );
+            addParam( list, script, "mulDivInt" );
+            addParam( list, script, "mulDivLong" );
+            addParam( list, script, "mulDivFloat" );
+            addParam( list, script, "mulDivDouble" );
         }
         return list;
     }
@@ -136,5 +140,40 @@ public class MathOperations {
         static double subDouble( double a, double b ) {
             return a - b;
         }
+
+        @Export
+        static int mulDivInt() {
+            int a = 420;
+            a *= 3;
+            a /= -5;
+            a %= 37;
+            return a;
+        }
+
+        @Export
+        static int mulDivLong() {
+            long a = -54321;
+            a *= 3;
+            a /= -5;
+            a %= 37;
+            return (int)a;
+        }
+
+        @Export
+        static float mulDivFloat() {
+            float a = -54321F;
+            a *= 3F;
+            a /= -8F;
+            return a;
+        }
+
+        @Export
+        static double mulDivDouble() {
+            double a = -54321.0;
+            a *= 3F;
+            a /= -5F;
+            return a;
+        }
+
     }
 }

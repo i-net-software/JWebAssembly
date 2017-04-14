@@ -57,17 +57,37 @@ interface InstructionOpcodes {
 
     static final int I32_SUB   = 0x6B; 
 
+    static final int I32_MUL   = 0x6C; 
+
+    static final int I32_DIV_S = 0x6D; 
+
+    static final int I32_REM_S = 0x6F;
+
     static final int I64_ADD   = 0x7C;
 
     static final int I64_SUB   = 0x7D;
+
+    static final int I64_MUL   = 0x7E; 
+
+    static final int I64_DIV_S = 0x7F; 
+
+    static final int I64_REM_S = 0x81;
 
     static final int F32_ADD   = 0x92;
 
     static final int F32_SUB   = 0x93;
 
+    static final int F32_MUL   = 0x94;
+
+    static final int F32_DIV   = 0x95;
+
     static final int F64_ADD   = 0xA0;
 
     static final int F64_SUB   = 0xA1;
+
+    static final int F64_MUL   = 0xA2;
+
+    static final int F64_DIV   = 0xA3;
 
     // === data type conversions =====
 

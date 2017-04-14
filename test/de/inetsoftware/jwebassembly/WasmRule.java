@@ -63,21 +63,21 @@ public class WasmRule extends TemporaryFolder {
      */
     @Override
     protected void before() throws Throwable {
-        super.before();
-        try {
-            wasmFile = newFile( "test.wasm" );
-            JWebAssembly wasm = new JWebAssembly();
-            for( Class<?> clazz : classes ) {
-                URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
-                wasm.addFile( url );
-            }
-            wasm.compileToBinary( wasmFile );
+        compile();
+    }
 
-            nodeScript = createScript( "nodetest.js" );
-            spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
-        } catch( Exception ex ) {
-            throwException( ex );
+    public void compile() throws IOException, WasmException {
+        create();
+        wasmFile = newFile( "test.wasm" );
+        JWebAssembly wasm = new JWebAssembly();
+        for( Class<?> clazz : classes ) {
+            URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
+            wasm.addFile( url );
         }
+        wasm.compileToBinary( wasmFile );
+
+        nodeScript = createScript( "nodetest.js" );
+        spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
     }
 
     /**
