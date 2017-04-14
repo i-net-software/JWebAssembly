@@ -21,7 +21,7 @@ JWebAssembly requires Java SE 8 or higher. It is tested with Java SE 8 on [travi
 ## Usage
 
 ### Exporting functions
-To export a function to make it accessible from JavaScript you need add the annotation org.webassembly.annotation.Export
+To export a Java function to make it accessible from JavaScript you need add the annotation org.webassembly.annotation.Export
 
 ```java
 import org.webassembly.annotation.Export;
@@ -33,6 +33,9 @@ public static int add( int a, int b ) {
 ```
 
 ### Java Limits
-In version 1 of WebAssembly you can compile only:
+In version 1 of WebAssembly you can only compile:
 * static methods
 * use the data types int, long float and double
+
+### Alternatives
+* [TeaVM](https://github.com/konsoletyper/teavm)
