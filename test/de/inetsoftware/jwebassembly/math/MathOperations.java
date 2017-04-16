@@ -67,6 +67,8 @@ public class MathOperations {
             addParam( list, script, "mulDivLong" );
             addParam( list, script, "mulDivFloat" );
             addParam( list, script, "mulDivDouble" );
+            addParam( list, script, "intBits" );
+            addParam( list, script, "longBits" );
         }
         return list;
     }
@@ -175,6 +177,30 @@ public class MathOperations {
             a *= 3F;
             a /= -5F;
             return a;
+        }
+
+        @Export
+        static int intBits() {
+            int a = 1;
+            a = a << 1;
+            a = a | 15;
+            a = a & 4;
+            int b = Integer.MIN_VALUE;
+            b = b >>> 1;
+            b = b >> 2;
+            return a ^ b;
+        }
+
+        @Export
+        static int longBits() {
+            long a = 1;
+            a = a << 1;
+            a = a | 15;
+            a = a & 4;
+            long b = Long.MIN_VALUE;
+            b = b >>> 1;
+            b = b >> 2;
+            return (int)(a ^ (b >> 32));
         }
 
     }

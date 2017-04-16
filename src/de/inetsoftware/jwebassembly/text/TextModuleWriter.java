@@ -179,6 +179,9 @@ public class TextModuleWriter extends ModuleWriter {
             case l2i:
                 op = "i32.wrap/i64";
                 break;
+            case i2l:
+                op = "i64.extend_s/i32";
+                break;
             default:
                 throw new Error( "Unknown cast: " + cast );
         }

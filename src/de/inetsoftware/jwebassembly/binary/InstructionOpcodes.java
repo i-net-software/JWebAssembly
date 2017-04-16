@@ -117,4 +117,5 @@ interface InstructionOpcodes {
 
     static final int I32_WRAP_I64           = 0xA7;
 
+    static final int I64_EXTEND_S_I32       = 0xAC;
 }

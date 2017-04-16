@@ -442,6 +442,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case l2i:
                 op = I32_WRAP_I64;
                 break;
+            case i2l:
+                op = I64_EXTEND_S_I32;
+                break;
             default:
                 throw new Error( "Unknown cast: " + cast );
         }

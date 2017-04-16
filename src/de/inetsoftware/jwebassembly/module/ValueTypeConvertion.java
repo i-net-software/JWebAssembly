@@ -23,4 +23,5 @@ package de.inetsoftware.jwebassembly.module;
  */
 public enum ValueTypeConvertion {
     l2i,
+    i2l,
 }

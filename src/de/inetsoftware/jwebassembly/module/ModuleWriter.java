@@ -399,18 +399,21 @@ public abstract class ModuleWriter implements Closeable {
                         writeNumericOperator( NumericOperator.shl, ValueType.i32 );
                         break;
                     case 121: // lshl
+                        writeCast( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
                         writeNumericOperator( NumericOperator.shl, ValueType.i64 );
                         break;
                     case 122: // ishr
                         writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
                         break;
                     case 123: // lshr
+                        writeCast( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
                         writeNumericOperator( NumericOperator.shr_s, ValueType.i64 );
                         break;
                     case 124: // iushr
                         writeNumericOperator( NumericOperator.shr_u, ValueType.i32 );
                         break;
                     case 125: // lushr
+                        writeCast( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
                         writeNumericOperator( NumericOperator.shr_u, ValueType.i64 );
                         break;
                     case 126: // iand
