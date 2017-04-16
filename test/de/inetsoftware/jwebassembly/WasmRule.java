@@ -75,6 +75,7 @@ public class WasmRule extends TemporaryFolder {
             wasm.addFile( url );
         }
         wasm.compileToBinary( wasmFile );
+        System.out.println( wasm.compileToText() ); // smoke test
 
         nodeScript = createScript( "nodetest.js" );
         spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
