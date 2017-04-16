@@ -365,6 +365,66 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
+            case and:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_AND;
+                        break;
+                    case i64:
+                        op = I64_AND;
+                        break;
+                }
+                break;
+            case or:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_OR;
+                        break;
+                    case i64:
+                        op = I64_OR;
+                        break;
+                }
+                break;
+            case xor:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_XOR;
+                        break;
+                    case i64:
+                        op = I64_XOR;
+                        break;
+                }
+                break;
+            case shl:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_SHL;
+                        break;
+                    case i64:
+                        op = I64_SHL;
+                        break;
+                }
+                break;
+            case shr_s:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_SHR_S;
+                        break;
+                    case i64:
+                        op = I64_SHR_S;
+                        break;
+                }
+                break;
+            case shr_u:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_SHR_U;
+                        break;
+                    case i64:
+                        op = I64_SHR_U;
+                        break;
+                }
+                break;
         }
         if( op == 0 ) {
             throw new Error();

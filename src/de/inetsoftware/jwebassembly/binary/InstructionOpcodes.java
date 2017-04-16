@@ -63,6 +63,18 @@ interface InstructionOpcodes {
 
     static final int I32_REM_S = 0x6F;
 
+    static final int I32_AND   = 0x71;
+
+    static final int I32_OR    = 0x72;
+
+    static final int I32_XOR   = 0x73;
+
+    static final int I32_SHL   = 0x74;
+
+    static final int I32_SHR_S = 0x75;
+
+    static final int I32_SHR_U = 0x76;
+
     static final int I64_ADD   = 0x7C;
 
     static final int I64_SUB   = 0x7D;
@@ -72,6 +84,18 @@ interface InstructionOpcodes {
     static final int I64_DIV_S = 0x7F; 
 
     static final int I64_REM_S = 0x81;
+
+    static final int I64_AND   = 0x83; 
+
+    static final int I64_OR    = 0x84; 
+
+    static final int I64_XOR   = 0x85; 
+
+    static final int I64_SHL   = 0x86; 
+
+    static final int I64_SHR_S = 0x87; 
+
+    static final int I64_SHR_U = 0x88; 
 
     static final int F32_ADD   = 0x92;
 

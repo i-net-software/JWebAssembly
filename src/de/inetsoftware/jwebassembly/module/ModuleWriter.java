@@ -395,6 +395,42 @@ public abstract class ModuleWriter implements Closeable {
                     case 114: // frem
                     case 115: // drem
                         throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, lineNumber );
+                    case 120: // ishl
+                        writeNumericOperator( NumericOperator.shl, ValueType.i32 );
+                        break;
+                    case 121: // lshl
+                        writeNumericOperator( NumericOperator.shl, ValueType.i64 );
+                        break;
+                    case 122: // ishr
+                        writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
+                        break;
+                    case 123: // lshr
+                        writeNumericOperator( NumericOperator.shr_s, ValueType.i64 );
+                        break;
+                    case 124: // iushr
+                        writeNumericOperator( NumericOperator.shr_u, ValueType.i32 );
+                        break;
+                    case 125: // lushr
+                        writeNumericOperator( NumericOperator.shr_u, ValueType.i64 );
+                        break;
+                    case 126: // iand
+                        writeNumericOperator( NumericOperator.and, ValueType.i32 );
+                        break;
+                    case 127: // land
+                        writeNumericOperator( NumericOperator.and, ValueType.i64 );
+                        break;
+                    case 128: // ior
+                        writeNumericOperator( NumericOperator.or, ValueType.i32 );
+                        break;
+                    case 129: // lor
+                        writeNumericOperator( NumericOperator.or, ValueType.i64 );
+                        break;
+                    case 130: // ixor
+                        writeNumericOperator( NumericOperator.xor, ValueType.i32 );
+                        break;
+                    case 131: // lxor
+                        writeNumericOperator( NumericOperator.xor, ValueType.i64 );
+                        break;
                     case 132: // iinc
                         int idx = byteCode.readUnsignedByte();
                         writeLoadStore( true, ValueType.i32, idx );

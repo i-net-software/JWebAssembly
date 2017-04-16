@@ -24,4 +24,10 @@ public enum NumericOperator {
     mul,
     div,
     rem,
+    and,
+    or,
+    xor,
+    shl,
+    shr_s,
+    shr_u,
 }
