@@ -99,6 +99,7 @@ public class MathOperations {
 
         @Export
         static int addInt( int a, int b ) {
+            b++;
             return a + b;
         }
 
@@ -126,8 +127,9 @@ public class MathOperations {
 
         @Export
         static int subLong() {
-            long a = 1L;
+            long a = -1L;
             long b = 3L;
+            a--;
             return (int)(a - b);
         }
 

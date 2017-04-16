@@ -395,6 +395,13 @@ public abstract class ModuleWriter implements Closeable {
                     case 114: // frem
                     case 115: // drem
                         throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, lineNumber );
+                    case 132: // iinc
+                        int idx = byteCode.readUnsignedByte();
+                        writeLoadStore( true, ValueType.i32, idx );
+                        writeConstInt( byteCode.readUnsignedByte() );
+                        writeNumericOperator( NumericOperator.add, ValueType.i32);
+                        writeLoadStore( false, ValueType.i32, idx );
+                        break;
                     case 136: // l2i
                         writeCast( ValueTypeConvertion.l2i );
                         break;
