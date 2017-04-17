@@ -153,7 +153,7 @@ class WasmOutputStream extends FilterOutputStream {
         writeVaruint32( type.ordinal() );
         writeVaruint32( size );
         if( type == SectionType.Custom ) {
-            byte[] bytes = name.getBytes( StandardCharsets.ISO_8859_1 );
+            byte[] bytes = name.getBytes( StandardCharsets.UTF_8 );
             writeVaruint32( bytes.length );
             write( bytes );
         }
