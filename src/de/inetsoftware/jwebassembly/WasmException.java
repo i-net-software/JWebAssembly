@@ -21,7 +21,7 @@ package de.inetsoftware.jwebassembly;
  * @author Volker Berlin
  *
  */
-public class WasmException extends Exception {
+public class WasmException extends RuntimeException {
 
     private int    lineNumber;
 
