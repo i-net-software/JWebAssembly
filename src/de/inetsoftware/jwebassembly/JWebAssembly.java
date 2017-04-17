@@ -159,6 +159,10 @@ public class JWebAssembly {
     private void compile( ModuleWriter writer ) throws IOException, WasmException {
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
+            writer.prepare( classFile );
+        }
+        for( URL url : classFiles ) {
+            ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             writer.write( classFile );
         }
     }

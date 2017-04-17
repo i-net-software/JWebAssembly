@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -30,6 +31,7 @@ import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantPool;
+import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.classparser.LineNumberTable;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
@@ -51,29 +53,60 @@ public abstract class ModuleWriter implements Closeable {
     private String               sourceFile;
 
     /**
-     * Write the content of the class to the
+     * Prepare the content of the class.
      * 
      * @param classFile
      *            the class file
-     * @throws IOException
-     *             if any I/O error occur
      * @throws WasmException
      *             if some Java code can't converted
      */
-    public void write( ClassFile classFile ) throws IOException, WasmException {
-        sourceFile = classFile.getSourceFile();
-        if( sourceFile == null ) {
-            sourceFile = classFile.getThisClass().getName();
-        }
-        MethodInfo[] methods = classFile.getMethods();
-        for( MethodInfo method : methods ) {
-            Code code = method.getCode();
-            if( method.getName().equals( "<init>" ) && method.getDescription().equals( "()V" )
-                            && code.isSuperInitReturn( classFile.getSuperClass() ) ) {
-                continue; //default constructor
+    public void prepare( ClassFile classFile ) {
+        iterateMethods( classFile, m -> prepareMethod( m ) );
+    }
+
+    /**
+     * Write the content of the class to the writer.
+     * 
+     * @param classFile
+     *            the class file
+     * @throws WasmException
+     *             if some Java code can't converted
+     */
+    public void write( ClassFile classFile ) throws WasmException {
+        iterateMethods( classFile, m -> writeMethod( m ) );
+    }
+
+    private void iterateMethods( ClassFile classFile, Consumer<MethodInfo> handler ) throws WasmException {
+        sourceFile = null; // clear previous value for the case an IO exception occur
+        try {
+            sourceFile = classFile.getSourceFile();
+            if( sourceFile == null ) {
+                sourceFile = classFile.getThisClass().getName();
             }
-            writeMethod( method );
+            MethodInfo[] methods = classFile.getMethods();
+            for( MethodInfo method : methods ) {
+                Code code = method.getCode();
+                if( method.getName().equals( "<init>" ) && method.getDescription().equals( "()V" )
+                                && code.isSuperInitReturn( classFile.getSuperClass() ) ) {
+                    continue; //default constructor
+                }
+                handler.accept( method );
+            }
+        } catch( IOException ioex ) {
+            throw WasmException.create( ioex, sourceFile, -1 );
         }
+    }
+
+    /**
+     * Prepare the method.
+     * 
+     * @param method
+     *            the method
+     * @throws WasmException
+     *             if some Java code can't converted
+     */
+    private void prepareMethod( MethodInfo method ) throws WasmException {
+        
     }
 
     /**
@@ -81,48 +114,54 @@ public abstract class ModuleWriter implements Closeable {
      * 
      * @param method
      *            the method
-     * @throws IOException
-     *             if any I/O error occur
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethod( MethodInfo method ) throws IOException, WasmException {
-        Code code = method.getCode();
-        if( code != null ) { // abstract methods and interface methods does not have code
-            String methodName = method.getName(); // TODO naming conversion rule
-            writeExport( methodName, method );
-            writeMethodStart( methodName );
-            writeMethodSignature( method );
-            locals.clear();
-            localTable = code.getLocalVariableTable();
-            LineNumberTable lineNumberTable = code.getLineNumberTable();
-            if( lineNumberTable != null ) {
-                int lineNumber;
-                for( int i = 0; i < lineNumberTable.size(); i++ ) {
-                    lineNumber = lineNumberTable.getLineNumber( i );
-                    int offset = lineNumberTable.getStartOffset( i );
-                    int nextOffset =
-                                    i + 1 == lineNumberTable.size() ? code.getCodeSize()
-                                                    : lineNumberTable.getStartOffset( i + 1 );
-                    CodeInputStream byteCode = code.getByteCode( offset, nextOffset - offset );
-                    writeCodeChunk( byteCode, lineNumber, method.getConstantPool() );
+    private void writeMethod( MethodInfo method ) throws WasmException {
+        try {
+            Code code = method.getCode();
+            if( code != null ) { // abstract methods and interface methods does not have code
+                String methodName = method.getName(); // TODO naming conversion rule
+                writeExport( methodName, method );
+                writeMethodStart( methodName );
+                writeMethodSignature( method );
+                locals.clear();
+                localTable = code.getLocalVariableTable();
+                LineNumberTable lineNumberTable = code.getLineNumberTable();
+                if( lineNumberTable != null ) {
+                    int lineNumber;
+                    for( int i = 0; i < lineNumberTable.size(); i++ ) {
+                        lineNumber = lineNumberTable.getLineNumber( i );
+                        int offset = lineNumberTable.getStartOffset( i );
+                        int nextOffset =
+                                        i + 1 == lineNumberTable.size() ? code.getCodeSize()
+                                                        : lineNumberTable.getStartOffset( i + 1 );
+                        CodeInputStream byteCode = code.getByteCode( offset, nextOffset - offset );
+                        writeCodeChunk( byteCode, lineNumber, method.getConstantPool() );
+                    }
+                } else {
+                    CodeInputStream byteCode = code.getByteCode();
+                    writeCodeChunk( byteCode, -1, method.getConstantPool() );
                 }
-            } else {
-                CodeInputStream byteCode = code.getByteCode();
-                writeCodeChunk( byteCode, -1, method.getConstantPool() );
+                for( int i = Math.min( paramCount, locals.size() ); i > 0; i-- ) {
+                    locals.remove( 0 );
+                }
+                writeMethodFinish( locals );
             }
-            for( int i = Math.min( paramCount, locals.size() ); i > 0; i-- ) {
-                locals.remove( 0 );
-            }
-            writeMethodFinish( locals );
+        } catch( IOException ioex ) {
+            throw WasmException.create( ioex, sourceFile, -1 );
         }
     }
 
     /**
      * Look for a Export annotation and if there write an export directive.
+     * 
      * @param methodName
+     *            the normalized method name
      * @param method
+     *            the moethod
      * @throws IOException
+     *             if any IOException occur
      */
     private void writeExport( String methodName, MethodInfo method ) throws IOException {
         Annotations annotations = method.getRuntimeInvisibleAnnotations();
