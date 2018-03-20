@@ -40,6 +40,8 @@ public class MethodInfo {
 
     private Exceptions         exceptions;
 
+    private ClassFile          classFile;
+
     /**
      * Read the method_info structure
      * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6
@@ -47,14 +49,20 @@ public class MethodInfo {
      *
      * @param input
      * @param constantPool
+     * @param classFile the declaring class file
      * @throws IOException
      */
-    MethodInfo( DataInputStream input, ConstantPool constantPool ) throws IOException {
+    MethodInfo( DataInputStream input, ConstantPool constantPool, ClassFile classFile ) throws IOException {
         this.accessFlags = input.readUnsignedShort();
         this.name = (String)constantPool.get( input.readUnsignedShort() );
         this.description = (String)constantPool.get( input.readUnsignedShort() );
         this.constantPool = constantPool;
         this.attributes = new Attributes( input, constantPool );
+        this.classFile = classFile;
+    }
+
+    public ClassFile getDeclaringClassFile() {
+        return classFile;
     }
 
     /**

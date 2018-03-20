@@ -182,7 +182,7 @@ public class ClassFile {
     private MethodInfo[] readMethods() throws IOException {
         MethodInfo[] methods = new MethodInfo[input.readUnsignedShort()];
         for( int i = 0; i < methods.length; i++ ) {
-            methods[i] = new MethodInfo( input, constantPool );
+            methods[i] = new MethodInfo( input, constantPool, this );
         }
         return methods;
     }
