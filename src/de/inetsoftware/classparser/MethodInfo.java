@@ -61,6 +61,10 @@ public class MethodInfo {
         this.classFile = classFile;
     }
 
+    /**
+     * Get the declaring class file of the method
+     * @return the ClassFile
+     */
     public ClassFile getDeclaringClassFile() {
         return classFile;
     }
