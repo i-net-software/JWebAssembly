@@ -55,6 +55,80 @@ interface InstructionOpcodes {
 
     // === numerical operations ======
 
+    static final int I32_EQZ   = 0x45;
+
+    static final int I32_EQ    = 0x46;
+
+    static final int I32_NE    = 0x47;
+
+    static final int I32_LT_S  = 0x48;
+
+    static final int I32_LT_U  = 0x49;
+
+    static final int I32_GT_S  = 0x4A;
+
+    static final int I32_GT_U  = 0x4B;
+
+    static final int I32_LE_S  = 0x4C;
+
+    static final int I32_LE_U  = 0x4D;
+
+    static final int I32_GE_S  = 0x4E;
+
+    static final int I32_GE_U  = 0x4F;
+
+    static final int I64_EQZ   = 0x50;
+
+    static final int I64_EQ    = 0x51;
+
+    static final int I64_NE    = 0x52;
+
+    static final int I64_LT_S  = 0x53;
+
+    static final int I64_LT_U  = 0x54;
+
+    static final int I64_GT_S  = 0x55;
+
+    static final int I64_GT_U  = 0x56;
+
+    static final int I64_LE_S  = 0x57;
+
+    static final int I64_LE_U  = 0x58;
+
+    static final int I64_GE_S  = 0x59;
+
+    static final int I64_GE_U  = 0x5A;
+
+    static final int F32_EQ    = 0x5B;
+
+    static final int F32_NE    = 0x5C;
+
+    static final int F32_LT    = 0x5D;
+
+    static final int F32_GT    = 0x5E;
+
+    static final int F32_LE    = 0x5F;
+
+    static final int F32_GE    = 0x60;
+
+    static final int F64_EQ    = 0x61;
+
+    static final int F64_NE    = 0x62;
+
+    static final int F64_LT    = 0x63;
+
+    static final int F64_GT    = 0x64;
+
+    static final int F64_LE    = 0x65;
+
+    static final int F64_GE    = 0x66;
+
+    static final int I32_CLZ   = 0x67;
+
+    static final int I32_CTZ   = 0x68;
+
+    static final int I32_POPCNT= 0x69;
+
     static final int I32_ADD   = 0x6A;
 
     static final int I32_SUB   = 0x6B; 
@@ -63,7 +137,11 @@ interface InstructionOpcodes {
 
     static final int I32_DIV_S = 0x6D; 
 
+    static final int I32_DIV_U = 0x6E; 
+
     static final int I32_REM_S = 0x6F;
+
+    static final int I32_REM_U = 0x70;
 
     static final int I32_AND   = 0x71;
 
@@ -76,6 +154,16 @@ interface InstructionOpcodes {
     static final int I32_SHR_S = 0x75;
 
     static final int I32_SHR_U = 0x76;
+
+    static final int I32_ROTL  = 0x77;
+
+    static final int I32_ROTR  = 0x78;
+
+    static final int I64_CLZ   = 0x79;
+
+    static final int I64_CTZ   = 0x7A;
+
+    static final int I64_POPCNT= 0x7B;
 
     static final int I64_ADD   = 0x7C;
 
