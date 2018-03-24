@@ -55,7 +55,13 @@ public class RuntimeErrors {
 
     @Test
     public void longReturn() {
-        assertEquals( "TypeError: cannot pass i64 to or from JS", rule.evalWasm( script, "longReturn" ) );
+        String error = rule.evalWasm( script, "longReturn" );
+        int newlineIdx = error.indexOf( '\n' );
+        if( newlineIdx > 0 ) {
+            error = error.substring( 0, newlineIdx );
+        }
+        String expected = script == ScriptEngine.SpiderMonkey ? "TypeError: cannot pass i64 to or from JS" : "TypeError: invalid type";
+        assertEquals( expected, error );
     }
 
     static class TestClass {
