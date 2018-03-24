@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -32,19 +31,13 @@ import de.inetsoftware.jwebassembly.WasmRule;
  * @author Volker Berlin
  */
 @RunWith(Parameterized.class)
-public class MathOperations {
+public class MathOperations extends AbstractBaseTest {
     
     @ClassRule
     public static WasmRule rule = new WasmRule( TestClass.class ); 
 
-    private final ScriptEngine script;
-    private final String method;
-    private final Object[] params;
-
     public MathOperations( ScriptEngine script, String method, Object[] params ) {
-        this.script = script;
-        this.method = method;
-        this.params = params;
+        super( rule, script, method, params );
     }
 
     @Parameters(name="{0}-{1}")
@@ -71,15 +64,6 @@ public class MathOperations {
             addParam( list, script, "longBits" );
         }
         return list;
-    }
-
-    private static void addParam( ArrayList<Object[]> list, ScriptEngine script, String method, Object ...params ) {
-        list.add( new Object[]{script, method, params} );
-    }
-
-    @Test
-    public void test() {
-        rule.test( script, method, params );
     }
 
     static class TestClass {
