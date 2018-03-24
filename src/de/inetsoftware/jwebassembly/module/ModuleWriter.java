@@ -255,7 +255,7 @@ public abstract class ModuleWriter implements Closeable {
                     continue;
                 case ')':
                     this.paramCount = paramCount - 1;
-                    kind = "return";
+                    kind = "result";
                     continue;
                 default:
                     javaType = signature.substring( i, i + 1 );
@@ -269,7 +269,7 @@ public abstract class ModuleWriter implements Closeable {
      * Write a method parameter.
      * 
      * @param kind
-     *            "param", "return" or "local"
+     *            "param", "result" or "local"
      * @param valueType
      *            the data type of the parameter
      * @throws IOException
