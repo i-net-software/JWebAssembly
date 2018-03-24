@@ -67,7 +67,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeExport( String methodName, String exportName ) throws IOException {
+    protected void writeExport( String signatureName, String methodName, String exportName ) throws IOException {
         newline( output );
         output.append( "(export \"" ).append( exportName ).append( "\" (func $" ).append( methodName ).append( "))" );
     }
@@ -76,7 +76,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodStart( String name ) throws IOException {
+    protected void writeMethodStart( String signatureName, String name ) throws IOException {
         newline( output );
         output.append( "(func $" );
         output.append( name );
@@ -210,5 +210,15 @@ public class TextModuleWriter extends ModuleWriter {
             output.append( ' ' );
             output.append( ' ' );
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeFunctionCall( String name ) throws IOException {
+        newline( methodOutput );
+        name = name.substring( 0, name.indexOf( '(' ) );
+        methodOutput.append( "call $" ).append( name );
     }
 }

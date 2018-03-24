@@ -105,8 +105,8 @@ public abstract class ModuleWriter implements Closeable {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void prepareMethod( MethodInfo method ) throws WasmException {
-        
+    protected void prepareMethod( MethodInfo method ) throws WasmException {
+        // Nothing
     }
 
     /**
@@ -121,9 +121,12 @@ public abstract class ModuleWriter implements Closeable {
         try {
             Code code = method.getCode();
             if( code != null ) { // abstract methods and interface methods does not have code
-                String methodName = method.getName(); // TODO naming conversion rule
-                writeExport( methodName, method );
-                writeMethodStart( methodName );
+                String methodName = method.getName();
+                String className = method.getDeclaringClassFile().getThisClass().getName();
+                String fullName = className + '.' + methodName;
+                String signatureName = fullName + method.getDescription();
+                writeExport( signatureName, fullName, method );
+                writeMethodStart( signatureName, fullName );
                 writeMethodSignature( method );
                 locals.clear();
                 localTable = code.getLocalVariableTable();
@@ -156,48 +159,55 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Look for a Export annotation and if there write an export directive.
      * 
+     * @param signatureName
+     *            the full name with signature
      * @param methodName
      *            the normalized method name
      * @param method
      *            the moethod
+     * 
      * @throws IOException
      *             if any IOException occur
      */
-    private void writeExport( String methodName, MethodInfo method ) throws IOException {
+    private void writeExport( String signatureName, String methodName, MethodInfo method ) throws IOException {
         Annotations annotations = method.getRuntimeInvisibleAnnotations();
         if( annotations != null ) {
             Map<String,Object> export = annotations.get( "org.webassembly.annotation.Export" );
             if( export != null ) {
                 String exportName = (String)export.get( "name" );
                 if( exportName == null ) {
-                    exportName = methodName;
+                    exportName = method.getName();  // TODO naming conversion rule if no name was set
                 }
-                writeExport( methodName, exportName );
+                writeExport( signatureName, methodName, exportName );
             }
         }
     }
 
     /**
      * Write an export directive
-     * 
+     * @param signatureName
+     *            the full name with signature
      * @param methodName
      *            the method name
      * @param exportName
      *            the export name, if null then the same like the method name
+     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeExport( String methodName, String exportName ) throws IOException;
+    protected abstract void writeExport( String signatureName, String methodName, String exportName ) throws IOException;
 
     /**
      * Write the method header.
-     * 
+     * @param signatureName
+     *            the full name with signature
      * @param name
      *            the method name
+     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodStart( String name ) throws IOException;
+    protected abstract void writeMethodStart( String signatureName, String name ) throws IOException;
 
     /**
      * Write the parameter and return signatures
@@ -490,6 +500,11 @@ public abstract class ModuleWriter implements Closeable {
                     case 177: // return void
                         writeReturn();
                         break;
+                    case 184: // invokestatic
+                        idx = byteCode.readUnsignedShort();
+                        ConstantRef method = (ConstantRef)constantPool.get( idx );
+                        writeFunctionCall( method.getConstantClass().getName() + '.' + method.getName() + method.getType() );
+                        break;
                     default:
                         throw new WasmException( "Unimplemented byte code operation: " + op, sourceFile, lineNumber );
                 }
@@ -617,7 +632,9 @@ public abstract class ModuleWriter implements Closeable {
 
     /**
      * Write a add operator
-     * @param numOp TODO
+     * 
+     * @param numOp
+     *            the numeric operation
      * @param valueType
      *            the type of the parameters
      * 
@@ -643,4 +660,14 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeReturn() throws IOException;
+
+    /**
+     * Write a call to a function.
+     * 
+     * @param name
+     *            the full qualified method name
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeFunctionCall( String name ) throws IOException;
 }

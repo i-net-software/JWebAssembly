@@ -37,6 +37,8 @@ interface InstructionOpcodes {
 
     static final int RETURN    = 0x0F;
 
+    static final int CALL      = 0x10;
+
     // === Variable access ===========
 
     static final int GET_LOCAL = 0x20;

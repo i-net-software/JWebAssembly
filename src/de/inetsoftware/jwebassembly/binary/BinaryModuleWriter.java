@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
@@ -176,19 +177,30 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected void writeExport( String methodName, String exportName ) throws IOException {
-        exports.put( exportName, methodName );
+    protected void prepareMethod( MethodInfo method ) throws WasmException {
+        String methodName = method.getName();
+        String className = method.getDeclaringClassFile().getThisClass().getName();
+        String fullName = className + '.' + methodName;
+        String signatureName = fullName + method.getDescription();
+        Function function = new Function();
+        function.id = functions.size();
+        functions.put( signatureName, function );
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodStart( String name ) throws IOException {
-        function = new Function();
-        function.id = functions.size();
-        functions.put( name, function );
+    protected void writeExport( String signatureName, String methodName, String exportName ) throws IOException {
+        exports.put( exportName, signatureName );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeMethodStart( String signatureName, String name ) throws IOException {
+        function = functions.get( signatureName );
         functionType = new FunctionType();
         codeStream.reset();
     }
@@ -457,5 +469,18 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void writeReturn() throws IOException {
         codeStream.write( RETURN );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeFunctionCall( String name ) throws IOException {
+        codeStream.write( CALL );
+        Function func = functions.get( name );
+        if( func == null ) {
+            throw new WasmException( "Call to unknown function: " + name, null, -1 );
+        }
+        codeStream.writeVaruint32( func.id );
     }
 }

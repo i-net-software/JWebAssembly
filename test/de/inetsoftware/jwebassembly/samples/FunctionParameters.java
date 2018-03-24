@@ -15,6 +15,8 @@
  */
 package de.inetsoftware.jwebassembly.samples;
 
+import org.webassembly.annotation.Export;
+
 /**
  * 
  * @author Volker Berlin
@@ -22,7 +24,8 @@ package de.inetsoftware.jwebassembly.samples;
  */
 public class FunctionParameters {
 
-    void singleInt( int a ) {
-
+    @Export(name="abc")
+    static void singleInt( int a ) {
+        int b = a + 1;
     }
 }
