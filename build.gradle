@@ -43,9 +43,11 @@ task nodeVersion(type: NodeTask) {
     options = ['-v']
     script = file('scriptDoesNotExists.js')
     doLast {
-        def nodeDir = nodeSetup.getNodeDir()
-        println nodeDir
-        test.systemProperty 'node.dir', nodeDir
+        if( node.download ) {
+            def nodeDir = nodeSetup.getNodeDir() // dir is only valid if downloaded
+            println nodeDir
+            test.systemProperty 'node.dir', nodeDir
+        }
     }
 }
 
