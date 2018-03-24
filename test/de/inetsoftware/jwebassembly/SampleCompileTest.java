@@ -15,12 +15,13 @@
  */
 package de.inetsoftware.jwebassembly;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -75,5 +76,18 @@ public class SampleCompileTest {
         webAsm.addFile( classFile );
         String text = webAsm.compileToText();
         assertEquals( expected, text );
+    }
+
+    @Test
+    public void compileToBinary() throws Exception {
+        URL url = SampleCompileTest.class.getResource( "samples/" + testName + ".wasm" );
+        File wasmFile = new File( url.toURI() );
+        byte[] expected = Files.readAllBytes( wasmFile.toPath() );
+        JWebAssembly webAsm = new JWebAssembly();
+        webAsm.addFile( classFile );
+        byte[] actual = webAsm.compileToBinary();
+        System.err.println(Arrays.toString( expected ));
+        System.err.println(Arrays.toString( actual ));
+        assertArrayEquals( expected, actual );
     }
 }
