@@ -16,8 +16,15 @@ var dependencies = {
 };
 dependencies["global.Math"] = Math;
 
+function callExport(instance) {
+    try{
+        console.log( instance.exports[process.argv[2]]( ...process.argv.slice(3) ) );
+    }catch(err){
+        console.log(err)
+    }
+}
 
 instantiate( ret, dependencies ).then( 
-  instance => console.log( instance.exports[process.argv[2]]( ...process.argv.slice(3) ) ),
+  instance => callExport(instance),
   reason => console.log(reason)
 );
