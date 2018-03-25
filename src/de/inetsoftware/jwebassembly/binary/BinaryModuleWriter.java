@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.BlockOperator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -437,9 +438,39 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
+            case eq:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_EQ;
+                        break;
+                    case i64:
+                        op = I64_EQ;
+                        break;
+                    case f32:
+                        op = F32_EQ;
+                        break;
+                    case f64:
+                        op = F64_EQ;
+                        break;
+                }
+            case ne:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_NE;
+                        break;
+                    case i64:
+                        op = I64_NE;
+                        break;
+                    case f32:
+                        op = F32_NE;
+                        break;
+                    case f64:
+                        op = F64_NE;
+                        break;
+                }
         }
         if( op == 0 ) {
-            throw new Error();
+            throw new Error( valueType + "." + numOp );
         }
         codeStream.write( op );
     }
@@ -482,5 +513,23 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             throw new WasmException( "Call to unknown function: " + name, null, -1 );
         }
         codeStream.writeVaruint32( func.id );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeBlockCode( BlockOperator op ) throws IOException {
+        switch( op ) {
+            case IF:
+                codeStream.write( IF );
+                codeStream.write( 0x40 ); // void; the return type of the block. currently we does not use it
+                break;
+            case END:
+                codeStream.write( END );
+                break;
+            default:
+                throw new Error( "Unknown block: " + op );
+        }
     }
 }

@@ -52,6 +52,8 @@ public abstract class ModuleWriter implements Closeable {
 
     private String               sourceFile;
 
+    private BranchManger         branchManager = new BranchManger();
+
     /**
      * Prepare the content of the class.
      * 
@@ -303,6 +305,7 @@ public abstract class ModuleWriter implements Closeable {
     private void writeCodeChunk( CodeInputStream byteCode, int lineNumber, ConstantPool constantPool  ) throws WasmException {
         try {
             while( byteCode.available() > 0 ) {
+                branchManager.handle( byteCode, this );
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
                     case 2: // iconst_m1
@@ -493,6 +496,14 @@ public abstract class ModuleWriter implements Closeable {
                     case 136: // l2i
                         writeCast( ValueTypeConvertion.l2i );
                         break;
+                    case 153: // ifeq
+                        opIfCondition( NumericOperator.ne, byteCode );
+                        break;
+                    case 167: // goto
+                        int baseCodePosition = byteCode.getCodePosition() - 1;
+                        int offset = byteCode.readUnsignedShort();
+                        if(true)throw new WasmException( "Unimplemented byte code operation: " + op, sourceFile, lineNumber );
+                        break;
                     case 172: // ireturn
                     case 173: // lreturn
                     case 174: // freturn
@@ -512,6 +523,27 @@ public abstract class ModuleWriter implements Closeable {
         } catch( Exception ex ) {
             throw WasmException.create( ex, sourceFile, lineNumber );
         }
+    }
+
+    /**
+     * Handle the if<condition> of the Java byte code. This Java instruction compare the first stack value with value 0.
+     * Important: In Java the condition for the jump to the else block is saved. In WebAssembler we need to use
+     * condition for the if block. The caller of the method must already negate this
+     * 
+     * @param numOp
+     *            The condition for the if block.
+     * @param byteCode
+     *            current byte code stream to read the taget offset.
+     * @throws IOException
+     *             if any I/O errors occur.
+     */
+    private void opIfCondition( NumericOperator numOp, CodeInputStream byteCode ) throws IOException {
+        int baseCodePosition = byteCode.getCodePosition() - 1;
+        int offset = byteCode.readUnsignedShort();
+        branchManager.start( BlockOperator.IF, baseCodePosition, offset );
+        writeConstInt( 0 );
+        writeNumericOperator( numOp, ValueType.i32 );
+        writeBlockCode( BlockOperator.IF );
     }
 
     /**
@@ -670,4 +702,14 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeFunctionCall( String name ) throws IOException;
+
+    /**
+     * Write a block/branch code
+     * 
+     * @param op
+     *            the operation
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeBlockCode( BlockOperator op ) throws IOException;
 }

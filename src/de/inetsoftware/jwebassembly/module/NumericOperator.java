@@ -30,4 +30,6 @@ public enum NumericOperator {
     shl,
     shr_s,
     shr_u,
+    eq,
+    ne,
 }

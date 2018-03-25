@@ -24,6 +24,7 @@ public enum ValueType {
     f32(-3),
     f64(-4),
     func(-0x20);
+    // void(-0x40);
 
     private int code;
 

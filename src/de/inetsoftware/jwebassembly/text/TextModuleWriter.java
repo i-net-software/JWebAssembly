@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.module.BlockOperator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -220,5 +221,26 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         name = name.substring( 0, name.indexOf( '(' ) );
         methodOutput.append( "call $" ).append( name );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeBlockCode( BlockOperator op ) throws IOException {
+        switch( op ) {
+            case IF:
+                newline( methodOutput );
+                methodOutput.append( "if" );
+                inset++;
+                break;
+            case END:
+                inset--;
+                newline( methodOutput );
+                methodOutput.append( "end" );
+                break;
+            default:
+                throw new Error( "Unknown block: " + op );
+        }
     }
 }
