@@ -453,6 +453,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         op = F64_EQ;
                         break;
                 }
+                break;
             case ne:
                 switch( valueType ) {
                     case i32:
@@ -468,6 +469,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         op = F64_NE;
                         break;
                 }
+                break;
         }
         if( op == 0 ) {
             throw new Error( valueType + "." + numOp );

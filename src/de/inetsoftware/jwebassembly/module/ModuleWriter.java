@@ -499,6 +499,9 @@ public abstract class ModuleWriter implements Closeable {
                     case 153: // ifeq
                         opIfCondition( NumericOperator.ne, byteCode );
                         break;
+                    case 154: // ifne
+                        opIfCondition( NumericOperator.eq, byteCode );
+                        break;
                     case 167: // goto
                         int baseCodePosition = byteCode.getCodePosition() - 1;
                         int offset = byteCode.readUnsignedShort();

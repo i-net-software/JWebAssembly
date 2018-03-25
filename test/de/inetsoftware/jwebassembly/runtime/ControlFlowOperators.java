@@ -24,7 +24,8 @@ public class ControlFlowOperators extends AbstractBaseTest {
         ArrayList<Object[]> list = new ArrayList<>();
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
-            addParam( list, script, "ifThenElse_Int0" );
+            addParam( list, script, "ifeq" );
+            addParam( list, script, "ifne" );
             addParam( list, script, "forLoop" );
         }
         return list;
@@ -33,9 +34,19 @@ public class ControlFlowOperators extends AbstractBaseTest {
     static class TestClass {
 
         @Export
-        static int ifThenElse_Int0() {
+        static int ifeq() {
             int condition = 0;
             if( condition != 0 ) {
+                return 13;
+            } else {
+                return 76;
+            }
+        }
+
+        @Export
+        static int ifne() {
+            int condition = 3;
+            if( condition == 0 ) {
                 return 13;
             } else {
                 return 76;
