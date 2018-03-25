@@ -49,7 +49,7 @@ public class RuntimeErrors {
     }
 
     @Parameters( name = "{0}" )
-    public static Collection<Object[]> data() {
+    public static Collection<ScriptEngine[]> data() {
         return ScriptEngine.testParams();
     }
 

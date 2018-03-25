@@ -25,8 +25,8 @@ public enum ScriptEngine {
     NodeJS,
     SpiderMonkey;
 
-    public static Collection<Object[]> testParams() {
-        Object[][] val = {{ScriptEngine.SpiderMonkey},{ScriptEngine.NodeJS}};
+    public static Collection<ScriptEngine[]> testParams() {
+        ScriptEngine[][] val = {{ScriptEngine.SpiderMonkey},{ScriptEngine.NodeJS}};
         return Arrays.asList(val);
     }
 }
