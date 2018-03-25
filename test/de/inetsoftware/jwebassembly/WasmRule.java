@@ -45,6 +45,10 @@ public class WasmRule extends TemporaryFolder {
 
     private File                      spiderMonkeyScript;
 
+    private boolean                   failed;
+
+    private String                    textCompiled;
+
     /**
      * Compile the given classes to a Wasm and save it to a file.
      * 
@@ -66,19 +70,35 @@ public class WasmRule extends TemporaryFolder {
         compile();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void after() {
+        super.after();
+        if( failed ) {
+            System.out.println( textCompiled );
+        }
+    }
+
     public void compile() throws IOException, WasmException {
-        create();
-        wasmFile = newFile( "test.wasm" );
         JWebAssembly wasm = new JWebAssembly();
         for( Class<?> clazz : classes ) {
             URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
             wasm.addFile( url );
         }
-        wasm.compileToBinary( wasmFile );
-        System.out.println( wasm.compileToText() ); // smoke test
-
-        nodeScript = createScript( "nodetest.js" );
-        spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
+        textCompiled = wasm.compileToText(); // smoke test
+        try {
+            create();  
+            wasmFile = newFile( "test.wasm" );
+            wasm.compileToBinary( wasmFile );
+    
+            nodeScript = createScript( "nodetest.js" );
+            spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
+        } catch( Exception ex ) {
+            System.out.println( textCompiled );
+            throwException( ex );
+        }
     }
 
     /**
@@ -150,7 +170,8 @@ public class WasmRule extends TemporaryFolder {
 
             String actual = evalWasm( script, methodName, params );
             assertEquals( String.valueOf( expected ), actual );
-        } catch( Exception ex ) {
+        } catch( Throwable ex ) {
+            failed = true;
             throwException( ex );
             return;
         }
@@ -193,7 +214,8 @@ public class WasmRule extends TemporaryFolder {
                 assertEquals( errorMessage, 0, exitCode );
             }
             return result;
-        } catch( Exception ex ) {
+        } catch( Throwable ex ) {
+            failed = true;
             throwException( ex );
             return null;
         }
