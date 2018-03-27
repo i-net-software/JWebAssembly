@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
-import de.inetsoftware.classparser.LineNumberTable;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
@@ -132,21 +131,15 @@ public abstract class ModuleWriter implements Closeable {
                 writeMethodSignature( method );
                 locals.clear();
                 localTable = code.getLocalVariableTable();
-                LineNumberTable lineNumberTable = code.getLineNumberTable();
-                if( lineNumberTable != null ) {
-                    int lineNumber;
-                    for( int i = 0; i < lineNumberTable.size(); i++ ) {
-                        lineNumber = lineNumberTable.getLineNumber( i );
-                        int offset = lineNumberTable.getStartOffset( i );
-                        int nextOffset =
-                                        i + 1 == lineNumberTable.size() ? code.getCodeSize()
-                                                        : lineNumberTable.getStartOffset( i + 1 );
-                        CodeInputStream byteCode = code.getByteCode( offset, nextOffset - offset );
-                        writeCodeChunk( byteCode, lineNumber, method.getConstantPool() );
-                    }
-                } else {
-                    CodeInputStream byteCode = code.getByteCode();
-                    writeCodeChunk( byteCode, -1, method.getConstantPool() );
+
+                branchManager.reset();
+                for( CodeInputStream byteCode : code.getByteCodes() ) {
+                    prepareBranchManager( byteCode, byteCode.getLineNumber() );
+                }
+                branchManager.calculate();
+
+                for( CodeInputStream byteCode : code.getByteCodes() ) {
+                    writeCodeChunk( byteCode, byteCode.getLineNumber(), method.getConstantPool() );
                 }
                 for( int i = Math.min( paramCount, locals.size() ); i > 0; i-- ) {
                     locals.remove( 0 );
@@ -290,6 +283,72 @@ public abstract class ModuleWriter implements Closeable {
      */
     protected abstract void writeMethodFinish( List<ValueType> locals ) throws IOException;
 
+    /**
+     * Write a chunk of byte code.
+     * 
+     * @param byteCode
+     *            a stream of byte code
+     * @param lineNumber
+     *            the current line number
+     * @throws WasmException
+     *             if some Java code can't converted
+     */
+    private void prepareBranchManager( CodeInputStream byteCode, int lineNumber  ) throws WasmException {
+        try {
+            while( byteCode.available() > 0 ) {
+                int op = byteCode.readUnsignedByte();
+                switch( op ) {
+                    case 16: // bipush
+                    case 18: // ldc
+                    case 21: //iload
+                    case 22: //lload
+                    case 23: //fload
+                    case 24: //dload
+                    case 25: //aload
+                    case 54: // istore
+                    case 55: // lstore
+                    case 56: // fstore
+                    case 57: // dstore
+                    case 58: // astore
+                    case 179: // putstatic
+                    case 181: // putfield
+                        byteCode.skip(1);
+                        break;
+                    case 17: // sipush
+                    case 20: // ldc2_w
+                    case 132: // iinc
+                    case 184: // invokestatic
+                        byteCode.skip( 2);
+                        break;
+                    case 153: // ifeq
+                    case 154: // ifne
+                    case 155: // iflt
+                    case 156: // ifge
+                    case 157: // ifgt
+                    case 158: // ifle
+                    case 159: // if_icmpeq
+                    case 160: // if_icmpne
+                    case 161: // if_icmplt
+                    case 162: // if_icmpge
+                    case 163: // if_icmpgt
+                    case 164: // if_icmple
+                    case 165: // if_acmpeq
+                    case 166: // if_acmpne
+                        int startPosition = byteCode.getCodePosition() + 2;
+                        int offset = byteCode.readUnsignedShort();
+                        branchManager.start( BlockOperator.IF, startPosition, offset - 3 );
+                        break;
+                    case 167: // goto
+                        startPosition = byteCode.getCodePosition() - 1;
+                        offset = byteCode.readUnsignedShort();
+                        branchManager.start( BlockOperator.GOTO, startPosition, offset );
+                        break;
+                }
+            }
+        } catch( Exception ex ) {
+            throw WasmException.create( ex, sourceFile, lineNumber );
+        }
+    }
     /**
      * Write a chunk of byte code.
      * 
@@ -502,10 +561,11 @@ public abstract class ModuleWriter implements Closeable {
                     case 154: // ifne
                         opIfCondition( NumericOperator.eq, byteCode );
                         break;
+                    case 155: // iflt
+                        opIfCondition( NumericOperator.gt, byteCode );
+                        break;
                     case 167: // goto
-                        int baseCodePosition = byteCode.getCodePosition() - 1;
-                        int offset = byteCode.readUnsignedShort();
-                        if(true)throw new WasmException( "Unimplemented byte code operation: " + op, sourceFile, lineNumber );
+                        byteCode.skip(2);
                         break;
                     case 172: // ireturn
                     case 173: // lreturn
@@ -541,12 +601,10 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O errors occur.
      */
     private void opIfCondition( NumericOperator numOp, CodeInputStream byteCode ) throws IOException {
-        int baseCodePosition = byteCode.getCodePosition() - 1;
-        int offset = byteCode.readUnsignedShort();
-        branchManager.start( BlockOperator.IF, baseCodePosition, offset );
+        byteCode.skip(2);
         writeConstInt( 0 );
         writeNumericOperator( numOp, ValueType.i32 );
-        writeBlockCode( BlockOperator.IF );
+        //writeBlockCode( BlockOperator.IF );
     }
 
     /**

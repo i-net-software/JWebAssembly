@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -232,6 +232,12 @@ public class TextModuleWriter extends ModuleWriter {
             case IF:
                 newline( methodOutput );
                 methodOutput.append( "if" );
+                inset++;
+                break;
+            case ELSE:
+                inset--;
+                newline( methodOutput );
+                methodOutput.append( "else" );
                 inset++;
                 break;
             case END:

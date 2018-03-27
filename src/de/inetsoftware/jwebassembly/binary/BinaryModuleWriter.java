@@ -470,6 +470,22 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
+            case gt:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_GT_S;
+                        break;
+                    case i64:
+                        op = I64_NE;
+                        break;
+                    case f32:
+                        op = F32_NE;
+                        break;
+                    case f64:
+                        op = F64_NE;
+                        break;
+                }
+                break;
         }
         if( op == 0 ) {
             throw new Error( valueType + "." + numOp );
@@ -526,6 +542,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case IF:
                 codeStream.write( IF );
                 codeStream.write( 0x40 ); // void; the return type of the block. currently we does not use it
+                break;
+            case ELSE:
+                codeStream.write( ELSE );
                 break;
             case END:
                 codeStream.write( END );
