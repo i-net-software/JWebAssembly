@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2017 Volker Berlin (i-net software)
+   Copyright 2011 - 2018 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package de.inetsoftware.classparser;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -79,7 +81,7 @@ public class Code {
     }
 
     @Nullable
-    public LineNumberTable getLineNumberTable() throws IOException{
+    public LineNumberTable getLineNumberTable() throws IOException {
         if( lineNumberTable != null ){
             return lineNumberTable;
         }
@@ -125,12 +127,29 @@ public class Code {
         }
     }
 
-    public CodeInputStream getByteCode(){
-        return new CodeInputStream( codeData, 0, codeData.length );
-    }
-
-    public CodeInputStream getByteCode(int offset, int length){
-        return new CodeInputStream( codeData, offset, length );
+    /**
+     * Get a list of CodeInputStream separated by source code line number.
+     * 
+     * @return the list
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    public Collection<CodeInputStream> getByteCodes() throws IOException {
+        ArrayList<CodeInputStream> list = new ArrayList<>();
+        LineNumberTable lineNumberTable = getLineNumberTable();
+        if( lineNumberTable != null ) {
+            int lineNumber;
+            for( int i = 0; i < lineNumberTable.size(); i++ ) {
+                lineNumber = lineNumberTable.getLineNumber( i );
+                int offset = lineNumberTable.getStartOffset( i );
+                int nextOffset = i + 1 == lineNumberTable.size() ? getCodeSize()
+                                : lineNumberTable.getStartOffset( i + 1 );
+                list.add( new CodeInputStream( codeData, offset, nextOffset - offset, lineNumber ) );
+            }
+        } else {
+            list.add( new CodeInputStream( codeData, 0, codeData.length, -1 ) );
+        }
+        return list;
     }
 
     public int getCodeSize(){
