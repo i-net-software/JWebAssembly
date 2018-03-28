@@ -564,6 +564,15 @@ public abstract class ModuleWriter implements Closeable {
                     case 155: // iflt
                         opIfCondition( NumericOperator.gt, byteCode );
                         break;
+                    case 156: // ifge
+                        opIfCondition( NumericOperator.le_s, byteCode );
+                        break;
+                    case 157: // ifgt
+                        opIfCondition( NumericOperator.lt_s, byteCode );
+                        break;
+                    case 158: // ifle
+                        opIfCondition( NumericOperator.ge_s, byteCode );
+                        break;
                     case 167: // goto
                         byteCode.skip(2);
                         break;

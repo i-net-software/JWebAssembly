@@ -34,4 +34,6 @@ public enum NumericOperator {
     ne,
     gt,
     lt_s,
+    le_s,
+    ge_s,
 }

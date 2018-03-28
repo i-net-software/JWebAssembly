@@ -476,13 +476,61 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         op = I32_GT_S;
                         break;
                     case i64:
-                        op = I64_NE;
+                        op = I64_GT_S;
                         break;
                     case f32:
-                        op = F32_NE;
+                        op = F32_GT;
                         break;
                     case f64:
-                        op = F64_NE;
+                        op = F64_GT;
+                        break;
+                }
+                break;
+            case lt_s:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_LT_S;
+                        break;
+                    case i64:
+                        op = I64_LT_S;
+                        break;
+                    case f32:
+                        op = F32_LT;
+                        break;
+                    case f64:
+                        op = F64_LT;
+                        break;
+                }
+                break;
+            case le_s:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_LE_S;
+                        break;
+                    case i64:
+                        op = I64_LE_S;
+                        break;
+                    case f32:
+                        op = F32_LE;
+                        break;
+                    case f64:
+                        op = F64_LE;
+                        break;
+                }
+                break;
+            case ge_s:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_GE_S;
+                        break;
+                    case i64:
+                        op = I64_GE_S;
+                        break;
+                    case f32:
+                        op = F32_GE;
+                        break;
+                    case f64:
+                        op = F64_GE;
                         break;
                 }
                 break;
