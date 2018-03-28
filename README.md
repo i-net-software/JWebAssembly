@@ -8,11 +8,18 @@ JWebAssembly is a Java to [WebAssembly](http://webassembly.org/) Compiler. It us
 
 Status of the project
 ----
-Currently it is only a proof of concept.
 
-Future Features
-----
-In the future there should be a Gradle plugin to easy integrate it in the build process and a Eclipse build command to see compiler errors in in the IDE. 
+### Finished Components
+* Java byte code parser
+* test framework
+* Public API of the Compiler
+
+### Partially Finished
+* Binary format file writer (97/256)
+* Text format file writer (97/256)
+
+### Future Features
+* In the future there should be a Gradle plugin to easy integrate it in the build process and a Eclipse build command to see compiler errors in in the IDE. 
 
 Required Java Version
 ----
