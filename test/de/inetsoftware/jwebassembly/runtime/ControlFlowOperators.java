@@ -42,6 +42,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifeq" );
             addParam( list, script, "ifne" );
             addParam( list, script, "iflt" );
+            addParam( list, script, "ifMultiple" );
             addParam( list, script, "forLoop" );
         }
         return list;
@@ -76,6 +77,23 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 condition = 13;
             } else {
                 condition = 76;
+            }
+            return condition;
+        }
+
+        @Export
+        static int ifMultiple() {
+            int condition = 3;
+            if( condition <= 0 ) {
+                if( condition < 0 ) {
+                    condition = 13;
+                }
+            } else {
+                if( condition > 0 ) {
+                    condition++;
+                } else {
+                    condition--;
+                }
             }
             return condition;
         }
