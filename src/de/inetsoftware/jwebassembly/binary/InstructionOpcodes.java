@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,47 @@ package de.inetsoftware.jwebassembly.binary;
  */
 interface InstructionOpcodes {
 
+    static final int NOP       = 0x01;
+
     // === Control flow operators ====
 
     static final int BLOCK     = 0x02;
 
     static final int LOOP      = 0x03;
 
+    /**
+     * If the value on the stack is true then the if block is executed. <br>
+     * sequence: IF <return type> <br>
+     * return type: can be void (0x40) <br>
+     * stack: remove one i32 value and compare it with 0 <br>
+     */
     static final int IF        = 0x04;
 
     static final int ELSE      = 0x05;
 
     static final int END       = 0x0B;
 
+    /**
+     * Break a block/loop <br>
+     * sequence: BR <call deep> <br>
+     * call deep: How many blocks are break. 0 means the current block<br>
+     * stack: no change <br>
+     */
+    static final int BR        = 0x0C;
+
+    static final int BR_IF     = 0x0D;
+
+    static final int BR_TABLE  = 0x0E;
+
     static final int RETURN    = 0x0F;
 
     static final int CALL      = 0x10;
+
+    static final int CALL_INDIRECT = 0x11;
+
+    static final int DROP      = 0x1A;
+
+    static final int SELECT    = 0x1B;
 
     // === Variable access ===========
 
