@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,6 +139,15 @@ public class WasmRule extends TemporaryFolder {
             for( int i = 0; i < types.length; i++ ) {
                 Class<?> type = params[i].getClass();
                 switch( type.getName() ) {
+                    case "java.lang.Byte":
+                        type = byte.class;
+                        break;
+                    case "java.lang.Short":
+                        type = short.class;
+                        break;
+                    case "java.lang.Character":
+                        type = char.class;
+                        break;
                     case "java.lang.Integer":
                         type = int.class;
                         break;
@@ -167,7 +176,15 @@ public class WasmRule extends TemporaryFolder {
             }
             method.setAccessible( true );
             expected = method.invoke( null, params );
+            if( expected instanceof Character ) { // WASM does not support char that it is number
+                expected = new Integer( ((Character)expected).charValue() );
+            }
 
+            for( int i = 0; i < params.length; i++ ) {
+                if( params[i] instanceof Character ) {
+                    params[i] = new Integer( ((Character)params[i]).charValue() );
+                }
+            }
             String actual = evalWasm( script, methodName, params );
             assertEquals( String.valueOf( expected ), actual );
         } catch( Throwable ex ) {

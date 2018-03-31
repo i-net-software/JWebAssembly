@@ -229,19 +229,16 @@ public abstract class ModuleWriter implements Closeable {
                     javaType = "object";
                     break;
                 case 'B': // byte
-                    javaType = "byte";
-                    break;
                 case 'C': // char
-                    javaType = "char";
-                    break;
+                case 'S': // short
+                case 'I': // int
+                    writeMethodParam( kind, ValueType.i32 );
+                    continue;
                 case 'D': // double
                     writeMethodParam( kind, ValueType.f64 );
                     continue;
                 case 'F': // float
                     writeMethodParam( kind, ValueType.f32 );
-                    continue;
-                case 'I': // int
-                    writeMethodParam( kind, ValueType.i32 );
                     continue;
                 case 'J': // long
                     writeMethodParam( kind, ValueType.i64 );
@@ -335,12 +332,12 @@ public abstract class ModuleWriter implements Closeable {
                     case 165: // if_acmpeq
                     case 166: // if_acmpne
                         int startPosition = byteCode.getCodePosition() + 2;
-                        int offset = byteCode.readUnsignedShort();
+                        int offset = byteCode.readShort();
                         branchManager.start( BlockOperator.IF, startPosition, offset - 3 );
                         break;
                     case 167: // goto
                         startPosition = byteCode.getCodePosition() - 1;
-                        offset = byteCode.readUnsignedShort();
+                        offset = byteCode.readShort();
                         branchManager.start( BlockOperator.GOTO, startPosition, offset );
                         break;
                 }
@@ -367,6 +364,8 @@ public abstract class ModuleWriter implements Closeable {
                 branchManager.handle( byteCode, this );
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
+                    case 0: // nop
+                        return;
                     case 2: // iconst_m1
                     case 3: // iconst_0
                     case 4: // iconst_1
@@ -398,9 +397,23 @@ public abstract class ModuleWriter implements Closeable {
                     case 18: // ldc
                         writeConst( constantPool.get( byteCode.readUnsignedByte() ) );
                         break;
+                    case 19: // ldc_w
                     case 20: // ldc2_w
                         writeConst( constantPool.get( byteCode.readUnsignedShort() ) );
                         break;
+                    case 21: // iload
+                        writeLoadStore( true, ValueType.i32, byteCode.readUnsignedByte() );
+                        break;
+                    case 22: // lload
+                        writeLoadStore( true, ValueType.i64, byteCode.readUnsignedByte() );
+                        break;
+                    case 23: // fload
+                        writeLoadStore( true, ValueType.f32, byteCode.readUnsignedByte() );
+                        break;
+                    case 24: // dload
+                        writeLoadStore( true, ValueType.f64, byteCode.readUnsignedByte() );
+                        break;
+                    //TODO case 25: // aload
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
@@ -425,6 +438,19 @@ public abstract class ModuleWriter implements Closeable {
                     case 41: // dload_3
                         writeLoadStore( true, ValueType.f64, op - 38 );
                         break;
+                    case 54: // istore
+                        writeLoadStore( false, ValueType.i32, byteCode.readUnsignedByte() );
+                        break;
+                    case 55: // lstore
+                        writeLoadStore( false, ValueType.i64, byteCode.readUnsignedByte() );
+                        break;
+                    case 56: // fstore
+                        writeLoadStore( false, ValueType.f32, byteCode.readUnsignedByte() );
+                        break;
+                    case 57: // dstore
+                        writeLoadStore( false, ValueType.f64, byteCode.readUnsignedByte() );
+                        break;
+                    //TODO case 58: // astore
                     case 59: // istore_0
                     case 60: // istore_1
                     case 61: // istore_2
@@ -552,8 +578,27 @@ public abstract class ModuleWriter implements Closeable {
                         writeNumericOperator( NumericOperator.add, ValueType.i32);
                         writeLoadStore( false, ValueType.i32, idx );
                         break;
+                    case 133: // i2l
+                        writeCast( ValueTypeConvertion.i2l );
+                        break;
                     case 136: // l2i
                         writeCast( ValueTypeConvertion.l2i );
+                        break;
+                    case 145: // i2b
+                        writeConstInt( 24 );
+                        writeNumericOperator( NumericOperator.shl, ValueType.i32 );
+                        writeConstInt( 24 );
+                        writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
+                        break;
+                    case 146: // i2c
+                        writeConstInt( 0xFFFF );
+                        writeNumericOperator( NumericOperator.and, ValueType.i32 );
+                        break;
+                    case 147: // i2s
+                        writeConstInt( 16 );
+                        writeNumericOperator( NumericOperator.shl, ValueType.i32 );
+                        writeConstInt( 16 );
+                        writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
                         break;
                     case 153: // ifeq
                         opIfCondition( NumericOperator.ne, byteCode );
@@ -589,7 +634,7 @@ public abstract class ModuleWriter implements Closeable {
                         writeFunctionCall( method.getConstantClass().getName() + '.' + method.getName() + method.getType() );
                         break;
                     default:
-                        throw new WasmException( "Unimplemented byte code operation: " + op, sourceFile, lineNumber );
+                        throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, lineNumber );
                 }
             }
         } catch( Exception ex ) {

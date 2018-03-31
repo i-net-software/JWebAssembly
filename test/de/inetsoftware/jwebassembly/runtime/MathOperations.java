@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,10 @@ public class MathOperations extends AbstractBaseTest {
             addParam( list, script, "mulDivDouble" );
             addParam( list, script, "intBits" );
             addParam( list, script, "longBits" );
+            addParam( list, script, "byteInc", (byte)127 );
+            addParam( list, script, "byteDec", (byte)-128 );
+            addParam( list, script, "shortInc", (short)-32768 );
+            addParam( list, script, "charOp", (char)0xFFFF );
         }
         return list;
     }
@@ -84,8 +88,11 @@ public class MathOperations extends AbstractBaseTest {
 
         @Export
         static int addInt( int a, int b ) {
+            int c = 1234567;
+            int d = -1234567;
+            int e = -1;
             b++;
-            return a + b;
+            return a + b + c + d + e;
         }
 
         @Export
@@ -97,12 +104,18 @@ public class MathOperations extends AbstractBaseTest {
 
         @Export
         static float addFloat( float a, float b ) {
-            return a + b;
+            float c = -1;
+            float d = 1234;
+            float e = 1.25F;
+            return a + b + c + d + e;
         }
 
         @Export
         static double addDouble( double a, double b ) {
-            return a + b;
+            double c = -1;
+            double d = 1234;
+            double e = 1.25;
+            return a + b + c + d + e;
         }
 
         @Export
@@ -114,8 +127,11 @@ public class MathOperations extends AbstractBaseTest {
         static int subLong() {
             long a = -1L;
             long b = 3L;
+            long c = -1L;
+            long d = 1234L;
+            int e = 3;
             a--;
-            return (int)(a - b);
+            return (int)(a - b - c - d + e);
         }
 
         @Export
@@ -186,5 +202,32 @@ public class MathOperations extends AbstractBaseTest {
             return (int)(a ^ (b >> 32));
         }
 
+        @Export
+        static byte byteInc( byte a ) {
+            a++;
+            a += 2;
+            return a;
+        }
+
+        @Export
+        static byte byteDec( byte a ) {
+            a--;
+            a -= 2;
+            return a;
+        }
+
+        @Export
+        static short shortInc( short a ) {
+            a++;
+            a += 2;
+            return a;
+        }
+
+        @Export
+        static char charOp( char a ) {
+            a++;
+            a += 60;
+            return a;
+        }
     }
 }
