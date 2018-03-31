@@ -15,11 +15,15 @@ Status of the project
 * Public API of the Compiler
 
 ### Partially Finished
-* Binary format file writer (97/256)
-* Text format file writer (97/256)
+* Binary format file writer (111 of 256)
+* Text format file writer (111 of 256)
 
-### Future Features
-* In the future there should be a Gradle plugin to easy integrate it in the build process and a Eclipse build command to see compiler errors in in the IDE. 
+### Open Features
+* Exception handling - required the next version of WebAssembly
+* Multiple threads - required the next version of WebAssembly
+* Memory Management - required the next version of WebAssembly
+* Gradle plugin to easy integrate it in the build process
+* Eclipse build command to see compiler errors in in the IDE. 
 
 Required Java Version
 ----
