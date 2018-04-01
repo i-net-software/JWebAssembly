@@ -312,6 +312,7 @@ public abstract class ModuleWriter implements Closeable {
                         byteCode.skip(1);
                         break;
                     case 17: // sipush
+                    case 19: // ldc_w
                     case 20: // ldc2_w
                     case 132: // iinc
                     case 184: // invokestatic
