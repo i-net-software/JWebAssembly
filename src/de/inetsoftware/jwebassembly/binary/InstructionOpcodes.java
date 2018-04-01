@@ -230,8 +230,47 @@ interface InstructionOpcodes {
     static final int F64_DIV   = 0xA3;
 
     // === data type conversions =====
+    // TargetType_...._SourceType
 
     static final int I32_WRAP_I64           = 0xA7;
 
+    static final int I32_TRUNC_S_F32        = 0xA8;
+
+    static final int I32_TRUNC_U_F32        = 0xA9;
+
+    static final int I32_TRUNC_S_F64        = 0xAA;
+
+    static final int I32_TRUNC_U_F64        = 0xAB;
+
     static final int I64_EXTEND_S_I32       = 0xAC;
+
+    static final int I64_EXTEND_U_I32       = 0xAD;
+
+    static final int I64_TRUNC_S_F32        = 0xAE;
+
+    static final int I64_TRUNC_U_F32        = 0xAF;
+
+    static final int I64_TRUNC_S_F64        = 0xB0;
+
+    static final int I64_TRUNC_U_F64        = 0xB1;
+
+    static final int F32_CONVERT_S_I32      = 0xB2;
+
+    static final int F32_CONVERT_U_I32      = 0xB3;
+
+    static final int F32_CONVERT_S_I64      = 0xB4;
+
+    static final int F32_CONVERT_U_I64      = 0xB5;
+
+    static final int F32_DEMOTE_F64         = 0xB6;
+
+    static final int F64_CONVERT_S_I32      = 0xB7;
+
+    static final int F64_CONVERT_U_I32      = 0xB8;
+
+    static final int F64_CONVERT_S_I64      = 0xB9;
+
+    static final int F64_CONVERT_U_I64      = 0xBA;
+
+    static final int F64_PROMOTE_F32        = 0xBB;
 }
