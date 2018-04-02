@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,22 @@
 package de.inetsoftware.jwebassembly.module;
 
 /**
- * Cast operations for converting one type to another
+ * Cast operations for converting one data type to another
  * 
  * @author Volker Berlin
  *
  */
 public enum ValueTypeConvertion {
-    l2i,
     i2l,
+    i2f,
+    i2d,
+    l2i,
+    l2f,
+    l2d,
+    f2i,
+    f2l,
+    f2d,
+    d2i,
+    d2l,
+    d2f,
 }
