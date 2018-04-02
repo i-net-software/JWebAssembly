@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,8 @@ public class CallFunctions extends AbstractBaseTest {
 
         @Export
         static int intCall() {
+            intConst();
+            doubleConst();
             return intConst();
         }
 
@@ -61,5 +63,8 @@ public class CallFunctions extends AbstractBaseTest {
             return -42;
         }
 
+        static double doubleConst() {
+            return 3.5;
+        }
     }
 }

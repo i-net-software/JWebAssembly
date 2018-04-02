@@ -367,6 +367,7 @@ public abstract class ModuleWriter implements Closeable {
                 switch( op ) {
                     case 0: // nop
                         return;
+                    //TODO case 1: // aconst_null
                     case 2: // iconst_m1
                     case 3: // iconst_0
                     case 4: // iconst_1
@@ -476,6 +477,19 @@ public abstract class ModuleWriter implements Closeable {
                     case 74: // dstore_3
                         writeLoadStore( false, ValueType.f64, op - 71 );
                         break;
+                    case 87: // pop
+                    case 88: // pop2
+                        writeBlockCode( BlockOperator.DROP );
+                        break;
+                    case 89: // dup: duplicate the value on top of the stack
+                    case 90: // dup_x1
+                    case 91: // dup_x2
+                    case 92: // dup2
+                    case 93: // dup2_x1
+                    case 94: // dup2_x2
+                    case 95: // swap
+                        // can be do with functions with more as one return value in future WASM standard
+                        throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: " + op, sourceFile, lineNumber );
                     case 96: // iadd
                         writeNumericOperator( NumericOperator.add, ValueType.i32);
                         break;
@@ -657,7 +671,7 @@ public abstract class ModuleWriter implements Closeable {
                     case 174: // freturn
                     case 175: // dreturn
                     case 177: // return void
-                        writeReturn();
+                        writeBlockCode( BlockOperator.RETURN );
                         break;
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
@@ -668,6 +682,8 @@ public abstract class ModuleWriter implements Closeable {
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, lineNumber );
                 }
             }
+        } catch( WasmException ex ) {
+            throw ex;
         } catch( Exception ex ) {
             throw WasmException.create( ex, sourceFile, lineNumber );
         }
@@ -830,14 +846,6 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeCast( ValueTypeConvertion cast ) throws IOException;
-
-    /**
-     * Write a return
-     * 
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    protected abstract void writeReturn() throws IOException;
 
     /**
      * Write a call to a function.

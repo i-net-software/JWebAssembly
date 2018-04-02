@@ -221,15 +221,6 @@ public class TextModuleWriter extends ModuleWriter {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeReturn() throws IOException {
-        newline( methodOutput );
-        methodOutput.append( "return" );
-    }
-
-    /**
      * Add a newline the insets.
      * 
      * @throws IOException
@@ -258,25 +249,33 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeBlockCode( BlockOperator op ) throws IOException {
+        String name;
+        int insetAfter = 0;
         switch( op ) {
+            case RETURN:
+                name = "return";
+                break;
             case IF:
-                newline( methodOutput );
-                methodOutput.append( "if" );
-                inset++;
+                name = "if";
+                insetAfter++;
                 break;
             case ELSE:
                 inset--;
-                newline( methodOutput );
-                methodOutput.append( "else" );
-                inset++;
+                name = "else";
+                insetAfter++;
                 break;
             case END:
                 inset--;
-                newline( methodOutput );
-                methodOutput.append( "end" );
+                name = "end";
+                break;
+            case DROP:
+                name = "drop";
                 break;
             default:
                 throw new Error( "Unknown block: " + op );
         }
+        newline( methodOutput );
+        methodOutput.append( name );
+        inset += insetAfter;
     }
 }

@@ -23,8 +23,10 @@ package de.inetsoftware.jwebassembly.module;
  *
  */
 public enum BlockOperator {
+    RETURN,
     IF,
     ELSE,
     END,
     GOTO,
+    DROP,
 }
