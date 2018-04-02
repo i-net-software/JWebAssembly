@@ -548,11 +548,41 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     protected void writeCast( ValueTypeConvertion cast ) throws IOException {
         int op;
         switch( cast ) {
+            case i2l:
+                op = I64_EXTEND_S_I32;
+                break;
+            case i2f:
+                op = F32_CONVERT_S_I32;
+                break;
+            case i2d:
+                op = F64_CONVERT_S_I32;
+                break;
             case l2i:
                 op = I32_WRAP_I64;
                 break;
-            case i2l:
-                op = I64_EXTEND_S_I32;
+            case l2f:
+                op = F32_CONVERT_S_I64;
+                break;
+            case l2d:
+                op = F64_CONVERT_S_I64;
+                break;
+            case f2i:
+                op = I32_TRUNC_S_F32;
+                break;
+            case f2l:
+                op = I64_TRUNC_S_F32;
+                break;
+            case f2d:
+                op = F64_PROMOTE_F32;
+                break;
+            case d2i:
+                op = I32_TRUNC_S_F64;
+                break;
+            case d2l:
+                op = I64_TRUNC_S_F64;
+                break;
+            case d2f:
+                op = F32_DEMOTE_F64;
                 break;
             default:
                 throw new Error( "Unknown cast: " + cast );

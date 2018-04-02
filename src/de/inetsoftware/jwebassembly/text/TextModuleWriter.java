@@ -177,11 +177,41 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeCast( ValueTypeConvertion cast ) throws IOException {
         String op;
         switch( cast ) {
+            case i2l:
+                op = "i64.extend_s/i32";
+                break;
+            case i2f:
+                op = "f32.convert_s/i32";
+                break;
+            case i2d:
+                op = "f64.convert_s/i32";
+                break;
             case l2i:
                 op = "i32.wrap/i64";
                 break;
-            case i2l:
-                op = "i64.extend_s/i32";
+            case l2f:
+                op = "f32.convert_s/i64";
+                break;
+            case l2d:
+                op = "f64.convert_s/i64";
+                break;
+            case f2i:
+                op = "i32.trunc_s/f32";
+                break;
+            case f2l:
+                op = "i64.trunc_s/f32";
+                break;
+            case f2d:
+                op = "f64.promote/f32";
+                break;
+            case d2i:
+                op = "i32.trunc_s/f64";
+                break;
+            case d2l:
+                op = "i64.trunc_s/f64";
+                break;
+            case d2f:
+                op = "f32.demote/f64";
                 break;
             default:
                 throw new Error( "Unknown cast: " + cast );

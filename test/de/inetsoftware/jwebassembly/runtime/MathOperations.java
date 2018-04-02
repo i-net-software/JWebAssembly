@@ -89,10 +89,13 @@ public class MathOperations extends AbstractBaseTest {
         @Export
         static int addInt( int a, int b ) {
             int c = 1234567;
-            int d = -1234567;
             int e = -1;
+            double d = -1234567;
+            int i = 1;
+            long l = 2;
+            float f = 3;
             b++;
-            return a + b + c + d + e;
+            return a + b + c + e + (int)d + i + (int)l + (int)f;
         }
 
         @Export
@@ -105,9 +108,12 @@ public class MathOperations extends AbstractBaseTest {
         @Export
         static float addFloat( float a, float b ) {
             float c = -1;
-            float d = 1234;
             float e = 1.25F;
-            return a + b + c + d + e;
+            double d = 1234;
+            int i = 1;
+            long l = 2;
+            float f = 3;
+            return a + b + c + e + (float)d + i + l + f;
         }
 
         @Export
@@ -115,7 +121,10 @@ public class MathOperations extends AbstractBaseTest {
             double c = -1;
             double d = 1234;
             double e = 1.25;
-            return a + b + c + d + e;
+            int i = 1;
+            long l = 2;
+            float f = 3;
+            return a + b + c + d + e + i + l + f;
         }
 
         @Export
@@ -128,10 +137,12 @@ public class MathOperations extends AbstractBaseTest {
             long a = -1L;
             long b = 3L;
             long c = -1L;
-            long d = 1234L;
-            int e = 3;
+            double d = 1234;
+            int i = 1;
+            long l = 2;
+            float f = 3;
             a--;
-            return (int)(a - b - c - d + e);
+            return (int)(a - b - c - (long)d - i - l - (long)f);
         }
 
         @Export

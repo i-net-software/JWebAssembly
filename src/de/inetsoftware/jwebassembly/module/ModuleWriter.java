@@ -582,8 +582,38 @@ public abstract class ModuleWriter implements Closeable {
                     case 133: // i2l
                         writeCast( ValueTypeConvertion.i2l );
                         break;
+                    case 134: // i2f
+                        writeCast( ValueTypeConvertion.i2f );
+                        break;
+                    case 135: // i2d
+                        writeCast( ValueTypeConvertion.i2d );
+                        break;
                     case 136: // l2i
                         writeCast( ValueTypeConvertion.l2i );
+                        break;
+                    case 137: // l2f
+                        writeCast( ValueTypeConvertion.l2f );
+                        break;
+                    case 138: // l2d
+                        writeCast( ValueTypeConvertion.l2d );
+                        break;
+                    case 139: // f2i
+                        writeCast( ValueTypeConvertion.f2i );
+                        break;
+                    case 140: // f2l
+                        writeCast( ValueTypeConvertion.f2l );
+                        break;
+                    case 141: // f2d
+                        writeCast( ValueTypeConvertion.f2d );
+                        break;
+                    case 142: // d2i
+                        writeCast( ValueTypeConvertion.d2i );
+                        break;
+                    case 143: // d2l
+                        writeCast( ValueTypeConvertion.d2l );
+                        break;
+                    case 144: // d2f
+                        writeCast( ValueTypeConvertion.d2f );
                         break;
                     case 145: // i2b
                         writeConstInt( 24 );
