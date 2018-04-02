@@ -546,6 +546,7 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 114: // frem
                     case 115: // drem
+                        //TODO can be implemented with a helper function like: (a - (long)(a / b) * (double)b) 
                         throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, lineNumber );
                     case 120: // ishl
                         writeNumericOperator( NumericOperator.shl, ValueType.i32 );
