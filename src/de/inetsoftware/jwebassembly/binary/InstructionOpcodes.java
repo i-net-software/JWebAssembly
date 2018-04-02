@@ -213,6 +213,22 @@ interface InstructionOpcodes {
 
     static final int I64_SHR_U = 0x88; 
 
+    static final int I64_ROTL  = 0x89; 
+
+    static final int I64_ROTR  = 0x8A; 
+
+    static final int F32_NEG   = 0x8C; 
+
+    static final int F32_CEIL  = 0x8D; 
+
+    static final int F32_FLOOR = 0x8E; 
+
+    static final int F32_TRUNC = 0x8F; 
+
+    static final int F32_NEAREST= 0x90; 
+
+    static final int F32_SQRT  = 0x91; 
+
     static final int F32_ADD   = 0x92;
 
     static final int F32_SUB   = 0x93;
@@ -221,6 +237,26 @@ interface InstructionOpcodes {
 
     static final int F32_DIV   = 0x95;
 
+    static final int F32_MIN   = 0x96;
+
+    static final int F32_MAX   = 0x97;
+
+    static final int F32_COPYSIGN= 0x98;
+
+    static final int F64_ABS   = 0x99;
+
+    static final int F64_NEG   = 0x9A;
+
+    static final int F64_CEIL  = 0x9B;
+
+    static final int F64_FLOOR = 0x9C;
+
+    static final int F64_TRUNC = 0x9D;
+
+    static final int F64_NEAREST= 0x9E;
+
+    static final int F64_SQRT  = 0x9F;
+
     static final int F64_ADD   = 0xA0;
 
     static final int F64_SUB   = 0xA1;
@@ -228,6 +264,12 @@ interface InstructionOpcodes {
     static final int F64_MUL   = 0xA2;
 
     static final int F64_DIV   = 0xA3;
+
+    static final int F64_MIN   = 0xA4;
+
+    static final int F64_MAX   = 0xA5;
+
+    static final int F64_COPYSIGN= 0xA6;
 
     // === data type conversions =====
     // TargetType_...._SourceType
