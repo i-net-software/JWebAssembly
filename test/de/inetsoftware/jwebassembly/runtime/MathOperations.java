@@ -90,6 +90,7 @@ public class MathOperations extends AbstractBaseTest {
         static int addInt( int a, int b ) {
             int c = 1234567;
             int e = -1;
+            e = -e;
             double d = -1234567;
             int i = 1;
             long l = 2;
@@ -101,7 +102,8 @@ public class MathOperations extends AbstractBaseTest {
         @Export
         static int addLong() {
             long a = 1L;
-            long b = 3L;
+            long b = -3L;
+            b = -b;
             return (int)(a + b);
         }
 
@@ -110,6 +112,7 @@ public class MathOperations extends AbstractBaseTest {
             float c = -1;
             float e = 1.25F;
             double d = 1234;
+            e = -e;
             int i = 1;
             long l = 2;
             float f = 3;
@@ -121,6 +124,7 @@ public class MathOperations extends AbstractBaseTest {
             double c = -1;
             double d = 1234;
             double e = 1.25;
+            e = -e;
             int i = 1;
             long l = 2;
             float f = 3;

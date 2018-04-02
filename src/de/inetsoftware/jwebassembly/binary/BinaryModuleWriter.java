@@ -336,6 +336,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
+            case neg:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_NEG;
+                        break;
+                    case f64:
+                        op = F64_NEG;
+                        break;
+                }
+                break;
             case mul:
                 switch( valueType ) {
                     case i32:
