@@ -146,7 +146,7 @@ public abstract class ModuleWriter implements Closeable {
                 }
                 writeMethodFinish( locals );
             }
-        } catch( IOException ioex ) {
+        } catch( Exception ioex ) {
             throw WasmException.create( ioex, sourceFile, -1 );
         }
     }
@@ -334,12 +334,12 @@ public abstract class ModuleWriter implements Closeable {
                     case 166: // if_acmpne
                         int startPosition = byteCode.getCodePosition() + 2;
                         int offset = byteCode.readShort();
-                        branchManager.start( BlockOperator.IF, startPosition, offset - 3 );
+                        branchManager.start( BlockOperator.IF, startPosition, offset - 3, lineNumber );
                         break;
                     case 167: // goto
                         startPosition = byteCode.getCodePosition() - 1;
                         offset = byteCode.readShort();
-                        branchManager.start( BlockOperator.GOTO, startPosition, offset );
+                        branchManager.start( BlockOperator.GOTO, startPosition, offset, lineNumber );
                         break;
                 }
             }

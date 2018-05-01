@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.inetsoftware.classparser.CodeInputStream;
+import de.inetsoftware.jwebassembly.WasmException;
 
 /**
  * This calculate the goto offsets from Java back to block operations
@@ -51,9 +52,11 @@ class BranchManger {
      *            the byte position of the start position
      * @param offset
      *            the relative jump position
+     * @param lineNumber
+     *            the current line number
      */
-    void start( BlockOperator op, int startPosition, int offset ) {
-        allParsedOperations.add( new ParsedBlock( op, startPosition, offset ) );
+    void start( BlockOperator op, int startPosition, int offset, int lineNumber ) {
+        allParsedOperations.add( new ParsedBlock( op, startPosition, offset, lineNumber ) );
     }
 
     /**
@@ -77,7 +80,7 @@ class BranchManger {
                     caculateIf( parent, parsedBlock, parsedOperations );
                     break;
                 default:
-                    throw new IllegalStateException( "Unimplemented block code operation: " + parsedBlock.op );
+                    throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, null, parsedBlock.lineNumber );
             }
         }
     }
@@ -159,10 +162,13 @@ class BranchManger {
 
         private int           endPosition;
 
-        private ParsedBlock( BlockOperator op, int startPosition, int offset ) {
+        private int           lineNumber;
+
+        private ParsedBlock( BlockOperator op, int startPosition, int offset, int lineNumber ) {
             this.op = op;
             this.startPosition = startPosition;
             this.endPosition = startPosition + offset;
+            this.lineNumber = lineNumber;
         }
     }
 
