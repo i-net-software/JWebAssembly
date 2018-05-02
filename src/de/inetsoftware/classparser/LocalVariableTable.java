@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2017 Volker Berlin (i-net software)
+   Copyright 2011 - 2018 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -58,13 +58,17 @@ public class LocalVariableTable {
             table = new LocalVariable[count];
             tablePosition = new LocalVariable[count];
         }
+        boolean[] wasSet = new boolean[table.length];
         for( int i = 0; i < count; i++ ) {
             LocalVariable var = new LocalVariable( input, i );
             int idx = var.getIndex();
             if( withPositions ) {
                 tablePosition[i] = var;
             }
-            table[idx] = var;
+            if( !wasSet[idx] ) { // does not use index of reused variable
+                table[idx] = var;
+                wasSet[idx] = true;
+            }
         }
     }
 
