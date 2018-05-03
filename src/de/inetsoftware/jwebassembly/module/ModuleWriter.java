@@ -119,6 +119,7 @@ public abstract class ModuleWriter implements Closeable {
      *             if some Java code can't converted
      */
     private void writeMethod( MethodInfo method ) throws WasmException {
+        int lineNumber = -1;
         try {
             Code code = method.getCode();
             if( code != null ) { // abstract methods and interface methods does not have code
@@ -134,12 +135,12 @@ public abstract class ModuleWriter implements Closeable {
 
                 branchManager.reset();
                 for( CodeInputStream byteCode : code.getByteCodes() ) {
-                    prepareBranchManager( byteCode, byteCode.getLineNumber() );
+                    prepareBranchManager( byteCode, lineNumber = byteCode.getLineNumber() );
                 }
                 branchManager.calculate();
 
                 for( CodeInputStream byteCode : code.getByteCodes() ) {
-                    writeCodeChunk( byteCode, byteCode.getLineNumber(), method.getConstantPool() );
+                    writeCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
                 }
                 for( int i = Math.min( paramCount, locals.size() ); i > 0; i-- ) {
                     locals.remove( 0 );
@@ -147,7 +148,7 @@ public abstract class ModuleWriter implements Closeable {
                 writeMethodFinish( locals );
             }
         } catch( Exception ioex ) {
-            throw WasmException.create( ioex, sourceFile, -1 );
+            throw WasmException.create( ioex, sourceFile, lineNumber );
         }
     }
 
@@ -341,12 +342,44 @@ public abstract class ModuleWriter implements Closeable {
                         offset = byteCode.readShort();
                         branchManager.start( BlockOperator.GOTO, startPosition, offset, lineNumber );
                         break;
+                    case 170: // tableswitch
+                    case 171: // lookupswitch
+                        startPosition = byteCode.getCodePosition(); 
+                        int padding = startPosition % 4;
+                        if( padding > 0 ) {
+                            byteCode.skip( 4 - padding );
+                        }
+                        startPosition--;
+
+                        int defaultPosition = offset = byteCode.readInt();
+                        int[] keys;
+                        int[] positions;
+                        if( op == 171 ) { // lookupswitch
+                            int nPairs = byteCode.readInt();
+                            keys = new int[nPairs];
+                            positions = new int[nPairs];
+                            for( int i = 0; i < nPairs; i++ ) {
+                                keys[i] = byteCode.readInt();
+                                offset = Math.max( offset, positions[i] = byteCode.readInt() );
+                            }
+                        } else {
+                            int low = byteCode.readInt();
+                            keys = new int[] { low };
+                            int count = byteCode.readInt() - low + 1;
+                            positions = new int[count];
+                            for( int i = 0; i < count; i++ ) {
+                                offset = Math.max( offset, positions[i] = byteCode.readInt() );
+                            }
+                        }
+                        branchManager.startSwitch( startPosition, offset, lineNumber, keys, positions, defaultPosition );
+                        break;
                 }
             }
         } catch( Exception ex ) {
             throw WasmException.create( ex, sourceFile, lineNumber );
         }
     }
+
     /**
      * Write a chunk of byte code.
      * 
@@ -680,6 +713,29 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 167: // goto
                         byteCode.skip(2);
+                        break;
+                    case 170: // tableswitch
+                    case 171: // lookupswitch
+                        int startPosition = byteCode.getCodePosition(); 
+                        int padding = startPosition % 4;
+                        if( padding > 0 ) {
+                            byteCode.skip( 4 - padding );
+                        }
+                        startPosition--;
+
+                        byteCode.readInt();
+                        if( op == 171 ) { // lookupswitch
+                            int count = byteCode.readInt();
+                            for( int i = 0; i < count; i++ ) {
+                                byteCode.readInt();
+                                byteCode.readInt();
+                            }
+                        } else {
+                            int count = -byteCode.readInt() + byteCode.readInt() + 1;
+                            for( int i = 0; i < count; i++ ) {
+                                byteCode.readInt();
+                            }
+                        }
                         break;
                     case 172: // ireturn
                     case 173: // lreturn
