@@ -29,4 +29,6 @@ public enum BlockOperator {
     END,
     GOTO,
     DROP,
+    BLOCK,
+    SWITCH,
 }

@@ -271,6 +271,10 @@ public class TextModuleWriter extends ModuleWriter {
             case DROP:
                 name = "drop";
                 break;
+            case BLOCK:
+                name = "block";
+                insetAfter++;
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }
