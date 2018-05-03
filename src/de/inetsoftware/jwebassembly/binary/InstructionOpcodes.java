@@ -18,6 +18,8 @@ package de.inetsoftware.jwebassembly.binary;
 /**
  * Instruction opcodes of the binary WebAssembly format.
  * 
+ * Details can be found at: https://github.com/WebAssembly/design/blob/master/BinaryEncoding.md
+ * 
  * @author Volker Berlin
  *
  */
@@ -53,6 +55,12 @@ interface InstructionOpcodes {
 
     static final int BR_IF     = 0x0D;
 
+    /**
+     * - br_table
+     * - target_count   - count of entries in the table
+     * - target_table   - levels of block breaks
+     * - default_target - levels of block breaks for default value
+     */
     static final int BR_TABLE  = 0x0E;
 
     static final int RETURN    = 0x0F;
@@ -63,6 +71,9 @@ interface InstructionOpcodes {
 
     static final int DROP      = 0x1A;
 
+    /**
+     * select one of two values based on condition
+     */
     static final int SELECT    = 0x1B;
 
     // === Variable access ===========
