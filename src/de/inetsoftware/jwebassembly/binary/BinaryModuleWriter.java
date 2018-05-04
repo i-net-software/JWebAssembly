@@ -23,11 +23,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.BlockOperator;
+import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -617,7 +618,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeBlockCode( BlockOperator op ) throws IOException {
+    protected void writeBlockCode( @Nonnull WasmBlockOperator op, @Nullable Object data ) throws IOException {
         switch( op ) {
             case RETURN:
                 codeStream.write( RETURN );
@@ -638,6 +639,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case BLOCK:
                 codeStream.write( BLOCK );
                 codeStream.write( 0x40 ); // void; the return type of the block. currently we does not use it
+                break;
+            case BR:
+                codeStream.write( BR );
+                codeStream.writeVaruint32( (Integer)data );
                 break;
             default:
                 throw new Error( "Unknown block: " + op );

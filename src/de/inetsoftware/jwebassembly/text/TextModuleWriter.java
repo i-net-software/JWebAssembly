@@ -18,9 +18,10 @@ package de.inetsoftware.jwebassembly.text;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.jwebassembly.module.BlockOperator;
+import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -248,7 +249,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeBlockCode( BlockOperator op ) throws IOException {
+    protected void writeBlockCode( @Nonnull WasmBlockOperator op, @Nullable Object data ) throws IOException {
         String name;
         int insetAfter = 0;
         switch( op ) {
@@ -274,6 +275,9 @@ public class TextModuleWriter extends ModuleWriter {
             case BLOCK:
                 name = "block";
                 insetAfter++;
+                break;
+            case BR:
+                name = "br " + data;
                 break;
             default:
                 throw new Error( "Unknown block: " + op );

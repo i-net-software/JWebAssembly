@@ -335,12 +335,12 @@ public abstract class ModuleWriter implements Closeable {
                     case 166: // if_acmpne
                         int startPosition = byteCode.getCodePosition() + 2;
                         int offset = byteCode.readShort();
-                        branchManager.start( BlockOperator.IF, startPosition, offset - 3, lineNumber );
+                        branchManager.start( JavaBlockOperator.IF, startPosition, offset - 3, lineNumber );
                         break;
                     case 167: // goto
                         startPosition = byteCode.getCodePosition() - 1;
                         offset = byteCode.readShort();
-                        branchManager.start( BlockOperator.GOTO, startPosition, offset, lineNumber );
+                        branchManager.start( JavaBlockOperator.GOTO, startPosition, offset, lineNumber );
                         break;
                     case 170: // tableswitch
                     case 171: // lookupswitch
@@ -512,7 +512,7 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 87: // pop
                     case 88: // pop2
-                        writeBlockCode( BlockOperator.DROP );
+                        writeBlockCode( WasmBlockOperator.DROP, null );
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 90: // dup_x1
@@ -742,7 +742,7 @@ public abstract class ModuleWriter implements Closeable {
                     case 174: // freturn
                     case 175: // dreturn
                     case 177: // return void
-                        writeBlockCode( BlockOperator.RETURN );
+                        writeBlockCode( WasmBlockOperator.RETURN, null );
                         break;
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
@@ -933,8 +933,10 @@ public abstract class ModuleWriter implements Closeable {
      * 
      * @param op
      *            the operation
+     * @param data
+     *            extra data depending of the operator
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeBlockCode( BlockOperator op ) throws IOException;
+    protected abstract void writeBlockCode( @Nonnull WasmBlockOperator op, @Nullable Object data ) throws IOException;
 }

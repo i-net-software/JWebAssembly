@@ -17,18 +17,18 @@
 package de.inetsoftware.jwebassembly.module;
 
 /**
- * Block operators
+ * Block operators in the WASM byte code.
  * 
  * @author Volker Berlin
  *
  */
-public enum BlockOperator {
+public enum WasmBlockOperator {
     RETURN,
     IF,
     ELSE,
     END,
-    GOTO,
     DROP,
     BLOCK,
-    SWITCH,
+    BR,
+    BR_TABLE,
 }
