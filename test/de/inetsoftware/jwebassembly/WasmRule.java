@@ -95,7 +95,7 @@ public class WasmRule extends TemporaryFolder {
     
             nodeScript = createScript( "nodetest.js" );
             spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
-        } catch( Exception ex ) {
+        } catch( Throwable ex ) {
             System.out.println( textCompiled );
             throwException( ex );
         }
