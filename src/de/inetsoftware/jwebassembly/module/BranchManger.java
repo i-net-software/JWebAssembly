@@ -209,6 +209,78 @@ class BranchManger {
      *            the not consumed operations in the parent branch
      */
     private void caculateSwitch( BranchNode parent, SwitchParsedBlock switchBlock, List<ParsedBlock> parsedOperations ) {
+        int startPosition = switchBlock.startPosition;
+        int posCount = switchBlock.positions.length;
+        boolean isTable = switchBlock.keys.length == 1;
+        if( isTable ) { 
+            SwitchCase[] cases = new SwitchCase[posCount+1];
+    
+            SwitchCase switchCase = cases[posCount] = new SwitchCase();
+            switchCase.key = Integer.MAX_VALUE;
+            switchCase.position = switchBlock.defaultPosition;
+            for( int i = 0; i < switchBlock.positions.length; i++ ) {
+                switchCase = cases[i] = new SwitchCase();
+                switchCase.key = i;
+                switchCase.position = switchBlock.positions[i];
+            }
+
+            // calculate the block number for ever switch case depending its position order
+            Arrays.sort( cases, (a, b) -> Integer.compare( a.position, b.position ) );
+            int blockCount = 0;
+            int lastPosition = -1;
+            BranchNode brTableNode = new BranchNode( startPosition, startPosition, WasmBlockOperator.BR_TABLE, null );
+            BranchNode blockNode = brTableNode;
+            for( int i = 0; i < cases.length; i++ ) {
+                switchCase = cases[i];
+                switchCase.block = blockCount;
+                int currentPosition = switchCase.position;
+                if( lastPosition != currentPosition ) {
+                    lastPosition = currentPosition;
+                    blockCount++;
+                    BranchNode node = new BranchNode( startPosition, startPosition + currentPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                    node.add( blockNode );
+                    blockNode = node;
+                }
+            }
+
+            // handle the GOTO at the end of the CASE blocks. 
+            int endPosition = startPosition + lastPosition;
+            for( int i = 0; i < parsedOperations.size(); i++ ) {
+                ParsedBlock parsedBlock = parsedOperations.get( i );
+                if( parsedBlock.startPosition < endPosition ) {
+                    if( parsedBlock.endPosition >= endPosition && parsedBlock.op == JavaBlockOperator.GOTO ) {
+                        parsedOperations.remove( i );
+                        endPosition = parsedBlock.endPosition;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            // Create the main block around the switch
+            BranchNode switchNode = new BranchNode( startPosition, endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+            switchNode.add( blockNode );
+            parent.add( switchNode );
+
+            // sort back in the natural order and create a br_table 
+            Arrays.sort( cases, (a, b) -> Integer.compare( a.key, b.key ) );
+            int[] data = new int[cases.length];
+            for( int i = 0; i < data.length; i++ ) {
+                data[i] = cases[i].block;
+            }
+            brTableNode.data = data;
+        } else {
+            throw new WasmException( "Unsupported switch with lookup", null, ((ParsedBlock)switchBlock).lineNumber );
+        }
+    }
+
+    /**
+     * Helper structure for caculateSwitch
+     */
+    private static class SwitchCase {
+        int key;
+        int position;
+        int block;
     }
 
     /**
@@ -276,7 +348,7 @@ class BranchManger {
 
         private final WasmBlockOperator endOp;
 
-        private final Object            data;
+        private       Object            data;
 
         /**
          * Create a new description.
