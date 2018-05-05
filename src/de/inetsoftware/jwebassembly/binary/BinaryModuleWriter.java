@@ -644,6 +644,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.write( BR );
                 codeStream.writeVaruint32( (Integer)data );
                 break;
+            case BR_TABLE:
+                codeStream.write( BR_TABLE );
+                int[] targets = (int[])data;
+                codeStream.writeVaruint32( targets.length - 1 );
+                for( int i : targets ) {
+                    codeStream.writeVaruint32( i );
+                }
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }

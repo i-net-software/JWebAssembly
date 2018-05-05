@@ -21,11 +21,11 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
+import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 
 /**
  * Module Writer for text format with S-expressions.
@@ -278,6 +278,13 @@ public class TextModuleWriter extends ModuleWriter {
                 break;
             case BR:
                 name = "br " + data;
+                break;
+            case BR_TABLE:
+                StringBuilder builder = new StringBuilder( "br_table");
+                for( int i : (int[])data ) {
+                    builder.append( ' ' ).append( i );
+                }
+                name = builder.toString();
                 break;
             default:
                 throw new Error( "Unknown block: " + op );
