@@ -4,7 +4,8 @@ JWebAssembly
 [![Build Status](https://travis-ci.org/i-net-software/JWebAssembly.svg)](https://travis-ci.org/i-net-software/JWebAssembly)
 [![License](https://img.shields.io/github/license/i-net-software/jwebassembly.svg)](https://github.com/i-net-software/jwebassembly/blob/master/LICENSE.txt)
 
-JWebAssembly is a Java to [WebAssembly](http://webassembly.org/) Compiler. It uses Java class files as input.
+JWebAssembly is a Java to [WebAssembly](http://webassembly.org/) compiler. It uses Java class files as input. That it can compile any language that compile to Java bytecode.
+As output it generates the binary format (.wasm file) or the text format (.wat file).
 
 Status of the project
 ----
@@ -50,3 +51,9 @@ In version 1 of WebAssembly you can only compile:
 
 ### Alternatives
 * [TeaVM](https://github.com/konsoletyper/teavm)
+
+## For Tool Developer
+
+If you want to develop some tools like plugins for a build system or an IDE, then you need
+* to include the full contents of the packages [de.inetsoftware.jwebassembly](https://github.com/i-net-software/JWebAssembly/tree/master/src/de/inetsoftware/jwebassembly) and [de.inetsoftware.classparser](https://github.com/i-net-software/JWebAssembly/tree/master/src/de/inetsoftware/classparser) and its subpackages.
+* Create an instance of [de.inetsoftware.jwebassembly.JWebAssembly](https://github.com/i-net-software/JWebAssembly/blob/master/src/de/inetsoftware/jwebassembly/JWebAssembly.java) class and use its API.
