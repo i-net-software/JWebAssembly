@@ -340,9 +340,9 @@ class BranchManger {
      */
     private static class BranchNode extends ArrayList<BranchNode> {
 
-        final int                       startPos;
+        private final int               startPos;
 
-        final int                       endPos;
+        private final int               endPos;
 
         private final WasmBlockOperator startOp;
 
