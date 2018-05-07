@@ -53,6 +53,8 @@ public abstract class ModuleWriter implements Closeable {
 
     private BranchManger         branchManager = new BranchManger();
 
+    private ValueStackManger     stackManager = new ValueStackManger();
+
     /**
      * Prepare the content of the class.
      * 
@@ -133,6 +135,7 @@ public abstract class ModuleWriter implements Closeable {
                 locals.clear();
                 localTable = code.getLocalVariableTable();
 
+                stackManager.reset();
                 branchManager.reset();
                 for( CodeInputStream byteCode : code.getByteCodes() ) {
                     prepareBranchManager( byteCode, lineNumber = byteCode.getLineNumber() );
@@ -296,12 +299,30 @@ public abstract class ModuleWriter implements Closeable {
             while( byteCode.available() > 0 ) {
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
+                    case 21: // iload
+                        stackManager.add( ValueType.i32, byteCode.getCodePosition() - 1 );
+                        byteCode.skip(1);
+                        break;
+                    case 22: // lload
+                        stackManager.add( ValueType.i64, byteCode.getCodePosition() - 1 );
+                        byteCode.skip(1);
+                        break;
+                    case 23: // fload
+                        stackManager.add( ValueType.f32, byteCode.getCodePosition() - 1 );
+                        byteCode.skip(1);
+                        break;
+                    case 24: // dload
+                        stackManager.add( ValueType.f64, byteCode.getCodePosition() - 1 );
+                        byteCode.skip(1);
+                        break;
+                    case 26: // iload_0
+                    case 27: // iload_1
+                    case 28: // iload_2
+                    case 29: // iload_3
+                        stackManager.add( ValueType.i32, byteCode.getCodePosition() - 1 );
+                        break;
                     case 16: // bipush
                     case 18: // ldc
-                    case 21: //iload
-                    case 22: //lload
-                    case 23: //fload
-                    case 24: //dload
                     case 25: //aload
                     case 54: // istore
                     case 55: // lstore
@@ -351,7 +372,7 @@ public abstract class ModuleWriter implements Closeable {
                         }
                         startPosition--;
 
-                        int defaultPosition = offset = byteCode.readInt();
+                        int defaultPosition = startPosition + byteCode.readInt();
                         int[] keys;
                         int[] positions;
                         if( op == 171 ) { // lookupswitch
@@ -360,7 +381,7 @@ public abstract class ModuleWriter implements Closeable {
                             positions = new int[nPairs];
                             for( int i = 0; i < nPairs; i++ ) {
                                 keys[i] = byteCode.readInt();
-                                offset = Math.max( offset, positions[i] = byteCode.readInt() );
+                                positions[i] = startPosition + byteCode.readInt();
                             }
                         } else {
                             int low = byteCode.readInt();
@@ -368,10 +389,11 @@ public abstract class ModuleWriter implements Closeable {
                             int count = byteCode.readInt() - low + 1;
                             positions = new int[count];
                             for( int i = 0; i < count; i++ ) {
-                                offset = Math.max( offset, positions[i] = byteCode.readInt() );
+                                positions[i] = startPosition + byteCode.readInt();
                             }
                         }
-                        branchManager.startSwitch( startPosition, offset, lineNumber, keys, positions, defaultPosition );
+                        int switchValuestartPosition = stackManager.getCodePosition( 0 );
+                        branchManager.startSwitch( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
                         break;
                 }
             }

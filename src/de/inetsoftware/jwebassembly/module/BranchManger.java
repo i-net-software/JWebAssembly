@@ -73,8 +73,8 @@ class BranchManger {
      *            the values of the cases
      * @param positions
      *            the code positions
-     * @param the
-     *            code position of the default block
+     * @param defaultPosition
+     *            the code position of the default block
      */
     void startSwitch( int startPosition, int offset, int lineNumber, int[] keys, int[] positions, int defaultPosition ) {
         allParsedOperations.add( new SwitchParsedBlock( startPosition, offset, lineNumber, keys, positions, defaultPosition ) );
@@ -209,7 +209,7 @@ class BranchManger {
      *            the not consumed operations in the parent branch
      */
     private void caculateSwitch( BranchNode parent, SwitchParsedBlock switchBlock, List<ParsedBlock> parsedOperations ) {
-        int startPosition = switchBlock.startPosition;
+        int startPosition = ((ParsedBlock)switchBlock).startPosition;
         int posCount = switchBlock.positions.length;
         boolean isTable = switchBlock.keys.length == 1;
         if( isTable ) { 
@@ -228,13 +228,16 @@ class BranchManger {
             Arrays.sort( cases, (a, b) -> Integer.compare( a.position, b.position ) );
             int blockCount = 0;
             int lastPosition = -1;
-            BranchNode brTableNode = new BranchNode( startPosition, startPosition, WasmBlockOperator.BR_TABLE, null );
-            BranchNode blockNode = brTableNode;
+            BranchNode brTableNode = null;
+            BranchNode blockNode = null;
             for( int i = 0; i < cases.length; i++ ) {
                 switchCase = cases[i];
                 switchCase.block = blockCount;
                 int currentPosition = switchCase.position;
                 if( lastPosition != currentPosition ) {
+                    if( blockNode == null ) {
+                        blockNode = brTableNode = new BranchNode( currentPosition, currentPosition, WasmBlockOperator.BR_TABLE, null );
+                    }
                     lastPosition = currentPosition;
                     blockCount++;
                     BranchNode node = new BranchNode( startPosition, startPosition + currentPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
@@ -303,9 +306,9 @@ class BranchManger {
     private static class ParsedBlock {
         private JavaBlockOperator op;
 
-        int                       startPosition;
+        private int               startPosition;
 
-        int                       endPosition;
+        private int               endPosition;
 
         private int               lineNumber;
 
