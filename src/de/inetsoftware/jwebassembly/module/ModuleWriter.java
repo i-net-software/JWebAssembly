@@ -753,7 +753,12 @@ public abstract class ModuleWriter implements Closeable {
                                 byteCode.readInt();
                             }
                         } else {
-                            int count = -byteCode.readInt() + byteCode.readInt() + 1;
+                            int low = byteCode.readInt();
+                            if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
+                                writeConstInt( low );
+                                writeNumericOperator( NumericOperator.sub, ValueType.i32 );
+                            }
+                            int count = byteCode.readInt() - low + 1;
                             for( int i = 0; i < count; i++ ) {
                                 byteCode.readInt();
                             }
