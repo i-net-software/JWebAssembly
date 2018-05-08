@@ -746,22 +746,29 @@ public abstract class ModuleWriter implements Closeable {
                         startPosition--;
 
                         byteCode.readInt();
+                        boolean writeFirstKey;
+                        int low = 0;
                         if( op == 171 ) { // lookupswitch
                             int count = byteCode.readInt();
+                            writeFirstKey = count == 1;
                             for( int i = 0; i < count; i++ ) {
-                                byteCode.readInt();
+                                int key = byteCode.readInt();
+                                if( i== 0 ) {
+                                    low = key;
+                                }
                                 byteCode.readInt();
                             }
                         } else {
-                            int low = byteCode.readInt();
-                            if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
-                                writeConstInt( low );
-                                writeNumericOperator( NumericOperator.sub, ValueType.i32 );
-                            }
+                            low = byteCode.readInt();
+                            writeFirstKey = true;
                             int count = byteCode.readInt() - low + 1;
                             for( int i = 0; i < count; i++ ) {
                                 byteCode.readInt();
                             }
+                        }
+                        if( writeFirstKey && low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
+                            writeConstInt( low );
+                            writeNumericOperator( NumericOperator.sub, ValueType.i32 );
                         }
                         break;
                     case 172: // ireturn
