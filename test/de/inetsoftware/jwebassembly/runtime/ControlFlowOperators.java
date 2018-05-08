@@ -43,6 +43,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifne" );
             addParam( list, script, "iflt" );
             addParam( list, script, "ifMultiple" );
+            addParam( list, script, "switchDirect" );
             addParam( list, script, "forLoop" );
         }
         return list;
@@ -96,6 +97,23 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 }
             }
             return condition;
+        }
+
+        @Export
+        static int switchDirect() {
+            return (switchDirect(10) * 10) + switchDirect( 9 );
+        }
+
+        private static int switchDirect( int a ) {
+            int b;
+            switch(a){
+                case 10:
+                    b = 1;
+                    break;
+                default:
+                    b = 9;
+            }
+            return b;
         }
 
         @Export
