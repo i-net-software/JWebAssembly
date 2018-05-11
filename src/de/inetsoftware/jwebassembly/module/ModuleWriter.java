@@ -43,17 +43,15 @@ import de.inetsoftware.jwebassembly.WasmException;
  */
 public abstract class ModuleWriter implements Closeable {
 
-    private int                  paramCount;
+    private int                   paramCount;
 
-    private ArrayList<ValueType> locals = new ArrayList<>();
+    private LocaleVariableManager localVariables = new LocaleVariableManager();
 
-    private LocalVariableTable   localTable;
+    private String                sourceFile;
 
-    private String               sourceFile;
+    private BranchManger          branchManager  = new BranchManger();
 
-    private BranchManger         branchManager = new BranchManger();
-
-    private ValueStackManger     stackManager = new ValueStackManger();
+    private ValueStackManger      stackManager   = new ValueStackManger();
 
     /**
      * Prepare the content of the class.
@@ -132,23 +130,20 @@ public abstract class ModuleWriter implements Closeable {
                 writeExport( signatureName, fullName, method );
                 writeMethodStart( signatureName, fullName );
                 writeMethodSignature( method );
-                locals.clear();
-                localTable = code.getLocalVariableTable();
 
+                localVariables.reset();
                 stackManager.reset();
                 branchManager.reset();
                 for( CodeInputStream byteCode : code.getByteCodes() ) {
                     prepareBranchManager( byteCode, lineNumber = byteCode.getLineNumber() );
                 }
                 branchManager.calculate();
+                localVariables.calculate();
 
                 for( CodeInputStream byteCode : code.getByteCodes() ) {
                     writeCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
                 }
-                for( int i = Math.min( paramCount, locals.size() ); i > 0; i-- ) {
-                    locals.remove( 0 );
-                }
-                writeMethodFinish( locals );
+                writeMethodFinish( localVariables.getLocalTypes( paramCount ) );
             }
         } catch( Exception ioex ) {
             throw WasmException.create( ioex, sourceFile, lineNumber );
@@ -297,45 +292,146 @@ public abstract class ModuleWriter implements Closeable {
     private void prepareBranchManager( CodeInputStream byteCode, int lineNumber  ) throws WasmException {
         try {
             while( byteCode.available() > 0 ) {
+                int codePosition = byteCode.getCodePosition();
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
-                    case 21: // iload
-                        stackManager.add( ValueType.i32, byteCode.getCodePosition() - 1 );
+                    case 2: // iconst_m1
+                    case 3: // iconst_0
+                    case 4: // iconst_1
+                    case 5: // iconst_2
+                    case 6: // iconst_3
+                    case 7: // iconst_4
+                    case 8: // iconst_5
+                        stackManager.add( ValueType.i32, codePosition );
+                        break;
+                    case 9:  // lconst_0
+                    case 10: // lconst_1
+                        stackManager.add( ValueType.i64, codePosition );
+                        break;
+                    case 11: // fconst_0
+                    case 12: // fconst_1
+                    case 13: // fconst_2
+                        stackManager.add( ValueType.f32, codePosition );
+                        break;
+                    case 14: // dconst_0
+                    case 15: // dconst_1
+                        stackManager.add( ValueType.f64, codePosition );
+                        break;
+                    case 16: // bipush
+                        stackManager.add( ValueType.i32, codePosition );
                         byteCode.skip(1);
+                        break;
+                    case 17: // sipush
+                        stackManager.add( ValueType.i32, codePosition );
+                        byteCode.skip(2);
+                        break;
+                    case 18: // ldc
+                        stackManager.add( null, codePosition );
+                        byteCode.skip(1);
+                        break;
+                    case 19: // ldc_w
+                    case 20: // ldc2_w
+                        stackManager.add( null, codePosition );
+                        byteCode.skip(2);
+                        break;
+                    case 21: // iload
+                        stackManager.add( ValueType.i32, codePosition );
+                        localVariables.use( ValueType.i32, byteCode.readUnsignedByte() );
                         break;
                     case 22: // lload
-                        stackManager.add( ValueType.i64, byteCode.getCodePosition() - 1 );
-                        byteCode.skip(1);
+                        stackManager.add( ValueType.i64, codePosition );
+                        localVariables.use( ValueType.i64, byteCode.readUnsignedByte() );
                         break;
                     case 23: // fload
-                        stackManager.add( ValueType.f32, byteCode.getCodePosition() - 1 );
-                        byteCode.skip(1);
+                        stackManager.add( ValueType.f32, codePosition );
+                        localVariables.use( ValueType.f32, byteCode.readUnsignedByte() );
                         break;
                     case 24: // dload
-                        stackManager.add( ValueType.f64, byteCode.getCodePosition() - 1 );
-                        byteCode.skip(1);
+                        stackManager.add( ValueType.f64, codePosition );
+                        localVariables.use( ValueType.f64, byteCode.readUnsignedByte() );
                         break;
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
                     case 29: // iload_3
-                        stackManager.add( ValueType.i32, byteCode.getCodePosition() - 1 );
+                        stackManager.add( ValueType.i32, codePosition );
+                        localVariables.use( ValueType.i32, op - 26 );
                         break;
-                    case 16: // bipush
-                    case 18: // ldc
-                    case 25: //aload
+                    case 30: // lload_0
+                    case 31: // lload_1
+                    case 32: // lload_2
+                    case 33: // lload_3
+                        stackManager.add( ValueType.i64, codePosition );
+                        localVariables.use( ValueType.i64, op - 30 );
+                        break;
+                    case 34: // fload_0
+                    case 35: // fload_1
+                    case 36: // fload_2
+                    case 37: // fload_3
+                        stackManager.add( ValueType.f32, codePosition );
+                        localVariables.use( ValueType.f32, op - 34 );
+                        break;
+                    case 38: // dload_0
+                    case 39: // dload_1
+                    case 40: // dload_2
+                    case 41: // dload_3
+                        stackManager.add( ValueType.f64, codePosition );
+                        localVariables.use( ValueType.f64, op - 38 );
+                        break;
                     case 54: // istore
+                        stackManager.remove();
+                        localVariables.use( ValueType.i32, byteCode.readUnsignedByte() );
+                        break;
                     case 55: // lstore
+                        stackManager.remove();
+                        localVariables.use( ValueType.i64, byteCode.readUnsignedByte() );
+                        break;
                     case 56: // fstore
+                        stackManager.remove();
+                        localVariables.use( ValueType.f32, byteCode.readUnsignedByte() );
+                        break;
                     case 57: // dstore
+                        stackManager.remove();
+                        localVariables.use( ValueType.f64, byteCode.readUnsignedByte() );
+                        break;
+                    case 59: // istore_0
+                    case 60: // istore_1
+                    case 61: // istore_2
+                    case 62: // istore_3
+                        stackManager.remove();
+                        localVariables.use( ValueType.i32, op - 59 );
+                        break;
+                    case 63: // lstore_0
+                    case 64: // lstore_1
+                    case 65: // lstore_2
+                    case 66: // lstore_3
+                        stackManager.remove();
+                        localVariables.use( ValueType.i64, op - 63 );
+                        break;
+                    case 67: // fstore_0
+                    case 68: // fstore_1
+                    case 69: // fstore_2
+                    case 70: // fstore_3
+                        stackManager.remove();
+                        localVariables.use( ValueType.f32, op - 67 );
+                        break;
+                    case 71: // dstore_0
+                    case 72: // dstore_1
+                    case 73: // dstore_2
+                    case 74: // dstore_3
+                        stackManager.remove();
+                        localVariables.use( ValueType.f64, op - 71 );
+                        break;
+                    case 87: // pop
+                    case 88: // pop2
+                        stackManager.remove();
+                        break;
+                    case 25: //aload
                     case 58: // astore
                     case 179: // putstatic
                     case 181: // putfield
                         byteCode.skip(1);
                         break;
-                    case 17: // sipush
-                    case 19: // ldc_w
-                    case 20: // ldc2_w
                     case 132: // iinc
                     case 184: // invokestatic
                         byteCode.skip( 2);
@@ -354,18 +450,16 @@ public abstract class ModuleWriter implements Closeable {
                     case 164: // if_icmple
                     case 165: // if_acmpeq
                     case 166: // if_acmpne
-                        int startPosition = byteCode.getCodePosition() + 2;
                         int offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.IF, startPosition, offset - 3, lineNumber );
+                        branchManager.start( JavaBlockOperator.IF, codePosition + 3, offset - 3, lineNumber );
                         break;
                     case 167: // goto
-                        startPosition = byteCode.getCodePosition() - 1;
                         offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.GOTO, startPosition, offset, lineNumber );
+                        branchManager.start( JavaBlockOperator.GOTO, codePosition, offset, lineNumber );
                         break;
                     case 170: // tableswitch
                     case 171: // lookupswitch
-                        startPosition = byteCode.getCodePosition(); 
+                        int startPosition = codePosition + 1; 
                         int padding = startPosition % 4;
                         if( padding > 0 ) {
                             byteCode.skip( 4 - padding );
@@ -893,15 +987,7 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     private void writeLoadStore( boolean load, @Nonnull ValueType valueType, @Nonnegative int idx ) throws WasmException, IOException {
-        idx = localTable.get( idx ).getPosition(); // translate slot index to position index
-        while( locals.size() <= idx ) {
-            locals.add( null );
-        }
-        ValueType oldType = locals.get( idx );
-        if( oldType != null && oldType != valueType ) {
-            throw new WasmException( "Redefine local variable type from " + oldType + " to " + valueType, sourceFile, -1 );
-        }
-        locals.set( idx, valueType );
+        idx = localVariables.get( idx ); // translate slot index to position index
         if( load ) {
             writeLoad( idx );
         } else {
