@@ -279,6 +279,9 @@ public class TextModuleWriter extends ModuleWriter {
             case BR:
                 name = "br " + data;
                 break;
+            case BR_IF:
+                name = "br_if " + data;
+                break;
             case BR_TABLE:
                 StringBuilder builder = new StringBuilder( "br_table");
                 for( int i : (int[])data ) {

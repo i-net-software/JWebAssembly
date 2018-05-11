@@ -644,6 +644,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.write( BR );
                 codeStream.writeVaruint32( (Integer)data );
                 break;
+            case BR_IF:
+                codeStream.write( BR_IF );
+                codeStream.writeVaruint32( (Integer)data );
+                break;
             case BR_TABLE:
                 codeStream.write( BR_TABLE );
                 int[] targets = (int[])data;
