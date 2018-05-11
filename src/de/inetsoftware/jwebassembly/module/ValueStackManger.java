@@ -42,7 +42,7 @@ class ValueStackManger {
     }
 
     /**
-     * Reset the manager to an inital state
+     * Reset the manager to an initial state
      */
     void reset() {
         size = 0;
