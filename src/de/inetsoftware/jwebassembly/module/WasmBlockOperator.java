@@ -30,5 +30,6 @@ public enum WasmBlockOperator {
     DROP,
     BLOCK,
     BR,
+    BR_IF,
     BR_TABLE,
 }
