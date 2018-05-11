@@ -17,7 +17,6 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -32,7 +31,6 @@ import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
-import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 
@@ -470,6 +468,7 @@ public abstract class ModuleWriter implements Closeable {
                         int[] keys;
                         int[] positions;
                         if( op == 171 ) { // lookupswitch
+                            localVariables.useTempI32();
                             int nPairs = byteCode.readInt();
                             keys = new int[nPairs];
                             positions = new int[nPairs];
@@ -553,78 +552,78 @@ public abstract class ModuleWriter implements Closeable {
                         writeConst( constantPool.get( byteCode.readUnsignedShort() ) );
                         break;
                     case 21: // iload
-                        writeLoadStore( true, ValueType.i32, byteCode.readUnsignedByte() );
+                        writeLoadStore( true, byteCode.readUnsignedByte() );
                         break;
                     case 22: // lload
-                        writeLoadStore( true, ValueType.i64, byteCode.readUnsignedByte() );
+                        writeLoadStore( true, byteCode.readUnsignedByte() );
                         break;
                     case 23: // fload
-                        writeLoadStore( true, ValueType.f32, byteCode.readUnsignedByte() );
+                        writeLoadStore( true, byteCode.readUnsignedByte() );
                         break;
                     case 24: // dload
-                        writeLoadStore( true, ValueType.f64, byteCode.readUnsignedByte() );
+                        writeLoadStore( true, byteCode.readUnsignedByte() );
                         break;
                     //TODO case 25: // aload
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
                     case 29: // iload_3
-                        writeLoadStore( true, ValueType.i32, op - 26 );
+                        writeLoadStore( true, op - 26 );
                         break;
                     case 30: // lload_0
                     case 31: // lload_1
                     case 32: // lload_2
                     case 33: // lload_3
-                        writeLoadStore( true, ValueType.i64, op - 30 );
+                        writeLoadStore( true, op - 30 );
                         break;
                     case 34: // fload_0
                     case 35: // fload_1
                     case 36: // fload_2
                     case 37: // fload_3
-                        writeLoadStore( true, ValueType.f32, op - 34 );
+                        writeLoadStore( true, op - 34 );
                         break;
                     case 38: // dload_0
                     case 39: // dload_1
                     case 40: // dload_2
                     case 41: // dload_3
-                        writeLoadStore( true, ValueType.f64, op - 38 );
+                        writeLoadStore( true, op - 38 );
                         break;
                     case 54: // istore
-                        writeLoadStore( false, ValueType.i32, byteCode.readUnsignedByte() );
+                        writeLoadStore( false, byteCode.readUnsignedByte() );
                         break;
                     case 55: // lstore
-                        writeLoadStore( false, ValueType.i64, byteCode.readUnsignedByte() );
+                        writeLoadStore( false, byteCode.readUnsignedByte() );
                         break;
                     case 56: // fstore
-                        writeLoadStore( false, ValueType.f32, byteCode.readUnsignedByte() );
+                        writeLoadStore( false, byteCode.readUnsignedByte() );
                         break;
                     case 57: // dstore
-                        writeLoadStore( false, ValueType.f64, byteCode.readUnsignedByte() );
+                        writeLoadStore( false, byteCode.readUnsignedByte() );
                         break;
                     //TODO case 58: // astore
                     case 59: // istore_0
                     case 60: // istore_1
                     case 61: // istore_2
                     case 62: // istore_3
-                        writeLoadStore( false, ValueType.i32, op - 59 );
+                        writeLoadStore( false, op - 59 );
                         break;
                     case 63: // lstore_0
                     case 64: // lstore_1
                     case 65: // lstore_2
                     case 66: // lstore_3
-                        writeLoadStore( false, ValueType.i64, op - 63 );
+                        writeLoadStore( false, op - 63 );
                         break;
                     case 67: // fstore_0
                     case 68: // fstore_1
                     case 69: // fstore_2
                     case 70: // fstore_3
-                        writeLoadStore( false, ValueType.f32, op - 67 );
+                        writeLoadStore( false, op - 67 );
                         break;
                     case 71: // dstore_0
                     case 72: // dstore_1
                     case 73: // dstore_2
                     case 74: // dstore_3
-                        writeLoadStore( false, ValueType.f64, op - 71 );
+                        writeLoadStore( false, op - 71 );
                         break;
                     case 87: // pop
                     case 88: // pop2
@@ -752,10 +751,10 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 132: // iinc
                         int idx = byteCode.readUnsignedByte();
-                        writeLoadStore( true, ValueType.i32, idx );
+                        writeLoadStore( true, idx );
                         writeConstInt( byteCode.readUnsignedByte() );
                         writeNumericOperator( NumericOperator.add, ValueType.i32);
-                        writeLoadStore( false, ValueType.i32, idx );
+                        writeLoadStore( false, idx );
                         break;
                     case 133: // i2l
                         writeCast( ValueTypeConvertion.i2l );
@@ -839,30 +838,58 @@ public abstract class ModuleWriter implements Closeable {
                         }
                         startPosition--;
 
-                        byteCode.readInt();
-                        boolean writeFirstKey;
-                        int low = 0;
+                        int defaultPosition = byteCode.readInt();
                         if( op == 171 ) { // lookupswitch
                             int count = byteCode.readInt();
-                            writeFirstKey = count == 1;
+                            int[] keys = new int[count];
+                            int[] positions = new int[count];
                             for( int i = 0; i < count; i++ ) {
-                                int key = byteCode.readInt();
-                                if( i== 0 ) {
-                                    low = key;
-                                }
-                                byteCode.readInt();
+                                keys[i] = byteCode.readInt();
+                                positions[i] = byteCode.readInt();
                             }
+                            int tempI32 = localVariables.getTempI32();
+                            int block = 0;
+                            int defaultBlock = -1;
+                            int currentPos = -1;
+                            writeLoadStore( false, tempI32 );
+                            do {
+                                int nextPos = findNext( currentPos, positions );
+                                if( nextPos == currentPos ) {
+                                    break;
+                                }
+                                currentPos = nextPos;
+                                if( defaultBlock < 0 ) {
+                                    if( defaultPosition <= currentPos ) {
+                                        defaultBlock = block;
+                                        if( defaultPosition < currentPos ) {
+                                            block++;
+                                        }
+                                    }
+                                }
+                                for( int i = 0; i < positions.length; i++ ) {
+                                    if( positions[i] == currentPos ) {
+                                        writeLoadStore( true, tempI32 );
+                                        writeConstInt( keys[i] );
+                                        writeNumericOperator( NumericOperator.eq, ValueType.i32 );
+                                        writeBlockCode( WasmBlockOperator.BR_IF, block );
+                                    }
+                                }
+                                block++;
+                            } while( true );
+                            if( defaultBlock < 0) {
+                                defaultBlock = block;
+                            }
+                            writeBlockCode( WasmBlockOperator.BR, defaultBlock );
                         } else {
-                            low = byteCode.readInt();
-                            writeFirstKey = true;
+                            int low = byteCode.readInt();
                             int count = byteCode.readInt() - low + 1;
                             for( int i = 0; i < count; i++ ) {
                                 byteCode.readInt();
                             }
-                        }
-                        if( writeFirstKey && low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
-                            writeConstInt( low );
-                            writeNumericOperator( NumericOperator.sub, ValueType.i32 );
+                            if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
+                                writeConstInt( low );
+                                writeNumericOperator( NumericOperator.sub, ValueType.i32 );
+                            }
                         }
                         break;
                     case 172: // ireturn
@@ -888,6 +915,18 @@ public abstract class ModuleWriter implements Closeable {
         }
     }
 
+    private static int findNext( int current, int[] values ) {
+        boolean find = false;
+        int next = Integer.MAX_VALUE;
+        for( int val : values ) {
+            if( val > current && val <= next ) {
+                next = val;
+                find = true;
+            }
+        }
+        return find ? next : current;
+    }
+
     /**
      * Handle the if<condition> of the Java byte code. This Java instruction compare the first stack value with value 0.
      * Important: In Java the condition for the jump to the else block is saved. In WebAssembler we need to use
@@ -904,7 +943,6 @@ public abstract class ModuleWriter implements Closeable {
         byteCode.skip(2);
         writeConstInt( 0 );
         writeNumericOperator( numOp, ValueType.i32 );
-        //writeBlockCode( BlockOperator.IF );
     }
 
     /**
@@ -977,8 +1015,6 @@ public abstract class ModuleWriter implements Closeable {
      * 
      * @param load
      *            true: if load
-     * @param valueType
-     *            the type of the variable
      * @param idx
      *            the memory/slot idx of the variable
      * @throws WasmException
@@ -986,7 +1022,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    private void writeLoadStore( boolean load, @Nonnull ValueType valueType, @Nonnegative int idx ) throws WasmException, IOException {
+    private void writeLoadStore( boolean load, @Nonnegative int idx ) throws WasmException, IOException {
         idx = localVariables.get( idx ); // translate slot index to position index
         if( load ) {
             writeLoad( idx );

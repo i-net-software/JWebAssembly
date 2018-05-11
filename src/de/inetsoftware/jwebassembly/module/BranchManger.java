@@ -179,26 +179,50 @@ class BranchManger {
      * return b;
      * </pre>
      *
-     * Should be converted to the follow Wasm code:
+     * Should be converted to the follow Wasm code for tableswitch:
      *
      * <pre>
-        block
-          block
-            block
-              get_local 0
-              i32.const 8
-              i32.sub
-              br_table 0 1 
-            end
-            i32.const 1
-            set_local 1
-            br 1
-          end
-          i32.const 9
-          set_local 1
-        end
-        get_local 1
-        return
+     *  block
+     *    block
+     *      block
+     *        get_local 0
+     *        i32.const 8
+     *        i32.sub
+     *        br_table 0 1 
+     *      end
+     *      i32.const 1
+     *      set_local 1
+     *      br 1
+     *    end
+     *    i32.const 9
+     *    set_local 1
+     *  end
+     *  get_local 1
+     *  return
+     * </pre>
+     * 
+     * and for lookupswitch
+     * 
+     * <pre>
+     *  block
+     *    block
+     *      block
+     *        get_local 0
+     *        tee_local $switch
+     *        i32.const 8
+     *        i32.eq
+     *        br_if 0
+     *        br 1 
+     *      end
+     *      i32.const 1
+     *      set_local 1
+     *      br 1
+     *    end
+     *    i32.const 9
+     *    set_local 1
+     *  end
+     *  get_local 1
+     *  return
      * </pre>
      *
      * @param parent
@@ -212,80 +236,81 @@ class BranchManger {
         int startPosition = ((ParsedBlock)switchBlock).startPosition;
         int posCount = switchBlock.positions.length;
         boolean isTable = switchBlock.keys.length == 1;
-        if( isTable ) { 
-            SwitchCase[] cases = new SwitchCase[posCount+1];
-    
-            SwitchCase switchCase = cases[posCount] = new SwitchCase();
-            switchCase.key = Integer.MAX_VALUE;
-            switchCase.position = switchBlock.defaultPosition;
-            for( int i = 0; i < switchBlock.positions.length; i++ ) {
-                switchCase = cases[i] = new SwitchCase();
-                switchCase.key = i;
-                switchCase.position = switchBlock.positions[i];
-            }
 
-            // calculate the block number for ever switch case depending its position order
-            Arrays.sort( cases, (a, b) -> Integer.compare( a.position, b.position ) );
-            int blockCount = 0;
-            int lastPosition = -1;
-            BranchNode brTableNode = null;
-            BranchNode blockNode = null;
-            for( int i = 0; i < cases.length; i++ ) {
-                switchCase = cases[i];
-                switchCase.block = blockCount;
-                int currentPosition = switchCase.position;
-                if( lastPosition != currentPosition ) {
-                    if( blockNode == null ) {
-                        blockNode = brTableNode = new BranchNode( currentPosition, currentPosition, WasmBlockOperator.BR_TABLE, null );
-                    }
-                    lastPosition = currentPosition;
-                    blockCount++;
-                    BranchNode node = new BranchNode( startPosition, currentPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-                    node.add( blockNode );
-                    blockNode = node;
+        // create a helper structure 
+        SwitchCase[] cases = new SwitchCase[posCount + 1];
+        SwitchCase switchCase = cases[posCount] = new SwitchCase();
+        switchCase.key = Long.MAX_VALUE;
+        switchCase.position = switchBlock.defaultPosition;
+        for( int i = 0; i < switchBlock.positions.length; i++ ) {
+            switchCase = cases[i] = new SwitchCase();
+            switchCase.key = isTable ? i : switchBlock.keys[i];
+            switchCase.position = switchBlock.positions[i];
+        }
+
+        // calculate the block number for ever switch case depending its position order
+        Arrays.sort( cases, ( a, b ) -> Integer.compare( a.position, b.position ) );
+        int blockCount = 0;
+        int lastPosition = -1;
+        BranchNode brTableNode = null;
+        BranchNode blockNode = null;
+        for( int i = 0; i < cases.length; i++ ) {
+            switchCase = cases[i];
+            switchCase.block = blockCount;
+            int currentPosition = switchCase.position;
+            if( lastPosition != currentPosition ) {
+                if( isTable && blockNode == null ) {
+                    blockNode = brTableNode = new BranchNode( currentPosition, currentPosition, WasmBlockOperator.BR_TABLE, null );
                 }
-            }
-
-            // handle the GOTO (breaks) at the end of the CASE blocks. 
-            blockCount = 0;
-            BranchNode branch = blockNode;
-            while( branch.size() > 0 ) {
-                BranchNode node = branch.get( 0 );
+                lastPosition = currentPosition;
                 blockCount++;
-
-                for( int p = 0; p < parsedOperations.size(); p++ ) {
-                    ParsedBlock parsedBlock = parsedOperations.get( p );
-                    if( parsedBlock.startPosition < node.endPos ) {
-                        continue;
-                    }
-                    if( parsedBlock.startPosition < lastPosition ) {
-                        if( parsedBlock.endPosition >= lastPosition && parsedBlock.op == JavaBlockOperator.GOTO ) {
-                            parsedOperations.remove( p );
-                            lastPosition = parsedBlock.endPosition;
-                            branch.add( new BranchNode( parsedBlock.startPosition, parsedBlock.startPosition, WasmBlockOperator.BR, null, blockCount ) );
-                            p--;
-                        }
-                    } else {
-                        break;
-                    }
+                BranchNode node = new BranchNode( startPosition, currentPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                if( blockNode != null ) {
+                    node.add( blockNode );
                 }
-                branch = node;
+                blockNode = node;
             }
+        }
 
-            // Create the main block around the switch
-            BranchNode switchNode = new BranchNode( startPosition, lastPosition , WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-            switchNode.add( blockNode );
-            parent.add( switchNode );
+        // handle the GOTO (breaks) at the end of the CASE blocks. 
+        blockCount = 0;
+        BranchNode branch = blockNode;
+        while( branch.size() > 0 ) {
+            BranchNode node = branch.get( 0 );
+            blockCount++;
 
-            // sort back in the natural order and create a br_table 
-            Arrays.sort( cases, (a, b) -> Integer.compare( a.key, b.key ) );
-            int[] data = new int[cases.length];
-            for( int i = 0; i < data.length; i++ ) {
-                data[i] = cases[i].block;
+            for( int p = 0; p < parsedOperations.size(); p++ ) {
+                ParsedBlock parsedBlock = parsedOperations.get( p );
+                if( parsedBlock.startPosition < node.endPos ) {
+                    continue;
+                }
+                if( parsedBlock.startPosition < lastPosition ) {
+                    if( parsedBlock.endPosition >= lastPosition && parsedBlock.op == JavaBlockOperator.GOTO ) {
+                        parsedOperations.remove( p );
+                        lastPosition = parsedBlock.endPosition;
+                        branch.add( new BranchNode( parsedBlock.startPosition, parsedBlock.startPosition, WasmBlockOperator.BR, null, blockCount ) );
+                        p--;
+                    }
+                } else {
+                    break;
+                }
             }
+            branch = node;
+        }
+
+        // Create the main block around the switch
+        BranchNode switchNode = new BranchNode( startPosition, lastPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        switchNode.add( blockNode );
+        parent.add( switchNode );
+
+        // sort back in the natural order and create a br_table 
+        Arrays.sort( cases, ( a, b ) -> Long.compare( a.key, b.key ) );
+        int[] data = new int[cases.length];
+        for( int i = 0; i < data.length; i++ ) {
+            data[i] = cases[i].block;
+        }
+        if( brTableNode != null ) {
             brTableNode.data = data;
-        } else {
-            throw new WasmException( "Unsupported switch with lookup", null, ((ParsedBlock)switchBlock).lineNumber );
         }
     }
 
@@ -293,7 +318,7 @@ class BranchManger {
      * Helper structure for caculateSwitch
      */
     private static class SwitchCase {
-        int key;
+        long key;
         int position;
         int block;
     }
