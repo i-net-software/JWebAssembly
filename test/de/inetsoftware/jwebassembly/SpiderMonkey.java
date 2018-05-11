@@ -22,6 +22,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -59,12 +60,12 @@ public class SpiderMonkey {
         System.out.println( "\tDownload: " + url );
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         if( target.exists() ) {
-            System.out.println( "\tUP-TP-DATE" );
             conn.setIfModifiedSince( target.lastModified() );
         }
         InputStream input = conn.getInputStream();
         command = target.getAbsolutePath() + "/js";
         if( conn.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED ) {
+            System.out.println( "\tUP-TP-DATE, use version from " + Instant.ofEpochMilli( target.lastModified() ) );
             return;
         }
         ZipInputStream zip = new ZipInputStream( input );
@@ -87,6 +88,7 @@ public class SpiderMonkey {
             }
         } while( true );
         target.setLastModified( lastModfied );
+        System.out.println( "\tUse Version from " + Instant.ofEpochMilli( lastModfied ) );
     }
 
     public String getCommand() throws IOException {
