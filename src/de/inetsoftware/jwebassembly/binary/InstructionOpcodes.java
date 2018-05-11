@@ -78,17 +78,23 @@ interface InstructionOpcodes {
 
     // === Variable access ===========
 
-    static final int GET_LOCAL = 0x20;
+    static final int GET_LOCAL         = 0x20;
 
-    static final int SET_LOCAL = 0x21;
+    static final int SET_LOCAL         = 0x21;
 
-    static final int I32_CONST = 0x41;
+    static final int TEE_LOCAL         = 0x22;
 
-    static final int I64_CONST = 0x42;
+    static final int GET_GLOBAL        = 0x23;
 
-    static final int F32_CONST = 0x43;
+    static final int SET_GLOBAL        = 0x24;
 
-    static final int F64_CONST = 0x44;
+    static final int I32_CONST         = 0x41;
+
+    static final int I64_CONST         = 0x42;
+
+    static final int F32_CONST         = 0x43;
+
+    static final int F64_CONST         = 0x44;
 
     // === numerical operations ======
 
