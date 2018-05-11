@@ -36,6 +36,8 @@ class LocaleVariableManager {
 
     private int                  size;
 
+    private boolean              needTempI32;
+
     private ArrayList<ValueType> localTypes = new ArrayList<>();
 
     /**
@@ -59,6 +61,7 @@ class LocaleVariableManager {
             var.idx = -1;
         }
         size = 0;
+        needTempI32 = false;
     }
 
     /**
@@ -81,9 +84,19 @@ class LocaleVariableManager {
     }
 
     /**
+     * We need an extra temporary variable inn the WebAssembly code.
+     */
+    void useTempI32() {
+        needTempI32 = true;
+    }
+
+    /**
      * Calculate the WebAssembly index position on the consumed data.
      */
     void calculate() {
+        if( needTempI32 ) {
+            use( ValueType.i32, size );
+        }
         int idx = 0;
         for( int i = 0; i < size; i++ ) {
             LocaleVariable var = variables[i];
@@ -110,6 +123,15 @@ class LocaleVariableManager {
             }
         }
         return localTypes;
+    }
+
+    /**
+     * Get the slot of the temporary variable.
+     * 
+     * @return the slot
+     */
+    int getTempI32() {
+        return size - 1;
     }
 
     /**
