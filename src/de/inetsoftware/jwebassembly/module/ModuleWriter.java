@@ -831,66 +831,7 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 170: // tableswitch
                     case 171: // lookupswitch
-                        int startPosition = byteCode.getCodePosition(); 
-                        int padding = startPosition % 4;
-                        if( padding > 0 ) {
-                            byteCode.skip( 4 - padding );
-                        }
-                        startPosition--;
-
-                        int defaultPosition = byteCode.readInt();
-                        if( op == 171 ) { // lookupswitch
-                            int count = byteCode.readInt();
-                            int[] keys = new int[count];
-                            int[] positions = new int[count];
-                            for( int i = 0; i < count; i++ ) {
-                                keys[i] = byteCode.readInt();
-                                positions[i] = byteCode.readInt();
-                            }
-                            int tempI32 = localVariables.getTempI32();
-                            int block = 0;
-                            int defaultBlock = -1;
-                            int currentPos = -1;
-                            writeLoadStore( false, tempI32 );
-                            do {
-                                int nextPos = findNext( currentPos, positions );
-                                if( nextPos == currentPos ) {
-                                    break;
-                                }
-                                currentPos = nextPos;
-                                if( defaultBlock < 0 ) {
-                                    if( defaultPosition <= currentPos ) {
-                                        defaultBlock = block;
-                                        if( defaultPosition < currentPos ) {
-                                            block++;
-                                        }
-                                    }
-                                }
-                                for( int i = 0; i < positions.length; i++ ) {
-                                    if( positions[i] == currentPos ) {
-                                        writeLoadStore( true, tempI32 );
-                                        writeConstInt( keys[i] );
-                                        writeNumericOperator( NumericOperator.eq, ValueType.i32 );
-                                        writeBlockCode( WasmBlockOperator.BR_IF, block );
-                                    }
-                                }
-                                block++;
-                            } while( true );
-                            if( defaultBlock < 0) {
-                                defaultBlock = block;
-                            }
-                            writeBlockCode( WasmBlockOperator.BR, defaultBlock );
-                        } else {
-                            int low = byteCode.readInt();
-                            int count = byteCode.readInt() - low + 1;
-                            for( int i = 0; i < count; i++ ) {
-                                byteCode.readInt();
-                            }
-                            if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
-                                writeConstInt( low );
-                                writeNumericOperator( NumericOperator.sub, ValueType.i32 );
-                            }
-                        }
+                        writeSwitchCode( byteCode, op == 171 );
                         break;
                     case 172: // ireturn
                     case 173: // lreturn
@@ -915,6 +856,88 @@ public abstract class ModuleWriter implements Closeable {
         }
     }
 
+    /**
+     * Write the both switch operation codes
+     * 
+     * @param byteCode
+     *            the current stream with a position after the operation code
+     * @param isLookupSwitch
+     *            true, if the operation was a loopupswitch; false, if the operation was a tableswitch
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeSwitchCode( CodeInputStream byteCode, boolean isLookupSwitch ) throws IOException {
+        int startPosition = byteCode.getCodePosition();
+        int padding = startPosition % 4;
+        if( padding > 0 ) {
+            byteCode.skip( 4 - padding );
+        }
+        startPosition--;
+
+        int defaultPosition = byteCode.readInt();
+        if( isLookupSwitch ) { // lookupswitch
+            int count = byteCode.readInt();
+            int[] keys = new int[count];
+            int[] positions = new int[count];
+            for( int i = 0; i < count; i++ ) {
+                keys[i] = byteCode.readInt();
+                positions[i] = byteCode.readInt();
+            }
+            int tempI32 = localVariables.getTempI32();
+            int block = 0;
+            int defaultBlock = -1;
+            int currentPos = -1;
+            writeLoadStore( false, tempI32 );
+            do {
+                int nextPos = findNext( currentPos, positions );
+                if( nextPos == currentPos ) {
+                    break;
+                }
+                currentPos = nextPos;
+                if( defaultBlock < 0 ) {
+                    if( defaultPosition <= currentPos ) {
+                        defaultBlock = block;
+                        if( defaultPosition < currentPos ) {
+                            block++;
+                        }
+                    }
+                }
+                for( int i = 0; i < positions.length; i++ ) {
+                    if( positions[i] == currentPos ) {
+                        writeLoadStore( true, tempI32 );
+                        writeConstInt( keys[i] );
+                        writeNumericOperator( NumericOperator.eq, ValueType.i32 );
+                        writeBlockCode( WasmBlockOperator.BR_IF, block );
+                    }
+                }
+                block++;
+            } while( true );
+            if( defaultBlock < 0 ) {
+                defaultBlock = block;
+            }
+            writeBlockCode( WasmBlockOperator.BR, defaultBlock );
+        } else {
+            int low = byteCode.readInt();
+            int count = byteCode.readInt() - low + 1;
+            for( int i = 0; i < count; i++ ) {
+                byteCode.readInt();
+            }
+            if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
+                writeConstInt( low );
+                writeNumericOperator( NumericOperator.sub, ValueType.i32 );
+            }
+        }
+    }
+
+    /**
+     * Find the next higher value.
+     * 
+     * @param current
+     *            the current value
+     * @param values
+     *            the unordered list of values
+     * @return the next value or current value if not found.
+     */
     private static int findNext( int current, int[] values ) {
         boolean find = false;
         int next = Integer.MAX_VALUE;
