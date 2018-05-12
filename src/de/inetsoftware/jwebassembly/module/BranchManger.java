@@ -70,7 +70,7 @@ class BranchManger {
      * @param lineNumber
      *            the current line number
      * @param keys
-     *            the values of the cases
+     *            the values of the cases or null if a tableswitch
      * @param positions
      *            the code positions
      * @param defaultPosition
@@ -235,7 +235,7 @@ class BranchManger {
     private void caculateSwitch( BranchNode parent, SwitchParsedBlock switchBlock, List<ParsedBlock> parsedOperations ) {
         int startPosition = ((ParsedBlock)switchBlock).startPosition;
         int posCount = switchBlock.positions.length;
-        boolean isTable = switchBlock.keys.length == 1;
+        boolean isTable = switchBlock.keys == null;
 
         // create a helper structure 
         SwitchCase[] cases = new SwitchCase[posCount + 1];

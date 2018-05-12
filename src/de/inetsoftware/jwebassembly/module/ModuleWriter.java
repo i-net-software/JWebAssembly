@@ -133,7 +133,7 @@ public abstract class ModuleWriter implements Closeable {
                 stackManager.reset();
                 branchManager.reset();
                 for( CodeInputStream byteCode : code.getByteCodes() ) {
-                    prepareBranchManager( byteCode, lineNumber = byteCode.getLineNumber() );
+                    prepareCodeChunk( byteCode, lineNumber = byteCode.getLineNumber() );
                 }
                 branchManager.calculate();
                 localVariables.calculate();
@@ -278,7 +278,7 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeMethodFinish( List<ValueType> locals ) throws IOException;
 
     /**
-     * Write a chunk of byte code.
+     * Analyze and prepare a chunk of byte code.
      * 
      * @param byteCode
      *            a stream of byte code
@@ -287,7 +287,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void prepareBranchManager( CodeInputStream byteCode, int lineNumber  ) throws WasmException {
+    private void prepareCodeChunk( CodeInputStream byteCode, int lineNumber  ) throws WasmException {
         try {
             while( byteCode.available() > 0 ) {
                 int codePosition = byteCode.getCodePosition();
@@ -478,7 +478,7 @@ public abstract class ModuleWriter implements Closeable {
                             }
                         } else {
                             int low = byteCode.readInt();
-                            keys = new int[] { low };
+                            keys = null;
                             int count = byteCode.readInt() - low + 1;
                             positions = new int[count];
                             for( int i = 0; i < count; i++ ) {
