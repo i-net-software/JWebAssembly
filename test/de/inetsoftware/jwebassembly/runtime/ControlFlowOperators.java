@@ -43,6 +43,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifne" );
             addParam( list, script, "iflt" );
             addParam( list, script, "ifMultiple" );
+            addParam( list, script, "ifCompare" );
             addParam( list, script, "switchDirect" );
             addParam( list, script, "forLoop" );
         }
@@ -96,7 +97,44 @@ public class ControlFlowOperators extends AbstractBaseTest {
                     condition--;
                 }
             }
+            if( condition > 2 ) {
+                condition++;
+            } else {
+                condition = 0;
+            }
+            if( condition >= 2 ) {
+                condition++;
+            } else {
+                condition = 0;
+            }
+            if( condition <= 123 ) {
+                condition++;
+            } else {
+                condition = 0;
+            }
+            if( condition < 123 ) {
+                condition++;
+            } else {
+                condition = 0;
+            }
+            if( condition != 123 ) {
+                condition++;
+            } else {
+                condition = 0;
+            }
             return condition;
+        }
+
+        @Export
+        static int ifCompare() {
+            double condition = 3.0;
+            int result;
+            if( condition >= 3.5 ) {
+                result = 13;
+            } else {
+                result = 76;
+            }
+            return result;
         }
 
         @Export
@@ -123,8 +161,14 @@ public class ControlFlowOperators extends AbstractBaseTest {
                     b = 1;
                     break;
                 case 1000:
-                    b = 2;
-                    break;
+                case 1001:
+                    if( a == 1000 ) {
+                        b = 2;
+                        break;
+                    } else {
+                        b = 0;
+                    }
+                    //$FALL-THROUGH$
                 case Integer.MAX_VALUE:
                     b = 3;
                     break;

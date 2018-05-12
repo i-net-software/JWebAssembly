@@ -16,8 +16,8 @@ Status of the project
 * Public API of the Compiler
 
 ### Partially Finished
-* Binary format file writer (134 of 201 byte code instructions)
-* Text format file writer (134 of 201 byte code instructions)
+* Binary format file writer (145 of 201 byte code instructions)
+* Text format file writer (145 of 201 byte code instructions)
 
 ### Open Features
 * Exception handling - required the next version of WebAssembly

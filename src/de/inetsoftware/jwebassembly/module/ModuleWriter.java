@@ -530,7 +530,7 @@ public abstract class ModuleWriter implements Closeable {
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
                     case 0: // nop
-                        return;
+                        break;
                     //TODO case 1: // aconst_null
                     case 2: // iconst_m1
                     case 3: // iconst_0
@@ -824,6 +824,17 @@ public abstract class ModuleWriter implements Closeable {
                         writeConstInt( 16 );
                         writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
                         break;
+                    case 148: // lcmp
+                        opCompare( ValueType.i64, byteCode );
+                        break;
+                    case 149: // fcmpl
+                    case 150: // fcmpg
+                        opCompare( ValueType.f32, byteCode );
+                        break;
+                    case 151: // dcmpl
+                    case 152: // dcmpg
+                        opCompare( ValueType.f64, byteCode );
+                        break;
                     case 153: // ifeq
                         opIfCondition( NumericOperator.ne, byteCode );
                         break;
@@ -842,8 +853,28 @@ public abstract class ModuleWriter implements Closeable {
                     case 158: // ifle
                         opIfCondition( NumericOperator.ge_s, byteCode );
                         break;
+                    case 159: // if_icmpeq
+                        opIfCompareCondition( NumericOperator.ne, byteCode );
+                        break;
+                    case 160: // if_icmpne
+                        opIfCompareCondition( NumericOperator.eq, byteCode );
+                        break;
+                    case 161: // if_icmplt
+                        opIfCompareCondition( NumericOperator.gt, byteCode );
+                        break;
+                    case 162: // if_icmpge
+                        opIfCompareCondition( NumericOperator.le_s, byteCode );
+                        break;
+                    case 163: // if_icmpgt
+                        opIfCompareCondition( NumericOperator.lt_s, byteCode );
+                        break;
+                    case 164: // if_icmple
+                        opIfCompareCondition( NumericOperator.ge_s, byteCode );
+                        break;
+                    //TODO case 165: // if_acmpeq
+                    //TODO case 166: // if_acmpne
                     case 167: // goto
-                        byteCode.skip(2);
+                        byteCode.skip(2); // handle in the branch manager
                         break;
                     case 170: // tableswitch
                     case 171: // lookupswitch
@@ -982,6 +1013,63 @@ public abstract class ModuleWriter implements Closeable {
         byteCode.skip(2);
         writeConstInt( 0 );
         writeNumericOperator( numOp, ValueType.i32 );
+    }
+
+    /**
+     * Handle the if<condition> of the Java byte code. This Java instruction compare the first stack value with value 0.
+     * Important: In Java the condition for the jump to the else block is saved. In WebAssembler we need to use
+     * condition for the if block. The caller of the method must already negate this
+     * 
+     * @param numOp
+     *            The condition for the if block.
+     * @param byteCode
+     *            current byte code stream to read the target offset.
+     * @throws IOException
+     *             if any I/O errors occur.
+     */
+    private void opIfCompareCondition( NumericOperator numOp, CodeInputStream byteCode ) throws IOException {
+        byteCode.skip(2);
+        writeNumericOperator( numOp, ValueType.i32 );
+    }
+
+    /**
+     * Handle the different compare operator. The compare operator returns the integer values -1, 0 or 1. There is no
+     * equivalent in WebAssembly. That we need to read the next operation to find an equivalent.
+     * 
+     * @param valueType
+     *            the value type of the compared
+     * @param byteCode
+     *            current byte code stream to read the next operation.
+     * @throws IOException
+     *             if any I/O errors occur.
+     */
+    private void opCompare( ValueType valueType, CodeInputStream byteCode ) throws IOException {
+        NumericOperator numOp;
+        int nextOp = byteCode.read();
+        switch( nextOp ){
+            case 153: // ifeq
+                numOp = NumericOperator.ne;
+                break;
+            case 154: // ifne
+                numOp = NumericOperator.eq;
+                break;
+            case 155: // iflt
+                numOp = NumericOperator.gt;
+                break;
+            case 156: // ifge
+                numOp = NumericOperator.le_s;
+                break;
+            case 157: // ifgt
+                numOp = NumericOperator.lt_s;
+                break;
+            case 158: // ifle
+                numOp = NumericOperator.ge_s;
+                break;
+            default:
+                throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
+        }
+        byteCode.skip(2);
+        writeNumericOperator( numOp, valueType );
     }
 
     /**
