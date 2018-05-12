@@ -457,42 +457,58 @@ public abstract class ModuleWriter implements Closeable {
                         break;
                     case 170: // tableswitch
                     case 171: // lookupswitch
-                        int startPosition = codePosition + 1; 
-                        int padding = startPosition % 4;
-                        if( padding > 0 ) {
-                            byteCode.skip( 4 - padding );
-                        }
-                        startPosition--;
-
-                        int defaultPosition = startPosition + byteCode.readInt();
-                        int[] keys;
-                        int[] positions;
-                        if( op == 171 ) { // lookupswitch
-                            localVariables.useTempI32();
-                            int nPairs = byteCode.readInt();
-                            keys = new int[nPairs];
-                            positions = new int[nPairs];
-                            for( int i = 0; i < nPairs; i++ ) {
-                                keys[i] = byteCode.readInt();
-                                positions[i] = startPosition + byteCode.readInt();
-                            }
-                        } else {
-                            int low = byteCode.readInt();
-                            keys = null;
-                            int count = byteCode.readInt() - low + 1;
-                            positions = new int[count];
-                            for( int i = 0; i < count; i++ ) {
-                                positions[i] = startPosition + byteCode.readInt();
-                            }
-                        }
-                        int switchValuestartPosition = stackManager.getCodePosition( 0 );
-                        branchManager.startSwitch( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
+                        prepareSwitchCode( byteCode, op == 171, lineNumber );
                         break;
                 }
             }
         } catch( Exception ex ) {
             throw WasmException.create( ex, sourceFile, lineNumber );
         }
+    }
+
+    /**
+     * Prepare the both switch operation codes.
+     * 
+     * @param byteCode
+     *            the current stream with a position after the operation code
+     * @param isLookupSwitch
+     *            true, if the operation was a loopupswitch; false, if the operation was a tableswitch
+     * @param lineNumber
+     *            the current line number
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void prepareSwitchCode( CodeInputStream byteCode, boolean isLookupSwitch, int lineNumber ) throws IOException {
+        int startPosition = byteCode.getCodePosition();
+        int padding = startPosition % 4;
+        if( padding > 0 ) {
+            byteCode.skip( 4 - padding );
+        }
+        startPosition--;
+
+        int defaultPosition = startPosition + byteCode.readInt();
+        int[] keys;
+        int[] positions;
+        if( isLookupSwitch ) { // lookupswitch
+            localVariables.useTempI32();
+            int nPairs = byteCode.readInt();
+            keys = new int[nPairs];
+            positions = new int[nPairs];
+            for( int i = 0; i < nPairs; i++ ) {
+                keys[i] = byteCode.readInt();
+                positions[i] = startPosition + byteCode.readInt();
+            }
+        } else {
+            int low = byteCode.readInt();
+            keys = null;
+            int count = byteCode.readInt() - low + 1;
+            positions = new int[count];
+            for( int i = 0; i < count; i++ ) {
+                positions[i] = startPosition + byteCode.readInt();
+            }
+        }
+        int switchValuestartPosition = stackManager.getCodePosition( 0 );
+        branchManager.startSwitch( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
     }
 
     /**
