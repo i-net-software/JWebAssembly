@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -138,9 +139,13 @@ public abstract class ModuleWriter implements Closeable {
                 branchManager.calculate();
                 localVariables.calculate();
 
-                for( CodeInputStream byteCode : code.getByteCodes() ) {
+                CodeInputStream byteCode = null;
+                Iterator<CodeInputStream> byteCodes = code.getByteCodes().iterator();
+                while( byteCodes.hasNext() ) {
+                    byteCode = byteCodes.next();
                     writeCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
                 }
+                branchManager.handle( byteCode, this ); // write the last end operators
                 writeMethodFinish( localVariables.getLocalTypes( paramCount ) );
             }
         } catch( Exception ioex ) {
