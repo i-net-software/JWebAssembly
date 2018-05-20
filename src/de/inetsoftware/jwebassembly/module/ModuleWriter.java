@@ -880,16 +880,16 @@ public abstract class ModuleWriter implements Closeable {
                         opIfCondition( NumericOperator.eq, byteCode );
                         break;
                     case 155: // iflt
-                        opIfCondition( NumericOperator.gt, byteCode );
+                        opIfCondition( NumericOperator.ge_s, byteCode );
                         break;
                     case 156: // ifge
-                        opIfCondition( NumericOperator.le_s, byteCode );
-                        break;
-                    case 157: // ifgt
                         opIfCondition( NumericOperator.lt_s, byteCode );
                         break;
+                    case 157: // ifgt
+                        opIfCondition( NumericOperator.le_s, byteCode );
+                        break;
                     case 158: // ifle
-                        opIfCondition( NumericOperator.ge_s, byteCode );
+                        opIfCondition( NumericOperator.gt, byteCode );
                         break;
                     case 159: // if_icmpeq
                         opIfCompareCondition( NumericOperator.ne, byteCode );
@@ -898,16 +898,16 @@ public abstract class ModuleWriter implements Closeable {
                         opIfCompareCondition( NumericOperator.eq, byteCode );
                         break;
                     case 161: // if_icmplt
-                        opIfCompareCondition( NumericOperator.gt, byteCode );
+                        opIfCompareCondition( NumericOperator.ge_s, byteCode );
                         break;
                     case 162: // if_icmpge
-                        opIfCompareCondition( NumericOperator.le_s, byteCode );
-                        break;
-                    case 163: // if_icmpgt
                         opIfCompareCondition( NumericOperator.lt_s, byteCode );
                         break;
+                    case 163: // if_icmpgt
+                        opIfCompareCondition( NumericOperator.le_s, byteCode );
+                        break;
                     case 164: // if_icmple
-                        opIfCompareCondition( NumericOperator.ge_s, byteCode );
+                        opIfCompareCondition( NumericOperator.gt, byteCode );
                         break;
                     //TODO case 165: // if_acmpeq
                     //TODO case 166: // if_acmpne
