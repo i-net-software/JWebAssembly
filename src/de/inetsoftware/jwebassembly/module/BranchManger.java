@@ -111,15 +111,6 @@ class BranchManger {
             }
         }
 
-        for( ParsedBlock loop : loops.values() ) {
-            for( int i = 0; i < allParsedOperations.size(); i++ ) {
-                ParsedBlock parsedBlock = allParsedOperations.get( i );
-                if( loop.startPosition < parsedBlock.startPosition && loop.endPosition < parsedBlock.endPosition ) {
-                    // fix overlapping from structures
-                    loop.endPosition = parsedBlock.endPosition;
-                }
-            }
-        }
         allParsedOperations.addAll( loops.values() );
     }
 
@@ -415,7 +406,7 @@ class BranchManger {
         }
         calculate( loopNode, parsedOperations.subList( 0, idx ) );
         // add the "br 0" as last child to receive the right order
-        loopNode.add( new BranchNode( loopBlock.endPosition, loopBlock.endPosition, WasmBlockOperator.BR, null, 0 ) ); // continue to the start of the loop
+//        loopNode.add( new BranchNode( loopBlock.endPosition, loopBlock.endPosition, WasmBlockOperator.BR, null, 0 ) ); // continue to the start of the loop
     }
 
     /**
