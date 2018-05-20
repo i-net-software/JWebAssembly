@@ -44,6 +44,8 @@ public abstract class ModuleWriter implements Closeable {
 
     private int                   paramCount;
 
+    private ValueType             returnType;
+
     private LocaleVariableManager localVariables = new LocaleVariableManager();
 
     private String                sourceFile;
@@ -140,12 +142,33 @@ public abstract class ModuleWriter implements Closeable {
                 localVariables.calculate();
 
                 CodeInputStream byteCode = null;
+                boolean endWithReturn = false;
                 Iterator<CodeInputStream> byteCodes = code.getByteCodes().iterator();
                 while( byteCodes.hasNext() ) {
                     byteCode = byteCodes.next();
                     writeCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
                 }
                 branchManager.handle( byteCode, this ); // write the last end operators
+                if( !endWithReturn && returnType != null ) {
+                    // if a method ends with a loop without a break then code after the loop is no reachable
+                    // Java does not need a return byte code in this case
+                    // But WebAssembly need the dead code to validate
+                    switch( returnType ) {
+                        case i32:
+                            writeConstInt( 0 );
+                            break;
+                        case i64:
+                            writeConstLong( 0 );
+                            break;
+                        case f32:
+                            writeConstFloat( 0 );
+                            break;
+                        case f64:
+                            writeConstDouble( 0 );
+                            break;
+                    }
+                    writeBlockCode( WasmBlockOperator.RETURN, null );
+                }
                 writeMethodFinish( localVariables.getLocalTypes( paramCount ) );
             }
         } catch( Exception ioex ) {
@@ -220,9 +243,11 @@ public abstract class ModuleWriter implements Closeable {
         String signature = method.getDescription();
         String kind = "param";
         int paramCount = 0;
+        ValueType type = null;
         for( int i = 1; i < signature.length(); i++ ) {
             paramCount++;
-            String javaType;
+            String javaType = null;
+            type = null;
             switch( signature.charAt( i ) ) {
                 case '[': // array
                     javaType = "array";
@@ -234,17 +259,17 @@ public abstract class ModuleWriter implements Closeable {
                 case 'C': // char
                 case 'S': // short
                 case 'I': // int
-                    writeMethodParam( kind, ValueType.i32 );
-                    continue;
+                    type = ValueType.i32;
+                    break;
                 case 'D': // double
-                    writeMethodParam( kind, ValueType.f64 );
-                    continue;
+                    type = ValueType.f64;
+                    break;
                 case 'F': // float
-                    writeMethodParam( kind, ValueType.f32 );
-                    continue;
+                    type = ValueType.f32;
+                    break;
                 case 'J': // long
-                    writeMethodParam( kind, ValueType.i64 );
-                    continue;
+                    type = ValueType.i64;
+                    break;
                 case 'V': // void
                     continue;
                 case ')':
@@ -254,9 +279,14 @@ public abstract class ModuleWriter implements Closeable {
                 default:
                     javaType = signature.substring( i, i + 1 );
             }
-            int lineNumber = method.getCode().getFirstLineNr();
-            throw new WasmException( "Not supported Java data type in method signature: " + javaType, sourceFile, lineNumber );
+            if( type != null ) {
+                writeMethodParam( kind, type );
+            } else {
+                int lineNumber = method.getCode().getFirstLineNr();
+                throw new WasmException( "Not supported Java data type in method signature: " + javaType, sourceFile, lineNumber );
+            }
         }
+        this.returnType = type;
     }
 
     /**
@@ -527,11 +557,14 @@ public abstract class ModuleWriter implements Closeable {
      *            the constant pool of the the current class
      * @throws WasmException
      *             if some Java code can't converted
+     * @return true, if the last operation was a return
      */
-    private void writeCodeChunk( CodeInputStream byteCode, int lineNumber, ConstantPool constantPool  ) throws WasmException {
+    private boolean writeCodeChunk( CodeInputStream byteCode, int lineNumber, ConstantPool constantPool  ) throws WasmException {
+        boolean endWithReturn = false;
         try {
             while( byteCode.available() > 0 ) {
                 branchManager.handle( byteCode, this );
+                endWithReturn = false;
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
                     case 0: // nop
@@ -891,6 +924,7 @@ public abstract class ModuleWriter implements Closeable {
                     case 175: // dreturn
                     case 177: // return void
                         writeBlockCode( WasmBlockOperator.RETURN, null );
+                        endWithReturn = true;
                         break;
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
@@ -906,6 +940,7 @@ public abstract class ModuleWriter implements Closeable {
         } catch( Exception ex ) {
             throw WasmException.create( ex, sourceFile, lineNumber );
         }
+        return endWithReturn;
     }
 
     /**
