@@ -4,6 +4,8 @@ plugins {
 
 apply plugin: 'java'
 
+version = '0.1'
+
 repositories {
     jcenter()
 }
@@ -55,4 +57,20 @@ test {
     testLogging.showStandardStreams = true
     testLogging.exceptionFormat = 'full'
 }
+
+
+/****************************************
+ * Coverage
+ ****************************************/
+apply plugin: 'jacoco'
+apply plugin: 'com.github.kt3k.coveralls'
+
+jacocoTestReport {
+    tasks.coveralls.dependsOn it
+    reports {
+        xml.enabled = true  // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
+}
+check.dependsOn tasks.coveralls
 
