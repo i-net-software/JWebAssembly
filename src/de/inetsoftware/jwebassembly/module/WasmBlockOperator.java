@@ -32,4 +32,5 @@ public enum WasmBlockOperator {
     BR,
     BR_IF,
     BR_TABLE,
+    LOOP,
 }

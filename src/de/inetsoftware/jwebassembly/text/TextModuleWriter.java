@@ -289,6 +289,10 @@ public class TextModuleWriter extends ModuleWriter {
                 }
                 name = builder.toString();
                 break;
+            case LOOP:
+                name = "loop";
+                insetAfter++;
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }
