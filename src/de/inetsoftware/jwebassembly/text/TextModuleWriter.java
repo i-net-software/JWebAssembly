@@ -21,6 +21,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -69,19 +70,19 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeExport( String signatureName, String methodName, String exportName ) throws IOException {
+    protected void writeExport( FunctionName name, String exportName ) throws IOException {
         newline( output );
-        output.append( "(export \"" ).append( exportName ).append( "\" (func $" ).append( methodName ).append( "))" );
+        output.append( "(export \"" ).append( exportName ).append( "\" (func $" ).append( name.fullName ).append( "))" );
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodStart( String signatureName, String name ) throws IOException {
+    protected void writeMethodStart( FunctionName name ) throws IOException {
         newline( output );
         output.append( "(func $" );
-        output.append( name );
+        output.append( name.fullName );
         inset++;
         methodOutput.setLength( 0 );
     }

@@ -124,12 +124,9 @@ public abstract class ModuleWriter implements Closeable {
         try {
             Code code = method.getCode();
             if( code != null ) { // abstract methods and interface methods does not have code
-                String methodName = method.getName();
-                String className = method.getDeclaringClassFile().getThisClass().getName();
-                String fullName = className + '.' + methodName;
-                String signatureName = fullName + method.getDescription();
-                writeExport( signatureName, fullName, method );
-                writeMethodStart( signatureName, fullName );
+                FunctionName name = new FunctionName( method );
+                writeExport( name, method );
+                writeMethodStart( name );
                 writeMethodSignature( method );
 
                 localVariables.reset();
@@ -179,17 +176,15 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Look for a Export annotation and if there write an export directive.
      * 
-     * @param signatureName
-     *            the full name with signature
-     * @param methodName
-     *            the normalized method name
+     * @param name
+     *            the function name
      * @param method
-     *            the moethod
+     *            the method
      * 
      * @throws IOException
      *             if any IOException occur
      */
-    private void writeExport( String signatureName, String methodName, MethodInfo method ) throws IOException {
+    private void writeExport( FunctionName name, MethodInfo method ) throws IOException {
         Annotations annotations = method.getRuntimeInvisibleAnnotations();
         if( annotations != null ) {
             Map<String,Object> export = annotations.get( "org.webassembly.annotation.Export" );
@@ -198,36 +193,32 @@ public abstract class ModuleWriter implements Closeable {
                 if( exportName == null ) {
                     exportName = method.getName();  // TODO naming conversion rule if no name was set
                 }
-                writeExport( signatureName, methodName, exportName );
+                writeExport( name, exportName );
             }
         }
     }
 
     /**
      * Write an export directive
-     * @param signatureName
-     *            the full name with signature
-     * @param methodName
-     *            the method name
+     * @param name
+     *            the function name
      * @param exportName
      *            the export name, if null then the same like the method name
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeExport( String signatureName, String methodName, String exportName ) throws IOException;
+    protected abstract void writeExport( FunctionName name, String exportName ) throws IOException;
 
     /**
      * Write the method header.
-     * @param signatureName
-     *            the full name with signature
      * @param name
-     *            the method name
+     *            the function name
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodStart( String signatureName, String name ) throws IOException;
+    protected abstract void writeMethodStart( FunctionName name ) throws IOException;
 
     /**
      * Write the parameter and return signatures

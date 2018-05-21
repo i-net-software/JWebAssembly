@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
+import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
@@ -193,16 +194,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeExport( String signatureName, String methodName, String exportName ) throws IOException {
-        exports.put( exportName, signatureName );
+    protected void writeExport( FunctionName name, String exportName ) throws IOException {
+        exports.put( exportName, name.signatureName );
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodStart( String signatureName, String name ) throws IOException {
-        function = functions.get( signatureName );
+    protected void writeMethodStart( FunctionName name ) throws IOException {
+        function = functions.get( name.signatureName );
         functionType = new FunctionType();
         codeStream.reset();
     }
