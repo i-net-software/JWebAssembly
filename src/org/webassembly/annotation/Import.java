@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
-public @interface Export {
+public @interface Import {
 
-    String name() default "";
+    String module();
+
+    String name();
 }
