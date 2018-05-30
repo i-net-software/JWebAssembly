@@ -176,7 +176,7 @@ public abstract class ModuleWriter implements Closeable {
                 Iterator<CodeInputStream> byteCodes = code.getByteCodes().iterator();
                 while( byteCodes.hasNext() ) {
                     byteCode = byteCodes.next();
-                    writeCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
+                    endWithReturn = writeCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
                 }
                 branchManager.handle( byteCode, this ); // write the last end operators
                 if( !endWithReturn && returnType != null ) {
