@@ -155,6 +155,7 @@ public abstract class ModuleWriter implements Closeable {
         int lineNumber = -1;
         try {
             Code code = method.getCode();
+            lineNumber = code.getFirstLineNr();
             if( code != null && method.getAnnotation( "org.webassembly.annotation.Import" ) == null ) { // abstract methods and interface methods does not have code
                 FunctionName name = new FunctionName( method );
                 writeExport( name, method );
@@ -165,7 +166,7 @@ public abstract class ModuleWriter implements Closeable {
                 stackManager.reset();
                 branchManager.reset();
                 for( CodeInputStream byteCode : code.getByteCodes() ) {
-                    prepareCodeChunk( byteCode, lineNumber = byteCode.getLineNumber() );
+                    prepareCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
                 }
                 branchManager.calculate();
                 localVariables.calculate();
@@ -266,47 +267,54 @@ public abstract class ModuleWriter implements Closeable {
         ValueType type = null;
         for( int i = 1; i < signature.length(); i++ ) {
             paramCount++;
-            String javaType = null;
-            type = null;
-            switch( signature.charAt( i ) ) {
-                case '[': // array
-                    javaType = "array";
-                    break;
-                case 'L':
-                    javaType = "object";
-                    break;
-                case 'B': // byte
-                case 'C': // char
-                case 'S': // short
-                case 'I': // int
-                    type = ValueType.i32;
-                    break;
-                case 'D': // double
-                    type = ValueType.f64;
-                    break;
-                case 'F': // float
-                    type = ValueType.f32;
-                    break;
-                case 'J': // long
-                    type = ValueType.i64;
-                    break;
-                case 'V': // void
-                    continue;
-                case ')':
-                    this.paramCount = paramCount - 1;
-                    kind = "result";
-                    continue;
-                default:
-                    javaType = signature.substring( i, i + 1 );
+            if( signature.charAt( i ) == ')' ) {
+                this.paramCount = paramCount - 1;
+                kind = "result";
+                continue;
             }
+            type = getValueType( signature, i );
             if( type != null ) {
                 writeMethodParam( kind, type );
-            } else {
-                int lineNumber = method.getCode().getFirstLineNr();
-                throw new WasmException( "Not supported Java data type in method signature: " + javaType, sourceFile, lineNumber );
             }
         }
         this.returnType = type;
+    }
+
+    /**
+     * Get the WebAssembly value type from a Java signature.
+     * 
+     * @param signature
+     *            the signature
+     * @param idx
+     *            the index in the signature
+     * @return the value type or null if void
+     */
+    private ValueType getValueType( String signature, int idx ) {
+        String javaType;
+        switch( signature.charAt( idx ) ) {
+            case '[': // array
+                javaType = "array";
+                break;
+            case 'L':
+                javaType = "object";
+                break;
+            case 'B': // byte
+            case 'C': // char
+            case 'S': // short
+            case 'I': // int
+                return ValueType.i32;
+            case 'D': // double
+                return ValueType.f64;
+            case 'F': // float
+                return ValueType.f32;
+            case 'J': // long
+                return ValueType.i64;
+            case 'V': // void
+                return null;
+            default:
+                javaType = signature.substring( idx, idx + 1 );
+        }
+        throw new WasmException( "Not supported Java data type in method signature: " + javaType, sourceFile, -1 );
     }
 
     /**
@@ -339,10 +347,12 @@ public abstract class ModuleWriter implements Closeable {
      *            a stream of byte code
      * @param lineNumber
      *            the current line number
+     * @param constantPool
+     *            the constant pool of the the current class
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void prepareCodeChunk( CodeInputStream byteCode, int lineNumber  ) throws WasmException {
+    private void prepareCodeChunk( CodeInputStream byteCode, int lineNumber, ConstantPool constantPool  ) throws WasmException {
         try {
             while( byteCode.available() > 0 ) {
                 int codePosition = byteCode.getCodePosition();
@@ -486,7 +496,6 @@ public abstract class ModuleWriter implements Closeable {
                         byteCode.skip(1);
                         break;
                     case 132: // iinc
-                    case 184: // invokestatic
                         byteCode.skip( 2);
                         break;
                     case 153: // ifeq
@@ -513,6 +522,14 @@ public abstract class ModuleWriter implements Closeable {
                     case 170: // tableswitch
                     case 171: // lookupswitch
                         prepareSwitchCode( byteCode, op == 171, lineNumber );
+                        break;
+                    case 184: // invokestatic
+                        ConstantRef method = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
+                        String signature = method.getType();
+                        ValueType type = getValueType(  signature, signature.indexOf( ')' ) + 1 );
+                        if( type != null ) {
+                            stackManager.add( type, codePosition );
+                        }
                         break;
                 }
             }
