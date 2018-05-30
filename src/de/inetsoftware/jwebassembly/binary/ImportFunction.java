@@ -20,15 +20,13 @@ package de.inetsoftware.jwebassembly.binary;
  * 
  * @author Volker Berlin
  */
-class ImportEntry {
+class ImportFunction extends Function {
 
     final String module;
 
     final String name;
 
-    int id;
-
-    public ImportEntry( String module, String name ) {
+    ImportFunction( String module, String name ) {
         this.module = module;
         this.name = name;
     }

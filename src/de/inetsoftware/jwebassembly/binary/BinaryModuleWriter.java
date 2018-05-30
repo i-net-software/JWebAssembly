@@ -26,14 +26,13 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
 import de.inetsoftware.jwebassembly.module.ValueType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
+import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 
 /**
  * Module Writer for binary format. http://webassembly.org/docs/binary-encoding/
@@ -42,27 +41,27 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
  */
 public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcodes {
 
-    private static final byte[]      WASM_BINARY_MAGIC   = { 0, 'a', 's', 'm' };
+    private static final byte[]         WASM_BINARY_MAGIC   = { 0, 'a', 's', 'm' };
 
-    private static final int         WASM_BINARY_VERSION = 1;
+    private static final int            WASM_BINARY_VERSION = 1;
 
-    private WasmOutputStream         wasm;
+    private WasmOutputStream            wasm;
 
-    private WasmOutputStream         codeStream          = new WasmOutputStream();
+    private WasmOutputStream            codeStream          = new WasmOutputStream();
 
-    private WasmOutputStream         functionsStream     = new WasmOutputStream();
+    private WasmOutputStream            functionsStream     = new WasmOutputStream();
 
-    private List<FunctionType>       functionTypes       = new ArrayList<>();
+    private List<FunctionType>          functionTypes       = new ArrayList<>();
 
-    private Map<String, Function>    functions           = new LinkedHashMap<>();
+    private Map<String, Function>       functions           = new LinkedHashMap<>();
 
-    private Map<String, String>      exports             = new LinkedHashMap<>();
+    private Map<String, String>         exports             = new LinkedHashMap<>();
 
-    private Map<String, ImportEntry> imports             = new LinkedHashMap<>();
+    private Map<String, ImportFunction> imports             = new LinkedHashMap<>();
 
-    private Function                 function;
+    private Function                    function;
 
-    private FunctionType             functionType;
+    private FunctionType                functionType;
 
     /**
      * Create new instance.
@@ -132,16 +131,15 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( count > 0 ) {
             WasmOutputStream stream = new WasmOutputStream();
             stream.writeVaruint32( count );
-            for( ImportEntry entry : imports.values() ) {
-                byte[] bytes = entry.module.getBytes( StandardCharsets.UTF_8 );
+            for( ImportFunction importFunction : imports.values() ) {
+                byte[] bytes = importFunction.module.getBytes( StandardCharsets.UTF_8 );
                 stream.writeVaruint32( bytes.length );
                 stream.write( bytes );
-                bytes = entry.name.getBytes( StandardCharsets.UTF_8 );
+                bytes = importFunction.name.getBytes( StandardCharsets.UTF_8 );
                 stream.writeVaruint32( bytes.length );
                 stream.write( bytes );
                 stream.writeVaruint32( ExternalKind.Function.ordinal() );
-                int typeIdx = 0; //TODO
-                stream.writeVaruint32( typeIdx );
+                stream.writeVaruint32( importFunction.typeId );
             }
             wasm.writeSection( SectionType.Import, stream, null );
         }
@@ -212,7 +210,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void prepareFunction( FunctionName name, String importModule, String importName ) {
         if( importName != null ) {
-            imports.put( name.signatureName, new ImportEntry(importModule, importName) );
+            ImportFunction importFunction;
+            function = importFunction = new ImportFunction(importModule, importName);
+            imports.put( name.signatureName, importFunction );
+            functionType = new FunctionType();
         } else {
             functions.put( name.signatureName, new Function() );
         }
@@ -226,7 +227,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         // initialize the function index IDs
         // https://github.com/WebAssembly/design/blob/master/Modules.md#function-index-space
         int id = 0;
-        for( ImportEntry entry : imports.values() ) {
+        for( ImportFunction entry : imports.values() ) {
             entry.id = id++;
         }
         for( Function function : functions.values() ) {
@@ -272,9 +273,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
-        // TODO optimize and search for duplicates
-        function.typeId = functionTypes.size();
-        functionTypes.add( functionType );
+        int typeId = functionTypes.indexOf( functionType );
+        if( typeId < 0 ) {
+            typeId = functionTypes.size();
+            functionTypes.add( functionType );
+        }
+        function.typeId = typeId;
 
         
         WasmOutputStream localsStream = new WasmOutputStream();
@@ -656,7 +660,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( func != null ) {
             id = func.id;
         } else {
-            ImportEntry entry = imports.get( name );
+            ImportFunction entry = imports.get( name );
             if( entry != null ) {
                 id = entry.id;
             } else {
