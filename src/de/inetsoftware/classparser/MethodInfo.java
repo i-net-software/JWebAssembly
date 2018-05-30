@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2017 Volker Berlin (i-net software)
+   Copyright 2011 - 2018 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package de.inetsoftware.classparser;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Attributes.AttributeInfo;
 
@@ -41,6 +44,8 @@ public class MethodInfo {
     private Exceptions         exceptions;
 
     private ClassFile          classFile;
+
+    private Annotations        annotations;
 
     /**
      * Read the method_info structure
@@ -152,10 +157,31 @@ public class MethodInfo {
      * Get the annotations with @Retention(RetentionPolicy.CLASS)
      * @return the annotations if there any exists else null
      */
+    @Nullable
     public Annotations getRuntimeInvisibleAnnotations() throws IOException {
-        AttributeInfo data = attributes.get( "RuntimeInvisibleAnnotations" );
-        if( data != null ) {
-            return new Annotations( data.getDataInputStream(), constantPool );
+        if( annotations == null ) {
+            AttributeInfo data = attributes.get( "RuntimeInvisibleAnnotations" );
+            if( data != null ) {
+                annotations =  new Annotations( data.getDataInputStream(), constantPool );
+            }
+        }
+        return annotations;
+    }
+
+    /**
+     * Get a single annotation or null
+     * 
+     * @param annotation
+     *            the class name of the annotation
+     * @return the value or null if not exists
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    @Nullable
+    public Map<String, Object> getAnnotation( String annotation ) throws IOException {
+        Annotations annotations = getRuntimeInvisibleAnnotations();
+        if( annotations != null ) {
+            return annotations.get( annotation );
         }
         return null;
     }
