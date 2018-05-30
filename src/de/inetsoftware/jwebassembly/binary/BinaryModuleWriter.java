@@ -651,12 +651,20 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeFunctionCall( String name ) throws IOException {
-        codeStream.write( CALL );
+        int id;
         Function func = functions.get( name );
-        if( func == null ) {
-            throw new WasmException( "Call to unknown function: " + name, null, -1 );
+        if( func != null ) {
+            id = func.id;
+        } else {
+            ImportEntry entry = imports.get( name );
+            if( entry != null ) {
+                id = entry.id;
+            } else {
+                throw new WasmException( "Call to unknown function: " + name, null, -1 );
+            }
         }
-        codeStream.writeVaruint32( func.id );
+        codeStream.write( CALL );
+        codeStream.writeVaruint32( id );
     }
 
     /**
