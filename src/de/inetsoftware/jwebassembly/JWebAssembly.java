@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,6 +161,7 @@ public class JWebAssembly {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             writer.prepare( classFile );
         }
+        writer.prepareFinish();
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             writer.write( classFile );

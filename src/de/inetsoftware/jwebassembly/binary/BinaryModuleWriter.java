@@ -42,25 +42,27 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
  */
 public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcodes {
 
-    private static final byte[]   WASM_BINARY_MAGIC   = { 0, 'a', 's', 'm' };
+    private static final byte[]      WASM_BINARY_MAGIC   = { 0, 'a', 's', 'm' };
 
-    private static final int      WASM_BINARY_VERSION = 1;
+    private static final int         WASM_BINARY_VERSION = 1;
 
-    private WasmOutputStream      wasm;
+    private WasmOutputStream         wasm;
 
-    private WasmOutputStream      codeStream          = new WasmOutputStream();
+    private WasmOutputStream         codeStream          = new WasmOutputStream();
 
-    private WasmOutputStream      functionsStream     = new WasmOutputStream();
+    private WasmOutputStream         functionsStream     = new WasmOutputStream();
 
-    private List<FunctionType>    functionTypes       = new ArrayList<>();
+    private List<FunctionType>       functionTypes       = new ArrayList<>();
 
-    private Map<String, Function> functions           = new LinkedHashMap<>();
+    private Map<String, Function>    functions           = new LinkedHashMap<>();
 
-    private Map<String, String>   exports             = new LinkedHashMap<>();
+    private Map<String, String>      exports             = new LinkedHashMap<>();
 
-    private Function              function;
+    private Map<String, ImportEntry> imports             = new LinkedHashMap<>();
 
-    private FunctionType          functionType;
+    private Function                 function;
+
+    private FunctionType             functionType;
 
     /**
      * Create new instance.
@@ -83,6 +85,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         wasm.writeInt32( WASM_BINARY_VERSION );
 
         writeTypeSection();
+        writeImportSection();
         writeFunctionSection();
         writeExportSection();
         writeCodeSection();
@@ -115,6 +118,32 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 }
             }
             wasm.writeSection( SectionType.Type, stream, null );
+        }
+    }
+
+    /**
+     * Write the import section to the output. This section declare all imports.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeImportSection() throws IOException {
+        int count = imports.size();
+        if( count > 0 ) {
+            WasmOutputStream stream = new WasmOutputStream();
+            stream.writeVaruint32( count );
+            for( ImportEntry entry : imports.values() ) {
+                byte[] bytes = entry.module.getBytes( StandardCharsets.UTF_8 );
+                stream.writeVaruint32( bytes.length );
+                stream.write( bytes );
+                bytes = entry.name.getBytes( StandardCharsets.UTF_8 );
+                stream.writeVaruint32( bytes.length );
+                stream.write( bytes );
+                stream.writeVaruint32( ExternalKind.Function.ordinal() );
+                int typeIdx = 0; //TODO
+                stream.writeVaruint32( typeIdx );
+            }
+            wasm.writeSection( SectionType.Import, stream, null );
         }
     }
 
@@ -180,14 +209,29 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     /**
      * {@inheritDoc}
      */
-    protected void prepareMethod( MethodInfo method ) throws WasmException {
-        String methodName = method.getName();
-        String className = method.getDeclaringClassFile().getThisClass().getName();
-        String fullName = className + '.' + methodName;
-        String signatureName = fullName + method.getDescription();
-        Function function = new Function();
-        function.id = functions.size();
-        functions.put( signatureName, function );
+    @Override
+    protected void prepareFunction( FunctionName name, String importModule, String importName ) {
+        if( importName != null ) {
+            imports.put( name.signatureName, new ImportEntry(importModule, importName) );
+        } else {
+            functions.put( name.signatureName, new Function() );
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void prepareFinish() {
+        // initialize the function index IDs
+        // https://github.com/WebAssembly/design/blob/master/Modules.md#function-index-space
+        int id = 0;
+        for( ImportEntry entry : imports.values() ) {
+            entry.id = id++;
+        }
+        for( Function function : functions.values() ) {
+            function.id = id++;
+        }
     }
 
     /**

@@ -26,7 +26,6 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.Annotations;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
@@ -64,6 +63,14 @@ public abstract class ModuleWriter implements Closeable {
      */
     public void prepare( ClassFile classFile ) {
         iterateMethods( classFile, m -> prepareMethod( m ) );
+    }
+
+    /**
+     * Finish the prepare after all classes/methods are prepare. This must be call before we can start with write the
+     * first method.
+     */
+    public void prepareFinish() {
+
     }
 
     /**
@@ -107,9 +114,34 @@ public abstract class ModuleWriter implements Closeable {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    protected void prepareMethod( MethodInfo method ) throws WasmException {
-        // Nothing
+    private void prepareMethod( MethodInfo method ) throws WasmException {
+        try {
+            String module = null;
+            String name = null;
+            Map<String,Object> annotationValues = method.getAnnotation( "org.webassembly.annotation.Import" );
+            if( annotationValues != null ) {
+                module = (String)annotationValues.get( "module" );
+                name = (String)annotationValues.get( "name" );
+            }
+            prepareFunction( new FunctionName( method ), module, name );
+        } catch( IOException ioex ) {
+            throw WasmException.create( ioex, sourceFile, -1 );
+        }
     }
+
+    /**
+     * Prepare a single function in the prepare phase.
+     * 
+     * @param name
+     *            the function name
+     * @param importModule
+     *            the import module name if it is a import function
+     * @param importName
+     *            the import name if it is a import function
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void prepareFunction( FunctionName name, String importModule, String importName ) throws IOException;
 
     /**
      * Write the content of a method.
@@ -123,7 +155,7 @@ public abstract class ModuleWriter implements Closeable {
         int lineNumber = -1;
         try {
             Code code = method.getCode();
-            if( code != null ) { // abstract methods and interface methods does not have code
+            if( code != null && method.getAnnotation( "org.webassembly.annotation.Import" ) == null ) { // abstract methods and interface methods does not have code
                 FunctionName name = new FunctionName( method );
                 writeExport( name, method );
                 writeMethodStart( name );
@@ -185,16 +217,13 @@ public abstract class ModuleWriter implements Closeable {
      *             if any IOException occur
      */
     private void writeExport( FunctionName name, MethodInfo method ) throws IOException {
-        Annotations annotations = method.getRuntimeInvisibleAnnotations();
-        if( annotations != null ) {
-            Map<String,Object> export = annotations.get( "org.webassembly.annotation.Export" );
-            if( export != null ) {
-                String exportName = (String)export.get( "name" );
-                if( exportName == null ) {
-                    exportName = method.getName();  // TODO naming conversion rule if no name was set
-                }
-                writeExport( name, exportName );
+        Map<String,Object> export = method.getAnnotation( "org.webassembly.annotation.Export" );
+        if( export != null ) {
+            String exportName = (String)export.get( "name" );
+            if( exportName == null ) {
+                exportName = method.getName();  // TODO naming conversion rule if no name was set
             }
+            writeExport( name, exportName );
         }
     }
 
