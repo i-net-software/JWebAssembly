@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.webassembly.annotation.Export;
+import org.webassembly.annotation.Import;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
@@ -56,7 +57,7 @@ public class CallFunctions extends AbstractBaseTest {
         static int intCall() {
             intConst();
             doubleConst();
-            return intConst();
+            return abc( 4,5) + intConst() * 100;
         }
 
         static int intConst() {
@@ -65,6 +66,11 @@ public class CallFunctions extends AbstractBaseTest {
 
         static double doubleConst() {
             return 3.5;
+        }
+
+        @Import( module = "global.Math", name = "max" )
+        static int abc( int a, int b) {
+            return Math.max( a, b );
         }
     }
 }
