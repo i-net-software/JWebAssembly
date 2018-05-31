@@ -26,6 +26,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
@@ -208,15 +209,19 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void prepareFunction( FunctionName name, String importModule, String importName ) {
-        if( importName != null ) {
-            ImportFunction importFunction;
-            function = importFunction = new ImportFunction(importModule, importName);
-            imports.put( name.signatureName, importFunction );
-            functionType = new FunctionType();
-        } else {
-            functions.put( name.signatureName, new Function() );
-        }
+    protected void prepareImport( FunctionName name, String importModule, String importName ) {
+        ImportFunction importFunction;
+        function = importFunction = new ImportFunction(importModule, importName);
+        imports.put( name.signatureName, importFunction );
+        functionType = new FunctionType();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void prepareFunction( FunctionName name ) {
+        functions.put( name.signatureName, new Function() );
     }
 
     /**
@@ -272,15 +277,22 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
+    protected void writeMethodSignature( MethodInfo method ) throws IOException, WasmException {
+        super.writeMethodSignature( method );
+
         int typeId = functionTypes.indexOf( functionType );
         if( typeId < 0 ) {
             typeId = functionTypes.size();
             functionTypes.add( functionType );
         }
         function.typeId = typeId;
+    }
 
-        
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
         WasmOutputStream localsStream = new WasmOutputStream();
         localsStream.writeVaruint32( locals.size() );
         for( ValueType valueType : locals ) {

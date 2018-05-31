@@ -116,21 +116,23 @@ public abstract class ModuleWriter implements Closeable {
      */
     private void prepareMethod( MethodInfo method ) throws WasmException {
         try {
-            String module = null;
-            String name = null;
+            FunctionName name = new FunctionName( method );
             Map<String,Object> annotationValues = method.getAnnotation( "org.webassembly.annotation.Import" );
             if( annotationValues != null ) {
-                module = (String)annotationValues.get( "module" );
-                name = (String)annotationValues.get( "name" );
+                String impoarModule = (String)annotationValues.get( "module" );
+                String importName = (String)annotationValues.get( "name" );
+                prepareImport( name, impoarModule, importName );
+                writeMethodSignature( method );
+            } else {
+                prepareFunction( name );
             }
-            prepareFunction( new FunctionName( method ), module, name );
         } catch( IOException ioex ) {
             throw WasmException.create( ioex, sourceFile, -1 );
         }
     }
 
     /**
-     * Prepare a single function in the prepare phase.
+     * Prepare a imported single function in the prepare phase.
      * 
      * @param name
      *            the function name
@@ -141,7 +143,15 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void prepareFunction( FunctionName name, String importModule, String importName ) throws IOException;
+    protected abstract void prepareImport( FunctionName name, String importModule, String importName ) throws IOException;
+
+    /**
+     * Prepare a single function in the prepare phase.
+     * 
+     * @param name
+     *            the function name
+     */
+    protected void prepareFunction( FunctionName name ) {}
 
     /**
      * Write the content of a method.
@@ -260,7 +270,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( MethodInfo method ) throws IOException, WasmException {
+    protected void writeMethodSignature( MethodInfo method ) throws IOException, WasmException {
         String signature = method.getDescription();
         String kind = "param";
         int paramCount = 0;

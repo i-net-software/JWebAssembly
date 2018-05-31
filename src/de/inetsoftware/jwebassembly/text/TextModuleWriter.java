@@ -70,7 +70,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void prepareFunction( FunctionName name, String importModule, String importName ) throws IOException {
+    protected void prepareImport( FunctionName name, String importModule, String importName ) throws IOException {
         if( importName != null ) {
             newline( output );
             output.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( name.fullName ).append( "))" );
