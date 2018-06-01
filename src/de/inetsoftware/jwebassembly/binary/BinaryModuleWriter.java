@@ -277,9 +277,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodSignature( MethodInfo method ) throws IOException, WasmException {
-        super.writeMethodSignature( method );
-
+    protected void writeMethodParamFinish() throws IOException {
         int typeId = functionTypes.indexOf( functionType );
         if( typeId < 0 ) {
             typeId = functionTypes.size();

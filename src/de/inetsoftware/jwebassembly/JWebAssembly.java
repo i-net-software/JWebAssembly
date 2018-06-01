@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.jwebassembly.binary.BinaryModuleWriter;
+import de.inetsoftware.jwebassembly.module.ModuleGenerator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
 
@@ -157,14 +158,15 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compile( ModuleWriter writer ) throws IOException, WasmException {
+        ModuleGenerator generator = new ModuleGenerator( writer );
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
-            writer.prepare( classFile );
+            generator.prepare( classFile );
         }
-        writer.prepareFinish();
+        generator.prepareFinish();
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
-            writer.write( classFile );
+            generator.write( classFile );
         }
     }
 }

@@ -110,6 +110,12 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
+    protected void writeMethodParamFinish() throws IOException {}
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
         for( ValueType valueType : locals ) {
             output.append( " (local " ).append( valueType.toString() ).append( ')' );
