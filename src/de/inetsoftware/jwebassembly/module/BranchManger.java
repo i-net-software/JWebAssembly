@@ -283,13 +283,12 @@ class BranchManger {
 
         // calculate the block number for ever switch case depending its position order
         Arrays.sort( cases, ( a, b ) -> Integer.compare( a.position, b.position ) );
-        int blockCount = 0;
+        int blockCount = -1;
         int lastPosition = -1;
         BranchNode brTableNode = null;
         BranchNode blockNode = null;
         for( int i = 0; i < cases.length; i++ ) {
             switchCase = cases[i];
-            switchCase.block = blockCount;
             int currentPosition = switchCase.position;
             if( lastPosition != currentPosition ) {
                 if( isTable && blockNode == null ) {
@@ -303,6 +302,7 @@ class BranchManger {
                 }
                 blockNode = node;
             }
+            switchCase.block = blockCount;
         }
 
         // handle the GOTO (breaks) at the end of the CASE blocks. 
