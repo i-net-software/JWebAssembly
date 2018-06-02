@@ -466,7 +466,7 @@ public class ModuleGenerator {
                     case 165: // if_acmpeq
                     case 166: // if_acmpne
                         int offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.IF, codePosition + 3, offset - 3, lineNumber );
+                        branchManager.start( JavaBlockOperator.IF, codePosition, offset, lineNumber );
                         break;
                     case 167: // goto
                         offset = byteCode.readShort();
@@ -864,40 +864,40 @@ public class ModuleGenerator {
                         opCompare( ValueType.f64, byteCode );
                         break;
                     case 153: // ifeq
-                        opIfCondition( NumericOperator.ne, byteCode );
+                        opIfCondition( NumericOperator.ne, NumericOperator.eq, byteCode );
                         break;
                     case 154: // ifne
-                        opIfCondition( NumericOperator.eq, byteCode );
+                        opIfCondition( NumericOperator.eq, NumericOperator.ne, byteCode );
                         break;
                     case 155: // iflt
-                        opIfCondition( NumericOperator.ge_s, byteCode );
+                        opIfCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode );
                         break;
                     case 156: // ifge
-                        opIfCondition( NumericOperator.lt_s, byteCode );
+                        opIfCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode );
                         break;
                     case 157: // ifgt
-                        opIfCondition( NumericOperator.le_s, byteCode );
+                        opIfCondition( NumericOperator.le_s, NumericOperator.gt, byteCode );
                         break;
                     case 158: // ifle
-                        opIfCondition( NumericOperator.gt, byteCode );
+                        opIfCondition( NumericOperator.gt, NumericOperator.le_s, byteCode );
                         break;
                     case 159: // if_icmpeq
-                        opIfCompareCondition( NumericOperator.ne, byteCode );
+                        opIfCompareCondition( NumericOperator.ne, NumericOperator.eq, byteCode );
                         break;
                     case 160: // if_icmpne
-                        opIfCompareCondition( NumericOperator.eq, byteCode );
+                        opIfCompareCondition( NumericOperator.eq, NumericOperator.ne, byteCode );
                         break;
                     case 161: // if_icmplt
-                        opIfCompareCondition( NumericOperator.ge_s, byteCode );
+                        opIfCompareCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode );
                         break;
                     case 162: // if_icmpge
-                        opIfCompareCondition( NumericOperator.lt_s, byteCode );
+                        opIfCompareCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode );
                         break;
                     case 163: // if_icmpgt
-                        opIfCompareCondition( NumericOperator.le_s, byteCode );
+                        opIfCompareCondition( NumericOperator.le_s, NumericOperator.gt, byteCode );
                         break;
                     case 164: // if_icmple
-                        opIfCompareCondition( NumericOperator.gt, byteCode );
+                        opIfCompareCondition( NumericOperator.gt, NumericOperator.le_s, byteCode );
                         break;
                     //TODO case 165: // if_acmpeq
                     //TODO case 166: // if_acmpne
@@ -1029,37 +1029,40 @@ public class ModuleGenerator {
 
     /**
      * Handle the if<condition> of the Java byte code. This Java instruction compare the first stack value with value 0.
-     * Important: In Java the condition for the jump to the else block is saved. In WebAssembler we need to use
+     * Important: In the Java IF expression the condition for the jump to the else block is saved. In WebAssembler we need to use
      * condition for the if block. The caller of the method must already negate this
      * 
-     * @param numOp
+     * @param ifNumOp
      *            The condition for the if block.
-     * @param byteCode
-     *            current byte code stream to read the taget offset.
-     * @throws IOException
-     *             if any I/O errors occur.
-     */
-    private void opIfCondition( NumericOperator numOp, CodeInputStream byteCode ) throws IOException {
-        byteCode.skip(2);
-        writer.writeConstInt( 0 );
-        writer.writeNumericOperator( numOp, ValueType.i32 );
-    }
-
-    /**
-     * Handle the if<condition> of the Java byte code. This Java instruction compare the first stack value with value 0.
-     * Important: In Java the condition for the jump to the else block is saved. In WebAssembler we need to use
-     * condition for the if block. The caller of the method must already negate this
-     * 
-     * @param numOp
-     *            The condition for the if block.
+     * @param continueNumOp
+     *            The condition for the continue of a loop.
      * @param byteCode
      *            current byte code stream to read the target offset.
      * @throws IOException
      *             if any I/O errors occur.
      */
-    private void opIfCompareCondition( NumericOperator numOp, CodeInputStream byteCode ) throws IOException {
-        byteCode.skip(2);
-        writer.writeNumericOperator( numOp, ValueType.i32 );
+    private void opIfCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode ) throws IOException {
+        writer.writeConstInt( 0 );
+        opIfCompareCondition( ifNumOp, continueNumOp, byteCode );
+    }
+
+    /**
+     * Handle the if<condition> of the Java byte code. This Java instruction compare 2 values from stack.
+     * Important: In the Java IF expression the condition for the jump to the else block is saved. In WebAssembler we need to use
+     * condition for the if block. The caller of the method must already negate this.
+     * 
+     * @param ifNumOp
+     *            The condition for the if block.
+     * @param continueNumOp
+     *            The condition for the continue of a loop.
+     * @param byteCode
+     *            current byte code stream to read the target offset.
+     * @throws IOException
+     *             if any I/O errors occur.
+     */
+    private void opIfCompareCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode ) throws IOException {
+        int offset = byteCode.readShort();
+        writer.writeNumericOperator( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32 );
     }
 
     /**

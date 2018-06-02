@@ -46,6 +46,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifCompare" );
             addParam( list, script, "switchDirect" );
             addParam( list, script, "endlessLoop" );
+            addParam( list, script, "doWhileLoop" );
             addParam( list, script, "forLoop" );
         }
         return list;
@@ -196,6 +197,17 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 }
                 a++;
             } while( true );
+        }
+
+        @Export
+        static double doWhileLoop() {
+            int a = 0;
+            double d = 1.01;
+            do {
+                d *= 2;
+                a++;
+            } while( a < 10 );
+            return d;
         }
 
         @Export
