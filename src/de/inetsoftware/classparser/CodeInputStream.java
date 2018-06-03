@@ -18,6 +18,7 @@ package de.inetsoftware.classparser;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.IOException;
 
 /**
  * Extends the DataInputStream with a code position.
@@ -26,7 +27,7 @@ import java.io.DataInputStream;
  */
 public class CodeInputStream extends DataInputStream {
 
-    private int lineNumber;
+    private Code code;
 
     /**
      * Create a new instance of CodeInputStream.
@@ -37,12 +38,12 @@ public class CodeInputStream extends DataInputStream {
      *            the offset in the array
      * @param length
      *            the length
-     * @param lineNumber
-     *            the lineNumber in the source code or -1 if not available
+     * @param code
+     *            the calling code to get the line numbers
      */
-    CodeInputStream( byte[] buf, int offset, int length, int lineNumber ) {
+    CodeInputStream( byte[] buf, int offset, int length, Code code ) {
         this( new ByteCodeArrayInputStream( buf, offset, length ) );
-        this.lineNumber = lineNumber;
+        this.code = code;
     }
 
     private CodeInputStream( ByteCodeArrayInputStream in ) {
@@ -64,6 +65,22 @@ public class CodeInputStream extends DataInputStream {
      * @return the line number
      */
     public int getLineNumber() {
+        int lineNumber = -1;
+        try {
+            LineNumberTable lineNumberTable = code.getLineNumberTable();
+            if( lineNumberTable != null ) {
+                int codePos = getCodePosition();
+                for( int i = 0; i < lineNumberTable.size(); i++ ) {
+                    int offset = lineNumberTable.getStartOffset( i );
+                    if( offset > codePos ) {
+                        break;
+                    }
+                    lineNumber = lineNumberTable.getLineNumber( i );
+                }
+            }
+        } catch( IOException e ) {
+            // ignore, line naumber are only needed for debug information
+        }
         return lineNumber;
     }
 

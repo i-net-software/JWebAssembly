@@ -16,7 +16,6 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -149,10 +148,9 @@ public class ModuleGenerator {
      *             if some Java code can't converted
      */
     private void writeMethod( MethodInfo method ) throws WasmException {
-        int lineNumber = -1;
+        CodeInputStream byteCode = null;
         try {
             Code code = method.getCode();
-            lineNumber = code.getFirstLineNr();
             if( code != null && method.getAnnotation( "org.webassembly.annotation.Import" ) == null ) { // abstract methods and interface methods does not have code
                 FunctionName name = new FunctionName( method );
                 writeExport( name, method );
@@ -162,19 +160,14 @@ public class ModuleGenerator {
                 localVariables.reset();
                 stackManager.reset();
                 branchManager.reset();
-                for( CodeInputStream byteCode : code.getByteCodes() ) {
-                    prepareCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
-                }
+                byteCode = code.getByteCode();
+                prepareCodeChunk( byteCode, method.getConstantPool() );
                 branchManager.calculate();
                 localVariables.calculate();
 
-                CodeInputStream byteCode = null;
                 boolean endWithReturn = false;
-                Iterator<CodeInputStream> byteCodes = code.getByteCodes().iterator();
-                while( byteCodes.hasNext() ) {
-                    byteCode = byteCodes.next();
-                    endWithReturn = writeCodeChunk( byteCode, lineNumber = byteCode.getLineNumber(), method.getConstantPool() );
-                }
+                byteCode = code.getByteCode();
+                endWithReturn = writeCode( byteCode, method.getConstantPool() );
                 branchManager.handle( byteCode, writer ); // write the last end operators
                 if( !endWithReturn && returnType != null ) {
                     // if a method ends with a loop without a break then code after the loop is no reachable
@@ -193,12 +186,14 @@ public class ModuleGenerator {
                         case f64:
                             writer.writeConstDouble( 0 );
                             break;
+                        default:
                     }
                     writer.writeBlockCode( WasmBlockOperator.RETURN, null );
                 }
                 writer.writeMethodFinish( localVariables.getLocalTypes( paramCount ) );
             }
         } catch( Exception ioex ) {
+            int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
             throw WasmException.create( ioex, sourceFile, lineNumber );
         }
     }
@@ -298,14 +293,12 @@ public class ModuleGenerator {
      * 
      * @param byteCode
      *            a stream of byte code
-     * @param lineNumber
-     *            the current line number
      * @param constantPool
      *            the constant pool of the the current class
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void prepareCodeChunk( CodeInputStream byteCode, int lineNumber, ConstantPool constantPool  ) throws WasmException {
+    private void prepareCodeChunk( CodeInputStream byteCode, ConstantPool constantPool  ) throws WasmException {
         try {
             while( byteCode.available() > 0 ) {
                 int codePosition = byteCode.getCodePosition();
@@ -466,15 +459,15 @@ public class ModuleGenerator {
                     case 165: // if_acmpeq
                     case 166: // if_acmpne
                         int offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.IF, codePosition, offset, lineNumber );
+                        branchManager.start( JavaBlockOperator.IF, codePosition, offset, byteCode.getLineNumber() );
                         break;
                     case 167: // goto
                         offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.GOTO, codePosition, offset, lineNumber );
+                        branchManager.start( JavaBlockOperator.GOTO, codePosition, offset, byteCode.getLineNumber() );
                         break;
                     case 170: // tableswitch
                     case 171: // lookupswitch
-                        prepareSwitchCode( byteCode, op == 171, lineNumber );
+                        prepareSwitchCode( byteCode, op == 171, byteCode.getLineNumber() );
                         break;
                     case 184: // invokestatic
                         ConstantRef method = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
@@ -487,7 +480,7 @@ public class ModuleGenerator {
                 }
             }
         } catch( Exception ex ) {
-            throw WasmException.create( ex, sourceFile, lineNumber );
+            throw WasmException.create( ex, sourceFile, byteCode.getLineNumber() );
         }
     }
 
@@ -537,19 +530,17 @@ public class ModuleGenerator {
     }
 
     /**
-     * Write a chunk of byte code.
+     * Write the byte code of a method.
      * 
      * @param byteCode
      *            a stream of byte code
-     * @param lineNumber
-     *            the current line number
      * @param constantPool
      *            the constant pool of the the current class
      * @throws WasmException
      *             if some Java code can't converted
      * @return true, if the last operation was a return
      */
-    private boolean writeCodeChunk( CodeInputStream byteCode, int lineNumber, ConstantPool constantPool  ) throws WasmException {
+    private boolean writeCode( CodeInputStream byteCode, ConstantPool constantPool  ) throws WasmException {
         boolean endWithReturn = false;
         try {
             while( byteCode.available() > 0 ) {
@@ -681,7 +672,7 @@ public class ModuleGenerator {
                     case 94: // dup2_x2
                     case 95: // swap
                         // can be do with functions with more as one return value in future WASM standard
-                        throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: " + op, sourceFile, lineNumber );
+                        throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: " + op, sourceFile, byteCode.getLineNumber() );
                     case 96: // iadd
                         writer.writeNumericOperator( NumericOperator.add, ValueType.i32);
                         break;
@@ -739,7 +730,7 @@ public class ModuleGenerator {
                     case 114: // frem
                     case 115: // drem
                         //TODO can be implemented with a helper function like: (a - (long)(a / b) * (double)b) 
-                        throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, lineNumber );
+                        throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, byteCode.getLineNumber() );
                     case 116: // ineg
                         writer.writeConstInt( -1 );
                         writer.writeNumericOperator( NumericOperator.mul, ValueType.i32 );
@@ -922,13 +913,13 @@ public class ModuleGenerator {
                         writer.writeFunctionCall( method.getConstantClass().getName() + '.' + method.getName() + method.getType() );
                         break;
                     default:
-                        throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, lineNumber );
+                        throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, byteCode.getLineNumber() );
                 }
             }
         } catch( WasmException ex ) {
             throw ex;
         } catch( Exception ex ) {
-            throw WasmException.create( ex, sourceFile, lineNumber );
+            throw WasmException.create( ex, sourceFile, byteCode.getLineNumber() );
         }
         return endWithReturn;
     }

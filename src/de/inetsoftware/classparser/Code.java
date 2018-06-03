@@ -18,8 +18,6 @@ package de.inetsoftware.classparser;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -128,28 +126,12 @@ public class Code {
     }
 
     /**
-     * Get a list of CodeInputStream separated by source code line number.
+     * Get the stream of Java Byte code instruction of this method.  
      * 
-     * @return the list
-     * @throws IOException
-     *             if any I/O error occur
+     * @return the stream
      */
-    public Collection<CodeInputStream> getByteCodes() throws IOException {
-        ArrayList<CodeInputStream> list = new ArrayList<>();
-        LineNumberTable lineNumberTable = getLineNumberTable();
-        if( lineNumberTable != null ) {
-            int lineNumber;
-            for( int i = 0; i < lineNumberTable.size(); i++ ) {
-                lineNumber = lineNumberTable.getLineNumber( i );
-                int offset = lineNumberTable.getStartOffset( i );
-                int nextOffset = i + 1 == lineNumberTable.size() ? getCodeSize()
-                                : lineNumberTable.getStartOffset( i + 1 );
-                list.add( new CodeInputStream( codeData, offset, nextOffset - offset, lineNumber ) );
-            }
-        } else {
-            list.add( new CodeInputStream( codeData, 0, codeData.length, -1 ) );
-        }
-        return list;
+    public CodeInputStream getByteCode() {
+        return new CodeInputStream( codeData, 0, codeData.length, this );
     }
 
     public int getCodeSize(){
