@@ -1,0 +1,5 @@
+rootProject.name='JWebAssembly'
+
+if( file( '../JWebAssembly-API' ).isDirectory() ) {
+    includeBuild '../JWebAssembly-API'
+}

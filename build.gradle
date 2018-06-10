@@ -5,6 +5,8 @@ plugins {
 
 apply plugin: 'java'
 
+group 'de.inetsoftware'
+archivesBaseName = 'jwebassembly-compiler'
 version = '0.1'
 
 repositories {
@@ -12,6 +14,7 @@ repositories {
 }
 
 dependencies {
+    compile     'de.inetsoftware:jwebassembly-api:+'
     compile     'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'junit:junit:+'
 }
@@ -33,6 +36,26 @@ sourceSets {
             srcDir 'test'
         }
     }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.java
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+build {
+    dependsOn sourcesJar
+    dependsOn javadocJar
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
 }
 
 node {
