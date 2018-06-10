@@ -149,10 +149,10 @@ public class Code {
 
     /**
      * Check if the code only contains the default constructor code:
-     * <code><pre>
+     * <pre><code>
      * super.&lt;init&gt;;
      * return;
-     * </pre></code>
+     * </code></pre>
      * In this case the constructor will not be printed
      * @param superClass
      * @return

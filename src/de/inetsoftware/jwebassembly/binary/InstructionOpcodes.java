@@ -35,7 +35,7 @@ interface InstructionOpcodes {
 
     /**
      * If the value on the stack is true then the if block is executed. <br>
-     * sequence: IF <return type> <br>
+     * sequence: IF {return type} <br>
      * return type: can be void (0x40) <br>
      * stack: remove one i32 value and compare it with 0 <br>
      */
@@ -47,7 +47,7 @@ interface InstructionOpcodes {
 
     /**
      * Break a block/loop <br>
-     * sequence: BR <call deep> <br>
+     * sequence: BR {call deep} <br>
      * call deep: How many blocks are break. 0 means the current block<br>
      * stack: no change <br>
      */
