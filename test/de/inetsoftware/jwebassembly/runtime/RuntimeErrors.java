@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.webassembly.annotation.Export;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.WasmRule;
+import de.inetsoftware.jwebassembly.api.annotation.Export;
 
 /**
  * @author Volker Berlin

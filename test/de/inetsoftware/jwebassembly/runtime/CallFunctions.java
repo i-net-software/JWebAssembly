@@ -19,15 +19,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.webassembly.annotation.Export;
-import org.webassembly.annotation.Import;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
+import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.api.annotation.Import;
 
 /**
  * @author Volker Berlin

@@ -20,10 +20,10 @@ import java.util.Collection;
 
 import org.junit.ClassRule;
 import org.junit.runners.Parameterized.Parameters;
-import org.webassembly.annotation.Export;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
+import de.inetsoftware.jwebassembly.api.annotation.Export;
 
 public class ControlFlowOperators extends AbstractBaseTest {
 

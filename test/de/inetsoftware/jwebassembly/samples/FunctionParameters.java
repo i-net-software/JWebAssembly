@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.samples;
 
-import org.webassembly.annotation.Export;
+import de.inetsoftware.jwebassembly.api.annotation.Export;
 
 /**
  * 
