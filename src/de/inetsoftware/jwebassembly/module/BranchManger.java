@@ -40,6 +40,18 @@ class BranchManger {
 
     private final HashMap<Integer, ParsedBlock> loops               = new HashMap<>();
 
+    private final List<WasmInstruction> instructions;
+
+    /**
+     * Create a branch manager.
+     * 
+     * @param instructions
+     *            the target for instructions
+     */
+    public BranchManger( List<WasmInstruction> instructions ) {
+        this.instructions = instructions;
+    }
+
     /**
      * Remove all branch information for reusing the manager.
      */
@@ -427,13 +439,9 @@ class BranchManger {
      * 
      * @param byteCode
      *            the byte code stream
-     * @param writer
-     *            the current module writer
-     * @throws IOException
-     *             if any I/O exception occur
      */
-    void handle( CodeInputStream byteCode, ModuleWriter writer ) throws IOException {
-        root.handle( byteCode.getCodePosition(), writer );
+    void handle( CodeInputStream byteCode ) {
+        root.handle( byteCode.getCodePosition(), instructions );
     }
 
     /**
@@ -538,18 +546,26 @@ class BranchManger {
             return super.add( e );
         }
 
-        void handle( int codePositions, ModuleWriter writer ) throws IOException {
+        /**
+         * Handle branches on the current codePosition
+         * 
+         * @param codePositions
+         *            current code position
+         * @param instructions
+         *            the target for instructions
+         */
+        void handle( int codePositions, List<WasmInstruction> instructions ) {
             if( codePositions < startPos || codePositions > endPos ) {
                 return;
             }
             if( codePositions == startPos && startOp != null ) {
-                writer.writeBlockCode( startOp, data );
+                instructions.add( new WasmBlockInstruction( startOp, data ) );
             }
             for( BranchNode branch : this ) {
-                branch.handle( codePositions, writer );
+                branch.handle( codePositions, instructions );
             }
             if( codePositions == endPos && endOp != null ) {
-                writer.writeBlockCode( endOp, null );
+                instructions.add( new WasmBlockInstruction( endOp, null ) );
             }
         }
     }

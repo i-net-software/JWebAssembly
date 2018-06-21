@@ -16,10 +16,11 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
@@ -37,19 +38,21 @@ import de.inetsoftware.jwebassembly.WasmException;
  */
 public class ModuleGenerator {
 
-    private final ModuleWriter    writer;
+    private final ModuleWriter          writer;
 
-    private int                   paramCount;
+    private int                         paramCount;
 
-    private ValueType             returnType;
+    private ValueType                   returnType;
 
-    private LocaleVariableManager localVariables = new LocaleVariableManager();
+    private LocaleVariableManager       localVariables = new LocaleVariableManager();
 
-    private String                sourceFile;
+    private String                      sourceFile;
 
-    private BranchManger          branchManager  = new BranchManger();
+    private final List<WasmInstruction> instructions   = new ArrayList<>();
 
-    private ValueStackManger      stackManager   = new ValueStackManger();
+    private BranchManger                branchManager  = new BranchManger( instructions );
+
+    private ValueStackManger            stackManager   = new ValueStackManger();
 
     /**
      * Create a new generator.
@@ -167,6 +170,9 @@ public class ModuleGenerator {
 
                 byteCode = code.getByteCode();
                 writeCode( byteCode, method.getConstantPool() );
+                for( WasmInstruction instruction : instructions ) {
+                    instruction.writeTo( writer );
+                }
                 writer.writeMethodFinish( localVariables.getLocalTypes( paramCount ) );
             }
         } catch( Exception ioex ) {
@@ -517,10 +523,12 @@ public class ModuleGenerator {
      *             if some Java code can't converted
      */
     private void writeCode( CodeInputStream byteCode, ConstantPool constantPool  ) throws WasmException {
+        instructions.clear();
         boolean endWithReturn = false;
         try {
             while( byteCode.available() > 0 ) {
-                branchManager.handle( byteCode, writer );
+                WasmInstruction instr = null;
+                branchManager.handle( byteCode );
                 endWithReturn = false;
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
@@ -534,111 +542,111 @@ public class ModuleGenerator {
                     case 6: // iconst_3
                     case 7: // iconst_4
                     case 8: // iconst_5
-                        writer.writeConstInt( op - 3 );
+                        instr = new WasmConstInstruction( Integer.valueOf( op - 3 ) );
                         break;
                     case 9:  // lconst_0
                     case 10: // lconst_1
-                        writer.writeConstLong( op - 9 );
+                        instr = new WasmConstInstruction( Long.valueOf( op - 9 ) );
                         break;
                     case 11: // fconst_0
                     case 12: // fconst_1
                     case 13: // fconst_2
-                        writer.writeConstFloat( op - 11 );
+                        instr = new WasmConstInstruction( Float.valueOf( op - 11 ) );
                         break;
                     case 14: // dconst_0
                     case 15: // dconst_1
-                        writer.writeConstDouble( op - 14 );
+                        instr = new WasmConstInstruction( Double.valueOf( op - 14 ) );
                         break;
                     case 16: // bipush
-                        writer.writeConstInt( byteCode.readByte() );
+                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readByte() ) );
                         break;
                     case 17: // sipush
-                        writer.writeConstInt( byteCode.readShort() );
+                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readShort() ) );
                         break;
                     case 18: // ldc
-                        writeConst( constantPool.get( byteCode.readUnsignedByte() ) );
+                        instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedByte() ) );
                         break;
                     case 19: // ldc_w
                     case 20: // ldc2_w
-                        writeConst( constantPool.get( byteCode.readUnsignedShort() ) );
+                        instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedShort() ) );
                         break;
                     case 21: // iload
-                        writeLoadStore( true, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
                         break;
                     case 22: // lload
-                        writeLoadStore( true, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
                         break;
                     case 23: // fload
-                        writeLoadStore( true, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
                         break;
                     case 24: // dload
-                        writeLoadStore( true, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
                         break;
                     //TODO case 25: // aload
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
                     case 29: // iload_3
-                        writeLoadStore( true, op - 26 );
+                        instr = new WasmLoadStoreInstruction( true, op - 26, localVariables );
                         break;
                     case 30: // lload_0
                     case 31: // lload_1
                     case 32: // lload_2
                     case 33: // lload_3
-                        writeLoadStore( true, op - 30 );
+                        instr = new WasmLoadStoreInstruction( true, op - 30, localVariables );
                         break;
                     case 34: // fload_0
                     case 35: // fload_1
                     case 36: // fload_2
                     case 37: // fload_3
-                        writeLoadStore( true, op - 34 );
+                        instr = new WasmLoadStoreInstruction( true, op - 34, localVariables );
                         break;
                     case 38: // dload_0
                     case 39: // dload_1
                     case 40: // dload_2
                     case 41: // dload_3
-                        writeLoadStore( true, op - 38 );
+                        instr = new WasmLoadStoreInstruction( true, op - 38, localVariables );
                         break;
                     case 54: // istore
-                        writeLoadStore( false, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
                         break;
                     case 55: // lstore
-                        writeLoadStore( false, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
                         break;
                     case 56: // fstore
-                        writeLoadStore( false, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
                         break;
                     case 57: // dstore
-                        writeLoadStore( false, byteCode.readUnsignedByte() );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
                         break;
                     //TODO case 58: // astore
                     case 59: // istore_0
                     case 60: // istore_1
                     case 61: // istore_2
                     case 62: // istore_3
-                        writeLoadStore( false, op - 59 );
+                        instr = new WasmLoadStoreInstruction( false, op - 59, localVariables );
                         break;
                     case 63: // lstore_0
                     case 64: // lstore_1
                     case 65: // lstore_2
                     case 66: // lstore_3
-                        writeLoadStore( false, op - 63 );
+                        instr = new WasmLoadStoreInstruction( false, op - 63, localVariables );
                         break;
                     case 67: // fstore_0
                     case 68: // fstore_1
                     case 69: // fstore_2
                     case 70: // fstore_3
-                        writeLoadStore( false, op - 67 );
+                        instr = new WasmLoadStoreInstruction( false, op - 67, localVariables );
                         break;
                     case 71: // dstore_0
                     case 72: // dstore_1
                     case 73: // dstore_2
                     case 74: // dstore_3
-                        writeLoadStore( false, op - 71 );
+                        instr = new WasmLoadStoreInstruction( false, op - 71, localVariables );
                         break;
                     case 87: // pop
                     case 88: // pop2
-                        writer.writeBlockCode( WasmBlockOperator.DROP, null );
+                        instr = new WasmBlockInstruction( WasmBlockOperator.DROP, null );
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 90: // dup_x1
@@ -650,174 +658,174 @@ public class ModuleGenerator {
                         // can be do with functions with more as one return value in future WASM standard
                         throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: " + op, sourceFile, byteCode.getLineNumber() );
                     case 96: // iadd
-                        writer.writeNumericOperator( NumericOperator.add, ValueType.i32);
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.i32);
                         break;
                     case 97: // ladd
-                        writer.writeNumericOperator( NumericOperator.add, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.i64 );
                         break;
                     case 98: // fadd
-                        writer.writeNumericOperator( NumericOperator.add, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.f32 );
                         break;
                     case 99: // dadd
-                        writer.writeNumericOperator( NumericOperator.add, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.f64 );
                         break;
                     case 100: // isub
-                        writer.writeNumericOperator( NumericOperator.sub, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.i32 );
                         break;
                     case 101: // lsub
-                        writer.writeNumericOperator( NumericOperator.sub, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.i64 );
                         break;
                     case 102: // fsub
-                        writer.writeNumericOperator( NumericOperator.sub, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.f32 );
                         break;
                     case 103: // dsub
-                        writer.writeNumericOperator( NumericOperator.sub, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.f64 );
                         break;
                     case 104: // imul;
-                        writer.writeNumericOperator( NumericOperator.mul, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32 );
                         break;
                     case 105: // lmul
-                        writer.writeNumericOperator( NumericOperator.mul, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i64 );
                         break;
                     case 106: // fmul
-                        writer.writeNumericOperator( NumericOperator.mul, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.f32 );
                         break;
                     case 107: // dmul
-                        writer.writeNumericOperator( NumericOperator.mul, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.f64 );
                         break;
                     case 108: // idiv
-                        writer.writeNumericOperator( NumericOperator.div, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.i32 );
                         break;
                     case 109: // ldiv
-                        writer.writeNumericOperator( NumericOperator.div, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.i64 );
                         break;
                     case 110: // fdiv
-                        writer.writeNumericOperator( NumericOperator.div, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.f32 );
                         break;
                     case 111: // ddiv
-                        writer.writeNumericOperator( NumericOperator.div, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.f64 );
                         break;
                     case 112: // irem
-                        writer.writeNumericOperator( NumericOperator.rem, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.rem, ValueType.i32 );
                         break;
                     case 113: // lrem
-                        writer.writeNumericOperator( NumericOperator.rem, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.rem, ValueType.i64 );
                         break;
                     case 114: // frem
                     case 115: // drem
                         //TODO can be implemented with a helper function like: (a - (long)(a / b) * (double)b) 
                         throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, byteCode.getLineNumber() );
                     case 116: // ineg
-                        writer.writeConstInt( -1 );
-                        writer.writeNumericOperator( NumericOperator.mul, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( -1 ) );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32 );
                         break;
                     case 117: // lneg
-                        writer.writeConstLong( -1 );
-                        writer.writeNumericOperator( NumericOperator.mul, ValueType.i64 );
+                        instructions.add( new WasmConstInstruction( (long)-1 ) ) ;
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i64 );
                         break;
                     case 118: // fneg
-                        writer.writeNumericOperator( NumericOperator.neg, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.neg, ValueType.f32 );
                         break;
                     case 119: // dneg
-                        writer.writeNumericOperator( NumericOperator.neg, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.neg, ValueType.f64 );
                         break;
                     case 120: // ishl
-                        writer.writeNumericOperator( NumericOperator.shl, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.shl, ValueType.i32 );
                         break;
                     case 121: // lshl
-                        writer.writeCast( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
-                        writer.writeNumericOperator( NumericOperator.shl, ValueType.i64 );
+                        instructions.add( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
+                        instr = new WasmNumericInstruction( NumericOperator.shl, ValueType.i64 );
                         break;
                     case 122: // ishr
-                        writer.writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32 );
                         break;
                     case 123: // lshr
-                        writer.writeCast( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
-                        writer.writeNumericOperator( NumericOperator.shr_s, ValueType.i64 );
+                        instructions.add( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i64 );
                         break;
                     case 124: // iushr
-                        writer.writeNumericOperator( NumericOperator.shr_u, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_u, ValueType.i32 );
                         break;
                     case 125: // lushr
-                        writer.writeCast( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
-                        writer.writeNumericOperator( NumericOperator.shr_u, ValueType.i64 );
+                        instructions.add( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
+                        instr = new WasmNumericInstruction( NumericOperator.shr_u, ValueType.i64 );
                         break;
                     case 126: // iand
-                        writer.writeNumericOperator( NumericOperator.and, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32 );
                         break;
                     case 127: // land
-                        writer.writeNumericOperator( NumericOperator.and, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i64 );
                         break;
                     case 128: // ior
-                        writer.writeNumericOperator( NumericOperator.or, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.or, ValueType.i32 );
                         break;
                     case 129: // lor
-                        writer.writeNumericOperator( NumericOperator.or, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.or, ValueType.i64 );
                         break;
                     case 130: // ixor
-                        writer.writeNumericOperator( NumericOperator.xor, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.xor, ValueType.i32 );
                         break;
                     case 131: // lxor
-                        writer.writeNumericOperator( NumericOperator.xor, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.xor, ValueType.i64 );
                         break;
                     case 132: // iinc
                         int idx = byteCode.readUnsignedByte();
-                        writeLoadStore( true, idx );
-                        writer.writeConstInt( byteCode.readUnsignedByte() );
-                        writer.writeNumericOperator( NumericOperator.add, ValueType.i32);
-                        writeLoadStore( false, idx );
+                        instructions.add( new WasmLoadStoreInstruction( true, idx, localVariables ) );
+                        instructions.add( new WasmConstInstruction( byteCode.readUnsignedByte() ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.add, ValueType.i32) );
+                        instr = new WasmLoadStoreInstruction( false, idx, localVariables );
                         break;
                     case 133: // i2l
-                        writer.writeCast( ValueTypeConvertion.i2l );
+                        instr = ValueTypeConvertion.i2l;
                         break;
                     case 134: // i2f
-                        writer.writeCast( ValueTypeConvertion.i2f );
+                        instr = ValueTypeConvertion.i2f;
                         break;
                     case 135: // i2d
-                        writer.writeCast( ValueTypeConvertion.i2d );
+                        instr = ValueTypeConvertion.i2d;
                         break;
                     case 136: // l2i
-                        writer.writeCast( ValueTypeConvertion.l2i );
+                        instr = ValueTypeConvertion.l2i;
                         break;
                     case 137: // l2f
-                        writer.writeCast( ValueTypeConvertion.l2f );
+                        instr = ValueTypeConvertion.l2f;
                         break;
                     case 138: // l2d
-                        writer.writeCast( ValueTypeConvertion.l2d );
+                        instr = ValueTypeConvertion.l2d;
                         break;
                     case 139: // f2i
-                        writer.writeCast( ValueTypeConvertion.f2i );
+                        instr = ValueTypeConvertion.f2i;
                         break;
                     case 140: // f2l
-                        writer.writeCast( ValueTypeConvertion.f2l );
+                        instr = ValueTypeConvertion.f2l;
                         break;
                     case 141: // f2d
-                        writer.writeCast( ValueTypeConvertion.f2d );
+                        instr = ValueTypeConvertion.f2d;
                         break;
                     case 142: // d2i
-                        writer.writeCast( ValueTypeConvertion.d2i );
+                        instr = ValueTypeConvertion.d2i;
                         break;
                     case 143: // d2l
-                        writer.writeCast( ValueTypeConvertion.d2l );
+                        instr = ValueTypeConvertion.d2l;
                         break;
                     case 144: // d2f
-                        writer.writeCast( ValueTypeConvertion.d2f );
+                        instr = ValueTypeConvertion.d2f;
                         break;
                     case 145: // i2b
-                        writer.writeConstInt( 24 );
-                        writer.writeNumericOperator( NumericOperator.shl, ValueType.i32 );
-                        writer.writeConstInt( 24 );
-                        writer.writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( 24 ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32 ) );
+                        instructions.add( new WasmConstInstruction( 24 ) );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32 );
                         break;
                     case 146: // i2c
-                        writer.writeConstInt( 0xFFFF );
-                        writer.writeNumericOperator( NumericOperator.and, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( 0xFFFF ) );
+                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32 );
                         break;
                     case 147: // i2s
-                        writer.writeConstInt( 16 );
-                        writer.writeNumericOperator( NumericOperator.shl, ValueType.i32 );
-                        writer.writeConstInt( 16 );
-                        writer.writeNumericOperator( NumericOperator.shr_s, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( 16 ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32 ) );
+                        instructions.add( new WasmConstInstruction( 16 ) );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32 );
                         break;
                     case 148: // lcmp
                         opCompare( ValueType.i64, byteCode );
@@ -880,39 +888,42 @@ public class ModuleGenerator {
                     case 174: // freturn
                     case 175: // dreturn
                     case 177: // return void
-                        writer.writeBlockCode( WasmBlockOperator.RETURN, null );
+                        instr = new WasmBlockInstruction( WasmBlockOperator.RETURN, null );
                         endWithReturn = true;
                         break;
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
                         ConstantRef method = (ConstantRef)constantPool.get( idx );
-                        writer.writeFunctionCall( method.getConstantClass().getName() + '.' + method.getName() + method.getType() );
+                        instr = new WasmCallInstruction( method.getConstantClass().getName() + '.' + method.getName() + method.getType() );
                         break;
                     default:
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, byteCode.getLineNumber() );
                 }
+                if( instr != null ) {
+                    instructions.add( instr );
+                }
             }
-            branchManager.handle( byteCode, writer ); // write the last end operators
+            branchManager.handle( byteCode ); // write the last end operators
             if( !endWithReturn && returnType != null ) {
                 // if a method ends with a loop without a break then code after the loop is no reachable
                 // Java does not need a return byte code in this case
                 // But WebAssembly need the dead code to validate
                 switch( returnType ) {
                     case i32:
-                        writer.writeConstInt( 0 );
+                        instructions.add( new WasmConstInstruction( 0 ) );
                         break;
                     case i64:
-                        writer.writeConstLong( 0 );
+                        instructions.add( new WasmConstInstruction( 0L ) );
                         break;
                     case f32:
-                        writer.writeConstFloat( 0 );
+                        instructions.add( new WasmConstInstruction( 0F ) );
                         break;
                     case f64:
-                        writer.writeConstDouble( 0 );
+                        instructions.add( new WasmConstInstruction( 0D ) );
                         break;
                     default:
                 }
-                writer.writeBlockCode( WasmBlockOperator.RETURN, null );
+                instructions.add( new WasmBlockInstruction( WasmBlockOperator.RETURN, null ) );
             }
         } catch( WasmException ex ) {
             throw ex;
@@ -952,7 +963,7 @@ public class ModuleGenerator {
             int block = 0;
             int defaultBlock = -1;
             int currentPos = -1;
-            writeLoadStore( false, tempI32 );
+            instructions.add( new WasmLoadStoreInstruction( false, tempI32, localVariables ) );
             do {
                 int nextPos = findNext( currentPos, positions );
                 if( nextPos == currentPos ) {
@@ -969,10 +980,10 @@ public class ModuleGenerator {
                 }
                 for( int i = 0; i < positions.length; i++ ) {
                     if( positions[i] == currentPos ) {
-                        writeLoadStore( true, tempI32 );
-                        writer.writeConstInt( keys[i] );
-                        writer.writeNumericOperator( NumericOperator.eq, ValueType.i32 );
-                        writer.writeBlockCode( WasmBlockOperator.BR_IF, block );
+                        instructions.add( new WasmLoadStoreInstruction( true, tempI32, localVariables ) );
+                        instructions.add( new WasmConstInstruction( keys[i] ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.eq, ValueType.i32 ) );
+                        instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR_IF, block ) );
                     }
                 }
                 block++;
@@ -980,7 +991,7 @@ public class ModuleGenerator {
             if( defaultBlock < 0 ) {
                 defaultBlock = block;
             }
-            writer.writeBlockCode( WasmBlockOperator.BR, defaultBlock );
+            instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR, defaultBlock ) );
         } else {
             int low = byteCode.readInt();
             int count = byteCode.readInt() - low + 1;
@@ -988,8 +999,8 @@ public class ModuleGenerator {
                 byteCode.readInt();
             }
             if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
-                writer.writeConstInt( low );
-                writer.writeNumericOperator( NumericOperator.sub, ValueType.i32 );
+                instructions.add( new WasmConstInstruction( low ) );
+                instructions.add( new WasmNumericInstruction( NumericOperator.sub, ValueType.i32 ) );
             }
         }
     }
@@ -1030,7 +1041,7 @@ public class ModuleGenerator {
      *             if any I/O errors occur.
      */
     private void opIfCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode ) throws IOException {
-        writer.writeConstInt( 0 );
+        instructions.add( new WasmConstInstruction( 0 ) );
         opIfCompareCondition( ifNumOp, continueNumOp, byteCode );
     }
 
@@ -1050,7 +1061,7 @@ public class ModuleGenerator {
      */
     private void opIfCompareCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode ) throws IOException {
         int offset = byteCode.readShort();
-        writer.writeNumericOperator( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32 );
+        instructions.add( new WasmNumericInstruction( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32 ) );
     }
 
     /**
@@ -1090,53 +1101,7 @@ public class ModuleGenerator {
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
         }
         byteCode.skip(2);
-        writer.writeNumericOperator( numOp, valueType );
-    }
-
-    /**
-     * Write a constant value.
-     * 
-     * @param value
-     *            the value
-     * @throws IOException
-     *             if any I/O error occur
-     * @throws WasmException
-     *             if the value type is not supported
-     */
-    private void writeConst( Object value ) throws IOException, WasmException {
-        Class<?> clazz = value.getClass();
-        if( clazz == Integer.class ) {
-            writer.writeConstInt( ((Integer)value).intValue() );
-        } else if( clazz == Long.class ) {
-            writer.writeConstLong( ((Long)value).longValue() );
-        } else if( clazz == Float.class ) {
-            writer.writeConstFloat( ((Float)value).floatValue() );
-        } else if( clazz == Double.class ) {
-            writer.writeConstDouble( ((Double)value).doubleValue() );
-        } else {
-            throw new WasmException( "Not supported constant type: " + clazz, sourceFile, -1 );
-        }
-    }
-
-    /**
-     * Write or Load a local variable.
-     * 
-     * @param load
-     *            true: if load
-     * @param idx
-     *            the memory/slot idx of the variable
-     * @throws WasmException
-     *             occur a if a variable was used for a different type
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void writeLoadStore( boolean load, @Nonnegative int idx ) throws WasmException, IOException {
-        idx = localVariables.get( idx ); // translate slot index to position index
-        if( load ) {
-            writer.writeLoad( idx );
-        } else {
-            writer.writeStore( idx );
-        }
+        instructions.add( new WasmNumericInstruction( numOp, valueType ) );
     }
 
 }
