@@ -165,31 +165,8 @@ public class ModuleGenerator {
                 branchManager.calculate();
                 localVariables.calculate();
 
-                boolean endWithReturn = false;
                 byteCode = code.getByteCode();
-                endWithReturn = writeCode( byteCode, method.getConstantPool() );
-                branchManager.handle( byteCode, writer ); // write the last end operators
-                if( !endWithReturn && returnType != null ) {
-                    // if a method ends with a loop without a break then code after the loop is no reachable
-                    // Java does not need a return byte code in this case
-                    // But WebAssembly need the dead code to validate
-                    switch( returnType ) {
-                        case i32:
-                            writer.writeConstInt( 0 );
-                            break;
-                        case i64:
-                            writer.writeConstLong( 0 );
-                            break;
-                        case f32:
-                            writer.writeConstFloat( 0 );
-                            break;
-                        case f64:
-                            writer.writeConstDouble( 0 );
-                            break;
-                        default:
-                    }
-                    writer.writeBlockCode( WasmBlockOperator.RETURN, null );
-                }
+                writeCode( byteCode, method.getConstantPool() );
                 writer.writeMethodFinish( localVariables.getLocalTypes( paramCount ) );
             }
         } catch( Exception ioex ) {
@@ -538,9 +515,8 @@ public class ModuleGenerator {
      *            the constant pool of the the current class
      * @throws WasmException
      *             if some Java code can't converted
-     * @return true, if the last operation was a return
      */
-    private boolean writeCode( CodeInputStream byteCode, ConstantPool constantPool  ) throws WasmException {
+    private void writeCode( CodeInputStream byteCode, ConstantPool constantPool  ) throws WasmException {
         boolean endWithReturn = false;
         try {
             while( byteCode.available() > 0 ) {
@@ -916,12 +892,33 @@ public class ModuleGenerator {
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, byteCode.getLineNumber() );
                 }
             }
+            branchManager.handle( byteCode, writer ); // write the last end operators
+            if( !endWithReturn && returnType != null ) {
+                // if a method ends with a loop without a break then code after the loop is no reachable
+                // Java does not need a return byte code in this case
+                // But WebAssembly need the dead code to validate
+                switch( returnType ) {
+                    case i32:
+                        writer.writeConstInt( 0 );
+                        break;
+                    case i64:
+                        writer.writeConstLong( 0 );
+                        break;
+                    case f32:
+                        writer.writeConstFloat( 0 );
+                        break;
+                    case f64:
+                        writer.writeConstDouble( 0 );
+                        break;
+                    default:
+                }
+                writer.writeBlockCode( WasmBlockOperator.RETURN, null );
+            }
         } catch( WasmException ex ) {
             throw ex;
         } catch( Exception ex ) {
             throw WasmException.create( ex, sourceFile, byteCode.getLineNumber() );
         }
-        return endWithReturn;
     }
 
     /**
