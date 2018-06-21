@@ -21,20 +21,27 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 /**
- * Base class of all WasmInstruction.
+ * WasmInstruction for a function call.
  * 
  * @author Volker Berlin
  *
  */
-abstract interface WasmInstruction {
+class WasmCallInstruction implements WasmInstruction {
+
+    private final String name;
 
     /**
-     * Write this instruction to the WASM module.
-     * 
-     * @param writer
-     *            the target writer
-     * @throws IOException
-     *             if any I/O error occur
+     * Create an instance of a function call instruction 
+     * @param name the Java function name
      */
-    abstract void writeTo( @Nonnull ModuleWriter writer ) throws IOException;
+    WasmCallInstruction( String name ) {
+        this.name = name;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        writer.writeFunctionCall( name );
+    }
 }

@@ -28,7 +28,7 @@ import de.inetsoftware.jwebassembly.WasmException;
  * @author Volker Berlin
  *
  */
-class WasmConstInstruction extends WasmInstruction {
+class WasmConstInstruction implements WasmInstruction {
 
     private final Number value;
 
@@ -43,7 +43,7 @@ class WasmConstInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
-    void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         Class<?> clazz = value.getClass();
         if( clazz == Integer.class ) {
             writer.writeConstInt( ((Integer)value).intValue() );

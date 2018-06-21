@@ -19,22 +19,37 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Base class of all WasmInstruction.
+ * WasmInstruction for block operation.
  * 
  * @author Volker Berlin
  *
  */
-abstract interface WasmInstruction {
+class WasmBlockInstruction implements WasmInstruction {
+
+    private final WasmBlockOperator op;
+
+    private final Object            data;
 
     /**
-     * Write this instruction to the WASM module.
+     * Create an instance of block operation.
      * 
-     * @param writer
-     *            the target writer
-     * @throws IOException
-     *             if any I/O error occur
+     * @param op
+     *            the operation
+     * @param data
+     *            extra data depending of the operator
      */
-    abstract void writeTo( @Nonnull ModuleWriter writer ) throws IOException;
+    WasmBlockInstruction( @Nonnull WasmBlockOperator op, @Nullable Object data ) {
+        this.op = op;
+        this.data = data;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        writer.writeBlockCode( op, data );
+    }
 }

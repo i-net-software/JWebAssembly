@@ -15,13 +15,15 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.io.IOException;
+
 /**
  * Cast operations for converting one data type to another
  * 
  * @author Volker Berlin
  *
  */
-public enum ValueTypeConvertion {
+public enum ValueTypeConvertion implements WasmInstruction {
     i2l,
     i2f,
     i2d,
@@ -34,4 +36,13 @@ public enum ValueTypeConvertion {
     d2i,
     d2l,
     d2f,
+    ;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void writeTo( ModuleWriter writer ) throws IOException {
+        writer.writeCast( this );
+    }
 }

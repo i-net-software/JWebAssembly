@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
  * @author Volker Berlin
  *
  */
-class WasmLoadStoreInstruction extends WasmInstruction {
+class WasmLoadStoreInstruction implements WasmInstruction {
 
     private boolean               load;
 
@@ -54,7 +54,7 @@ class WasmLoadStoreInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
-    void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         idx = localVariables.get( idx ); // translate slot index to position index
         if( load ) {
             writer.writeLoad( idx );

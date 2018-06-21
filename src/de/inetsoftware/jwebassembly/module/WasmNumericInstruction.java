@@ -19,22 +19,38 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Base class of all WasmInstruction.
+ * WasmInstruction for numeric operation.
  * 
  * @author Volker Berlin
  *
  */
-abstract interface WasmInstruction {
+class WasmNumericInstruction implements WasmInstruction {
+
+    private final NumericOperator numOp;
+
+    private final ValueType       valueType;
 
     /**
-     * Write this instruction to the WASM module.
+     * Create an instance of numeric operation.
      * 
-     * @param writer
-     *            the target writer
-     * @throws IOException
-     *             if any I/O error occur
+     * @param numOp
+     *            the numeric operation
+     * @param valueType
+     *            the type of the parameters
+     * 
      */
-    abstract void writeTo( @Nonnull ModuleWriter writer ) throws IOException;
+    WasmNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType ) {
+        this.numOp = numOp;
+        this.valueType = valueType;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        writer.writeNumericOperator( numOp, valueType );
+    }
 }
