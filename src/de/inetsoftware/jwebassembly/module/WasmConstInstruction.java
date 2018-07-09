@@ -28,15 +28,20 @@ import de.inetsoftware.jwebassembly.WasmException;
  * @author Volker Berlin
  *
  */
-class WasmConstInstruction implements WasmInstruction {
+class WasmConstInstruction extends WasmInstruction {
 
     private final Number value;
 
     /**
-     * Create an instance of a constant instruction 
-     * @param value the constant value
+     * Create an instance of a constant instruction
+     * 
+     * @param value
+     *            the constant value
+     * @param javaCodePos
+     *            the code position/offset in the Java method
      */
-    WasmConstInstruction( Number value ) {
+    WasmConstInstruction( Number value, int javaCodePos ) {
+        super( javaCodePos );
         this.value = value;
     }
 

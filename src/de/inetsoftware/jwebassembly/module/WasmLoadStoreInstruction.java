@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
  * @author Volker Berlin
  *
  */
-class WasmLoadStoreInstruction implements WasmInstruction {
+class WasmLoadStoreInstruction extends WasmInstruction {
 
     private boolean               load;
 
@@ -44,8 +44,11 @@ class WasmLoadStoreInstruction implements WasmInstruction {
      *            the memory/slot idx of the variable
      * @param localVariables
      *            the manager for local variables
+     * @param javaCodePos
+     *            the code position/offset in the Java method
      */
-    WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables ) {
+    WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos ) {
+        super( javaCodePos );
         this.load = load;
         this.idx = idx;
         this.localVariables = localVariables;

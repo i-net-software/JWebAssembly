@@ -26,7 +26,19 @@ import javax.annotation.Nonnull;
  * @author Volker Berlin
  *
  */
-abstract interface WasmInstruction {
+abstract class WasmInstruction {
+
+    private int javaCodePos;
+
+    /**
+     * Create a new instance of an instruction
+     * 
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     */
+    WasmInstruction( int javaCodePos ) {
+        this.javaCodePos = javaCodePos;
+    }
 
     /**
      * Write this instruction to the WASM module.

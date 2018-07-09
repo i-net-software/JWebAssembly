@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  * @author Volker Berlin
  *
  */
-class WasmNumericInstruction implements WasmInstruction {
+class WasmNumericInstruction extends WasmInstruction {
 
     private final NumericOperator numOp;
 
@@ -40,9 +40,11 @@ class WasmNumericInstruction implements WasmInstruction {
      *            the numeric operation
      * @param valueType
      *            the type of the parameters
-     * 
+     * @param javaCodePos
+     *            the code position/offset in the Java method
      */
-    WasmNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType ) {
+    WasmNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos ) {
+        super( javaCodePos );
         this.numOp = numOp;
         this.valueType = valueType;
     }

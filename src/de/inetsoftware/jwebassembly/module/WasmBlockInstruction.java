@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  * @author Volker Berlin
  *
  */
-class WasmBlockInstruction implements WasmInstruction {
+class WasmBlockInstruction extends WasmInstruction {
 
     private final WasmBlockOperator op;
 
@@ -40,8 +40,11 @@ class WasmBlockInstruction implements WasmInstruction {
      *            the operation
      * @param data
      *            extra data depending of the operator
+     * @param javaCodePos
+     *            the code position/offset in the Java method
      */
-    WasmBlockInstruction( @Nonnull WasmBlockOperator op, @Nullable Object data ) {
+    WasmBlockInstruction( @Nonnull WasmBlockOperator op, @Nullable Object data, int javaCodePos ) {
+        super( javaCodePos );
         this.op = op;
         this.data = data;
     }

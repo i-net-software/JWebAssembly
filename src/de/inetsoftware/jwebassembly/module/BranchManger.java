@@ -559,13 +559,13 @@ class BranchManger {
                 return;
             }
             if( codePositions == startPos && startOp != null ) {
-                instructions.add( new WasmBlockInstruction( startOp, data ) );
+                instructions.add( new WasmBlockInstruction( startOp, data, codePositions ) );
             }
             for( BranchNode branch : this ) {
                 branch.handle( codePositions, instructions );
             }
             if( codePositions == endPos && endOp != null ) {
-                instructions.add( new WasmBlockInstruction( endOp, null ) );
+                instructions.add( new WasmBlockInstruction( endOp, null, codePositions ) );
             }
         }
     }

@@ -26,15 +26,20 @@ import javax.annotation.Nonnull;
  * @author Volker Berlin
  *
  */
-class WasmCallInstruction implements WasmInstruction {
+class WasmCallInstruction extends WasmInstruction {
 
     private final String name;
 
     /**
-     * Create an instance of a function call instruction 
-     * @param name the Java function name
+     * Create an instance of a function call instruction
+     * 
+     * @param name
+     *            the Java function name
+     * @param javaCodePos
+     *            the code position/offset in the Java method
      */
-    WasmCallInstruction( String name ) {
+    WasmCallInstruction( String name, int javaCodePos ) {
+        super( javaCodePos );
         this.name = name;
     }
 

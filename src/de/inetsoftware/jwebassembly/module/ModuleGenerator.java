@@ -166,10 +166,11 @@ public class ModuleGenerator {
                 byteCode = code.getByteCode();
                 prepareCodeChunk( byteCode, method.getConstantPool() );
                 branchManager.calculate();
-                localVariables.calculate();
 
                 byteCode = code.getByteCode();
                 writeCode( byteCode, method.getConstantPool() );
+                localVariables.calculate();
+
                 for( WasmInstruction instruction : instructions ) {
                     instruction.writeTo( writer );
                 }
@@ -528,6 +529,7 @@ public class ModuleGenerator {
         try {
             while( byteCode.available() > 0 ) {
                 WasmInstruction instr = null;
+                int codePos = byteCode.getCodePosition();
                 branchManager.handle( byteCode );
                 endWithReturn = false;
                 int op = byteCode.readUnsignedByte();
@@ -542,111 +544,111 @@ public class ModuleGenerator {
                     case 6: // iconst_3
                     case 7: // iconst_4
                     case 8: // iconst_5
-                        instr = new WasmConstInstruction( Integer.valueOf( op - 3 ) );
+                        instr = new WasmConstInstruction( Integer.valueOf( op - 3 ), codePos );
                         break;
                     case 9:  // lconst_0
                     case 10: // lconst_1
-                        instr = new WasmConstInstruction( Long.valueOf( op - 9 ) );
+                        instr = new WasmConstInstruction( Long.valueOf( op - 9 ), codePos );
                         break;
                     case 11: // fconst_0
                     case 12: // fconst_1
                     case 13: // fconst_2
-                        instr = new WasmConstInstruction( Float.valueOf( op - 11 ) );
+                        instr = new WasmConstInstruction( Float.valueOf( op - 11 ), codePos );
                         break;
                     case 14: // dconst_0
                     case 15: // dconst_1
-                        instr = new WasmConstInstruction( Double.valueOf( op - 14 ) );
+                        instr = new WasmConstInstruction( Double.valueOf( op - 14 ), codePos );
                         break;
                     case 16: // bipush
-                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readByte() ) );
+                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readByte() ), codePos );
                         break;
                     case 17: // sipush
-                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readShort() ) );
+                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readShort() ), codePos );
                         break;
                     case 18: // ldc
-                        instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedByte() ) );
+                        instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedByte() ), codePos );
                         break;
                     case 19: // ldc_w
                     case 20: // ldc2_w
-                        instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedShort() ) );
+                        instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedShort() ), codePos );
                         break;
                     case 21: // iload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     case 22: // lload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     case 23: // fload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     case 24: // dload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     //TODO case 25: // aload
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
                     case 29: // iload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 26, localVariables );
+                        instr = new WasmLoadStoreInstruction( true, op - 26, localVariables, codePos );
                         break;
                     case 30: // lload_0
                     case 31: // lload_1
                     case 32: // lload_2
                     case 33: // lload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 30, localVariables );
+                        instr = new WasmLoadStoreInstruction( true, op - 30, localVariables, codePos );
                         break;
                     case 34: // fload_0
                     case 35: // fload_1
                     case 36: // fload_2
                     case 37: // fload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 34, localVariables );
+                        instr = new WasmLoadStoreInstruction( true, op - 34, localVariables, codePos );
                         break;
                     case 38: // dload_0
                     case 39: // dload_1
                     case 40: // dload_2
                     case 41: // dload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 38, localVariables );
+                        instr = new WasmLoadStoreInstruction( true, op - 38, localVariables, codePos );
                         break;
                     case 54: // istore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     case 55: // lstore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     case 56: // fstore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     case 57: // dstore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables );
+                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
                         break;
                     //TODO case 58: // astore
                     case 59: // istore_0
                     case 60: // istore_1
                     case 61: // istore_2
                     case 62: // istore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 59, localVariables );
+                        instr = new WasmLoadStoreInstruction( false, op - 59, localVariables, codePos );
                         break;
                     case 63: // lstore_0
                     case 64: // lstore_1
                     case 65: // lstore_2
                     case 66: // lstore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 63, localVariables );
+                        instr = new WasmLoadStoreInstruction( false, op - 63, localVariables, codePos );
                         break;
                     case 67: // fstore_0
                     case 68: // fstore_1
                     case 69: // fstore_2
                     case 70: // fstore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 67, localVariables );
+                        instr = new WasmLoadStoreInstruction( false, op - 67, localVariables, codePos );
                         break;
                     case 71: // dstore_0
                     case 72: // dstore_1
                     case 73: // dstore_2
                     case 74: // dstore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 71, localVariables );
+                        instr = new WasmLoadStoreInstruction( false, op - 71, localVariables, codePos );
                         break;
                     case 87: // pop
                     case 88: // pop2
-                        instr = new WasmBlockInstruction( WasmBlockOperator.DROP, null );
+                        instr = new WasmBlockInstruction( WasmBlockOperator.DROP, null, codePos );
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 90: // dup_x1
@@ -658,221 +660,221 @@ public class ModuleGenerator {
                         // can be do with functions with more as one return value in future WASM standard
                         throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: " + op, sourceFile, byteCode.getLineNumber() );
                     case 96: // iadd
-                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.i32);
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.i32, codePos);
                         break;
                     case 97: // ladd
-                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.i64, codePos );
                         break;
                     case 98: // fadd
-                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.f32, codePos );
                         break;
                     case 99: // dadd
-                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.add, ValueType.f64, codePos );
                         break;
                     case 100: // isub
-                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.i32, codePos );
                         break;
                     case 101: // lsub
-                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.i64, codePos );
                         break;
                     case 102: // fsub
-                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.f32, codePos );
                         break;
                     case 103: // dsub
-                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.sub, ValueType.f64, codePos );
                         break;
                     case 104: // imul;
-                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32, codePos );
                         break;
                     case 105: // lmul
-                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i64, codePos );
                         break;
                     case 106: // fmul
-                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.f32, codePos );
                         break;
                     case 107: // dmul
-                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.f64, codePos );
                         break;
                     case 108: // idiv
-                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.i32, codePos );
                         break;
                     case 109: // ldiv
-                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.i64, codePos );
                         break;
                     case 110: // fdiv
-                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.f32, codePos );
                         break;
                     case 111: // ddiv
-                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.div, ValueType.f64, codePos );
                         break;
                     case 112: // irem
-                        instr = new WasmNumericInstruction( NumericOperator.rem, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.rem, ValueType.i32, codePos );
                         break;
                     case 113: // lrem
-                        instr = new WasmNumericInstruction( NumericOperator.rem, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.rem, ValueType.i64, codePos );
                         break;
                     case 114: // frem
                     case 115: // drem
                         //TODO can be implemented with a helper function like: (a - (long)(a / b) * (double)b) 
                         throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, byteCode.getLineNumber() );
                     case 116: // ineg
-                        instructions.add( new WasmConstInstruction( -1 ) );
-                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( -1, codePos ) );
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32, codePos );
                         break;
                     case 117: // lneg
-                        instructions.add( new WasmConstInstruction( (long)-1 ) ) ;
-                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i64 );
+                        instructions.add( new WasmConstInstruction( (long)-1, codePos ) ) ;
+                        instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i64, codePos );
                         break;
                     case 118: // fneg
-                        instr = new WasmNumericInstruction( NumericOperator.neg, ValueType.f32 );
+                        instr = new WasmNumericInstruction( NumericOperator.neg, ValueType.f32, codePos );
                         break;
                     case 119: // dneg
-                        instr = new WasmNumericInstruction( NumericOperator.neg, ValueType.f64 );
+                        instr = new WasmNumericInstruction( NumericOperator.neg, ValueType.f64, codePos );
                         break;
                     case 120: // ishl
-                        instr = new WasmNumericInstruction( NumericOperator.shl, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.shl, ValueType.i32, codePos );
                         break;
                     case 121: // lshl
-                        instructions.add( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
-                        instr = new WasmNumericInstruction( NumericOperator.shl, ValueType.i64 );
+                        instructions.add( new WasmConvertInstruction( ValueTypeConvertion.i2l, codePos ) ); // the shift parameter must be of type long!!!
+                        instr = new WasmNumericInstruction( NumericOperator.shl, ValueType.i64, codePos );
                         break;
                     case 122: // ishr
-                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32, codePos );
                         break;
                     case 123: // lshr
-                        instructions.add( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
-                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i64 );
+                        instructions.add( new WasmConvertInstruction( ValueTypeConvertion.i2l, codePos ) ); // the shift parameter must be of type long!!!
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i64, codePos );
                         break;
                     case 124: // iushr
-                        instr = new WasmNumericInstruction( NumericOperator.shr_u, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_u, ValueType.i32, codePos );
                         break;
                     case 125: // lushr
-                        instructions.add( ValueTypeConvertion.i2l ); // the shift parameter must be of type long!!!
-                        instr = new WasmNumericInstruction( NumericOperator.shr_u, ValueType.i64 );
+                        instructions.add( new WasmConvertInstruction( ValueTypeConvertion.i2l, codePos ) ); // the shift parameter must be of type long!!!
+                        instr = new WasmNumericInstruction( NumericOperator.shr_u, ValueType.i64, codePos );
                         break;
                     case 126: // iand
-                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32, codePos );
                         break;
                     case 127: // land
-                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i64, codePos );
                         break;
                     case 128: // ior
-                        instr = new WasmNumericInstruction( NumericOperator.or, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.or, ValueType.i32, codePos );
                         break;
                     case 129: // lor
-                        instr = new WasmNumericInstruction( NumericOperator.or, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.or, ValueType.i64, codePos );
                         break;
                     case 130: // ixor
-                        instr = new WasmNumericInstruction( NumericOperator.xor, ValueType.i32 );
+                        instr = new WasmNumericInstruction( NumericOperator.xor, ValueType.i32, codePos );
                         break;
                     case 131: // lxor
-                        instr = new WasmNumericInstruction( NumericOperator.xor, ValueType.i64 );
+                        instr = new WasmNumericInstruction( NumericOperator.xor, ValueType.i64, codePos );
                         break;
                     case 132: // iinc
                         int idx = byteCode.readUnsignedByte();
-                        instructions.add( new WasmLoadStoreInstruction( true, idx, localVariables ) );
-                        instructions.add( new WasmConstInstruction( byteCode.readUnsignedByte() ) );
-                        instructions.add( new WasmNumericInstruction( NumericOperator.add, ValueType.i32) );
-                        instr = new WasmLoadStoreInstruction( false, idx, localVariables );
+                        instructions.add( new WasmLoadStoreInstruction( true, idx, localVariables, codePos ) );
+                        instructions.add( new WasmConstInstruction( byteCode.readUnsignedByte(), codePos ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.add, ValueType.i32, codePos) );
+                        instr = new WasmLoadStoreInstruction( false, idx, localVariables, codePos );
                         break;
                     case 133: // i2l
-                        instr = ValueTypeConvertion.i2l;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.i2l, codePos );
                         break;
                     case 134: // i2f
-                        instr = ValueTypeConvertion.i2f;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.i2f, codePos );
                         break;
                     case 135: // i2d
-                        instr = ValueTypeConvertion.i2d;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.i2d, codePos );
                         break;
                     case 136: // l2i
-                        instr = ValueTypeConvertion.l2i;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.l2i, codePos );
                         break;
                     case 137: // l2f
-                        instr = ValueTypeConvertion.l2f;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.l2f, codePos );
                         break;
                     case 138: // l2d
-                        instr = ValueTypeConvertion.l2d;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.l2d, codePos );
                         break;
                     case 139: // f2i
-                        instr = ValueTypeConvertion.f2i;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.f2i, codePos );
                         break;
                     case 140: // f2l
-                        instr = ValueTypeConvertion.f2l;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.f2l, codePos );
                         break;
                     case 141: // f2d
-                        instr = ValueTypeConvertion.f2d;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.f2d, codePos );
                         break;
                     case 142: // d2i
-                        instr = ValueTypeConvertion.d2i;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.d2i, codePos );
                         break;
                     case 143: // d2l
-                        instr = ValueTypeConvertion.d2l;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.d2l, codePos );
                         break;
                     case 144: // d2f
-                        instr = ValueTypeConvertion.d2f;
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.d2f, codePos );
                         break;
                     case 145: // i2b
-                        instructions.add( new WasmConstInstruction( 24 ) );
-                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32 ) );
-                        instructions.add( new WasmConstInstruction( 24 ) );
-                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( 24, codePos ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32, codePos ) );
+                        instructions.add( new WasmConstInstruction( 24, codePos ) );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32, codePos );
                         break;
                     case 146: // i2c
-                        instructions.add( new WasmConstInstruction( 0xFFFF ) );
-                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( 0xFFFF, codePos ) );
+                        instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32, codePos );
                         break;
                     case 147: // i2s
-                        instructions.add( new WasmConstInstruction( 16 ) );
-                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32 ) );
-                        instructions.add( new WasmConstInstruction( 16 ) );
-                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32 );
+                        instructions.add( new WasmConstInstruction( 16, codePos ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32, codePos ) );
+                        instructions.add( new WasmConstInstruction( 16, codePos ) );
+                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32, codePos );
                         break;
                     case 148: // lcmp
-                        opCompare( ValueType.i64, byteCode );
+                        opCompare( ValueType.i64, byteCode, codePos );
                         break;
                     case 149: // fcmpl
                     case 150: // fcmpg
-                        opCompare( ValueType.f32, byteCode );
+                        opCompare( ValueType.f32, byteCode, codePos );
                         break;
                     case 151: // dcmpl
                     case 152: // dcmpg
-                        opCompare( ValueType.f64, byteCode );
+                        opCompare( ValueType.f64, byteCode, codePos );
                         break;
                     case 153: // ifeq
-                        opIfCondition( NumericOperator.ne, NumericOperator.eq, byteCode );
+                        opIfCondition( NumericOperator.ne, NumericOperator.eq, byteCode, codePos );
                         break;
                     case 154: // ifne
-                        opIfCondition( NumericOperator.eq, NumericOperator.ne, byteCode );
+                        opIfCondition( NumericOperator.eq, NumericOperator.ne, byteCode, codePos );
                         break;
                     case 155: // iflt
-                        opIfCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode );
+                        opIfCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode, codePos );
                         break;
                     case 156: // ifge
-                        opIfCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode );
+                        opIfCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode, codePos );
                         break;
                     case 157: // ifgt
-                        opIfCondition( NumericOperator.le_s, NumericOperator.gt, byteCode );
+                        opIfCondition( NumericOperator.le_s, NumericOperator.gt, byteCode, codePos );
                         break;
                     case 158: // ifle
-                        opIfCondition( NumericOperator.gt, NumericOperator.le_s, byteCode );
+                        opIfCondition( NumericOperator.gt, NumericOperator.le_s, byteCode, codePos );
                         break;
                     case 159: // if_icmpeq
-                        opIfCompareCondition( NumericOperator.ne, NumericOperator.eq, byteCode );
+                        opIfCompareCondition( NumericOperator.ne, NumericOperator.eq, byteCode, codePos );
                         break;
                     case 160: // if_icmpne
-                        opIfCompareCondition( NumericOperator.eq, NumericOperator.ne, byteCode );
+                        opIfCompareCondition( NumericOperator.eq, NumericOperator.ne, byteCode, codePos );
                         break;
                     case 161: // if_icmplt
-                        opIfCompareCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode );
+                        opIfCompareCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode, codePos );
                         break;
                     case 162: // if_icmpge
-                        opIfCompareCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode );
+                        opIfCompareCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode, codePos );
                         break;
                     case 163: // if_icmpgt
-                        opIfCompareCondition( NumericOperator.le_s, NumericOperator.gt, byteCode );
+                        opIfCompareCondition( NumericOperator.le_s, NumericOperator.gt, byteCode, codePos );
                         break;
                     case 164: // if_icmple
-                        opIfCompareCondition( NumericOperator.gt, NumericOperator.le_s, byteCode );
+                        opIfCompareCondition( NumericOperator.gt, NumericOperator.le_s, byteCode, codePos );
                         break;
                     //TODO case 165: // if_acmpeq
                     //TODO case 166: // if_acmpne
@@ -888,13 +890,13 @@ public class ModuleGenerator {
                     case 174: // freturn
                     case 175: // dreturn
                     case 177: // return void
-                        instr = new WasmBlockInstruction( WasmBlockOperator.RETURN, null );
+                        instr = new WasmBlockInstruction( WasmBlockOperator.RETURN, null, codePos );
                         endWithReturn = true;
                         break;
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
                         ConstantRef method = (ConstantRef)constantPool.get( idx );
-                        instr = new WasmCallInstruction( method.getConstantClass().getName() + '.' + method.getName() + method.getType() );
+                        instr = new WasmCallInstruction( method.getConstantClass().getName() + '.' + method.getName() + method.getType(), codePos );
                         break;
                     default:
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, byteCode.getLineNumber() );
@@ -910,20 +912,20 @@ public class ModuleGenerator {
                 // But WebAssembly need the dead code to validate
                 switch( returnType ) {
                     case i32:
-                        instructions.add( new WasmConstInstruction( 0 ) );
+                        instructions.add( new WasmConstInstruction( 0, byteCode.getCodePosition() ) );
                         break;
                     case i64:
-                        instructions.add( new WasmConstInstruction( 0L ) );
+                        instructions.add( new WasmConstInstruction( 0L, byteCode.getCodePosition() ) );
                         break;
                     case f32:
-                        instructions.add( new WasmConstInstruction( 0F ) );
+                        instructions.add( new WasmConstInstruction( 0F, byteCode.getCodePosition() ) );
                         break;
                     case f64:
-                        instructions.add( new WasmConstInstruction( 0D ) );
+                        instructions.add( new WasmConstInstruction( 0D, byteCode.getCodePosition() ) );
                         break;
                     default:
                 }
-                instructions.add( new WasmBlockInstruction( WasmBlockOperator.RETURN, null ) );
+                instructions.add( new WasmBlockInstruction( WasmBlockOperator.RETURN, null, byteCode.getCodePosition() ) );
             }
         } catch( WasmException ex ) {
             throw ex;
@@ -943,7 +945,8 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     private void writeSwitchCode( CodeInputStream byteCode, boolean isLookupSwitch ) throws IOException {
-        int startPosition = byteCode.getCodePosition();
+        int codePos = byteCode.getCodePosition();
+        int startPosition = codePos;
         int padding = startPosition % 4;
         if( padding > 0 ) {
             byteCode.skip( 4 - padding );
@@ -963,7 +966,7 @@ public class ModuleGenerator {
             int block = 0;
             int defaultBlock = -1;
             int currentPos = -1;
-            instructions.add( new WasmLoadStoreInstruction( false, tempI32, localVariables ) );
+            instructions.add( new WasmLoadStoreInstruction( false, tempI32, localVariables, codePos ) );
             do {
                 int nextPos = findNext( currentPos, positions );
                 if( nextPos == currentPos ) {
@@ -980,10 +983,10 @@ public class ModuleGenerator {
                 }
                 for( int i = 0; i < positions.length; i++ ) {
                     if( positions[i] == currentPos ) {
-                        instructions.add( new WasmLoadStoreInstruction( true, tempI32, localVariables ) );
-                        instructions.add( new WasmConstInstruction( keys[i] ) );
-                        instructions.add( new WasmNumericInstruction( NumericOperator.eq, ValueType.i32 ) );
-                        instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR_IF, block ) );
+                        instructions.add( new WasmLoadStoreInstruction( true, tempI32, localVariables, codePos ) );
+                        instructions.add( new WasmConstInstruction( keys[i], codePos ) );
+                        instructions.add( new WasmNumericInstruction( NumericOperator.eq, ValueType.i32, codePos ) );
+                        instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR_IF, block, codePos ) );
                     }
                 }
                 block++;
@@ -991,7 +994,7 @@ public class ModuleGenerator {
             if( defaultBlock < 0 ) {
                 defaultBlock = block;
             }
-            instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR, defaultBlock ) );
+            instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR, defaultBlock, codePos ) );
         } else {
             int low = byteCode.readInt();
             int count = byteCode.readInt() - low + 1;
@@ -999,8 +1002,8 @@ public class ModuleGenerator {
                 byteCode.readInt();
             }
             if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
-                instructions.add( new WasmConstInstruction( low ) );
-                instructions.add( new WasmNumericInstruction( NumericOperator.sub, ValueType.i32 ) );
+                instructions.add( new WasmConstInstruction( low, codePos ) );
+                instructions.add( new WasmNumericInstruction( NumericOperator.sub, ValueType.i32, codePos ) );
             }
         }
     }
@@ -1028,8 +1031,8 @@ public class ModuleGenerator {
 
     /**
      * Handle the if<condition> of the Java byte code. This Java instruction compare the first stack value with value 0.
-     * Important: In the Java IF expression the condition for the jump to the else block is saved. In WebAssembler we need to use
-     * condition for the if block. The caller of the method must already negate this
+     * Important: In the Java IF expression the condition for the jump to the else block is saved. In WebAssembler we
+     * need to use condition for the if block. The caller of the method must already negate this
      * 
      * @param ifNumOp
      *            The condition for the if block.
@@ -1037,12 +1040,14 @@ public class ModuleGenerator {
      *            The condition for the continue of a loop.
      * @param byteCode
      *            current byte code stream to read the target offset.
+     * @param codePos
+     *            the code position/offset in the Java method
      * @throws IOException
      *             if any I/O errors occur.
      */
-    private void opIfCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode ) throws IOException {
-        instructions.add( new WasmConstInstruction( 0 ) );
-        opIfCompareCondition( ifNumOp, continueNumOp, byteCode );
+    private void opIfCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode, int codePos ) throws IOException {
+        instructions.add( new WasmConstInstruction( 0, codePos ) );
+        opIfCompareCondition( ifNumOp, continueNumOp, byteCode, codePos );
     }
 
     /**
@@ -1056,12 +1061,14 @@ public class ModuleGenerator {
      *            The condition for the continue of a loop.
      * @param byteCode
      *            current byte code stream to read the target offset.
+     * @param codePos
+     *            the code position/offset in the Java method
      * @throws IOException
      *             if any I/O errors occur.
      */
-    private void opIfCompareCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode ) throws IOException {
+    private void opIfCompareCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode, int codePos ) throws IOException {
         int offset = byteCode.readShort();
-        instructions.add( new WasmNumericInstruction( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32 ) );
+        instructions.add( new WasmNumericInstruction( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32, codePos ) );
     }
 
     /**
@@ -1072,10 +1079,12 @@ public class ModuleGenerator {
      *            the value type of the compared
      * @param byteCode
      *            current byte code stream to read the next operation.
+     * @param codePos
+     *            the code position/offset in the Java method
      * @throws IOException
      *             if any I/O errors occur.
      */
-    private void opCompare( ValueType valueType, CodeInputStream byteCode ) throws IOException {
+    private void opCompare( ValueType valueType, CodeInputStream byteCode, int codePos ) throws IOException {
         NumericOperator numOp;
         int nextOp = byteCode.read();
         switch( nextOp ){
@@ -1101,7 +1110,7 @@ public class ModuleGenerator {
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
         }
         byteCode.skip(2);
-        instructions.add( new WasmNumericInstruction( numOp, valueType ) );
+        instructions.add( new WasmNumericInstruction( numOp, valueType, codePos ) );
     }
 
 }
