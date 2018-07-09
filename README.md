@@ -34,16 +34,30 @@ JWebAssembly requires Java SE 8 or higher. It is tested with Java SE 8 on [travi
 ## Usage
 
 ### Exporting functions
-To export a Java function to make it accessible from JavaScript you need add the annotation org.webassembly.annotation.Export
+To export a Java function to make it accessible from JavaScript you need add the annotation de.inetsoftware.jwebassembly.api.annotation.Export.
 
 ```java
-import org.webassembly.annotation.Export;
+import de.inetsoftware.jwebassembly.api.annotation.Export;
 
 @Export
 public static int add( int a, int b ) {
     return a + b;
 }
 ```
+
+### importing functions
+To import a JavaScript function to make it accessible from Java you need add the annotation de.inetsoftware.jwebassembly.api.annotation.Import.
+The method can be declared native or can have a Java implementation which will be ignored on compiling.
+
+```java
+import de.inetsoftware.jwebassembly.api.annotation.Import;
+
+@Import( module = "global.Math", name = "max" )
+static int max( int a, int b) {
+    return Math.max( a, b );
+}
+```
+
 
 ### Java Limits
 In version 1 of WebAssembly you can only compile:
