@@ -49,4 +49,12 @@ abstract class WasmInstruction {
      *             if any I/O error occur
      */
     abstract void writeTo( @Nonnull ModuleWriter writer ) throws IOException;
+
+    /**
+     * Get current code position in Java method.
+     * @return the position
+     */
+    int getCodePosition() {
+        return javaCodePos;
+    }
 }
