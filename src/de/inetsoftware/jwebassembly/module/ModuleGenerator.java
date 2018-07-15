@@ -530,7 +530,6 @@ public class ModuleGenerator {
             while( byteCode.available() > 0 ) {
                 WasmInstruction instr = null;
                 int codePos = byteCode.getCodePosition();
-                branchManager.handle( byteCode );
                 endWithReturn = false;
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
@@ -879,6 +878,7 @@ public class ModuleGenerator {
                     //TODO case 165: // if_acmpeq
                     //TODO case 166: // if_acmpne
                     case 167: // goto
+                        instr = new WasmNopInstruction( codePos ); // marker of the line number for the branch manager
                         byteCode.skip(2); // handle in the branch manager
                         break;
                     case 170: // tableswitch
@@ -905,7 +905,7 @@ public class ModuleGenerator {
                     instructions.add( instr );
                 }
             }
-            branchManager.handle( byteCode ); // write the last end operators
+            branchManager.handle( byteCode ); // add branch operations
             if( !endWithReturn && returnType != null ) {
                 // if a method ends with a loop without a break then code after the loop is no reachable
                 // Java does not need a return byte code in this case

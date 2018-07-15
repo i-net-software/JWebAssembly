@@ -16,7 +16,6 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -441,7 +440,17 @@ class BranchManger {
      *            the byte code stream
      */
     void handle( CodeInputStream byteCode ) {
-        root.handle( byteCode.getCodePosition(), instructions );
+        int codePosition = -1;
+        for( int idx = 0; idx < instructions.size(); idx++ ) {
+            int nextCodePosition = instructions.get( idx ).getCodePosition();
+            if( nextCodePosition <= codePosition ) {
+                continue;
+            } else {
+                codePosition = nextCodePosition;
+            }
+            idx = root.handle( codePosition, instructions, idx );
+        }
+        root.handle( byteCode.getCodePosition(), instructions, instructions.size() );
     }
 
     /**
@@ -549,24 +558,28 @@ class BranchManger {
         /**
          * Handle branches on the current codePosition
          * 
-         * @param codePositions
+         * @param codePosition
          *            current code position
          * @param instructions
          *            the target for instructions
+         * @param idx
+         *            index in the current instruction
+         * @return the new index in the instructions
          */
-        void handle( int codePositions, List<WasmInstruction> instructions ) {
-            if( codePositions < startPos || codePositions > endPos ) {
-                return;
+        int handle(  int codePosition, List<WasmInstruction> instructions, int idx ) {
+            if( codePosition < startPos || codePosition > endPos ) {
+                return idx;
             }
-            if( codePositions == startPos && startOp != null ) {
-                instructions.add( new WasmBlockInstruction( startOp, data, codePositions ) );
+            if( codePosition == startPos && startOp != null ) {
+                instructions.add( idx++, new WasmBlockInstruction( startOp, data, codePosition ) );
             }
             for( BranchNode branch : this ) {
-                branch.handle( codePositions, instructions );
+                idx = branch.handle( codePosition, instructions, idx );
             }
-            if( codePositions == endPos && endOp != null ) {
-                instructions.add( new WasmBlockInstruction( endOp, null, codePositions ) );
+            if( codePosition == endPos && endOp != null ) {
+                instructions.add( idx++, new WasmBlockInstruction( endOp, null, codePosition ) );
             }
+            return idx;
         }
     }
 }
