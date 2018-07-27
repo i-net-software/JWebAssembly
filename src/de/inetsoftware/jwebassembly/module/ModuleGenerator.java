@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
@@ -163,9 +164,6 @@ public class ModuleGenerator {
                 localVariables.reset();
                 stackManager.reset();
                 branchManager.reset();
-                byteCode = code.getByteCode();
-                prepareCodeChunk( byteCode, method.getConstantPool() );
-                branchManager.calculate();
 
                 byteCode = code.getByteCode();
                 writeCode( byteCode, method.getConstantPool() );
@@ -273,247 +271,6 @@ public class ModuleGenerator {
     }
 
     /**
-     * Analyze and prepare a chunk of byte code.
-     * 
-     * @param byteCode
-     *            a stream of byte code
-     * @param constantPool
-     *            the constant pool of the the current class
-     * @throws WasmException
-     *             if some Java code can't converted
-     */
-    private void prepareCodeChunk( CodeInputStream byteCode, ConstantPool constantPool  ) throws WasmException {
-        try {
-            while( byteCode.available() > 0 ) {
-                int codePosition = byteCode.getCodePosition();
-                int op = byteCode.readUnsignedByte();
-                switch( op ) {
-                    case 2: // iconst_m1
-                    case 3: // iconst_0
-                    case 4: // iconst_1
-                    case 5: // iconst_2
-                    case 6: // iconst_3
-                    case 7: // iconst_4
-                    case 8: // iconst_5
-                        stackManager.add( ValueType.i32, codePosition );
-                        break;
-                    case 9:  // lconst_0
-                    case 10: // lconst_1
-                        stackManager.add( ValueType.i64, codePosition );
-                        break;
-                    case 11: // fconst_0
-                    case 12: // fconst_1
-                    case 13: // fconst_2
-                        stackManager.add( ValueType.f32, codePosition );
-                        break;
-                    case 14: // dconst_0
-                    case 15: // dconst_1
-                        stackManager.add( ValueType.f64, codePosition );
-                        break;
-                    case 16: // bipush
-                        stackManager.add( ValueType.i32, codePosition );
-                        byteCode.skip(1);
-                        break;
-                    case 17: // sipush
-                        stackManager.add( ValueType.i32, codePosition );
-                        byteCode.skip(2);
-                        break;
-                    case 18: // ldc
-                        stackManager.add( null, codePosition );
-                        byteCode.skip(1);
-                        break;
-                    case 19: // ldc_w
-                    case 20: // ldc2_w
-                        stackManager.add( null, codePosition );
-                        byteCode.skip(2);
-                        break;
-                    case 21: // iload
-                        stackManager.add( ValueType.i32, codePosition );
-                        localVariables.use( ValueType.i32, byteCode.readUnsignedByte() );
-                        break;
-                    case 22: // lload
-                        stackManager.add( ValueType.i64, codePosition );
-                        localVariables.use( ValueType.i64, byteCode.readUnsignedByte() );
-                        break;
-                    case 23: // fload
-                        stackManager.add( ValueType.f32, codePosition );
-                        localVariables.use( ValueType.f32, byteCode.readUnsignedByte() );
-                        break;
-                    case 24: // dload
-                        stackManager.add( ValueType.f64, codePosition );
-                        localVariables.use( ValueType.f64, byteCode.readUnsignedByte() );
-                        break;
-                    case 26: // iload_0
-                    case 27: // iload_1
-                    case 28: // iload_2
-                    case 29: // iload_3
-                        stackManager.add( ValueType.i32, codePosition );
-                        localVariables.use( ValueType.i32, op - 26 );
-                        break;
-                    case 30: // lload_0
-                    case 31: // lload_1
-                    case 32: // lload_2
-                    case 33: // lload_3
-                        stackManager.add( ValueType.i64, codePosition );
-                        localVariables.use( ValueType.i64, op - 30 );
-                        break;
-                    case 34: // fload_0
-                    case 35: // fload_1
-                    case 36: // fload_2
-                    case 37: // fload_3
-                        stackManager.add( ValueType.f32, codePosition );
-                        localVariables.use( ValueType.f32, op - 34 );
-                        break;
-                    case 38: // dload_0
-                    case 39: // dload_1
-                    case 40: // dload_2
-                    case 41: // dload_3
-                        stackManager.add( ValueType.f64, codePosition );
-                        localVariables.use( ValueType.f64, op - 38 );
-                        break;
-                    case 54: // istore
-                        stackManager.remove();
-                        localVariables.use( ValueType.i32, byteCode.readUnsignedByte() );
-                        break;
-                    case 55: // lstore
-                        stackManager.remove();
-                        localVariables.use( ValueType.i64, byteCode.readUnsignedByte() );
-                        break;
-                    case 56: // fstore
-                        stackManager.remove();
-                        localVariables.use( ValueType.f32, byteCode.readUnsignedByte() );
-                        break;
-                    case 57: // dstore
-                        stackManager.remove();
-                        localVariables.use( ValueType.f64, byteCode.readUnsignedByte() );
-                        break;
-                    case 59: // istore_0
-                    case 60: // istore_1
-                    case 61: // istore_2
-                    case 62: // istore_3
-                        stackManager.remove();
-                        localVariables.use( ValueType.i32, op - 59 );
-                        break;
-                    case 63: // lstore_0
-                    case 64: // lstore_1
-                    case 65: // lstore_2
-                    case 66: // lstore_3
-                        stackManager.remove();
-                        localVariables.use( ValueType.i64, op - 63 );
-                        break;
-                    case 67: // fstore_0
-                    case 68: // fstore_1
-                    case 69: // fstore_2
-                    case 70: // fstore_3
-                        stackManager.remove();
-                        localVariables.use( ValueType.f32, op - 67 );
-                        break;
-                    case 71: // dstore_0
-                    case 72: // dstore_1
-                    case 73: // dstore_2
-                    case 74: // dstore_3
-                        stackManager.remove();
-                        localVariables.use( ValueType.f64, op - 71 );
-                        break;
-                    case 87: // pop
-                    case 88: // pop2
-                        stackManager.remove();
-                        break;
-                    case 25: //aload
-                    case 58: // astore
-                    case 179: // putstatic
-                    case 181: // putfield
-                        byteCode.skip(1);
-                        break;
-                    case 132: // iinc
-                        byteCode.skip( 2);
-                        break;
-                    case 153: // ifeq
-                    case 154: // ifne
-                    case 155: // iflt
-                    case 156: // ifge
-                    case 157: // ifgt
-                    case 158: // ifle
-                    case 159: // if_icmpeq
-                    case 160: // if_icmpne
-                    case 161: // if_icmplt
-                    case 162: // if_icmpge
-                    case 163: // if_icmpgt
-                    case 164: // if_icmple
-                    case 165: // if_acmpeq
-                    case 166: // if_acmpne
-                        int offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.IF, codePosition, offset, byteCode.getLineNumber() );
-                        break;
-                    case 167: // goto
-                        offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.GOTO, codePosition, offset, byteCode.getLineNumber() );
-                        break;
-                    case 170: // tableswitch
-                    case 171: // lookupswitch
-                        prepareSwitchCode( byteCode, op == 171, byteCode.getLineNumber() );
-                        break;
-                    case 184: // invokestatic
-                        ConstantRef method = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
-                        String signature = method.getType();
-                        ValueType type = getValueType(  signature, signature.indexOf( ')' ) + 1 );
-                        if( type != null ) {
-                            stackManager.add( type, codePosition );
-                        }
-                        break;
-                }
-            }
-        } catch( Exception ex ) {
-            throw WasmException.create( ex, sourceFile, byteCode.getLineNumber() );
-        }
-    }
-
-    /**
-     * Prepare the both switch operation codes.
-     * 
-     * @param byteCode
-     *            the current stream with a position after the operation code
-     * @param isLookupSwitch
-     *            true, if the operation was a loopupswitch; false, if the operation was a tableswitch
-     * @param lineNumber
-     *            the current line number
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void prepareSwitchCode( CodeInputStream byteCode, boolean isLookupSwitch, int lineNumber ) throws IOException {
-        int startPosition = byteCode.getCodePosition();
-        int padding = startPosition % 4;
-        if( padding > 0 ) {
-            byteCode.skip( 4 - padding );
-        }
-        startPosition--;
-
-        int defaultPosition = startPosition + byteCode.readInt();
-        int[] keys;
-        int[] positions;
-        if( isLookupSwitch ) { // lookupswitch
-            localVariables.useTempI32();
-            int nPairs = byteCode.readInt();
-            keys = new int[nPairs];
-            positions = new int[nPairs];
-            for( int i = 0; i < nPairs; i++ ) {
-                keys[i] = byteCode.readInt();
-                positions[i] = startPosition + byteCode.readInt();
-            }
-        } else {
-            int low = byteCode.readInt();
-            keys = null;
-            int count = byteCode.readInt() - low + 1;
-            positions = new int[count];
-            for( int i = 0; i < count; i++ ) {
-                positions[i] = startPosition + byteCode.readInt();
-            }
-        }
-        int switchValuestartPosition = stackManager.getCodePosition( 0 );
-        branchManager.startSwitch( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
-    }
-
-    /**
      * Write the byte code of a method.
      * 
      * @param byteCode
@@ -543,110 +300,119 @@ public class ModuleGenerator {
                     case 6: // iconst_3
                     case 7: // iconst_4
                     case 8: // iconst_5
+                        stackManager.add( ValueType.i32, codePos );
                         instr = new WasmConstInstruction( Integer.valueOf( op - 3 ), codePos );
                         break;
                     case 9:  // lconst_0
                     case 10: // lconst_1
+                        stackManager.add( ValueType.i64, codePos );
                         instr = new WasmConstInstruction( Long.valueOf( op - 9 ), codePos );
                         break;
                     case 11: // fconst_0
                     case 12: // fconst_1
                     case 13: // fconst_2
+                        stackManager.add( ValueType.f32, codePos );
                         instr = new WasmConstInstruction( Float.valueOf( op - 11 ), codePos );
                         break;
                     case 14: // dconst_0
                     case 15: // dconst_1
+                        stackManager.add( ValueType.f64, codePos );
                         instr = new WasmConstInstruction( Double.valueOf( op - 14 ), codePos );
                         break;
                     case 16: // bipush
+                        stackManager.add( ValueType.i32, codePos );
                         instr = new WasmConstInstruction( Integer.valueOf( byteCode.readByte() ), codePos );
                         break;
                     case 17: // sipush
+                        stackManager.add( ValueType.i32, codePos );
                         instr = new WasmConstInstruction( Integer.valueOf( byteCode.readShort() ), codePos );
                         break;
                     case 18: // ldc
+                        stackManager.add( null, codePos );
                         instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedByte() ), codePos );
                         break;
                     case 19: // ldc_w
                     case 20: // ldc2_w
+                        stackManager.add( null, codePos );
                         instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedShort() ), codePos );
                         break;
                     case 21: // iload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.i32, true, byteCode.readUnsignedByte(), codePos );
                         break;
                     case 22: // lload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.i64, true, byteCode.readUnsignedByte(), codePos );
                         break;
                     case 23: // fload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.f32, true, byteCode.readUnsignedByte(), codePos );
                         break;
                     case 24: // dload
-                        instr = new WasmLoadStoreInstruction( true, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.f64, true, byteCode.readUnsignedByte(), codePos );
                         break;
                     //TODO case 25: // aload
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
                     case 29: // iload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 26, localVariables, codePos );
+                        instr = loadStore( ValueType.i32, true, op - 26, codePos );
                         break;
                     case 30: // lload_0
                     case 31: // lload_1
                     case 32: // lload_2
                     case 33: // lload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 30, localVariables, codePos );
+                        instr = loadStore( ValueType.i64, true, op - 30, codePos );
                         break;
                     case 34: // fload_0
                     case 35: // fload_1
                     case 36: // fload_2
                     case 37: // fload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 34, localVariables, codePos );
+                        instr = loadStore( ValueType.f32, true, op - 34, codePos );
                         break;
                     case 38: // dload_0
                     case 39: // dload_1
                     case 40: // dload_2
                     case 41: // dload_3
-                        instr = new WasmLoadStoreInstruction( true, op - 38, localVariables, codePos );
+                        instr = loadStore( ValueType.f64, true, op - 38, codePos );
                         break;
                     case 54: // istore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.i32, false, byteCode.readUnsignedByte(), codePos );
                         break;
                     case 55: // lstore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.i64, false, byteCode.readUnsignedByte(), codePos );
                         break;
                     case 56: // fstore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.f32, false, byteCode.readUnsignedByte(), codePos );
                         break;
                     case 57: // dstore
-                        instr = new WasmLoadStoreInstruction( false, byteCode.readUnsignedByte(), localVariables, codePos );
+                        instr = loadStore( ValueType.f64, false, byteCode.readUnsignedByte(), codePos );
                         break;
                     //TODO case 58: // astore
                     case 59: // istore_0
                     case 60: // istore_1
                     case 61: // istore_2
                     case 62: // istore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 59, localVariables, codePos );
+                        instr = loadStore( ValueType.i32, false, op - 59, codePos );
                         break;
                     case 63: // lstore_0
                     case 64: // lstore_1
                     case 65: // lstore_2
                     case 66: // lstore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 63, localVariables, codePos );
+                        instr = loadStore( ValueType.i64, false, op - 63, codePos );
                         break;
                     case 67: // fstore_0
                     case 68: // fstore_1
                     case 69: // fstore_2
                     case 70: // fstore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 67, localVariables, codePos );
+                        instr = loadStore( ValueType.f32, false, op - 67, codePos );
                         break;
                     case 71: // dstore_0
                     case 72: // dstore_1
                     case 73: // dstore_2
                     case 74: // dstore_3
-                        instr = new WasmLoadStoreInstruction( false, op - 71, localVariables, codePos );
+                        instr = loadStore( ValueType.f64, false, op - 71, codePos );
                         break;
                     case 87: // pop
                     case 88: // pop2
+                        stackManager.remove();
                         instr = new WasmBlockInstruction( WasmBlockOperator.DROP, null, codePos );
                         break;
                     case 89: // dup: duplicate the value on top of the stack
@@ -878,8 +644,9 @@ public class ModuleGenerator {
                     //TODO case 165: // if_acmpeq
                     //TODO case 166: // if_acmpne
                     case 167: // goto
+                        int offset = byteCode.readShort();
+                        branchManager.start( JavaBlockOperator.GOTO, codePos, offset, byteCode.getLineNumber() );
                         instr = new WasmNopInstruction( codePos ); // marker of the line number for the branch manager
-                        byteCode.skip(2); // handle in the branch manager
                         break;
                     case 170: // tableswitch
                     case 171: // lookupswitch
@@ -896,6 +663,11 @@ public class ModuleGenerator {
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
                         ConstantRef method = (ConstantRef)constantPool.get( idx );
+                        String signature = method.getType();
+                        ValueType type = getValueType(  signature, signature.indexOf( ')' ) + 1 );
+                        if( type != null ) {
+                            stackManager.add( type, codePos );
+                        }
                         instr = new WasmCallInstruction( method.getConstantClass().getName() + '.' + method.getName() + method.getType(), codePos );
                         break;
                     default:
@@ -905,6 +677,7 @@ public class ModuleGenerator {
                     instructions.add( instr );
                 }
             }
+            branchManager.calculate();
             branchManager.handle( byteCode ); // add branch operations
             if( !endWithReturn && returnType != null ) {
                 // if a method ends with a loop without a break then code after the loop is no reachable
@@ -930,6 +703,7 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     private void writeSwitchCode( CodeInputStream byteCode, boolean isLookupSwitch ) throws IOException {
+        int lineNumber = byteCode.getLineNumber();
         int codePos = byteCode.getCodePosition();
         int startPosition = codePos;
         int padding = startPosition % 4;
@@ -938,14 +712,17 @@ public class ModuleGenerator {
         }
         startPosition--;
 
-        int defaultPosition = byteCode.readInt();
+        int defaultPosition = startPosition + byteCode.readInt();
+        int[] keys;
+        int[] positions;
         if( isLookupSwitch ) { // lookupswitch
+            localVariables.useTempI32();
             int count = byteCode.readInt();
-            int[] keys = new int[count];
-            int[] positions = new int[count];
+            keys = new int[count];
+            positions = new int[count];
             for( int i = 0; i < count; i++ ) {
                 keys[i] = byteCode.readInt();
-                positions[i] = byteCode.readInt();
+                positions[i] = startPosition + byteCode.readInt();
             }
             int tempI32 = localVariables.getTempI32();
             int block = 0;
@@ -982,15 +759,19 @@ public class ModuleGenerator {
             instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR, defaultBlock, codePos ) );
         } else {
             int low = byteCode.readInt();
+            keys = null;
             int count = byteCode.readInt() - low + 1;
+            positions = new int[count];
             for( int i = 0; i < count; i++ ) {
-                byteCode.readInt();
+                positions[i] = startPosition + byteCode.readInt();
             }
             if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
                 instructions.add( new WasmConstInstruction( low, codePos ) );
                 instructions.add( new WasmNumericInstruction( NumericOperator.sub, ValueType.i32, codePos ) );
             }
         }
+        int switchValuestartPosition = stackManager.getCodePosition( 0 );
+        branchManager.startSwitch( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
     }
 
     /**
@@ -1012,6 +793,26 @@ public class ModuleGenerator {
             }
         }
         return find ? next : current;
+    }
+
+    /**
+     * Create a WasmLoadStoreInstruction.
+     * 
+     * @param valueType
+     *            the value type
+     * @param load
+     *            true: if load
+     * @param idx
+     *            the memory/slot idx of the variable
+     * @param codePos
+     *            the code position/offset in the Java method
+     * @return the WasmLoadStoreInstruction
+     */
+    @Nonnull
+    private WasmLoadStoreInstruction loadStore( ValueType valueType, boolean load, @Nonnegative int idx, int codePos ) {
+        stackManager.add( valueType, codePos );
+        localVariables.use( valueType, idx );
+        return new WasmLoadStoreInstruction( load, idx, localVariables, codePos );
     }
 
     /**
@@ -1053,6 +854,7 @@ public class ModuleGenerator {
      */
     private void opIfCompareCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode, int codePos ) throws IOException {
         int offset = byteCode.readShort();
+        branchManager.start( JavaBlockOperator.IF, codePos, offset, byteCode.getLineNumber() );
         instructions.add( new WasmNumericInstruction( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32, codePos ) );
     }
 
@@ -1070,6 +872,7 @@ public class ModuleGenerator {
      *             if any I/O errors occur.
      */
     private void opCompare( ValueType valueType, CodeInputStream byteCode, int codePos ) throws IOException {
+        codePos = byteCode.getCodePosition();
         NumericOperator numOp;
         int nextOp = byteCode.read();
         switch( nextOp ){
@@ -1094,7 +897,8 @@ public class ModuleGenerator {
             default:
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
         }
-        byteCode.skip(2);
+        int offset = byteCode.readShort();
+        branchManager.start( JavaBlockOperator.IF, codePos, offset, byteCode.getLineNumber() );
         instructions.add( new WasmNumericInstruction( numOp, valueType, codePos ) );
     }
 
