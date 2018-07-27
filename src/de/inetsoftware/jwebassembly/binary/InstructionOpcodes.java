@@ -334,4 +334,10 @@ interface InstructionOpcodes {
     static final int F64_CONVERT_U_I64      = 0xBA;
 
     static final int F64_PROMOTE_F32        = 0xBB;
+
+    // === numerical operations ======
+
+    static final int REF_NULL               = 0xD0;
+
+    static final int REF_ISNULL             = 0xD1;
 }

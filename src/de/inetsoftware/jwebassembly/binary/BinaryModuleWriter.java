@@ -105,16 +105,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             WasmOutputStream stream = new WasmOutputStream();
             stream.writeVaruint32( count );
             for( FunctionType type : functionTypes ) {
-                stream.writeVarint( ValueType.func.getCode() );
+                stream.write( ValueType.func.getCode() );
                 stream.writeVaruint32( type.params.size() );
                 for( ValueType valueType : type.params ) {
-                    stream.writeVarint( valueType.getCode() );
+                    stream.write( valueType.getCode() );
                 }
                 if( type.result == null ) {
                     stream.writeVaruint32( 0 );
                 } else {
                     stream.writeVaruint32( 1 );
-                    stream.writeVarint( type.result.getCode() );
+                    stream.write( type.result.getCode() );
                 }
             }
             wasm.writeSection( SectionType.Type, stream, null );
@@ -295,7 +295,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         localsStream.writeVaruint32( locals.size() );
         for( ValueType valueType : locals ) {
             localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
-            localsStream.writeVarint( valueType.getCode() );
+            localsStream.write( valueType.getCode() );
         }
         functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
         localsStream.writeTo( functionsStream );
@@ -692,7 +692,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case IF:
                 codeStream.write( IF );
-                codeStream.write( 0x40 ); // void; the return type of the block. currently we does not use it
+                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the block. currently we does not use it
                 break;
             case ELSE:
                 codeStream.write( ELSE );
@@ -705,7 +705,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case BLOCK:
                 codeStream.write( BLOCK );
-                codeStream.write( 0x40 ); // void; the return type of the block. currently we does not use it
+                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the block. currently we does not use it
                 break;
             case BR:
                 codeStream.write( BR );
@@ -725,7 +725,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case LOOP:
                 codeStream.write( LOOP );
-                codeStream.write( 0x40 ); // void; the return type of the loop. currently we does not use it
+                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the loop. currently we does not use it
                 break;
             case UNREACHABLE:
                 codeStream.write( UNREACHABLE );

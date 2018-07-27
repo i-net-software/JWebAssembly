@@ -19,14 +19,17 @@ package de.inetsoftware.jwebassembly.module;
  * @author Volker Berlin
  */
 public enum ValueType {
-    i32(-1),
-    i64(-2),
-    f32(-3),
-    f64(-4),
-    func(-0x20);
-    // void(-0x40);
+    i32(0x7f),
+    i64(0x7e),
+    f32(0x7d),
+    f64(0x7c),
+    anyfunc(0x70),
+    anyref(0x6f),
+    func(0x60),
+    empty(0x40), // empty block_type
+    ;
 
-    private int code;
+    private final int code;
 
     /**
      * Create instance of the enum
