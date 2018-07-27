@@ -311,6 +311,9 @@ public class TextModuleWriter extends ModuleWriter {
                 name = "loop";
                 insetAfter++;
                 break;
+            case UNREACHABLE:
+                name = "unreachable";
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }

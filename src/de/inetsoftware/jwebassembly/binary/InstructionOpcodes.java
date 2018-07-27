@@ -25,6 +25,8 @@ package de.inetsoftware.jwebassembly.binary;
  */
 interface InstructionOpcodes {
 
+    static final int UNREACHABLE = 0x00;
+
     static final int NOP       = 0x01;
 
     // === Control flow operators ====

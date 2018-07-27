@@ -910,22 +910,7 @@ public class ModuleGenerator {
                 // if a method ends with a loop without a break then code after the loop is no reachable
                 // Java does not need a return byte code in this case
                 // But WebAssembly need the dead code to validate
-                switch( returnType ) {
-                    case i32:
-                        instructions.add( new WasmConstInstruction( 0, byteCode.getCodePosition() ) );
-                        break;
-                    case i64:
-                        instructions.add( new WasmConstInstruction( 0L, byteCode.getCodePosition() ) );
-                        break;
-                    case f32:
-                        instructions.add( new WasmConstInstruction( 0F, byteCode.getCodePosition() ) );
-                        break;
-                    case f64:
-                        instructions.add( new WasmConstInstruction( 0D, byteCode.getCodePosition() ) );
-                        break;
-                    default:
-                }
-                instructions.add( new WasmBlockInstruction( WasmBlockOperator.RETURN, null, byteCode.getCodePosition() ) );
+                instructions.add( new WasmBlockInstruction( WasmBlockOperator.UNREACHABLE, null, byteCode.getCodePosition() ) );
             }
         } catch( WasmException ex ) {
             throw ex;

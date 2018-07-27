@@ -727,6 +727,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.write( LOOP );
                 codeStream.write( 0x40 ); // void; the return type of the loop. currently we does not use it
                 break;
+            case UNREACHABLE:
+                codeStream.write( UNREACHABLE );
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }
