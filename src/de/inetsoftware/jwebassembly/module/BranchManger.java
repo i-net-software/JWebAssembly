@@ -110,7 +110,8 @@ class BranchManger {
      * virtual loop operator on the target position of GOTO operators with a negative offset.
      */
     private void addLoops() {
-        for( ParsedBlock parsedBlock : allParsedOperations ) {
+        for( int b = 0; b < allParsedOperations.size(); b++ ) {
+            ParsedBlock parsedBlock = allParsedOperations.get( b );
             if( parsedBlock.startPosition > parsedBlock.endPosition ) {
                 switch ( parsedBlock.op ) {
                     case GOTO: // do while(true) loop; Continue
@@ -125,6 +126,57 @@ class BranchManger {
                         break;
                     default:
                         throw new WasmException( "Unimplemented loop code operation: " + parsedBlock.op, null, parsedBlock.lineNumber );
+                }
+            } else {
+                switch ( parsedBlock.op ) {
+                    case GOTO:
+                        // forward GOTO can be a while(condition) loop.
+                        // while(condition) {
+                        //    ....
+                        // }
+                        // will be compiled from Java to:
+                        // GOTO CONDITION:
+                        // START:
+                        // ....
+                        // CONDITION:
+                        // if<cond> START:
+                        // we can not match this in WASM because a missing GOTO that we need to move the condition to the start of the loop
+                        int nextPos = parsedBlock.startPosition + 3;
+                        for( int n = b + 1; n < allParsedOperations.size(); n++ ) {
+                            ParsedBlock nextBlock = allParsedOperations.get( n );
+                            if( nextBlock.op == JavaBlockOperator.IF && nextBlock.endPosition == nextPos ) {
+                                int conditionStart = parsedBlock.endPosition; // 15
+                                int conditionEnd = nextBlock.startPosition + 3; // 22
+                                int conditionNew = parsedBlock.startPosition; // 4
+                                int conditionIdx = -1;
+
+                                int i;
+                                for( i = 0; i < instructions.size(); i++ ) {
+                                    WasmInstruction instr = instructions.get( i );
+                                    int codePos = instr.getCodePosition();
+                                    if( codePos == nextPos ) {
+                                        conditionIdx = i;
+                                    }
+                                    if( codePos >= conditionEnd ) {
+                                        break;
+                                    }
+                                    if( codePos >= conditionStart ) {
+                                        instr.setCodePosition( conditionNew );
+                                        instructions.remove( i );
+                                        instructions.add( conditionIdx++, instr );
+                                    }
+                                }
+
+                                parsedBlock.op = JavaBlockOperator.LOOP;
+                                parsedBlock.endPosition = conditionEnd;
+                                allParsedOperations.remove( n );
+                                instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew ) );
+                                instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew ) );
+                                break;
+                            }
+                        }
+                        break;
+                    default:
                 }
             }
         }
@@ -191,8 +243,16 @@ class BranchManger {
                     calculate( branch, parsedOperations.subList( 0, i ) );
                 }
                 endPos = parsedBlock.endPosition;
-                branch = new BranchNode( startBlock.endPosition, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
-                parent.add( branch );
+
+                int breakDeep = calculateBreakDeep( parent, endPos );
+                if( breakDeep >= 0 ) {
+                    branch.endOp = WasmBlockOperator.END;
+                    branch.add(  new BranchNode( startBlock.endPosition, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
+                    endPos = branch.endPos;
+                } else {
+                    branch = new BranchNode( startBlock.endPosition, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
+                    parent.add( branch );
+                }
                 break;
             }
             if( parsedBlock.startPosition > gotoPos ) {
@@ -217,6 +277,24 @@ class BranchManger {
         if( i > 0 ) {
             calculate( branch, parsedOperations.subList( 0, i ) );
         }
+    }
+
+    /**
+     * Calculate the deep of a break.
+     * 
+     * @param parent
+     *            the current parent node.
+     * @param endPos
+     *            the end position of the jump
+     * @return the deep level for "br" or -1 if there is no parent node with this end position
+     */
+    private int calculateBreakDeep( BranchNode parent, int endPos ) {
+        int deep = -1;
+        while( parent != null && parent.endPos == endPos ) {
+            deep++;
+            parent = parent.parent;
+        }
+        return deep;
     }
 
     /**
@@ -418,8 +496,10 @@ class BranchManger {
      *            the not consumed operations in the parent branch
      */
     private void caculateLoop ( BranchNode parent, ParsedBlock loopBlock, List<ParsedBlock> parsedOperations ) {
+        BranchNode blockNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        parent.add( blockNode );
         BranchNode loopNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.LOOP, WasmBlockOperator.END );
-        parent.add( loopNode );
+        blockNode.add( loopNode );
 
         int idx = 0;
         for( ; idx < parsedOperations.size(); idx++ ) {
@@ -502,7 +582,7 @@ class BranchManger {
 
         private final WasmBlockOperator startOp;
 
-        private final WasmBlockOperator endOp;
+        private       WasmBlockOperator endOp;
 
         private       Object            data;
 
