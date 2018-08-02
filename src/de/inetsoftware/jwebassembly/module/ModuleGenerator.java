@@ -883,16 +883,16 @@ public class ModuleGenerator {
                 numOp = NumericOperator.eq;
                 break;
             case 155: // iflt
-                numOp = NumericOperator.gt;
+                numOp = NumericOperator.ge_s;
                 break;
             case 156: // ifge
-                numOp = NumericOperator.le_s;
-                break;
-            case 157: // ifgt
                 numOp = NumericOperator.lt_s;
                 break;
+            case 157: // ifgt
+                numOp = NumericOperator.le_s;
+                break;
             case 158: // ifle
-                numOp = NumericOperator.ge_s;
+                numOp = NumericOperator.gt;
                 break;
             default:
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
