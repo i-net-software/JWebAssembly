@@ -57,4 +57,12 @@ abstract class WasmInstruction {
     int getCodePosition() {
         return javaCodePos;
     }
+
+    /**
+     * Set a new code position after reorganize the order
+     * @param newPos new position
+     */
+    void setCodePosition( int newPos ) {
+        this.javaCodePos = newPos; 
+    }
 }
