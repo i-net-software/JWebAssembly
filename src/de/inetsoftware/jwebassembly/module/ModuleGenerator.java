@@ -645,7 +645,7 @@ public class ModuleGenerator {
                     //TODO case 166: // if_acmpne
                     case 167: // goto
                         int offset = byteCode.readShort();
-                        branchManager.start( JavaBlockOperator.GOTO, codePos, offset, byteCode.getLineNumber() );
+                        branchManager.addGotoOperator( codePos, offset, byteCode.getLineNumber() );
                         instr = new WasmNopInstruction( codePos ); // marker of the line number for the branch manager
                         break;
                     case 170: // tableswitch
@@ -771,7 +771,7 @@ public class ModuleGenerator {
             }
         }
         int switchValuestartPosition = stackManager.getCodePosition( 0 );
-        branchManager.startSwitch( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
+        branchManager.addSwitchOperator( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
     }
 
     /**
@@ -854,8 +854,9 @@ public class ModuleGenerator {
      */
     private void opIfCompareCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode, int codePos ) throws IOException {
         int offset = byteCode.readShort();
-        branchManager.start( JavaBlockOperator.IF, codePos, offset, byteCode.getLineNumber() );
-        instructions.add( new WasmNumericInstruction( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32, codePos ) );
+        WasmNumericInstruction compare = new WasmNumericInstruction( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32, codePos );
+        branchManager.addIfOperator( codePos, offset, byteCode.getLineNumber(), compare );
+        instructions.add( compare );
     }
 
     /**
@@ -898,8 +899,9 @@ public class ModuleGenerator {
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
         }
         int offset = byteCode.readShort();
-        branchManager.start( JavaBlockOperator.IF, codePos, offset, byteCode.getLineNumber() );
-        instructions.add( new WasmNumericInstruction( numOp, valueType, codePos ) );
+        WasmNumericInstruction compare = new WasmNumericInstruction( numOp, valueType, codePos );
+        branchManager.addIfOperator( codePos, offset, byteCode.getLineNumber(), compare );
+        instructions.add( compare );
     }
 
 }

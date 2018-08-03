@@ -61,7 +61,7 @@ class BranchManger {
     }
 
     /**
-     * Start a new block.
+     * Add a new Java block operator to handle from this manager.
      * 
      * @param op
      *            the start operation
@@ -72,12 +72,28 @@ class BranchManger {
      * @param lineNumber
      *            the current line number
      */
-    void start( JavaBlockOperator op, int startPosition, int offset, int lineNumber ) {
-        allParsedOperations.add( new ParsedBlock( op, startPosition, offset, lineNumber ) );
+    void addGotoOperator( int startPosition, int offset, int lineNumber ) {
+        allParsedOperations.add( new ParsedBlock( JavaBlockOperator.GOTO, startPosition, offset, lineNumber ) );
     }
 
     /**
-     * Start a new switch block.
+     * Add a new IF operator.
+     * 
+     * @param startPosition
+     *            the byte position of the start position
+     * @param offset
+     *            the relative jump position
+     * @param lineNumber
+     *            the current line number
+     * @param instr
+     *            the compare instruction
+     */
+    void addIfOperator( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
+        allParsedOperations.add( new IfParsedBlock( startPosition, offset, lineNumber, instr ) );
+    }
+
+    /**
+     * Add a new switch block.
      * 
      * @param startPosition
      *            the byte position of the start position
@@ -92,7 +108,7 @@ class BranchManger {
      * @param defaultPosition
      *            the code position of the default block
      */
-    void startSwitch( int startPosition, int offset, int lineNumber, int[] keys, int[] positions, int defaultPosition ) {
+    void addSwitchOperator( int startPosition, int offset, int lineNumber, int[] keys, int[] positions, int defaultPosition ) {
         allParsedOperations.add( new SwitchParsedBlock( startPosition, offset, lineNumber, keys, positions, defaultPosition ) );
     }
 
@@ -551,6 +567,32 @@ class BranchManger {
             this.endPosition = startPosition + offset;
             this.lineNumber = lineNumber;
         }
+    }
+
+    /**
+     * Description of a parsed IF operation.
+     */
+    private static class IfParsedBlock extends ParsedBlock {
+
+        private WasmNumericInstruction instr;
+
+        /**
+         * Create new instance
+         * 
+         * @param startPosition
+         *            the byte position of the start position
+         * @param offset
+         *            the relative jump position
+         * @param lineNumber
+         *            the Java line number for possible error messages
+         * @param instr
+         *            the compare instruction
+         */
+        public IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
+            super( JavaBlockOperator.IF, startPosition, offset, lineNumber );
+            this.instr = instr;
+        }
+
     }
 
     /**
