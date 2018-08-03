@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import org.junit.rules.TemporaryFolder;
@@ -206,8 +207,8 @@ public class WasmRule extends TemporaryFolder {
      * @return the output of the script
      */
     public String evalWasm( ScriptEngine script, String methodName, Object... params ) {
+        ProcessBuilder processBuilder = null;
         try {
-            ProcessBuilder processBuilder;
             switch( script ) {
                 case SpiderMonkey:
                     processBuilder = spiderMonkeyCommand();
@@ -233,6 +234,19 @@ public class WasmRule extends TemporaryFolder {
             return result;
         } catch( Throwable ex ) {
             failed = true;
+            ex.printStackTrace();
+
+            if( processBuilder != null ) {
+                String executable = processBuilder.command().get( 0 );
+                System.err.println( executable );
+                File exec = new File(executable);
+                System.err.println( exec.exists() );
+                exec = exec.getParentFile();
+                if( exec != null ) {
+                    System.err.println( Arrays.toString( exec.list() ) );
+                }
+            }
+
             throwException( ex );
             return null;
         }
