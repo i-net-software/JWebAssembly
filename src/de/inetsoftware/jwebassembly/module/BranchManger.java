@@ -63,8 +63,6 @@ class BranchManger {
     /**
      * Add a new Java block operator to handle from this manager.
      * 
-     * @param op
-     *            the start operation
      * @param startPosition
      *            the byte position of the start position
      * @param offset
