@@ -240,9 +240,9 @@ public class ControlFlowOperators extends AbstractBaseTest {
         @Export
         static int forLoop() {
             int a = 0;
-            //            for( int i=0; i<10;i++) {
-            //                a += i;
-            //            }
+            for( int i = 0; i < 10; i++ ) {
+                a += i;
+            }
             return a;
         }
     }
