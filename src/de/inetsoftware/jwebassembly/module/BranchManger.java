@@ -134,7 +134,7 @@ class BranchManger {
                         // while(condition) {
                         //    ....
                         // }
-                        // will be compiled from Java to:
+                        // will be compiled from Eclipse compiler 4.7 to:
                         // GOTO CONDITION:
                         // START:
                         // ....
