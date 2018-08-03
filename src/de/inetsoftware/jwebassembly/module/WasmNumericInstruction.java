@@ -29,9 +29,9 @@ import javax.annotation.Nullable;
  */
 class WasmNumericInstruction extends WasmInstruction {
 
-    private final NumericOperator numOp;
+    NumericOperator         numOp;
 
-    private final ValueType       valueType;
+    private final ValueType valueType;
 
     /**
      * Create an instance of numeric operation.

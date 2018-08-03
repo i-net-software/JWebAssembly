@@ -211,16 +211,16 @@ class BranchManger {
             ParsedBlock parsedBlock = parsedOperations.remove( 0 );
             switch( parsedBlock.op ) {
                 case IF:
-                    caculateIf( parent, parsedBlock, parsedOperations );
+                    calculateIf( parent, parsedBlock, parsedOperations );
                     break;
                 case SWITCH:
-                    caculateSwitch( parent, (SwitchParsedBlock)parsedBlock, parsedOperations );
+                    calculateSwitch( parent, (SwitchParsedBlock)parsedBlock, parsedOperations );
                     break;
                 case GOTO:
-                    caculateGoto( parent, parsedBlock, parsedOperations );
+                    calculateGoto( parent, parsedBlock, parsedOperations );
                     break;
                 case LOOP:
-                    caculateLoop( parent, parsedBlock, parsedOperations );
+                    calculateLoop( parent, parsedBlock, parsedOperations );
                     break;
                 default:
                     throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, null, parsedBlock.lineNumber );
@@ -238,7 +238,7 @@ class BranchManger {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void caculateIf( BranchNode parent, ParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateIf( BranchNode parent, ParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
         int i = 0;
         int endPos = Math.min( startBlock.endPosition, parent.endPos );
         int startPos = startBlock.startPosition + 3;
@@ -383,7 +383,7 @@ class BranchManger {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void caculateSwitch( BranchNode parent, SwitchParsedBlock switchBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateSwitch( BranchNode parent, SwitchParsedBlock switchBlock, List<ParsedBlock> parsedOperations ) {
         int startPosition = ((ParsedBlock)switchBlock).startPosition;
         int posCount = switchBlock.positions.length;
         boolean isTable = switchBlock.keys == null;
@@ -484,7 +484,7 @@ class BranchManger {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void caculateGoto ( BranchNode parent, ParsedBlock gotoBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateGoto ( BranchNode parent, ParsedBlock gotoBlock, List<ParsedBlock> parsedOperations ) {
         int start = gotoBlock.endPosition;
         int end = gotoBlock.startPosition;
         if( end > start ) {
@@ -511,7 +511,7 @@ class BranchManger {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void caculateLoop ( BranchNode parent, ParsedBlock loopBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateLoop ( BranchNode parent, ParsedBlock loopBlock, List<ParsedBlock> parsedOperations ) {
         BranchNode blockNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
         parent.add( blockNode );
         BranchNode loopNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.LOOP, WasmBlockOperator.END );
@@ -555,11 +555,11 @@ class BranchManger {
     private static class ParsedBlock {
         private JavaBlockOperator op;
 
-        private int               startPosition;
+        int                       startPosition;
 
-        private int               endPosition;
+        int                       endPosition;
 
-        private int               lineNumber;
+        int                       lineNumber;
 
         private ParsedBlock( JavaBlockOperator op, int startPosition, int offset, int lineNumber ) {
             this.op = op;
@@ -588,11 +588,40 @@ class BranchManger {
          * @param instr
          *            the compare instruction
          */
-        public IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
+        private IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
             super( JavaBlockOperator.IF, startPosition, offset, lineNumber );
             this.instr = instr;
         }
 
+        /**
+         * Negate the compare operation.
+         */
+        private void negate() {
+            NumericOperator newOp;
+            switch( instr.numOp ) {
+                case eq:
+                    newOp = NumericOperator.ne;
+                    break;
+                case ne:
+                    newOp = NumericOperator.eq;
+                    break;
+                case gt:
+                    newOp = NumericOperator.le_s;
+                    break;
+                case lt_s:
+                    newOp = NumericOperator.ge_s;
+                    break;
+                case le_s:
+                    newOp = NumericOperator.gt;
+                    break;
+                case ge_s:
+                    newOp = NumericOperator.lt_s;
+                    break;
+                default:
+                    throw new WasmException( "Not a compare operation: " + instr.numOp, null, lineNumber );
+            }
+            instr.numOp = newOp;
+        }
     }
 
     /**
