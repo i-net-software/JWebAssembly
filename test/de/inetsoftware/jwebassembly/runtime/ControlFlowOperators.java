@@ -43,6 +43,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifne" );
             addParam( list, script, "iflt" );
             addParam( list, script, "ifMultiple" );
+            addParam( list, script, "ifMultipleDouble" );
             addParam( list, script, "ifCompare" );
             addParam( list, script, "switchDirect" );
             addParam( list, script, "endlessLoop" );
@@ -127,6 +128,54 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 condition = 0;
             }
             return condition;
+        }
+
+        @Export
+        static int ifMultipleDouble() {
+            double condition = 3;
+            if( condition <= 0 ) {
+                if( condition < 0 ) {
+                    condition = 13;
+                }
+            } else {
+                if( condition > 0 ) {
+                    condition++;
+                } else {
+                    condition--;
+                }
+            }
+            if( condition > 2 ) {
+                condition *= 2;
+            } else {
+                condition = 0;
+            }
+            if( condition >= 2 ) {
+                condition *= 2;
+            } else {
+                condition = 0;
+            }
+            if( condition <= 123 ) {
+                condition *= 2;
+            } else {
+                condition = 0;
+            }
+            if( condition < 123 ) {
+                condition *= 2;
+            } else {
+                condition = 0;
+            }
+            if( condition != 123 ) {
+                condition *= 2;
+            } else {
+                condition = 0;
+            }
+            if( condition == 123 ) {
+                condition = 0;
+            } else {
+                condition *= 2;
+            }
+            int x = (int)(25 / condition); // prevent 0 as value
+            return (int)condition;
         }
 
         @Export
