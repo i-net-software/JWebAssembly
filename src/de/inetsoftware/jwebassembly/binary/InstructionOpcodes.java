@@ -335,7 +335,19 @@ interface InstructionOpcodes {
 
     static final int F64_PROMOTE_F32        = 0xBB;
 
-    // === numerical operations ======
+    // === Sign-extension operators ====== https://github.com/WebAssembly/design/issues/1178
+
+    static final int I32_EXTEND8_S          = 0xC0;
+
+    static final int I32_EXTEND16_S         = 0xC1;
+
+    static final int I64_EXTEND8_S          = 0xC2;
+
+    static final int I64_EXTEND16_S         = 0xC3;
+
+    static final int I64_EXTEND32_S         = 0xC4;
+
+    // === ref values ====== https://github.com/WebAssembly/design/issues/1203
 
     static final int REF_NULL               = 0xD0;
 

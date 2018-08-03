@@ -15,8 +15,6 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
-import java.io.IOException;
-
 /**
  * Cast operations for converting one data type to another
  * 
@@ -36,4 +34,7 @@ public enum ValueTypeConvertion {
     d2i,
     d2l,
     d2f,
+    i2b,
+    i2c,
+    i2s,
 }

@@ -232,6 +232,12 @@ public class TextModuleWriter extends ModuleWriter {
             case d2f:
                 op = "f32.demote/f64";
                 break;
+            case i2b:
+                op = "i32.extend8_s";
+                break;
+            case i2s:
+                op = "i32.extend16_s";
+                break;
             default:
                 throw new Error( "Unknown cast: " + cast );
         }

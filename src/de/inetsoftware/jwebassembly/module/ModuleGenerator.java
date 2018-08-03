@@ -603,20 +603,14 @@ public class ModuleGenerator {
                         instr = new WasmConvertInstruction( ValueTypeConvertion.d2f, codePos );
                         break;
                     case 145: // i2b
-                        instructions.add( new WasmConstInstruction( 24, codePos ) );
-                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32, codePos ) );
-                        instructions.add( new WasmConstInstruction( 24, codePos ) );
-                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32, codePos );
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.i2b, codePos );
                         break;
                     case 146: // i2c
                         instructions.add( new WasmConstInstruction( 0xFFFF, codePos ) );
                         instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32, codePos );
                         break;
                     case 147: // i2s
-                        instructions.add( new WasmConstInstruction( 16, codePos ) );
-                        instructions.add( new WasmNumericInstruction( NumericOperator.shl, ValueType.i32, codePos ) );
-                        instructions.add( new WasmConstInstruction( 16, codePos ) );
-                        instr = new WasmNumericInstruction( NumericOperator.shr_s, ValueType.i32, codePos );
+                        instr = new WasmConvertInstruction( ValueTypeConvertion.i2s, codePos );
                         break;
                     case 148: // lcmp
                         opCompare( ValueType.i64, byteCode, codePos );
