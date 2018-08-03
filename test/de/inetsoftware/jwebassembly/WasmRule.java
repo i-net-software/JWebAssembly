@@ -270,7 +270,15 @@ public class WasmRule extends TemporaryFolder {
      */
     private ProcessBuilder nodeJsCommand() {
         String command = System.getProperty( "node.dir" );
-        command = command == null ? "node" : command + "/node";
+        if( command == null ) {
+            command = "node";
+        } else {
+            if( System.getProperty("os.name").toLowerCase().indexOf( "win" ) >= 0 ) {
+                command += "/node";
+            } else {
+                command += "/bin/node";
+            }
+        }
         return new ProcessBuilder( command, "--experimental-wasm-se", nodeScript.getAbsolutePath() );
     }
 
