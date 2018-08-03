@@ -373,6 +373,18 @@ public class ModuleGenerator {
                     case 41: // dload_3
                         instr = loadStore( ValueType.f64, true, op - 38, codePos );
                         break;
+                    //TODO case 42: //aload_0
+                    //TODO case 43: //aload_1
+                    //TODO case 44: //aload_2
+                    //TODO case 45: //aload_3
+                    //TODO case 46: // iaload
+                    //TODO case 47: // laload
+                    //TODO case 48: // faload
+                    //TODO case 49: // daload
+                    //TODO case 50: // aaload
+                    //TODO case 51: // baload
+                    //TODO case 52: // caload
+                    //TODO case 53: // saload
                     case 54: // istore
                         instr = loadStore( ValueType.i32, false, byteCode.readUnsignedByte(), codePos );
                         break;
@@ -410,6 +422,18 @@ public class ModuleGenerator {
                     case 74: // dstore_3
                         instr = loadStore( ValueType.f64, false, op - 71, codePos );
                         break;
+                    //TODO case 75: // astore_0
+                    //TODO case 76: // astore_1
+                    //TODO case 77: // astore_2
+                    //TODO case 78: // astore_3
+                    //TODO case 79: // iastore
+                    //TODO case 80: // lastore
+                    //TODO case 81: // fastore
+                    //TODO case 82: // dastore
+                    //TODO case 83: // aastore
+                    //TODO case 84: // bastore
+                    //TODO case 85: // castore
+                    //TODO case 86: // sastore
                     case 87: // pop
                     case 88: // pop2
                         stackManager.remove();
@@ -660,6 +684,12 @@ public class ModuleGenerator {
                         instr = new WasmBlockInstruction( WasmBlockOperator.RETURN, null, codePos );
                         endWithReturn = true;
                         break;
+                    //TODO case 178: // getstatic
+                    //TODO case 179: // putstatic
+                    //TODO case 180: // getfield
+                    //TODO case 181: // putfield
+                    //TODO case 182: // invokevirtual
+                    //TODO case 183: // invokespecial
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
                         ConstantRef method = (ConstantRef)constantPool.get( idx );
@@ -670,6 +700,14 @@ public class ModuleGenerator {
                         }
                         instr = new WasmCallInstruction( method.getConstantClass().getName() + '.' + method.getName() + method.getType(), codePos );
                         break;
+                    //TODO case 185: // invokeinterface
+                    //TODO case 187: // new
+                    //TODO case 188: // newarray
+                    //TODO case 189: // anewarray
+                    //TODO case 190: // arraylength
+                    //TODO case 191: // athrow
+                    //TODO case 197: // multianewarray
+                    //TODO case 199: // ifnonnull
                     default:
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, byteCode.getLineNumber() );
                 }
