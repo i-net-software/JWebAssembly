@@ -60,7 +60,7 @@ public class RuntimeErrors {
         if( newlineIdx > 0 ) {
             error = error.substring( 0, newlineIdx );
         }
-        String expected = script == ScriptEngine.SpiderMonkey ? "TypeError: cannot pass i64 to or from JS" : "TypeError: invalid type";
+        String expected = script == ScriptEngine.SpiderMonkey ? "TypeError: cannot pass i64 to or from JS" : "TypeError: wasm function signature contains illegal type";
         assertEquals( expected, error );
     }
 

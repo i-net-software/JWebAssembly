@@ -59,9 +59,9 @@ artifacts {
 }
 
 node {
-    version = '8.10.0'
+    version = '8.11.2'
 //    version = '+'
-//    download = true
+    download = true
 }
 
 task nodeVersion(type: NodeTask) {
