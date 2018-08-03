@@ -188,6 +188,7 @@ class BranchManger {
                                 allParsedOperations.remove( n );
                                 instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew ) );
                                 instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew ) );
+                                ((IfParsedBlock)nextBlock).negateCompare();
                                 break;
                             }
                         }
@@ -211,7 +212,7 @@ class BranchManger {
             ParsedBlock parsedBlock = parsedOperations.remove( 0 );
             switch( parsedBlock.op ) {
                 case IF:
-                    calculateIf( parent, parsedBlock, parsedOperations );
+                    calculateIf( parent, (IfParsedBlock)parsedBlock, parsedOperations );
                     break;
                 case SWITCH:
                     calculateSwitch( parent, (SwitchParsedBlock)parsedBlock, parsedOperations );
@@ -238,7 +239,7 @@ class BranchManger {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void calculateIf( BranchNode parent, ParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateIf( BranchNode parent, IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
         int i = 0;
         int endPos = Math.min( startBlock.endPosition, parent.endPos );
         int startPos = startBlock.startPosition + 3;
@@ -280,6 +281,7 @@ class BranchManger {
             branch = new BranchNode( startPos, endPos, WasmBlockOperator.IF, WasmBlockOperator.END );
             parent.add( branch );
         }
+        startBlock.negateCompare();
 
         /**
          * Search the index in the stack to add the END operator
@@ -596,7 +598,7 @@ class BranchManger {
         /**
          * Negate the compare operation.
          */
-        private void negate() {
+        private void negateCompare() {
             NumericOperator newOp;
             switch( instr.numOp ) {
                 case eq:

@@ -538,7 +538,7 @@ public class ModuleGenerator {
                     case 132: // iinc
                         int idx = byteCode.readUnsignedByte();
                         instructions.add( new WasmLoadStoreInstruction( true, idx, localVariables, codePos ) );
-                        instructions.add( new WasmConstInstruction( byteCode.readUnsignedByte(), codePos ) );
+                        instructions.add( new WasmConstInstruction( (int)byteCode.readByte(), codePos ) );
                         instructions.add( new WasmNumericInstruction( NumericOperator.add, ValueType.i32, codePos) );
                         instr = new WasmLoadStoreInstruction( false, idx, localVariables, codePos );
                         break;
@@ -606,40 +606,40 @@ public class ModuleGenerator {
                         opCompare( ValueType.f64, byteCode, codePos );
                         break;
                     case 153: // ifeq
-                        opIfCondition( NumericOperator.ne, NumericOperator.eq, byteCode, codePos );
+                        opIfCondition( NumericOperator.eq, byteCode, codePos );
                         break;
                     case 154: // ifne
-                        opIfCondition( NumericOperator.eq, NumericOperator.ne, byteCode, codePos );
+                        opIfCondition( NumericOperator.ne, byteCode, codePos );
                         break;
                     case 155: // iflt
-                        opIfCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode, codePos );
+                        opIfCondition( NumericOperator.lt_s, byteCode, codePos );
                         break;
                     case 156: // ifge
-                        opIfCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode, codePos );
+                        opIfCondition( NumericOperator.ge_s, byteCode, codePos );
                         break;
                     case 157: // ifgt
-                        opIfCondition( NumericOperator.le_s, NumericOperator.gt, byteCode, codePos );
+                        opIfCondition( NumericOperator.gt, byteCode, codePos );
                         break;
                     case 158: // ifle
-                        opIfCondition( NumericOperator.gt, NumericOperator.le_s, byteCode, codePos );
+                        opIfCondition( NumericOperator.le_s, byteCode, codePos );
                         break;
                     case 159: // if_icmpeq
-                        opIfCompareCondition( NumericOperator.ne, NumericOperator.eq, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.eq, byteCode, codePos );
                         break;
                     case 160: // if_icmpne
-                        opIfCompareCondition( NumericOperator.eq, NumericOperator.ne, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.ne, byteCode, codePos );
                         break;
                     case 161: // if_icmplt
-                        opIfCompareCondition( NumericOperator.ge_s, NumericOperator.lt_s, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.lt_s, byteCode, codePos );
                         break;
                     case 162: // if_icmpge
-                        opIfCompareCondition( NumericOperator.lt_s, NumericOperator.ge_s, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.ge_s, byteCode, codePos );
                         break;
                     case 163: // if_icmpgt
-                        opIfCompareCondition( NumericOperator.le_s, NumericOperator.gt, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.gt, byteCode, codePos );
                         break;
                     case 164: // if_icmple
-                        opIfCompareCondition( NumericOperator.gt, NumericOperator.le_s, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.le_s, byteCode, codePos );
                         break;
                     //TODO case 165: // if_acmpeq
                     //TODO case 166: // if_acmpne
@@ -819,42 +819,38 @@ public class ModuleGenerator {
      * Handle the if<condition> of the Java byte code. This Java instruction compare the first stack value with value 0.
      * Important: In the Java IF expression the condition for the jump to the else block is saved. In WebAssembler we
      * need to use condition for the if block. The caller of the method must already negate this
-     * 
-     * @param ifNumOp
-     *            The condition for the if block.
-     * @param continueNumOp
+     * @param compareOp
      *            The condition for the continue of a loop.
      * @param byteCode
      *            current byte code stream to read the target offset.
      * @param codePos
      *            the code position/offset in the Java method
+     * 
      * @throws IOException
      *             if any I/O errors occur.
      */
-    private void opIfCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode, int codePos ) throws IOException {
+    private void opIfCondition( NumericOperator compareOp, CodeInputStream byteCode, int codePos ) throws IOException {
         instructions.add( new WasmConstInstruction( 0, codePos ) );
-        opIfCompareCondition( ifNumOp, continueNumOp, byteCode, codePos );
+        opIfCompareCondition( compareOp, byteCode, codePos );
     }
 
     /**
      * Handle the if<condition> of the Java byte code. This Java instruction compare 2 values from stack.
      * Important: In the Java IF expression the condition for the jump to the else block is saved. In WebAssembler we need to use
      * condition for the if block. The caller of the method must already negate this.
-     * 
-     * @param ifNumOp
-     *            The condition for the if block.
-     * @param continueNumOp
+     * @param compareOp
      *            The condition for the continue of a loop.
      * @param byteCode
      *            current byte code stream to read the target offset.
      * @param codePos
      *            the code position/offset in the Java method
+     * 
      * @throws IOException
      *             if any I/O errors occur.
      */
-    private void opIfCompareCondition( NumericOperator ifNumOp, NumericOperator continueNumOp, CodeInputStream byteCode, int codePos ) throws IOException {
+    private void opIfCompareCondition( NumericOperator compareOp, CodeInputStream byteCode, int codePos ) throws IOException {
         int offset = byteCode.readShort();
-        WasmNumericInstruction compare = new WasmNumericInstruction( offset > 0 ? ifNumOp : continueNumOp, ValueType.i32, codePos );
+        WasmNumericInstruction compare = new WasmNumericInstruction( compareOp, ValueType.i32, codePos );
         branchManager.addIfOperator( codePos, offset, byteCode.getLineNumber(), compare );
         instructions.add( compare );
     }
@@ -878,22 +874,22 @@ public class ModuleGenerator {
         int nextOp = byteCode.read();
         switch( nextOp ){
             case 153: // ifeq
-                numOp = NumericOperator.ne;
-                break;
-            case 154: // ifne
                 numOp = NumericOperator.eq;
                 break;
-            case 155: // iflt
-                numOp = NumericOperator.ge_s;
+            case 154: // ifne
+                numOp = NumericOperator.ne;
                 break;
-            case 156: // ifge
+            case 155: // iflt
                 numOp = NumericOperator.lt_s;
                 break;
+            case 156: // ifge
+                numOp = NumericOperator.ge_s;
+                break;
             case 157: // ifgt
-                numOp = NumericOperator.le_s;
+                numOp = NumericOperator.gt;
                 break;
             case 158: // ifle
-                numOp = NumericOperator.gt;
+                numOp = NumericOperator.le_s;
                 break;
             default:
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
