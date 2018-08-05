@@ -307,36 +307,27 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeConstInt( int value ) throws IOException {
-        codeStream.write( I32_CONST );
-        codeStream.writeVarint( value );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeConstLong( long value ) throws IOException {
-        codeStream.write( I64_CONST );
-        codeStream.writeVarint( value );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeConstFloat( float value ) throws IOException {
-        codeStream.write( F32_CONST );
-        codeStream.writeFloat( value );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeConstDouble( double value ) throws IOException {
-        codeStream.write( F64_CONST );
-        codeStream.writeDouble( value );
+    protected void writeConst( Number value, ValueType valueType ) throws IOException {
+        switch( valueType ) {
+            case i32:
+                codeStream.write( I32_CONST );
+                codeStream.writeVarint( value.intValue() );
+                break;
+            case i64:
+                codeStream.write( I64_CONST );
+                codeStream.writeVarint( value.longValue() );
+                break;
+            case f32:
+                codeStream.write( F32_CONST );
+                codeStream.writeFloat( value.floatValue() );
+                break;
+            case f64:
+                codeStream.write( F64_CONST );
+                codeStream.writeDouble( value.doubleValue() );
+                break;
+            default:
+                throw new Error( valueType + " " + value );
+        }
     }
 
     /**

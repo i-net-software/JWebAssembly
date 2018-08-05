@@ -113,44 +113,16 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeMethodFinish( List<ValueType> locals ) throws IOException;
 
     /**
-     * Write a constant integer value
+     * Write a constant number value
      * 
      * @param value
      *            the value
+     * @param valueType
+     *            the data type of the number
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeConstInt( int value ) throws IOException;
-
-    /**
-     * Write a constant long value
-     * 
-     * @param value
-     *            the value
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    protected abstract void writeConstLong( long value ) throws IOException;
-
-    /**
-     * Write a constant float value
-     * 
-     * @param value
-     *            the value
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    protected abstract void writeConstFloat( float value ) throws IOException;
-
-    /**
-     * Write a constant double value
-     * 
-     * @param value
-     *            the value
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    protected abstract void writeConstDouble( double value ) throws IOException;
+    protected abstract void writeConst( Number value, ValueType valueType ) throws IOException;
 
     /**
      * Write a variable load.

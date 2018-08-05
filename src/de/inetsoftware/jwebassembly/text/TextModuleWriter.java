@@ -130,36 +130,9 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeConstInt( int value ) throws IOException {
+    protected void writeConst( Number value, ValueType valueType ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( "i32.const " ).append( Integer.toString( value ) );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeConstLong( long value ) throws IOException {
-        newline( methodOutput );
-        methodOutput.append( "i64.const " ).append( Long.toString( value ) );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeConstFloat( float value ) throws IOException {
-        newline( methodOutput );
-        methodOutput.append( "f32.const " ).append( Float.toString( value ) );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeConstDouble( double value ) throws IOException {
-        newline( methodOutput );
-        methodOutput.append( "f64.const " ).append( Double.toString( value ) );
+        methodOutput.append( valueType ).append( ".const " ).append( value );
     }
 
     /**

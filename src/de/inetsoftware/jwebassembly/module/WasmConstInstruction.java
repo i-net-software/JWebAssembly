@@ -30,7 +30,25 @@ import de.inetsoftware.jwebassembly.WasmException;
  */
 class WasmConstInstruction extends WasmInstruction {
 
-    private final Number value;
+    private final Number    value;
+
+    private final ValueType valueType;
+
+    /**
+     * Create an instance of a constant instruction
+     * 
+     * @param value
+     *            the constant value
+     * @param valueType
+     *            the data type of the number
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     */
+    WasmConstInstruction( Number value, ValueType valueType, int javaCodePos ) {
+        super( javaCodePos );
+        this.value = value;
+        this.valueType = valueType;
+    }
 
     /**
      * Create an instance of a constant instruction
@@ -41,25 +59,37 @@ class WasmConstInstruction extends WasmInstruction {
      *            the code position/offset in the Java method
      */
     WasmConstInstruction( Number value, int javaCodePos ) {
-        super( javaCodePos );
-        this.value = value;
+        this( value, getValueType( value ), javaCodePos );
+    }
+
+    /**
+     * Find the matching ValueType for the given value.
+     * 
+     * @param value
+     *            the constant value
+     * @return the ValueType
+     */
+    @Nonnull
+    private static ValueType getValueType( Number value ) {
+        Class<?> clazz = value.getClass();
+        if( clazz == Integer.class ) {
+            return ValueType.i32;
+        } else if( clazz == Long.class ) {
+            return ValueType.i64;
+        } else if( clazz == Float.class ) {
+            return ValueType.f32;
+        } else if( clazz == Double.class ) {
+            return ValueType.f64;
+        } else {
+            throw new WasmException( "Not supported constant type: " + clazz, null, -1 );
+        }
+
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        Class<?> clazz = value.getClass();
-        if( clazz == Integer.class ) {
-            writer.writeConstInt( ((Integer)value).intValue() );
-        } else if( clazz == Long.class ) {
-            writer.writeConstLong( ((Long)value).longValue() );
-        } else if( clazz == Float.class ) {
-            writer.writeConstFloat( ((Float)value).floatValue() );
-        } else if( clazz == Double.class ) {
-            writer.writeConstDouble( ((Double)value).doubleValue() );
-        } else {
-            throw new WasmException( "Not supported constant type: " + clazz, null, -1 );
-        }
+        writer.writeConst( value, valueType );
     }
 }

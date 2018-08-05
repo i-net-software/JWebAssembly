@@ -301,31 +301,31 @@ public class ModuleGenerator {
                     case 7: // iconst_4
                     case 8: // iconst_5
                         stackManager.add( ValueType.i32, codePos );
-                        instr = new WasmConstInstruction( Integer.valueOf( op - 3 ), codePos );
+                        instr = new WasmConstInstruction( Integer.valueOf( op - 3 ), ValueType.i32, codePos );
                         break;
                     case 9:  // lconst_0
                     case 10: // lconst_1
                         stackManager.add( ValueType.i64, codePos );
-                        instr = new WasmConstInstruction( Long.valueOf( op - 9 ), codePos );
+                        instr = new WasmConstInstruction( Long.valueOf( op - 9 ), ValueType.i64, codePos );
                         break;
                     case 11: // fconst_0
                     case 12: // fconst_1
                     case 13: // fconst_2
                         stackManager.add( ValueType.f32, codePos );
-                        instr = new WasmConstInstruction( Float.valueOf( op - 11 ), codePos );
+                        instr = new WasmConstInstruction( Float.valueOf( op - 11 ), ValueType.f32, codePos );
                         break;
                     case 14: // dconst_0
                     case 15: // dconst_1
                         stackManager.add( ValueType.f64, codePos );
-                        instr = new WasmConstInstruction( Double.valueOf( op - 14 ), codePos );
+                        instr = new WasmConstInstruction( Double.valueOf( op - 14 ), ValueType.f64, codePos );
                         break;
                     case 16: // bipush
                         stackManager.add( ValueType.i32, codePos );
-                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readByte() ), codePos );
+                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readByte() ), ValueType.i32, codePos );
                         break;
                     case 17: // sipush
                         stackManager.add( ValueType.i32, codePos );
-                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readShort() ), codePos );
+                        instr = new WasmConstInstruction( Integer.valueOf( byteCode.readShort() ), ValueType.i32, codePos );
                         break;
                     case 18: // ldc
                         stackManager.add( null, codePos );
@@ -507,11 +507,11 @@ public class ModuleGenerator {
                         //TODO can be implemented with a helper function like: (a - (long)(a / b) * (double)b) 
                         throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, byteCode.getLineNumber() );
                     case 116: // ineg
-                        instructions.add( new WasmConstInstruction( -1, codePos ) );
+                        instructions.add( new WasmConstInstruction( -1, ValueType.i32, codePos ) );
                         instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32, codePos );
                         break;
                     case 117: // lneg
-                        instructions.add( new WasmConstInstruction( (long)-1, codePos ) ) ;
+                        instructions.add( new WasmConstInstruction( (long)-1, ValueType.i64, codePos ) ) ;
                         instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i64, codePos );
                         break;
                     case 118: // fneg
@@ -562,7 +562,7 @@ public class ModuleGenerator {
                     case 132: // iinc
                         int idx = byteCode.readUnsignedByte();
                         instructions.add( new WasmLoadStoreInstruction( true, idx, localVariables, codePos ) );
-                        instructions.add( new WasmConstInstruction( (int)byteCode.readByte(), codePos ) );
+                        instructions.add( new WasmConstInstruction( (int)byteCode.readByte(), ValueType.i32, codePos ) );
                         instructions.add( new WasmNumericInstruction( NumericOperator.add, ValueType.i32, codePos) );
                         instr = new WasmLoadStoreInstruction( false, idx, localVariables, codePos );
                         break;
@@ -606,7 +606,7 @@ public class ModuleGenerator {
                         instr = new WasmConvertInstruction( ValueTypeConvertion.i2b, codePos );
                         break;
                     case 146: // i2c
-                        instructions.add( new WasmConstInstruction( 0xFFFF, codePos ) );
+                        instructions.add( new WasmConstInstruction( 0xFFFF, ValueType.i32, codePos ) );
                         instr = new WasmNumericInstruction( NumericOperator.and, ValueType.i32, codePos );
                         break;
                     case 147: // i2s
@@ -778,7 +778,7 @@ public class ModuleGenerator {
                 for( int i = 0; i < positions.length; i++ ) {
                     if( positions[i] == currentPos ) {
                         instructions.add( new WasmLoadStoreInstruction( true, tempI32, localVariables, codePos ) );
-                        instructions.add( new WasmConstInstruction( keys[i], codePos ) );
+                        instructions.add( new WasmConstInstruction( keys[i], ValueType.i32, codePos ) );
                         instructions.add( new WasmNumericInstruction( NumericOperator.eq, ValueType.i32, codePos ) );
                         instructions.add( new WasmBlockInstruction( WasmBlockOperator.BR_IF, block, codePos ) );
                     }
@@ -798,7 +798,7 @@ public class ModuleGenerator {
                 positions[i] = startPosition + byteCode.readInt();
             }
             if( low != 0 ) { // the br_table starts ever with the value 0. That we need to subtract the start value if it different
-                instructions.add( new WasmConstInstruction( low, codePos ) );
+                instructions.add( new WasmConstInstruction( low, ValueType.i32, codePos ) );
                 instructions.add( new WasmNumericInstruction( NumericOperator.sub, ValueType.i32, codePos ) );
             }
         }
@@ -862,7 +862,7 @@ public class ModuleGenerator {
      *             if any I/O errors occur.
      */
     private void opIfCondition( NumericOperator compareOp, CodeInputStream byteCode, int codePos ) throws IOException {
-        instructions.add( new WasmConstInstruction( 0, codePos ) );
+        instructions.add( new WasmConstInstruction( 0, ValueType.i32, codePos ) );
         opIfCompareCondition( compareOp, byteCode, codePos );
     }
 
