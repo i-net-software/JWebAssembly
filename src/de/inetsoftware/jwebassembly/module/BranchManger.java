@@ -252,7 +252,7 @@ class BranchManger {
             ParsedBlock parsedBlock = parsedOperations.get( i );
             if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition) {
                 parsedOperations.remove( i );
-                branch = new BranchNode( startPos, startBlock.endPosition, WasmBlockOperator.IF, null );
+                branch = new BranchNode( startPos, startBlock.endPosition, WasmBlockOperator.IF, null, ValueType.empty );
                 parent.add( branch );
                 if( i > 0 ) {
                     calculate( branch, parsedOperations.subList( 0, i ) );
@@ -276,7 +276,7 @@ class BranchManger {
         }
 
         if( branch == null ) {
-            branch = new BranchNode( startPos, endPos, WasmBlockOperator.IF, WasmBlockOperator.END );
+            branch = new BranchNode( startPos, endPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
             parent.add( branch );
         }
         startBlock.negateCompare();

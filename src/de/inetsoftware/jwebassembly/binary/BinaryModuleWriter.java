@@ -698,7 +698,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case IF:
                 codeStream.write( IF );
-                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the block. currently we does not use it
+                codeStream.write( ((ValueType)data).getCode() );
                 break;
             case ELSE:
                 codeStream.write( ELSE );

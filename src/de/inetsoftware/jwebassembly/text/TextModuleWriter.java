@@ -282,6 +282,9 @@ public class TextModuleWriter extends ModuleWriter {
                 break;
             case IF:
                 name = "if";
+                if( data != ValueType.empty ) {
+                    name += " (result " + data + ")";
+                }
                 insetAfter++;
                 break;
             case ELSE:
