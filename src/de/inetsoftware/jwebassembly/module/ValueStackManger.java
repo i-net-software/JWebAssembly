@@ -81,6 +81,15 @@ class ValueStackManger {
     }
 
     /**
+     * Get the value type of the last value on the stack.
+     * 
+     * @return the value type
+     */
+    ValueType getLastValueType() {
+        return elements[size - 1].valueType;
+    }
+
+    /**
      * Ensure that there is enough capacity.
      */
     private void ensureCapacity() {
