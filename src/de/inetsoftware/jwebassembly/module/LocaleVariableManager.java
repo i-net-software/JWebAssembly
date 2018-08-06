@@ -146,6 +146,17 @@ class LocaleVariableManager {
     }
 
     /**
+     * Get the ValueType of the variable.
+     * 
+     * @param slot
+     *            the memory/slot index of the local variable in Java
+     * @return the ValueType
+     */
+    ValueType getValueType( int slot ) {
+        return variables[slot].valueType;
+    }
+
+    /**
      * Ensure that there is enough capacity.
      * 
      * @param slot

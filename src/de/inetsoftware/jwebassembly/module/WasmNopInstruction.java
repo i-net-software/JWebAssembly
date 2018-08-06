@@ -44,4 +44,11 @@ class WasmNopInstruction extends WasmInstruction {
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         // nothing
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    ValueType getPushValueType() {
+        return null;
+    }
 }

@@ -55,4 +55,11 @@ class WasmBlockInstruction extends WasmInstruction {
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         writer.writeBlockCode( op, data );
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    ValueType getPushValueType() {
+        return op == WasmBlockOperator.IF && data != ValueType.empty ? (ValueType)data : null;
+    }
 }

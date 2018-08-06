@@ -58,11 +58,18 @@ class WasmLoadStoreInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        idx = localVariables.get( idx ); // translate slot index to position index
+        int index = localVariables.get( idx ); // translate slot index to position index
         if( load ) {
-            writer.writeLoad( idx );
+            writer.writeLoad( index );
         } else {
-            writer.writeStore( idx );
+            writer.writeStore( index );
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    ValueType getPushValueType() {
+        return load ? localVariables.getValueType( idx ) : null;
     }
 }

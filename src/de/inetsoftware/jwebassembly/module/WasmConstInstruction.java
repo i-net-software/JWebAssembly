@@ -92,4 +92,11 @@ class WasmConstInstruction extends WasmInstruction {
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         writer.writeConst( value, valueType );
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    ValueType getPushValueType() {
+        return valueType;
+    }
 }

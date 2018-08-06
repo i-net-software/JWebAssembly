@@ -30,7 +30,9 @@ import de.inetsoftware.classparser.ConstantRef;
  */
 class WasmCallInstruction extends WasmInstruction {
 
-    private final String name;
+    private final String    name;
+
+    private final ValueType valueType;
 
     /**
      * Create an instance of a function call instruction
@@ -43,6 +45,8 @@ class WasmCallInstruction extends WasmInstruction {
     WasmCallInstruction( ConstantRef method, int javaCodePos ) {
         super( javaCodePos );
         this.name = new FunctionName( method ).signatureName;
+        String signature = method.getType();
+        this.valueType = ModuleGenerator.getValueType(  signature, signature.indexOf( ')' ) + 1 );
     }
 
     /**
@@ -50,5 +54,13 @@ class WasmCallInstruction extends WasmInstruction {
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         writer.writeFunctionCall( name );
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    ValueType getPushValueType() {
+        return valueType;
     }
 }

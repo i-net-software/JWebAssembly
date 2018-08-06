@@ -47,4 +47,33 @@ class WasmConvertInstruction extends WasmInstruction {
     public void writeTo( ModuleWriter writer ) throws IOException {
         writer.writeCast( conversion );
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    ValueType getPushValueType() {
+        switch( conversion ) {
+            case l2i:
+            case f2i:
+            case d2i:
+            case i2b:
+            case i2c:
+            case i2s:
+                return ValueType.i32;
+            case i2l:
+            case f2l:
+            case d2l:
+                return ValueType.i64;
+            case i2f:
+            case l2f:
+            case d2f:
+                return ValueType.f32;
+            case i2d:
+            case l2d:
+            case f2d:
+                return ValueType.f64;
+            default:
+                throw new Error( conversion.toString() );
+        }
+    }
 }

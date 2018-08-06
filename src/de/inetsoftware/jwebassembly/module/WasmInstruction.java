@@ -19,6 +19,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Base class of all WasmInstruction.
@@ -65,4 +66,12 @@ abstract class WasmInstruction {
     void setCodePosition( int newPos ) {
         this.javaCodePos = newPos; 
     }
+
+    /**
+     * Get the ValueType if this instruction push a value on the stack.
+     * 
+     * @return the ValueType or null if no value is push
+     */
+    @Nullable
+    abstract ValueType getPushValueType();
 }

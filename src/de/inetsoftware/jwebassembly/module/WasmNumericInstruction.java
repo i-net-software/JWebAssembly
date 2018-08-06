@@ -55,4 +55,11 @@ class WasmNumericInstruction extends WasmInstruction {
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         writer.writeNumericOperator( numOp, valueType );
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    ValueType getPushValueType() {
+        return valueType;
+    }
 }
