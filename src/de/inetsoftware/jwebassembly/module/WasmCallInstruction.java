@@ -20,6 +20,8 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.classparser.ConstantRef;
+
 /**
  * WasmInstruction for a function call.
  * 
@@ -33,14 +35,14 @@ class WasmCallInstruction extends WasmInstruction {
     /**
      * Create an instance of a function call instruction
      * 
-     * @param name
-     *            the Java function name
+     * @param method
+     *            the reference to the Java method
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmCallInstruction( String name, int javaCodePos ) {
+    WasmCallInstruction( ConstantRef method, int javaCodePos ) {
         super( javaCodePos );
-        this.name = name;
+        this.name = new FunctionName( method ).signatureName;
     }
 
     /**

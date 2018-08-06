@@ -242,7 +242,7 @@ public class ModuleGenerator {
      *            the index in the signature
      * @return the value type or null if void
      */
-    private ValueType getValueType( String signature, int idx ) {
+    static ValueType getValueType( String signature, int idx ) {
         String javaType;
         switch( signature.charAt( idx ) ) {
             case '[': // array
@@ -267,7 +267,7 @@ public class ModuleGenerator {
             default:
                 javaType = signature.substring( idx, idx + 1 );
         }
-        throw new WasmException( "Not supported Java data type in method signature: " + javaType, sourceFile, -1 );
+        throw new WasmException( "Not supported Java data type in method signature: " + javaType, null, -1 );
     }
 
     /**
@@ -692,7 +692,7 @@ public class ModuleGenerator {
                         if( type != null ) {
                             stackManager.add( type, codePos );
                         }
-                        instr = new WasmCallInstruction( method.getConstantClass().getName() + '.' + method.getName() + method.getType(), codePos );
+                        instr = new WasmCallInstruction( method, codePos );
                         break;
                     //TODO case 185: // invokeinterface
                     //TODO case 187: // new
