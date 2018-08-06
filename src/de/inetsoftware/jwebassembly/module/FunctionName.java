@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.classparser.MethodInfo;
 
 /**
@@ -49,5 +50,18 @@ public class FunctionName {
         String className = method.getDeclaringClassFile().getThisClass().getName();
         fullName = className + '.' + methodName;
         signatureName = fullName + method.getDescription();
+    }
+
+    /**
+     * Create a new instance from the given reference in the ConstantPool.
+     * 
+     * @param method
+     *            the Java method
+     */
+    FunctionName( @Nonnull ConstantRef method ) {
+        String methodName = method.getName();
+        String className = method.getConstantClass().getName();
+        fullName = className + '.' + methodName;
+        signatureName = fullName + method.getType();
     }
 }
