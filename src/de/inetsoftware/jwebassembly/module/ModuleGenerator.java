@@ -138,7 +138,7 @@ public class ModuleGenerator {
             } else {
                 writer.prepareFunction( name );
             }
-        } catch( IOException ioex ) {
+        } catch( Exception ioex ) {
             throw WasmException.create( ioex, sourceFile, -1 );
         }
     }
