@@ -674,8 +674,27 @@ public class ModuleGenerator {
                     case 173: // lreturn
                     case 174: // freturn
                     case 175: // dreturn
+                    case 176: // areturn
                     case 177: // return void
-                        instr = new WasmBlockInstruction( WasmBlockOperator.RETURN, null, codePos );
+                        ValueType type = null;
+                        switch ( op ) {
+                            case 172: // ireturn
+                                type = ValueType.i32;
+                                break;
+                            case 173: // lreturn
+                                type = ValueType.i64;
+                                break;
+                            case 174: // freturn
+                                type = ValueType.f32;
+                                break;
+                            case 175: // dreturn
+                                type = ValueType.f64;
+                                break;
+                            case 176: // areturn
+                                type = ValueType.anyref;
+                                break;
+                        }
+                        instr = new WasmBlockInstruction( WasmBlockOperator.RETURN, type, codePos );
                         endWithReturn = true;
                         break;
                     //TODO case 178: // getstatic
@@ -688,7 +707,7 @@ public class ModuleGenerator {
                         idx = byteCode.readUnsignedShort();
                         ConstantRef method = (ConstantRef)constantPool.get( idx );
                         String signature = method.getType();
-                        ValueType type = getValueType(  signature, signature.indexOf( ')' ) + 1 );
+                        type = getValueType(  signature, signature.indexOf( ')' ) + 1 );
                         if( type != null ) {
                             stackManager.add( type, codePos );
                         }

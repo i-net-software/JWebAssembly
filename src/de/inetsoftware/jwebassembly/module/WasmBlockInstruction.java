@@ -60,7 +60,14 @@ class WasmBlockInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     ValueType getPushValueType() {
-        return op == WasmBlockOperator.IF && data != ValueType.empty ? (ValueType)data : null;
+        switch( op ) {
+            case IF:
+                return data != ValueType.empty ? (ValueType)data : null;
+            case RETURN:
+                return (ValueType)data;
+            default:
+                return null;
+        }
     }
 
     /**
