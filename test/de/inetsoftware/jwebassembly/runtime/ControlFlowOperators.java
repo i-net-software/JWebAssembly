@@ -51,6 +51,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "doWhileLoopWithBreak" );
             addParam( list, script, "whileLoop" );
             addParam( list, script, "forLoop" );
+            addParam( list, script, "conditionalOperator" );
         }
         return list;
     }
@@ -293,6 +294,12 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 a += i;
             }
             return a;
+        }
+
+        @Export
+        static int conditionalOperator () {
+            int condition = 4;
+            return condition >= 4 ? 1 : 2;
         }
     }
 }
