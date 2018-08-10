@@ -74,4 +74,11 @@ abstract class WasmInstruction {
      */
     @Nullable
     abstract ValueType getPushValueType();
+
+    /**
+     * Get the count of values that are removed from the stack.
+     * 
+     * @return the count
+     */
+    abstract int getPopCount();
 }

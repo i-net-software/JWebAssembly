@@ -76,4 +76,12 @@ class WasmConvertInstruction extends WasmInstruction {
                 throw new Error( conversion.toString() );
         }
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int getPopCount() {
+        return 1;
+    }
 }

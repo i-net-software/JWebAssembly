@@ -99,4 +99,12 @@ class WasmConstInstruction extends WasmInstruction {
     ValueType getPushValueType() {
         return valueType;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int getPopCount() {
+        return 0;
+    }
 }

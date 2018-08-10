@@ -62,4 +62,12 @@ class WasmBlockInstruction extends WasmInstruction {
     ValueType getPushValueType() {
         return op == WasmBlockOperator.IF && data != ValueType.empty ? (ValueType)data : null;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int getPopCount() {
+        return 0;
+    }
 }

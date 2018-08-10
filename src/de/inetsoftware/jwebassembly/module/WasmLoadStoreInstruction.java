@@ -72,4 +72,12 @@ class WasmLoadStoreInstruction extends WasmInstruction {
     ValueType getPushValueType() {
         return load ? localVariables.getValueType( idx ) : null;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int getPopCount() {
+        return load ? 0 : 1;
+    }
 }

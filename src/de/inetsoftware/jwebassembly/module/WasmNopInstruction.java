@@ -51,4 +51,12 @@ class WasmNopInstruction extends WasmInstruction {
     ValueType getPushValueType() {
         return null;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int getPopCount() {
+        return 0;
+    }
 }

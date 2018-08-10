@@ -60,6 +60,29 @@ class WasmNumericInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     ValueType getPushValueType() {
-        return valueType;
+        switch( numOp ) {
+            case eq:
+            case ne:
+            case gt:
+            case lt_s:
+            case le_s:
+            case ge_s:
+                return null;
+            default:
+                return valueType;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int getPopCount() {
+        switch( numOp ) {
+            case neg:
+                return 1;
+            default:
+                return 2;
+        }
     }
 }
