@@ -16,11 +16,14 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.jwebassembly.WasmException;
@@ -252,11 +255,12 @@ class BranchManger {
             ParsedBlock parsedBlock = parsedOperations.get( i );
             if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition) {
                 parsedOperations.remove( i );
-                branch = new BranchNode( startPos, startBlock.endPosition, WasmBlockOperator.IF, null, ValueType.empty );
+                branch = new BranchNode( startPos, startBlock.endPosition, WasmBlockOperator.IF, null );
                 parent.add( branch );
                 if( i > 0 ) {
                     calculate( branch, parsedOperations.subList( 0, i ) );
                 }
+                branch.data = calculateBlockType( startPos, branch.endPos );
                 endPos = parsedBlock.endPosition;
 
                 int breakDeep = calculateBreakDeep( parent, endPos );
@@ -311,6 +315,39 @@ class BranchManger {
             parent = parent.parent;
         }
         return deep;
+    }
+
+    /**
+     * Calculate the block type. The value type that is on the stack after the block.
+     * 
+     * @param startPos
+     *            the start position of the block
+     * @param endPos
+     *            the end position of the block
+     * @return the value type
+     */
+    @Nonnull
+    private ValueType calculateBlockType( int startPos, int endPos ) {
+        ArrayDeque<ValueType> stack = new ArrayDeque<>();
+        stack.push( ValueType.empty );
+        for( WasmInstruction instr : instructions ) {
+            int codePos = instr.getCodePosition();
+            if( codePos < startPos ) {
+                continue;
+            }
+            if( codePos >= endPos ) {
+                break;
+            }
+            int popCount = instr.getPopCount();
+            for( int p = 0; p < popCount; p++ ) {
+                stack.pop();
+            }
+            ValueType pushValue = instr.getPushValueType();
+            if( pushValue != null ) {
+                stack.push( pushValue );
+            }
+        }
+        return stack.pop();
     }
 
     /**
