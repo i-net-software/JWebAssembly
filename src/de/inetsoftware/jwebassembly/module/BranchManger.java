@@ -260,10 +260,13 @@ class BranchManger {
                 if( i > 0 ) {
                     calculate( branch, parsedOperations.subList( 0, i ) );
                 }
-                branch.data = calculateBlockType( startPos, branch.endPos );
-                endPos = parsedBlock.endPosition;
+                ValueType blockType = calculateBlockType( startPos, branch.endPos );
+                branch.data = blockType;
+                // end position can not be outside of the parent
+                endPos = Math.min( parsedBlock.endPosition, parent.endPos );
 
-                int breakDeep = calculateBreakDeep( parent, endPos );
+                // if with block type signature must have an else block
+                int breakDeep = blockType == ValueType.empty ? calculateBreakDeep( parent, endPos ) : -1;
                 if( breakDeep >= 0 ) {
                     branch.endOp = WasmBlockOperator.END;
                     branch.add(  new BranchNode( startBlock.endPosition, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );

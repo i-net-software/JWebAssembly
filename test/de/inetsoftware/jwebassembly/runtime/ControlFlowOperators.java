@@ -299,7 +299,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
         @Export
         static int conditionalOperator () {
             int condition = 4;
-            return condition >= 4 ? 1 : 2;
+            return condition >= 4 ? condition < 4 ? 1 : 2 : condition == 4 ? 3 : 4;
         }
     }
 }
