@@ -84,13 +84,6 @@ class LocaleVariableManager {
     }
 
     /**
-     * We need an extra temporary variable inn the WebAssembly code.
-     */
-    void useTempI32() {
-        needTempI32 = true;
-    }
-
-    /**
      * Calculate the WebAssembly index position on the consumed data.
      */
     void calculate() {
@@ -131,7 +124,8 @@ class LocaleVariableManager {
      * @return the slot
      */
     int getTempI32() {
-        return size - 1;
+        needTempI32 = true;
+        return -1;
     }
 
     /**
@@ -142,6 +136,9 @@ class LocaleVariableManager {
      * @return the variable index in WebAssembly
      */
     int get( int slot ) {
+        if( slot < 0 ) {
+            slot = size - 1; // temp i32
+        }
         return variables[slot].idx;
     }
 

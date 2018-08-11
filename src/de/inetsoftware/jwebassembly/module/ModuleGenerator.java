@@ -751,7 +751,6 @@ public class ModuleGenerator {
         int[] keys;
         int[] positions;
         if( isLookupSwitch ) { // lookupswitch
-            localVariables.useTempI32(); //TODO
             int count = byteCode.readInt();
             keys = new int[count];
             positions = new int[count];
