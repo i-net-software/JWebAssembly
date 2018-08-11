@@ -193,12 +193,12 @@ public class ControlFlowOperators extends AbstractBaseTest {
 
         @Export
         static int switchDirect() {
-            return tableSwitch(10) + (tableSwitch( 9 ) * 10) +  + (tableSwitch( -1 ) * 100) + (lookupSwitch(Integer.MAX_VALUE) * 1000) + (lookupSwitch(0) * 10000 );
+            return tableSwitch(10) + (tableSwitch( 9 ) * 10) + (tableSwitch( -1 ) * 100) + (lookupSwitch(Integer.MAX_VALUE) * 1000) + (lookupSwitch(0) * 10000 );
         }
 
         private static int tableSwitch( int a ) {
             int b;
-            switch(a){
+            switch( 1 + a - 1 ){
                 case 8:
                 case 9:
                     b = 2;

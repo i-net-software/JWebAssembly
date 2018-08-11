@@ -53,8 +53,6 @@ public class ModuleGenerator {
 
     private BranchManger                branchManager  = new BranchManger( instructions );
 
-    private ValueStackManger            stackManager   = new ValueStackManger();
-
     /**
      * Create a new generator.
      * 
@@ -162,7 +160,6 @@ public class ModuleGenerator {
                 writeMethodSignature( method );
 
                 localVariables.reset();
-                stackManager.reset();
                 branchManager.reset();
 
                 byteCode = code.getByteCode();
@@ -300,40 +297,32 @@ public class ModuleGenerator {
                     case 6: // iconst_3
                     case 7: // iconst_4
                     case 8: // iconst_5
-                        stackManager.add( ValueType.i32, codePos );
                         instr = new WasmConstInstruction( Integer.valueOf( op - 3 ), ValueType.i32, codePos );
                         break;
                     case 9:  // lconst_0
                     case 10: // lconst_1
-                        stackManager.add( ValueType.i64, codePos );
                         instr = new WasmConstInstruction( Long.valueOf( op - 9 ), ValueType.i64, codePos );
                         break;
                     case 11: // fconst_0
                     case 12: // fconst_1
                     case 13: // fconst_2
-                        stackManager.add( ValueType.f32, codePos );
                         instr = new WasmConstInstruction( Float.valueOf( op - 11 ), ValueType.f32, codePos );
                         break;
                     case 14: // dconst_0
                     case 15: // dconst_1
-                        stackManager.add( ValueType.f64, codePos );
                         instr = new WasmConstInstruction( Double.valueOf( op - 14 ), ValueType.f64, codePos );
                         break;
                     case 16: // bipush
-                        stackManager.add( ValueType.i32, codePos );
                         instr = new WasmConstInstruction( Integer.valueOf( byteCode.readByte() ), ValueType.i32, codePos );
                         break;
                     case 17: // sipush
-                        stackManager.add( ValueType.i32, codePos );
                         instr = new WasmConstInstruction( Integer.valueOf( byteCode.readShort() ), ValueType.i32, codePos );
                         break;
                     case 18: // ldc
-                        stackManager.add( null, codePos );
                         instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedByte() ), codePos );
                         break;
                     case 19: // ldc_w
                     case 20: // ldc2_w
-                        stackManager.add( null, codePos );
                         instr = new WasmConstInstruction( (Number)constantPool.get( byteCode.readUnsignedShort() ), codePos );
                         break;
                     case 21: // iload
@@ -436,7 +425,6 @@ public class ModuleGenerator {
                     //TODO case 86: // sastore
                     case 87: // pop
                     case 88: // pop2
-                        stackManager.remove();
                         instr = new WasmBlockInstruction( WasmBlockOperator.DROP, null, codePos );
                         break;
                     case 89: // dup: duplicate the value on top of the stack
@@ -706,11 +694,6 @@ public class ModuleGenerator {
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
                         ConstantRef method = (ConstantRef)constantPool.get( idx );
-                        String signature = method.getType();
-                        type = getValueType(  signature, signature.indexOf( ')' ) + 1 );
-                        if( type != null ) {
-                            stackManager.add( type, codePos );
-                        }
                         instr = new WasmCallInstruction( method, codePos );
                         break;
                     //TODO case 185: // invokeinterface
@@ -762,12 +745,13 @@ public class ModuleGenerator {
             byteCode.skip( 4 - padding );
         }
         startPosition--;
+        int switchValuestartPosition = findPreviousPushCodePosition();
 
         int defaultPosition = startPosition + byteCode.readInt();
         int[] keys;
         int[] positions;
         if( isLookupSwitch ) { // lookupswitch
-            localVariables.useTempI32();
+            localVariables.useTempI32(); //TODO
             int count = byteCode.readInt();
             keys = new int[count];
             positions = new int[count];
@@ -821,8 +805,29 @@ public class ModuleGenerator {
                 instructions.add( new WasmNumericInstruction( NumericOperator.sub, ValueType.i32, codePos ) );
             }
         }
-        int switchValuestartPosition = stackManager.getCodePosition( 0 );
         branchManager.addSwitchOperator( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
+    }
+
+    /**
+     * We need one value from the stack inside of a block. We need to find the code position on which the block can
+     * start. If this a function call or numeric expression this can be complex to find the right point.
+     * 
+     * @return the code position
+     */
+    private int findPreviousPushCodePosition() {
+        int valueCount = 0;
+        for( int i = instructions.size() - 1; i >= 0; i-- ) {
+            WasmInstruction instr = instructions.get( i );
+            ValueType valueType = instr.getPushValueType();
+            if( valueType != null ) {
+                valueCount++;
+            }
+            valueCount -= instr.getPopCount();
+            if( valueCount == 1 ) {
+                return instr.getCodePosition();
+            }
+        }
+        throw new WasmException( "Switch start position not found", sourceFile, -1 ); // should never occur
     }
 
     /**
@@ -861,7 +866,6 @@ public class ModuleGenerator {
      */
     @Nonnull
     private WasmLoadStoreInstruction loadStore( ValueType valueType, boolean load, @Nonnegative int idx, int codePos ) {
-        stackManager.add( valueType, codePos );
         localVariables.use( valueType, idx );
         return new WasmLoadStoreInstruction( load, idx, localVariables, codePos );
     }
