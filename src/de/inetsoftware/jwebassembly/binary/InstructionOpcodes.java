@@ -352,4 +352,22 @@ interface InstructionOpcodes {
     static final int REF_NULL               = 0xD0;
 
     static final int REF_ISNULL             = 0xD1;
+
+    // === Non-trapping float-to-int conversions ====== https://github.com/WebAssembly/design/issues/1143
+
+    static final int I32_TRUNC_S_SAT_F32    = 0xFC00;
+
+    static final int I32_TRUNC_U_SAT_F32    = 0xFC01;
+
+    static final int I32_TRUNC_S_SAT_F64    = 0xFC02;
+
+    static final int I32_TRUNC_U_SAT_F64    = 0xFC03;
+
+    static final int I64_TRUNC_S_SAT_F32    = 0xFC04;
+
+    static final int I64_TRUNC_U_SAT_F32    = 0xFC05;
+
+    static final int I64_TRUNC_S_SAT_F64    = 0xFC06;
+
+    static final int I64_TRUNC_U_SAT_F64    = 0xFC07;
 }

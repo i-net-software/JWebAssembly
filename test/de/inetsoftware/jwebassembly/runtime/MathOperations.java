@@ -63,6 +63,7 @@ public class MathOperations extends AbstractBaseTest {
             addParam( list, script, "byteDec", (byte)-128 );
             addParam( list, script, "shortInc", (short)-32768 );
             addParam( list, script, "charOp", (char)0xFFFF );
+            addParam( list, script, "castNumberOverflow" );
         }
         return list;
     }
@@ -241,6 +242,51 @@ public class MathOperations extends AbstractBaseTest {
             a++;
             a += 60;
             return a;
+        }
+
+        @Export
+        static int castNumberOverflow() {
+            int result = 0;
+            float f = 2E30F;
+            double d = f;
+
+            int i = (int)f;
+            if( i == Integer.MAX_VALUE) {
+                result |= 0x1;
+            }
+            i = (int)-f;
+            if( i == Integer.MIN_VALUE) {
+                result |= 0x2;
+            }
+
+            long l = (long)f;
+            if( l == Long.MAX_VALUE) {
+                result |= 0x4;
+            }
+            l = (long)-f;
+            if( l == Long.MIN_VALUE) {
+                result |= 0x8;
+            }
+
+            i = (int)d;
+            if( i == Integer.MAX_VALUE) {
+                result |= 0x10;
+            }
+            i = (int)-d;
+            if( i == Integer.MIN_VALUE) {
+                result |= 0x20;
+            }
+
+            l = (long)d;
+            if( l == Long.MAX_VALUE) {
+                result |= 0x40;
+            }
+            l = (long)-d;
+            if( l == Long.MIN_VALUE) {
+                result |= 0x80;
+            }
+
+            return result;
         }
     }
 }

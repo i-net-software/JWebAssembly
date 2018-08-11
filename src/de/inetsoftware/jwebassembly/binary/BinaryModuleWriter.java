@@ -628,19 +628,19 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 op = F64_CONVERT_S_I64;
                 break;
             case f2i:
-                op = I32_TRUNC_S_F32;
+                op = I32_TRUNC_S_SAT_F32;
                 break;
             case f2l:
-                op = I64_TRUNC_S_F32;
+                op = I64_TRUNC_S_SAT_F32;
                 break;
             case f2d:
                 op = F64_PROMOTE_F32;
                 break;
             case d2i:
-                op = I32_TRUNC_S_F64;
+                op = I32_TRUNC_S_SAT_F64;
                 break;
             case d2l:
-                op = I64_TRUNC_S_F64;
+                op = I64_TRUNC_S_SAT_F64;
                 break;
             case d2f:
                 op = F32_DEMOTE_F64;
@@ -653,6 +653,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             default:
                 throw new Error( "Unknown cast: " + cast );
+        }
+        if( op > 255 ) {
+            codeStream.write( op >> 8 );
         }
         codeStream.write( op );
     }

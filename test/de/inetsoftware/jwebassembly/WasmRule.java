@@ -279,7 +279,7 @@ public class WasmRule extends TemporaryFolder {
                 command += "/bin/node";
             }
         }
-        return new ProcessBuilder( command, "--experimental-wasm-se", nodeScript.getAbsolutePath() );
+        return new ProcessBuilder( command, "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", nodeScript.getAbsolutePath() );
     }
 
     /**
