@@ -46,6 +46,21 @@ class WasmOutputStream extends FilterOutputStream {
     }
 
     /**
+     * Write a binary operation code.
+     * 
+     * @param op
+     *            a constant from {@link InstructionOpcodes}
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    public void writeOpCode( int op ) throws IOException {
+        if( op > 255 ) {
+            write( op >> 8 );
+        }
+        write( op );
+    }
+
+    /**
      * Write a integer little endian (ever 4 bytes)
      * 
      * @param value

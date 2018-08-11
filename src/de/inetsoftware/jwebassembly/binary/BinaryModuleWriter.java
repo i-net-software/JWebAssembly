@@ -26,7 +26,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
@@ -310,19 +309,19 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     protected void writeConst( Number value, ValueType valueType ) throws IOException {
         switch( valueType ) {
             case i32:
-                codeStream.write( I32_CONST );
+                codeStream.writeOpCode( I32_CONST );
                 codeStream.writeVarint( value.intValue() );
                 break;
             case i64:
-                codeStream.write( I64_CONST );
+                codeStream.writeOpCode( I64_CONST );
                 codeStream.writeVarint( value.longValue() );
                 break;
             case f32:
-                codeStream.write( F32_CONST );
+                codeStream.writeOpCode( F32_CONST );
                 codeStream.writeFloat( value.floatValue() );
                 break;
             case f64:
-                codeStream.write( F64_CONST );
+                codeStream.writeOpCode( F64_CONST );
                 codeStream.writeDouble( value.doubleValue() );
                 break;
             default:
@@ -335,7 +334,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeLoad( int idx ) throws IOException {
-        codeStream.write( GET_LOCAL );
+        codeStream.writeOpCode( GET_LOCAL );
         codeStream.writeVaruint32( idx );
     }
 
@@ -344,7 +343,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeStore( int idx ) throws IOException {
-        codeStream.write( SET_LOCAL );
+        codeStream.writeOpCode( SET_LOCAL );
         codeStream.writeVaruint32( idx );
     }
 
@@ -599,7 +598,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( op == 0 ) {
             throw new Error( valueType + "." + numOp );
         }
-        codeStream.write( op );
+        codeStream.writeOpCode( op );
     }
 
     /**
@@ -654,10 +653,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             default:
                 throw new Error( "Unknown cast: " + cast );
         }
-        if( op > 255 ) {
-            codeStream.write( op >> 8 );
-        }
-        codeStream.write( op );
+        codeStream.writeOpCode( op );
     }
 
     /**
@@ -677,7 +673,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 throw new WasmException( "Call to unknown function: " + name, null, -1 );
             }
         }
-        codeStream.write( CALL );
+        codeStream.writeOpCode( CALL );
         codeStream.writeVaruint32( id );
     }
 
@@ -688,35 +684,35 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     protected void writeBlockCode( @Nonnull WasmBlockOperator op, @Nullable Object data ) throws IOException {
         switch( op ) {
             case RETURN:
-                codeStream.write( RETURN );
+                codeStream.writeOpCode( RETURN );
                 break;
             case IF:
-                codeStream.write( IF );
+                codeStream.writeOpCode( IF );
                 codeStream.write( ((ValueType)data).getCode() );
                 break;
             case ELSE:
-                codeStream.write( ELSE );
+                codeStream.writeOpCode( ELSE );
                 break;
             case END:
-                codeStream.write( END );
+                codeStream.writeOpCode( END );
                 break;
             case DROP:
-                codeStream.write( DROP );
+                codeStream.writeOpCode( DROP );
                 break;
             case BLOCK:
-                codeStream.write( BLOCK );
+                codeStream.writeOpCode( BLOCK );
                 codeStream.write( ValueType.empty.getCode() ); // void; the return type of the block. currently we does not use it
                 break;
             case BR:
-                codeStream.write( BR );
+                codeStream.writeOpCode( BR );
                 codeStream.writeVaruint32( (Integer)data );
                 break;
             case BR_IF:
-                codeStream.write( BR_IF );
+                codeStream.writeOpCode( BR_IF );
                 codeStream.writeVaruint32( (Integer)data );
                 break;
             case BR_TABLE:
-                codeStream.write( BR_TABLE );
+                codeStream.writeOpCode( BR_TABLE );
                 int[] targets = (int[])data;
                 codeStream.writeVaruint32( targets.length - 1 );
                 for( int i : targets ) {
@@ -724,11 +720,11 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 }
                 break;
             case LOOP:
-                codeStream.write( LOOP );
+                codeStream.writeOpCode( LOOP );
                 codeStream.write( ValueType.empty.getCode() ); // void; the return type of the loop. currently we does not use it
                 break;
             case UNREACHABLE:
-                codeStream.write( UNREACHABLE );
+                codeStream.writeOpCode( UNREACHABLE );
                 break;
             default:
                 throw new Error( "Unknown block: " + op );
