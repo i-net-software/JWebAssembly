@@ -55,6 +55,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
+    private Map<String, Global>         globals             = new LinkedHashMap<>();
+
     private Map<String, String>         exports             = new LinkedHashMap<>();
 
     private Map<String, ImportFunction> imports             = new LinkedHashMap<>();
@@ -86,6 +88,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeTypeSection();
         writeImportSection();
         writeFunctionSection();
+        writeGlobalSection();
         writeExportSection();
         writeCodeSection();
 
@@ -160,6 +163,27 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 stream.writeVaruint32( func.typeId );
             }
             wasm.writeSection( SectionType.Function, stream, null );
+        }
+    }
+
+    /**
+     * Write the global section to the output. This section contains a declaring of global (static) variables.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeGlobalSection() throws IOException {
+        int count = globals.size();
+        if( count > 0 ) {
+            WasmOutputStream stream = new WasmOutputStream();
+            stream.writeVaruint32( count );
+            for( Global var : globals.values() ) {
+                stream.write( var.type.getCode() );
+                stream.write( var.mutability ? 1 : 0 );
+                writeConst( stream, 0, var.type );
+                stream.writeOpCode( END );
+            }
+            wasm.writeSection( SectionType.Global, stream, null );
         }
     }
 
@@ -307,6 +331,22 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeConst( Number value, ValueType valueType ) throws IOException {
+        writeConst( codeStream, value, valueType );
+    }
+
+    /**
+     * Write a constant number value
+     * 
+     * @param codeStream
+     *            the target stream
+     * @param value
+     *            the value
+     * @param valueType
+     *            the data type of the number
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private static void writeConst( WasmOutputStream codeStream, Number value, ValueType valueType ) throws IOException {
         switch( valueType ) {
             case i32:
                 codeStream.writeOpCode( I32_CONST );
