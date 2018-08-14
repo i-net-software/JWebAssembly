@@ -616,6 +616,8 @@ public class ModuleGenerator {
                         branchManager.addGotoOperator( codePos, offset, byteCode.getLineNumber() );
                         instr = new WasmNopInstruction( codePos ); // marker of the line number for the branch manager
                         break;
+                    //TODO case 168: // jsr
+                    //TODO case 169: // ret
                     case 170: // tableswitch
                     case 171: // lookupswitch
                         writeSwitchCode( byteCode, op == 171 );
@@ -665,13 +667,22 @@ public class ModuleGenerator {
                         instr = new WasmCallInstruction( ref, codePos );
                         break;
                     //TODO case 185: // invokeinterface
+                    //TODO case 186: // invokedynamic
                     //TODO case 187: // new
                     //TODO case 188: // newarray
                     //TODO case 189: // anewarray
                     //TODO case 190: // arraylength
                     //TODO case 191: // athrow
+                    //TODO case 192: // checkcast
+                    //TODO case 193: // instanceof
+                    //TODO case 194: // monitorenter
+                    //TODO case 195: // monitorexit
+                    //TODO case 196: // wide
                     //TODO case 197: // multianewarray
+                    //TODO case 198: // ifnull
                     //TODO case 199: // ifnonnull
+                    //TODO case 200: // goto_w
+                    //TODO case 201: // jsr_w
                     default:
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, byteCode.getLineNumber() );
                 }
