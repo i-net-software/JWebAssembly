@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package de.inetsoftware.jwebassembly.module;
+
+import de.inetsoftware.jwebassembly.WasmException;
 
 /**
  * @author Volker Berlin
@@ -49,4 +51,42 @@ public enum ValueType {
     public int getCode() {
         return code;
     }
+
+    /**
+     * Get the WebAssembly value type from a Java signature.
+     * 
+     * @param javaSignature
+     *            the signature
+     * @param idx
+     *            the index in the signature
+     * @return the value type or null if void
+     */
+    public static ValueType getValueType( String javaSignature, int idx ) {
+        String javaType;
+        switch( javaSignature.charAt( idx ) ) {
+            case '[': // array
+                javaType = "array";
+                break;
+            case 'L':
+                javaType = "object";
+                break;
+            case 'B': // byte
+            case 'C': // char
+            case 'S': // short
+            case 'I': // int
+                return ValueType.i32;
+            case 'D': // double
+                return ValueType.f64;
+            case 'F': // float
+                return ValueType.f32;
+            case 'J': // long
+                return ValueType.i64;
+            case 'V': // void
+                return null;
+            default:
+                javaType = javaSignature.substring( idx, idx + 1 );
+        }
+        throw new WasmException( "Not supported Java data type in method signature: " + javaType, null, -1 );
+    }
+
 }

@@ -46,7 +46,7 @@ class WasmCallInstruction extends WasmInstruction {
         super( javaCodePos );
         this.method = method;
         String signature = method.getType();
-        this.valueType = ModuleGenerator.getValueType(  signature, signature.indexOf( ')' ) + 1 );
+        this.valueType = ValueType.getValueType(  signature, signature.indexOf( ')' ) + 1 );
     }
 
     /**
@@ -77,7 +77,7 @@ class WasmCallInstruction extends WasmInstruction {
                 return paramCount;
             }
             paramCount++;
-            ModuleGenerator.getValueType(  signature, i );
+            ValueType.getValueType(  signature, i );
         }
         throw new Error(); 
     }

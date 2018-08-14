@@ -221,50 +221,13 @@ public class ModuleGenerator {
                 kind = "result";
                 continue;
             }
-            type = getValueType( signature, i );
+            type = ValueType.getValueType( signature, i );
             if( type != null ) {
                 writer.writeMethodParam( kind, type );
             }
         }
         this.returnType = type;
         writer.writeMethodParamFinish();
-    }
-
-    /**
-     * Get the WebAssembly value type from a Java signature.
-     * 
-     * @param signature
-     *            the signature
-     * @param idx
-     *            the index in the signature
-     * @return the value type or null if void
-     */
-    static ValueType getValueType( String signature, int idx ) {
-        String javaType;
-        switch( signature.charAt( idx ) ) {
-            case '[': // array
-                javaType = "array";
-                break;
-            case 'L':
-                javaType = "object";
-                break;
-            case 'B': // byte
-            case 'C': // char
-            case 'S': // short
-            case 'I': // int
-                return ValueType.i32;
-            case 'D': // double
-                return ValueType.f64;
-            case 'F': // float
-                return ValueType.f32;
-            case 'J': // long
-                return ValueType.i64;
-            case 'V': // void
-                return null;
-            default:
-                javaType = signature.substring( idx, idx + 1 );
-        }
-        throw new WasmException( "Not supported Java data type in method signature: " + javaType, null, -1 );
     }
 
     /**
@@ -693,8 +656,8 @@ public class ModuleGenerator {
                     //TODO case 183: // invokespecial
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
-                        ConstantRef method = (ConstantRef)constantPool.get( idx );
-                        instr = new WasmCallInstruction( method, codePos );
+                        ref = (ConstantRef)constantPool.get( idx );
+                        instr = new WasmCallInstruction( ref, codePos );
                         break;
                     //TODO case 185: // invokeinterface
                     //TODO case 187: // new
