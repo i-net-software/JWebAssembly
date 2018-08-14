@@ -23,10 +23,11 @@ import java.util.Collection;
  */
 public enum ScriptEngine {
     NodeJS,
-    SpiderMonkey;
+    SpiderMonkey,
+    NodeWast;
 
     public static Collection<ScriptEngine[]> testParams() {
-        ScriptEngine[][] val = {{ScriptEngine.SpiderMonkey},{ScriptEngine.NodeJS}};
+        ScriptEngine[][] val = {{ScriptEngine.SpiderMonkey},{ScriptEngine.NodeJS},{ScriptEngine.NodeWast}};
         return Arrays.asList(val);
     }
 }
