@@ -41,8 +41,6 @@ public class ModuleGenerator {
 
     private final ModuleWriter          writer;
 
-    private int                         paramCount;
-
     private ValueType                   returnType;
 
     private LocaleVariableManager       localVariables = new LocaleVariableManager();
@@ -157,7 +155,6 @@ public class ModuleGenerator {
                 FunctionName name = new FunctionName( method );
                 writeExport( name, method );
                 writer.writeMethodStart( name );
-                writeMethodSignature( method );
 
                 localVariables.reset();
                 branchManager.reset();
@@ -165,11 +162,12 @@ public class ModuleGenerator {
                 byteCode = code.getByteCode();
                 writeCode( byteCode, method.getConstantPool() );
                 localVariables.calculate();
+                writeMethodSignature( method );
 
                 for( WasmInstruction instruction : instructions ) {
                     instruction.writeTo( writer );
                 }
-                writer.writeMethodFinish( localVariables.getLocalTypes( paramCount ) );
+                writer.writeMethodFinish();
             }
         } catch( Exception ioex ) {
             int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
@@ -215,11 +213,12 @@ public class ModuleGenerator {
         int paramCount = 0;
         ValueType type = null;
         for( int i = 1; i < signature.length(); i++ ) {
-            paramCount++;
             if( signature.charAt( i ) == ')' ) {
-                this.paramCount = paramCount - 1;
                 kind = "result";
                 continue;
+            }
+            if( kind == "param" ) {
+                paramCount++;
             }
             type = ValueType.getValueType( signature, i );
             if( type != null ) {
@@ -227,7 +226,7 @@ public class ModuleGenerator {
             }
         }
         this.returnType = type;
-        writer.writeMethodParamFinish();
+        writer.writeMethodParamFinish( localVariables.getLocalTypes( paramCount ) );
     }
 
     /**

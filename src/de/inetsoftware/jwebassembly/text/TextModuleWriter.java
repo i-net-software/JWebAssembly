@@ -98,11 +98,11 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodStart( FunctionName name ) throws IOException {
-        newline( output );
-        output.append( "(func $" );
-        output.append( name.fullName );
-        inset++;
         methodOutput.setLength( 0 );
+        newline( methodOutput );
+        methodOutput.append( "(func $" );
+        methodOutput.append( name.fullName );
+        inset++;
     }
 
     /**
@@ -110,17 +110,21 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodParam( String kind, ValueType valueType ) throws IOException {
-        output.append( " (" ).append( kind ).append( ' ' ).append( valueType.toString() ).append( ')' );
+        methodOutput.append( " (" ).append( kind ).append( ' ' ).append( valueType.toString() ).append( ')' );
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamFinish() throws IOException {
+    protected void writeMethodParamFinish( List<ValueType> locals ) throws IOException {
         if( isImport ) {
             isImport = false;
             output.append( "))" );
+        } else {
+            for( ValueType valueType : locals ) {
+                methodOutput.append( " (local " ).append( valueType.toString() ).append( ')' );
+            }
         }
     }
 
@@ -128,10 +132,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
-        for( ValueType valueType : locals ) {
-            output.append( " (local " ).append( valueType.toString() ).append( ')' );
-        }
+    protected void writeMethodFinish() throws IOException {
         output.append( methodOutput );
         inset--;
         newline( output );
@@ -174,11 +175,11 @@ public class TextModuleWriter extends ModuleWriter {
             // declare global variable if not already declared.
             output.append( "\n  " );
             String type = ValueType.getValueType( ref.getType(), 0 ).toString();
-            output.append( "(global $" ).append( name.fullName ).append( type ).append( ' ' ).append( type ).append( ".const 0)" );
+            output.append( "(global $" ).append( name.fullName ).append( " (mut " ).append( type ).append( ") " ).append( type ).append( ".const 0)" );
             globals.add( name.fullName );
         }
         newline( methodOutput );
-        methodOutput.append( load ? "get_local " : "set_local " ).append( name.fullName );
+        methodOutput.append( load ? "get_global $" : "set_global $" ).append( name.fullName );
     }
 
     /**

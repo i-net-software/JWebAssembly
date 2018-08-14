@@ -56,6 +56,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
+    private List<ValueType>             locals;
+
     private Map<String, Global>         globals             = new LinkedHashMap<>();
 
     private Map<String, String>         exports             = new LinkedHashMap<>();
@@ -301,20 +303,21 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamFinish() throws IOException {
+    protected void writeMethodParamFinish( List<ValueType> locals ) throws IOException {
         int typeId = functionTypes.indexOf( functionType );
         if( typeId < 0 ) {
             typeId = functionTypes.size();
             functionTypes.add( functionType );
         }
         function.typeId = typeId;
+        this.locals = locals;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodFinish( List<ValueType> locals ) throws IOException {
+    protected void writeMethodFinish() throws IOException {
         WasmOutputStream localsStream = new WasmOutputStream();
         localsStream.writeVaruint32( locals.size() );
         for( ValueType valueType : locals ) {

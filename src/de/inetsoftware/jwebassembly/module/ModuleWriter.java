@@ -98,21 +98,22 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Finish the function parameter.
      * 
+     * @param locals
+     *            a list with types of local variables
+     * 
+     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodParamFinish() throws IOException;
+    protected abstract void writeMethodParamFinish( List<ValueType> locals ) throws IOException;
 
     /**
      * Complete the method
      * 
-     * @param locals
-     *            a list with types of local variables
-     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodFinish( List<ValueType> locals ) throws IOException;
+    protected abstract void writeMethodFinish( ) throws IOException;
 
     /**
      * Write a constant number value
