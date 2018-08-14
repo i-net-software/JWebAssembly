@@ -64,9 +64,9 @@ class WasmNumericInstruction extends WasmInstruction {
             case eq:
             case ne:
             case gt:
-            case lt_s:
-            case le_s:
-            case ge_s:
+            case lt:
+            case le:
+            case ge:
                 return null;
             default:
                 return valueType;

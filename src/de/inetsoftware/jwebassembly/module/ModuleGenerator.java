@@ -581,16 +581,16 @@ public class ModuleGenerator {
                         opIfCondition( NumericOperator.ne, byteCode, codePos );
                         break;
                     case 155: // iflt
-                        opIfCondition( NumericOperator.lt_s, byteCode, codePos );
+                        opIfCondition( NumericOperator.lt, byteCode, codePos );
                         break;
                     case 156: // ifge
-                        opIfCondition( NumericOperator.ge_s, byteCode, codePos );
+                        opIfCondition( NumericOperator.ge, byteCode, codePos );
                         break;
                     case 157: // ifgt
                         opIfCondition( NumericOperator.gt, byteCode, codePos );
                         break;
                     case 158: // ifle
-                        opIfCondition( NumericOperator.le_s, byteCode, codePos );
+                        opIfCondition( NumericOperator.le, byteCode, codePos );
                         break;
                     case 159: // if_icmpeq
                         opIfCompareCondition( NumericOperator.eq, byteCode, codePos );
@@ -599,16 +599,16 @@ public class ModuleGenerator {
                         opIfCompareCondition( NumericOperator.ne, byteCode, codePos );
                         break;
                     case 161: // if_icmplt
-                        opIfCompareCondition( NumericOperator.lt_s, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.lt, byteCode, codePos );
                         break;
                     case 162: // if_icmpge
-                        opIfCompareCondition( NumericOperator.ge_s, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.ge, byteCode, codePos );
                         break;
                     case 163: // if_icmpgt
                         opIfCompareCondition( NumericOperator.gt, byteCode, codePos );
                         break;
                     case 164: // if_icmple
-                        opIfCompareCondition( NumericOperator.le_s, byteCode, codePos );
+                        opIfCompareCondition( NumericOperator.le, byteCode, codePos );
                         break;
                     //TODO case 165: // if_acmpeq
                     //TODO case 166: // if_acmpne
@@ -903,16 +903,16 @@ public class ModuleGenerator {
                 numOp = NumericOperator.ne;
                 break;
             case 155: // iflt
-                numOp = NumericOperator.lt_s;
+                numOp = NumericOperator.lt;
                 break;
             case 156: // ifge
-                numOp = NumericOperator.ge_s;
+                numOp = NumericOperator.ge;
                 break;
             case 157: // ifgt
                 numOp = NumericOperator.gt;
                 break;
             case 158: // ifle
-                numOp = NumericOperator.le_s;
+                numOp = NumericOperator.le;
                 break;
             default:
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );

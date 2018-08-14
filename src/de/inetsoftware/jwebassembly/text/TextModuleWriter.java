@@ -194,6 +194,10 @@ public class TextModuleWriter extends ModuleWriter {
                 switch( numOp ) {
                     case div:
                     case rem:
+                    case gt:
+                    case lt:
+                    case le:
+                    case ge:
                         op += "_s";
                 }
         }

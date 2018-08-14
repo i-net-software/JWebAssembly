@@ -646,16 +646,16 @@ class BranchManger {
                     newOp = NumericOperator.eq;
                     break;
                 case gt:
-                    newOp = NumericOperator.le_s;
+                    newOp = NumericOperator.le;
                     break;
-                case lt_s:
-                    newOp = NumericOperator.ge_s;
+                case lt:
+                    newOp = NumericOperator.ge;
                     break;
-                case le_s:
+                case le:
                     newOp = NumericOperator.gt;
                     break;
-                case ge_s:
-                    newOp = NumericOperator.lt_s;
+                case ge:
+                    newOp = NumericOperator.lt;
                     break;
                 default:
                     throw new WasmException( "Not a compare operation: " + instr.numOp, null, lineNumber );

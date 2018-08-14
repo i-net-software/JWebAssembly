@@ -605,7 +605,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
-            case lt_s:
+            case lt:
                 switch( valueType ) {
                     case i32:
                         op = I32_LT_S;
@@ -621,7 +621,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
-            case le_s:
+            case le:
                 switch( valueType ) {
                     case i32:
                         op = I32_LE_S;
@@ -637,7 +637,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
-            case ge_s:
+            case ge:
                 switch( valueType ) {
                     case i32:
                         op = I32_GE_S;
