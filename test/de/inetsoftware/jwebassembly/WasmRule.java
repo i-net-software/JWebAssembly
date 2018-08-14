@@ -111,7 +111,7 @@ public class WasmRule extends TemporaryFolder {
             spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
             nodeWastScript = createScript( "WastTest.js" );
 
-            ProcessBuilder processBuilder = IS_WINDOWS ? new ProcessBuilder( "cmd", "/C", "npm", "install", "wabt@nightly" ) : new ProcessBuilder( "cmd", "/C", "npm", "install", "wabt@nightly" );
+            ProcessBuilder processBuilder = IS_WINDOWS ? new ProcessBuilder( "cmd", "/C", "npm", "install", "wabt@nightly" ) : new ProcessBuilder( "npm", "install", "wabt@nightly" );
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
