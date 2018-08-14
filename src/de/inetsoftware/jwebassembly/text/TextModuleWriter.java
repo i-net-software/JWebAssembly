@@ -187,7 +187,17 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeNumericOperator( NumericOperator numOp, @Nullable ValueType valueType ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( valueType ).append( '.' ).append( numOp );
+        String op = numOp.toString();
+        switch( valueType ) {
+            case i32:
+            case i64:
+                switch( numOp ) {
+                    case div:
+                    case rem:
+                        op += "_s";
+                }
+        }
+        methodOutput.append( valueType ).append( '.' ).append( op );
     }
 
     /**
