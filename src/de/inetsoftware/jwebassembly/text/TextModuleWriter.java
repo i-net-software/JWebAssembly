@@ -16,11 +16,13 @@
 package de.inetsoftware.jwebassembly.text;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
@@ -36,11 +38,13 @@ import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
  */
 public class TextModuleWriter extends ModuleWriter {
 
-    private Appendable output;
+    private Appendable      output;
 
-    private StringBuilder methodOutput = new StringBuilder();
+    private StringBuilder   methodOutput = new StringBuilder();
 
-    private int        inset;
+    private int             inset;
+
+    private HashSet<String> globals      = new HashSet<>();
 
     /**
      * Create a new instance.
@@ -151,6 +155,22 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeStore( int idx ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "set_local " ).append( Integer.toString( idx ) );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeGlobalAccess( boolean load, FunctionName name, ConstantRef ref ) throws IOException {
+        if( !globals.contains( name.fullName ) ) {
+            // declare global variable if not already declared.
+            output.append( "\n  " );
+            String type = ValueType.getValueType( ref.getType(), 0 ).toString();
+            output.append( "(global $" ).append( name.fullName ).append( type ).append( ' ' ).append( type ).append( ".const 0)" );
+            globals.add( name.fullName );
+        }
+        newline( methodOutput );
+        methodOutput.append( load ? "get_local " : "set_local " ).append( name.fullName );
     }
 
     /**

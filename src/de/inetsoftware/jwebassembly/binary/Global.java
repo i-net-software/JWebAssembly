@@ -24,6 +24,8 @@ import de.inetsoftware.jwebassembly.module.ValueType;
  */
 class Global {
 
+    int id;
+
     ValueType type;
 
     boolean mutability;

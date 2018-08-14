@@ -22,6 +22,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.ConstantRef;
+
 /**
  * Module Writer base class.
  * 
@@ -143,6 +145,21 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeStore( int idx ) throws IOException;
+
+    /**
+     * Write a set_global variable
+     * @param load
+     *            true: if load or GET
+     * @param name
+     *            the variable name
+     * @param ref
+     *            the definition of the variable
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeGlobalAccess( boolean load, FunctionName name, ConstantRef ref ) throws IOException;
+
 
     /**
      * Write a add operator

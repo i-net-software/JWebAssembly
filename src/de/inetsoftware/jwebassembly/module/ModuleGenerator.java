@@ -648,8 +648,14 @@ public class ModuleGenerator {
                         instr = new WasmBlockInstruction( WasmBlockOperator.RETURN, type, codePos );
                         endWithReturn = true;
                         break;
-                    //TODO case 178: // getstatic
-                    //TODO case 179: // putstatic
+                    case 178: // getstatic
+                        ConstantRef ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
+                        instr = new WasmGlobalInstruction( true, ref, codePos );
+                        break;
+                    case 179: // putstatic
+                        ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
+                        instr = new WasmGlobalInstruction( false, ref, codePos );
+                        break;
                     //TODO case 180: // getfield
                     //TODO case 181: // putfield
                     //TODO case 182: // invokevirtual
