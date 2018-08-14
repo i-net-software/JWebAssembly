@@ -44,6 +44,8 @@ public class TextModuleWriter extends ModuleWriter {
 
     private int             inset;
 
+    private boolean         isImport;
+
     private HashSet<String> globals      = new HashSet<>();
 
     /**
@@ -77,7 +79,8 @@ public class TextModuleWriter extends ModuleWriter {
     protected void prepareImport( FunctionName name, String importModule, String importName ) throws IOException {
         if( importName != null ) {
             newline( output );
-            output.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( name.fullName ).append( "))" );
+            output.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( name.fullName );
+            isImport = true;
         }
     }
 
@@ -114,7 +117,12 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamFinish() throws IOException {}
+    protected void writeMethodParamFinish() throws IOException {
+        if( isImport ) {
+            isImport = false;
+            output.append( "))" );
+        }
+    }
 
     /**
      * {@inheritDoc}
