@@ -1,7 +1,17 @@
-# Use docker-based build environment (instead of openvz)
-sudo: false
-
 language: java
-jdk:
-  - oraclejdk8
-script: gradle check
+
+deploy:
+  # deploy to Github
+  provider: releases
+  api_key:
+    secure: SJ3TuoiZf5y3RCHJCkNrrbD4zkvBYhgZwBvRaq1lh7N0RjKfdcO9yD6OMwleCyu/5Ecvt8jRCJOgEDLNb5+IuaLmlnAoPhsgKCbybSm7HhvS4p7BrP0xHniuGazHPF/qbu0Kcs/sWHciJM/Ti/wxmmStVqIkEkcpOUiY84L3iJ5vgsKh7sU88rTf+BkjtUZ98QN7YI9/NnSLmvDuR6PheeIgGZwOCXhFjENpxyfpxhF5QQzwgOSJIqM7uIntsehuiZrcCF5kT7OZEVjkzI+cxD1dlrE3S6ZF2MFuGmjHlkCw/+Wibtjz34Ta2LqOLOYLHr2tkjGBDoFnzv/xqouQXVZHLyBfdhLzcQdFrYap9qGit0OPh1PsdCUo+AdBwHZNDWASMHiL+QkNZA4VSLPMMnL2mktd8QwGGhbBNt2AwXNje+bsESVeWwUsooXgAKgHzzcXcfxmf0yGZNc8eLb1h60QWYMDWSs30DsOJshmtzOqVJ0tAVZVNPMsVqL19lP+Qb22i3ZRlSEEiD/1UqX7qJuZ7a5lYQX7HvjoVkPBRNCxKAUEMfFDf9km07pAXsMSp8hSRbmwexLMuhQiWaCyGX1G3iTTq5xrBxdwwS/CG0zhyqSYuLJ1LP5N4Uh5ff+EK4s7ZiT4eY7F8WOa6fpx0yvihhc5CIUYpEwkqjVN+I4=
+  file_glob: true
+  file: "./build/libs/jwebassembly-compiler-*.jar"
+  skip_cleanup: true
+  overwrite: true
+  on:
+    repo: i-net-software/JWebAssembly
+    tags: true
+
+after_deploy:
+  - gradle bintrayUpload
