@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -113,6 +114,9 @@ public class WasmRule extends TemporaryFolder {
 
             ProcessBuilder processBuilder = IS_WINDOWS ? new ProcessBuilder( "cmd", "/C", "npm", "install", "wabt@nightly" ) : new ProcessBuilder( "npm", "install", "wabt@nightly" );
             processBuilder.directory( getRoot() );
+            processBuilder.redirectOutput( Redirect.INHERIT );
+            processBuilder.redirectError( Redirect.INHERIT );
+            System.out.println( String.join( " ", processBuilder.command() ) );
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
             if( exitCode != 0 ) {
