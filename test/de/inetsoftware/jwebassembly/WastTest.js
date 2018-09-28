@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var nodeFS = require('fs');
-var wabt = require("wabt");
+var wabt = require("wabt")();
 
 var filename = '{test.wast}';
 var text = nodeFS['readFileSync'](filename, "utf8");
