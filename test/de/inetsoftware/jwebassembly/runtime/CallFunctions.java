@@ -54,6 +54,7 @@ public class CallFunctions extends AbstractBaseTest {
         static int intCall() {
             intConst();
             doubleConst();
+            emptyMethod();
             return abc( 4,5) + intConst() * 100;
         }
 
@@ -63,6 +64,10 @@ public class CallFunctions extends AbstractBaseTest {
 
         static double doubleConst() {
             return 3.5;
+        }
+
+        static void emptyMethod() {
+
         }
 
         @Import( module = "global.Math", name = "max" )
