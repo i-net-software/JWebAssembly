@@ -15,6 +15,7 @@ Status of the project
 * Java byte code parser
 * test framework
 * Public API of the Compiler
+* [Gradle Plugin](https://github.com/i-net-software/JWebAssembly-Gradle)
 
 ### Partially Finished
 * Binary format file writer (145 of 201 byte code instructions)
@@ -24,9 +25,7 @@ Status of the project
 * Support for native methods [#2](https://github.com/i-net-software/JWebAssembly/issues/2)
 * Exception handling - required the next version of WebAssembly
 * Multiple threads - required the next version of WebAssembly
-* Memory Management - required the next version of WebAssembly
-* Gradle plugin to easy integrate it in the build process
-* Eclipse build command to see compiler errors in in the IDE. 
+* Memory Management - required the next version of WebAssembly with GC
 
 Required Java Version
 ----
