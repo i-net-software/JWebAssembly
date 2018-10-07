@@ -6,7 +6,8 @@ var wabt = require("wabt")();
 var filename = '{test.wast}';
 var text = nodeFS['readFileSync'](filename, "utf8");
 
-var ret = wabt.parseWat(filename, text);
+var features = {'sat_float_to_int':true, 'sign_extension':true};
+var ret = wabt.parseWat(filename, text, features);
 ret = ret.toBinary({}).buffer;
 
 function instantiate(bytes, imports) {
