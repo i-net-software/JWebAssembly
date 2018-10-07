@@ -259,7 +259,7 @@ public class WasmRule extends TemporaryFolder {
             String result = readStream( process.getInputStream() ).trim();
             if( exitCode != 0 ) {
                 String errorMessage = readStream( process.getErrorStream() );
-                assertEquals( errorMessage, 0, exitCode );
+                assertEquals( result + '\n' + errorMessage, 0, exitCode );
             }
             return result;
         } catch( Throwable ex ) {
