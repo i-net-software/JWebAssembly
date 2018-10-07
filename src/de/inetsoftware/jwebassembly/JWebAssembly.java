@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -41,7 +42,9 @@ import de.inetsoftware.jwebassembly.text.TextModuleWriter;
  */
 public class JWebAssembly {
 
-    private List<URL> classFiles = new ArrayList<>();
+    private final List<URL>               classFiles = new ArrayList<>();
+
+    private final HashMap<String, String> properties = new HashMap<>();
 
     /**
      * Create a instance.
@@ -71,6 +74,29 @@ public class JWebAssembly {
      */
     public void addFile( @Nonnull URL classFile ) {
         classFiles.add( classFile );
+    }
+
+    /**
+     * Set property to control the behavior of the compiler
+     * 
+     * @param key
+     *            the key
+     * @param value
+     *            the new value
+     */
+    public void setProperty( String key, String value ) {
+        properties.put( key, value );
+    }
+
+    /**
+     * Get the value of a property.
+     * 
+     * @param key
+     *            the key
+     * @return the current value
+     */
+    public String getProperty( String key ) {
+        return properties.get( key );
     }
 
     /**
