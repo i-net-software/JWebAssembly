@@ -15,6 +15,8 @@
  */
 package de.inetsoftware.jwebassembly.binary;
 
+import java.io.IOException;
+
 import de.inetsoftware.jwebassembly.module.ValueType;
 
 /**
@@ -22,11 +24,22 @@ import de.inetsoftware.jwebassembly.module.ValueType;
  * 
  * @author Volker Berlin
  */
-class Global {
+class Global extends SectionEntry {
 
     int id;
 
     ValueType type;
 
     boolean mutability;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void writeSectionEntry( WasmOutputStream stream ) throws IOException {
+        stream.write( this.type.getCode() );
+        stream.write( this.mutability ? 1 : 0 );
+        stream.writeConst( 0, this.type );
+        stream.writeOpCode( InstructionOpcodes.END );
+    }
 }

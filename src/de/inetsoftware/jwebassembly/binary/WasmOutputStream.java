@@ -23,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nonnegative;
 
+import de.inetsoftware.jwebassembly.module.ValueType;
+
 /**
  * @author Volker Berlin
  */
@@ -145,6 +147,39 @@ class WasmOutputStream extends FilterOutputStream {
         long l = Double.doubleToLongBits(value);
         writeInt32( (int)l );
         writeInt32( (int)(l >>> 32) );
+    }
+
+    /**
+     * Write a constant number value
+     * 
+     * @param value
+     *            the value
+     * @param valueType
+     *            the data type of the number
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    void writeConst( Number value, ValueType valueType ) throws IOException {
+        switch( valueType ) {
+            case i32:
+                this.writeOpCode( InstructionOpcodes.I32_CONST );
+                this.writeVarint( value.intValue() );
+                break;
+            case i64:
+                this.writeOpCode( InstructionOpcodes.I64_CONST );
+                this.writeVarint( value.longValue() );
+                break;
+            case f32:
+                this.writeOpCode( InstructionOpcodes.F32_CONST );
+                this.writeFloat( value.floatValue() );
+                break;
+            case f64:
+                this.writeOpCode( InstructionOpcodes.F64_CONST );
+                this.writeDouble( value.doubleValue() );
+                break;
+            default:
+                throw new Error( valueType + " " + value );
+        }
     }
 
     /**

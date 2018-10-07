@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,10 +89,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         wasm.write( WASM_BINARY_MAGIC );
         wasm.writeInt32( WASM_BINARY_VERSION );
 
-        writeTypeSection();
-        writeImportSection();
-        writeFunctionSection();
-        writeGlobalSection();
+        writeSection( SectionType.Type, functionTypes );
+        writeSection( SectionType.Import, imports.values() );
+        writeSection( SectionType.Function, functions.values() );
+        writeSection( SectionType.Global, globals.values() );
         writeExportSection();
         writeCodeSection();
 
@@ -99,94 +100,24 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     }
 
     /**
-     * Write the type section to the output. This section contains the signatures of the functions.
+     * Write a section with list format to the output.
      * 
+     * @param type
+     *            the type of the section
+     * @param entries
+     *            the entries of the section
      * @throws IOException
      *             if any I/O error occur
      */
-    private void writeTypeSection() throws IOException {
-        int count = functionTypes.size();
+    private void writeSection( SectionType type, Collection<? extends SectionEntry> entries ) throws IOException {
+        int count = entries.size();
         if( count > 0 ) {
             WasmOutputStream stream = new WasmOutputStream();
             stream.writeVaruint32( count );
-            for( FunctionType type : functionTypes ) {
-                stream.write( ValueType.func.getCode() );
-                stream.writeVaruint32( type.params.size() );
-                for( ValueType valueType : type.params ) {
-                    stream.write( valueType.getCode() );
-                }
-                if( type.result == null ) {
-                    stream.writeVaruint32( 0 );
-                } else {
-                    stream.writeVaruint32( 1 );
-                    stream.write( type.result.getCode() );
-                }
+            for( SectionEntry entry : entries ) {
+                entry.writeSectionEntry( stream );
             }
-            wasm.writeSection( SectionType.Type, stream, null );
-        }
-    }
-
-    /**
-     * Write the import section to the output. This section declare all imports.
-     * 
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void writeImportSection() throws IOException {
-        int count = imports.size();
-        if( count > 0 ) {
-            WasmOutputStream stream = new WasmOutputStream();
-            stream.writeVaruint32( count );
-            for( ImportFunction importFunction : imports.values() ) {
-                byte[] bytes = importFunction.module.getBytes( StandardCharsets.UTF_8 );
-                stream.writeVaruint32( bytes.length );
-                stream.write( bytes );
-                bytes = importFunction.name.getBytes( StandardCharsets.UTF_8 );
-                stream.writeVaruint32( bytes.length );
-                stream.write( bytes );
-                stream.writeVaruint32( ExternalKind.Function.ordinal() );
-                stream.writeVaruint32( importFunction.typeId );
-            }
-            wasm.writeSection( SectionType.Import, stream, null );
-        }
-    }
-
-    /**
-     * Write the function section to the output. This section contains a mapping from the function index to the type signature index.
-     * 
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void writeFunctionSection() throws IOException {
-        int count = functions.size();
-        if( count > 0 ) {
-            WasmOutputStream stream = new WasmOutputStream();
-            stream.writeVaruint32( count );
-            for( Function func : functions.values() ) {
-                stream.writeVaruint32( func.typeId );
-            }
-            wasm.writeSection( SectionType.Function, stream, null );
-        }
-    }
-
-    /**
-     * Write the global section to the output. This section contains a declaring of global (static) variables.
-     * 
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void writeGlobalSection() throws IOException {
-        int count = globals.size();
-        if( count > 0 ) {
-            WasmOutputStream stream = new WasmOutputStream();
-            stream.writeVaruint32( count );
-            for( Global var : globals.values() ) {
-                stream.write( var.type.getCode() );
-                stream.write( var.mutability ? 1 : 0 );
-                writeConst( stream, 0, var.type );
-                stream.writeOpCode( END );
-            }
-            wasm.writeSection( SectionType.Global, stream, null );
+            wasm.writeSection( type, stream, null );
         }
     }
 
@@ -335,42 +266,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeConst( Number value, ValueType valueType ) throws IOException {
-        writeConst( codeStream, value, valueType );
-    }
-
-    /**
-     * Write a constant number value
-     * 
-     * @param codeStream
-     *            the target stream
-     * @param value
-     *            the value
-     * @param valueType
-     *            the data type of the number
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private static void writeConst( WasmOutputStream codeStream, Number value, ValueType valueType ) throws IOException {
-        switch( valueType ) {
-            case i32:
-                codeStream.writeOpCode( I32_CONST );
-                codeStream.writeVarint( value.intValue() );
-                break;
-            case i64:
-                codeStream.writeOpCode( I64_CONST );
-                codeStream.writeVarint( value.longValue() );
-                break;
-            case f32:
-                codeStream.writeOpCode( F32_CONST );
-                codeStream.writeFloat( value.floatValue() );
-                break;
-            case f64:
-                codeStream.writeOpCode( F64_CONST );
-                codeStream.writeDouble( value.doubleValue() );
-                break;
-            default:
-                throw new Error( valueType + " " + value );
-        }
+        codeStream.writeConst( value, valueType );
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.binary;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,11 +27,29 @@ import de.inetsoftware.jwebassembly.module.ValueType;
  * 
  * @author Volker Berlin
  */
-class FunctionType {
+class FunctionType extends SectionEntry {
 
     final List<ValueType> params = new ArrayList<>();
 
     ValueType             result;                    // Java has only one return parameter
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void writeSectionEntry( WasmOutputStream stream ) throws IOException {
+        stream.write( ValueType.func.getCode() );
+        stream.writeVaruint32( this.params.size() );
+        for( ValueType valueType : this.params ) {
+            stream.write( valueType.getCode() );
+        }
+        if( this.result == null ) {
+            stream.writeVaruint32( 0 );
+        } else {
+            stream.writeVaruint32( 1 );
+            stream.write( this.result.getCode() );
+        }
+    }
 
     /**
      * {@inheritDoc}

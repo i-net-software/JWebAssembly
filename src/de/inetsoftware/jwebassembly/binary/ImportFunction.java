@@ -15,6 +15,9 @@
  */
 package de.inetsoftware.jwebassembly.binary;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 /**
  * An entry in the import section of the WebAssembly.
  * 
@@ -29,5 +32,20 @@ class ImportFunction extends Function {
     ImportFunction( String module, String name ) {
         this.module = module;
         this.name = name;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void writeSectionEntry( WasmOutputStream stream ) throws IOException {
+        byte[] bytes = this.module.getBytes( StandardCharsets.UTF_8 );
+        stream.writeVaruint32( bytes.length );
+        stream.write( bytes );
+        bytes = this.name.getBytes( StandardCharsets.UTF_8 );
+        stream.writeVaruint32( bytes.length );
+        stream.write( bytes );
+        stream.writeVaruint32( ExternalKind.Function.ordinal() );
+        stream.writeVaruint32( this.typeId );
     }
 }

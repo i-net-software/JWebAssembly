@@ -15,15 +15,24 @@
  */
 package de.inetsoftware.jwebassembly.binary;
 
+import java.io.IOException;
+
 /**
  * An entry in the function section of the WebAssembly.
  * 
  * @author Volker Berlin
  */
-class Function {
+class Function extends SectionEntry {
 
     int id;
 
     int typeId;
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void writeSectionEntry( WasmOutputStream stream ) throws IOException {
+        stream.writeVaruint32( this.typeId );
+    }
 }
