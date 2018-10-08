@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
@@ -48,6 +50,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     private static final int            WASM_BINARY_VERSION = 1;
 
     private WasmOutputStream            wasm;
+
+    private final boolean               debugNames;
 
     private WasmOutputStream            codeStream          = new WasmOutputStream();
 
@@ -74,11 +78,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * 
      * @param output
      *            the target for the module data.
+     * @param properties
+     *            compiler properties
      * @throws IOException
      *             if any I/O error occur
      */
-    public BinaryModuleWriter( OutputStream output ) throws IOException {
+    public BinaryModuleWriter( OutputStream output, HashMap<String, String> properties ) throws IOException {
         wasm = new WasmOutputStream( output );
+        debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
     }
 
     /**

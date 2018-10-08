@@ -48,6 +48,8 @@ public class JWebAssembly {
 
     private final HashMap<String, String> properties = new HashMap<>();
 
+    public static final String DEBUG_NAMES = "DebugNames";
+
     /**
      * Create a instance.
      */
@@ -123,8 +125,8 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     public void compileToText( File file ) throws WasmException {
-        try (TextModuleWriter writer = new TextModuleWriter( new OutputStreamWriter( new FileOutputStream( file ), StandardCharsets.UTF_8 ) )) {
-            compile( writer );
+        try (OutputStreamWriter output = new OutputStreamWriter( new FileOutputStream( file ), StandardCharsets.UTF_8 )) {
+            compileToText( output );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
         }
@@ -139,7 +141,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     public void compileToText( Appendable output ) throws WasmException {
-        try (TextModuleWriter writer = new TextModuleWriter( output )) {
+        try (TextModuleWriter writer = new TextModuleWriter( output, properties )) {
             compile( writer );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
@@ -184,7 +186,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     public void compileToBinary( OutputStream output ) throws WasmException {
-        try (BinaryModuleWriter writer = new BinaryModuleWriter( output )) {
+        try (BinaryModuleWriter writer = new BinaryModuleWriter( output, properties )) {
             compile( writer );
         } catch( Exception ex ) {
             throw WasmException.create( ex );

@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.text;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -53,10 +54,12 @@ public class TextModuleWriter extends ModuleWriter {
      * 
      * @param output
      *            target for the result
+     * @param properties
+     *            compiler properties
      * @throws IOException
      *             if any I/O error occur
      */
-    public TextModuleWriter( Appendable output ) throws IOException {
+    public TextModuleWriter( Appendable output, HashMap<String, String> properties ) throws IOException {
         this.output = output;
         output.append( "(module" );
         inset++;
