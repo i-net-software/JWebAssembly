@@ -21,8 +21,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -110,6 +112,22 @@ public class JWebAssembly {
         StringBuilder output = new StringBuilder();
         compileToText( output );
         return output.toString();
+    }
+
+    /**
+     * Convert the added files to a WebAssembly module in text representation.
+     * 
+     * @param file
+     *            the target for the module data
+     * @throws WasmException
+     *             if any conversion error occurs
+     */
+    public void compileToText( File file ) throws WasmException {
+        try (TextModuleWriter writer = new TextModuleWriter( new OutputStreamWriter( new FileOutputStream( file ), StandardCharsets.UTF_8 ) )) {
+            compile( writer );
+        } catch( Exception ex ) {
+            throw WasmException.create( ex );
+        }
     }
 
     /**
