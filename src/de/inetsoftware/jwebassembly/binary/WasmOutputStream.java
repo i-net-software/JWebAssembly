@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.module.ValueType;
 
@@ -183,6 +184,20 @@ class WasmOutputStream extends FilterOutputStream {
     }
 
     /**
+     * Write a string as UTF8 encoded.
+     * 
+     * @param str
+     *            the string
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    void writeString( @Nonnull String str ) throws IOException {
+        byte[] bytes = str.getBytes( StandardCharsets.UTF_8 );
+        writeVaruint32( bytes.length );
+        write( bytes );
+    }
+
+    /**
      * Write a section with header and data.
      * 
      * @param type
@@ -203,9 +218,7 @@ class WasmOutputStream extends FilterOutputStream {
         writeVaruint32( type.ordinal() );
         writeVaruint32( size );
         if( type == SectionType.Custom ) {
-            byte[] bytes = name.getBytes( StandardCharsets.UTF_8 );
-            writeVaruint32( bytes.length );
-            write( bytes );
+            writeString( name );
         }
         baos.writeTo( this );
     }
