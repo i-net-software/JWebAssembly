@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -102,6 +103,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeSection( SectionType.Global, globals.values() );
         writeExportSection();
         writeCodeSection();
+        writeDebugNames();
 
         wasm.close();
     }
@@ -124,7 +126,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             for( SectionEntry entry : entries ) {
                 entry.writeSectionEntry( stream );
             }
-            wasm.writeSection( type, stream, null );
+            wasm.writeSection( type, stream );
         }
     }
 
@@ -148,7 +150,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 int id = functions.get( entry.getValue() ).id;
                 stream.writeVaruint32( id );
             }
-            wasm.writeSection( SectionType.Export, stream, null );
+            wasm.writeSection( SectionType.Export, stream );
         }
     }
 
@@ -166,7 +168,36 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         WasmOutputStream stream = new WasmOutputStream();
         stream.writeVaruint32( size );
         functionsStream.writeTo( stream );
-        wasm.writeSection( SectionType.Code, stream, null );
+        wasm.writeSection( SectionType.Code, stream );
+    }
+
+    /**
+     * Write optional the debug names into the name section
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeDebugNames() throws IOException {
+        if( !debugNames ) {
+            return;
+        }
+        WasmOutputStream stream = new WasmOutputStream();
+        stream.writeString( "name" ); // Custom Section name "name", content is part of the section length
+
+        // write function names
+        stream.write( 1 ); // 1 - Function name
+        WasmOutputStream section = new WasmOutputStream();
+        section.writeVaruint32( functions.size() );
+        for( Entry<String, Function> entry : functions.entrySet() ) {
+            section.writeVaruint32( entry.getValue().id ); // function index
+            String functionName = entry.getKey();
+            functionName = functionName.substring( 0, functionName.indexOf( '(' ) );
+            section.writeString( functionName );
+        }
+        stream.writeVaruint32( section.size() );
+        section.writeTo( stream );
+
+        wasm.writeSection( SectionType.Custom, stream );
     }
 
     /**

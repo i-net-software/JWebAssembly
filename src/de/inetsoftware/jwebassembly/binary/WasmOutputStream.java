@@ -204,12 +204,10 @@ class WasmOutputStream extends FilterOutputStream {
      *            the name of the section
      * @param data
      *            the data of the section
-     * @param name
-     *            the name, must be set if the id == 0
      * @throws IOException
      *             if any I/O error occur
      */
-    void writeSection( SectionType type, WasmOutputStream data, String name ) throws IOException {
+    void writeSection( SectionType type, WasmOutputStream data ) throws IOException {
         ByteArrayOutputStream baos = (ByteArrayOutputStream)data.out;
         int size = baos.size();
         if( size == 0 ) {
@@ -217,9 +215,6 @@ class WasmOutputStream extends FilterOutputStream {
         }
         writeVaruint32( type.ordinal() );
         writeVaruint32( size );
-        if( type == SectionType.Custom ) {
-            writeString( name );
-        }
         baos.writeTo( this );
     }
 
