@@ -106,6 +106,7 @@ public class WasmRule extends TemporaryFolder {
             }
 
             wasmFile = newFile( "test.wasm" );
+            wasm.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
             wasm.compileToBinary( wasmFile );
 
             nodeScript = createScript( "nodetest.js" );
