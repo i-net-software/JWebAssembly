@@ -693,7 +693,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             if( entry != null ) {
                 id = entry.id;
             } else {
-                throw new WasmException( "Call to unknown function: " + name, null, -1 );
+                throw new WasmException( "Call to unknown function: " + name, null, null, -1 );
             }
         }
         codeStream.writeOpCode( CALL );

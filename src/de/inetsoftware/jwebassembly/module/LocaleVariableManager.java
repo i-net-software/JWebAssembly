@@ -78,7 +78,7 @@ class LocaleVariableManager {
         LocaleVariable var = variables[slot];
         if( var.valueType != null && var.valueType != valueType ) {
             throw new WasmException( "Redefine local variable type from " + var.valueType + " to "
-                            + valueType, null, -1 );
+                            + valueType, null, null, -1 );
         }
         var.valueType = valueType;
     }

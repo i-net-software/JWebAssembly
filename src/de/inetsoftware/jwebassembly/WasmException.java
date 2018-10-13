@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ public class WasmException extends RuntimeException {
 
     private String sourceFile;
 
+    private String className;
+
     /**
      * Create a new instance.
      * 
@@ -34,10 +36,12 @@ public class WasmException extends RuntimeException {
      *            the error message
      * @param sourceFile
      *            the sourceFile of the Java code
+     * @param className
+     *            the class name of the Java code
      * @param lineNumber
      *            the line number in Java Code
      */
-    public WasmException( String message, String sourceFile, int lineNumber ) {
+    public WasmException( String message, String sourceFile, String className, int lineNumber ) {
         super( message );
         this.sourceFile = sourceFile;
         this.lineNumber = lineNumber;
@@ -60,15 +64,20 @@ public class WasmException extends RuntimeException {
      * @param cause
      *            the wrapped cause
      * @param sourceFile
-     *            the sourceFile of the Java code
+     *            the source file of the Java code
+     * @param className
+     *            the class name of the Java code
      * @param lineNumber
      *            the line number in Java Code
      * @return a new instance
      */
-    public static WasmException create( Throwable cause, String sourceFile, int lineNumber ) {
+    public static WasmException create( Throwable cause, String sourceFile, String className, int lineNumber ) {
         WasmException wasmEx = create( cause );
         if( wasmEx.sourceFile == null ) {
             wasmEx.sourceFile = sourceFile;
+        }
+        if( wasmEx.className == null ) {
+            wasmEx.className = className;
         }
         if( wasmEx.lineNumber < 0 ) {
             wasmEx.lineNumber = lineNumber;
@@ -103,13 +112,19 @@ public class WasmException extends RuntimeException {
      * {@inheritDoc}
      */
     @Override
-    public String toString() {
-        String str = super.toString();
-        if( sourceFile != null || lineNumber > 0 ) {
-            str += " at " + (sourceFile != null ? sourceFile : "line");
+    public String getMessage() {
+        String str = super.getMessage();
+        if( sourceFile != null || className != null || lineNumber >= 0 ) {
+            str += "\n\tat ";
+            if( className != null ) {
+                str += className.replace( '/', '.' ).replace( '$', '.' );
+            }
+            str += "(";
+            str += (sourceFile != null ? sourceFile : "line");
             if( lineNumber > 0 ) {
                 str += ":" + lineNumber;
             }
+            str += ")";
         }
         return str;
     }

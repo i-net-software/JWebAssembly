@@ -142,7 +142,7 @@ class BranchManger {
                         loop.endPosition = parsedBlock.startPosition + 3;
                         break;
                     default:
-                        throw new WasmException( "Unimplemented loop code operation: " + parsedBlock.op, null, parsedBlock.lineNumber );
+                        throw new WasmException( "Unimplemented loop code operation: " + parsedBlock.op, null, null, parsedBlock.lineNumber );
                 }
             } else {
                 switch ( parsedBlock.op ) {
@@ -225,7 +225,7 @@ class BranchManger {
                     calculateLoop( parent, parsedBlock, parsedOperations );
                     break;
                 default:
-                    throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, null, parsedBlock.lineNumber );
+                    throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, null, null, parsedBlock.lineNumber );
             }
         }
     }
@@ -538,7 +538,7 @@ class BranchManger {
                 deep++;
             }
         }
-        throw new WasmException( "GOTO code without target loop/block", null, gotoBlock.lineNumber );
+        throw new WasmException( "GOTO code without target loop/block", null, null, gotoBlock.lineNumber );
 
     }
 
@@ -658,7 +658,7 @@ class BranchManger {
                     newOp = NumericOperator.lt;
                     break;
                 default:
-                    throw new WasmException( "Not a compare operation: " + instr.numOp, null, lineNumber );
+                    throw new WasmException( "Not a compare operation: " + instr.numOp, null, null, lineNumber );
             }
             instr.numOp = newOp;
         }

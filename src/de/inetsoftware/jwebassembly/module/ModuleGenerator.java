@@ -48,6 +48,8 @@ public class ModuleGenerator {
 
     private String                      sourceFile;
 
+    private String                      className;
+
     private final List<WasmInstruction> instructions   = new ArrayList<>();
 
     private BranchManger                branchManager  = new BranchManger( instructions );
@@ -96,11 +98,10 @@ public class ModuleGenerator {
 
     private void iterateMethods( ClassFile classFile, Consumer<MethodInfo> handler ) throws WasmException {
         sourceFile = null; // clear previous value for the case an IO exception occur
+        className = null;
         try {
             sourceFile = classFile.getSourceFile();
-            if( sourceFile == null ) {
-                sourceFile = classFile.getThisClass().getName();
-            }
+            className = classFile.getThisClass().getName();
             MethodInfo[] methods = classFile.getMethods();
             for( MethodInfo method : methods ) {
                 Code code = method.getCode();
@@ -111,7 +112,7 @@ public class ModuleGenerator {
                 handler.accept( method );
             }
         } catch( IOException ioex ) {
-            throw WasmException.create( ioex, sourceFile, -1 );
+            throw WasmException.create( ioex, sourceFile, className, -1 );
         }
     }
 
@@ -136,7 +137,7 @@ public class ModuleGenerator {
                 writer.prepareFunction( name );
             }
         } catch( Exception ioex ) {
-            throw WasmException.create( ioex, sourceFile, -1 );
+            throw WasmException.create( ioex, sourceFile, className, -1 );
         }
     }
 
@@ -172,7 +173,7 @@ public class ModuleGenerator {
             }
         } catch( Exception ioex ) {
             int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
-            throw WasmException.create( ioex, sourceFile, lineNumber );
+            throw WasmException.create( ioex, sourceFile, className, lineNumber );
         }
     }
 
@@ -411,7 +412,7 @@ public class ModuleGenerator {
                     case 94: // dup2_x2
                     case 95: // swap
                         // can be do with functions with more as one return value in future WASM standard
-                        throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: " + op, sourceFile, byteCode.getLineNumber() );
+                        throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: " + op, sourceFile, className, byteCode.getLineNumber() );
                     case 96: // iadd
                         instr = new WasmNumericInstruction( NumericOperator.add, ValueType.i32, codePos);
                         break;
@@ -469,7 +470,7 @@ public class ModuleGenerator {
                     case 114: // frem
                     case 115: // drem
                         //TODO can be implemented with a helper function like: (a - (long)(a / b) * (double)b) 
-                        throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, byteCode.getLineNumber() );
+                        throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, sourceFile, className, byteCode.getLineNumber() );
                     case 116: // ineg
                         instructions.add( new WasmConstInstruction( -1, ValueType.i32, codePos ) );
                         instr = new WasmNumericInstruction( NumericOperator.mul, ValueType.i32, codePos );
@@ -698,7 +699,7 @@ public class ModuleGenerator {
                     //TODO case 200: // goto_w
                     //TODO case 201: // jsr_w
                     default:
-                        throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, byteCode.getLineNumber() );
+                        throw new WasmException( "Unimplemented Java byte code operation: " + op, sourceFile, className, byteCode.getLineNumber() );
                 }
                 if( instr != null ) {
                     instructions.add( instr );
@@ -715,7 +716,7 @@ public class ModuleGenerator {
         } catch( WasmException ex ) {
             throw ex;
         } catch( Exception ex ) {
-            throw WasmException.create( ex, sourceFile, byteCode.getLineNumber() );
+            throw WasmException.create( ex, sourceFile, className, byteCode.getLineNumber() );
         }
     }
 
@@ -819,7 +820,7 @@ public class ModuleGenerator {
                 return instr.getCodePosition();
             }
         }
-        throw new WasmException( "Switch start position not found", sourceFile, -1 ); // should never occur
+        throw new WasmException( "Switch start position not found", sourceFile, className, -1 ); // should never occur
     }
 
     /**
@@ -939,7 +940,7 @@ public class ModuleGenerator {
                 numOp = NumericOperator.le;
                 break;
             default:
-                throw new WasmException( "Unexpected compare sub operation: " + nextOp, null, -1 );
+                throw new WasmException( "Unexpected compare sub operation: " + nextOp, sourceFile, className, -1 );
         }
         int offset = byteCode.readShort();
         WasmNumericInstruction compare = new WasmNumericInstruction( numOp, valueType, codePos );

@@ -87,7 +87,7 @@ public enum ValueType {
             default:
                 javaType = javaSignature.substring( idx, idx + 1 );
         }
-        throw new WasmException( "Not supported Java data type in method signature: " + javaType, null, -1 );
+        throw new WasmException( "Not supported Java data type in method signature: " + javaType, null, null, -1 );
     }
 
 }
