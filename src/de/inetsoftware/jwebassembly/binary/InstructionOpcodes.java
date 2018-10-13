@@ -45,6 +45,16 @@ interface InstructionOpcodes {
 
     static final int ELSE      = 0x05;
 
+    static final int TRY                 = 0x06;
+
+    static final int CATCH               = 0x07;
+
+    static final int THROW               = 0x08;
+
+    static final int RETHROW             = 0x09;
+
+    static final int CATCHALL            = 0x0A;
+
     static final int END       = 0x0B;
 
     /**
