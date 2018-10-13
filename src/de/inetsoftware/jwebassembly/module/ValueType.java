@@ -27,6 +27,7 @@ public enum ValueType {
     f64(0x7c),
     anyfunc(0x70),
     anyref(0x6f),
+    except_ref(0x68),
     func(0x60),
     empty(0x40), // empty block_type
     ;
