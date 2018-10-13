@@ -46,7 +46,7 @@ public class WasmRule extends TemporaryFolder {
 
     private File                      wasmFile;
 
-    private File                      wastFile;
+    private File                      watFile;
 
     private File                      nodeScript;
 
@@ -100,8 +100,8 @@ public class WasmRule extends TemporaryFolder {
         try {
             create();
 
-            wastFile = newFile( "test.wast" );
-            try( FileOutputStream stream = new FileOutputStream( wastFile ) ) {
+            watFile = newFile( "test.wat" );
+            try( FileOutputStream stream = new FileOutputStream( watFile ) ) {
                 stream.write( textCompiled.getBytes( StandardCharsets.UTF_8 ) );
             }
 
@@ -111,7 +111,7 @@ public class WasmRule extends TemporaryFolder {
 
             nodeScript = createScript( "nodetest.js" );
             spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
-            nodeWastScript = createScript( "WastTest.js" );
+            nodeWastScript = createScript( "WatTest.js" );
 
             ProcessBuilder processBuilder = IS_WINDOWS ? new ProcessBuilder( "cmd", "/C", "npm", "install", "wabt@nightly" ) : new ProcessBuilder( "npm", "install", "wabt@nightly" );
             processBuilder.directory( getRoot() );
@@ -143,7 +143,7 @@ public class WasmRule extends TemporaryFolder {
         URL scriptUrl = getClass().getResource( name );
         String expected = readStream( scriptUrl.openStream() );
         expected = expected.replace( "{test.wasm}", wasmFile.getName() );
-        expected = expected.replace( "{test.wast}", wastFile.getName() );
+        expected = expected.replace( "{test.wat}", watFile.getName() );
         try (FileOutputStream scriptStream = new FileOutputStream( file )) {
             scriptStream.write( expected.getBytes( StandardCharsets.UTF_8 ) );
         }

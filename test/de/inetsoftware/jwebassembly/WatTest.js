@@ -3,7 +3,7 @@
 var nodeFS = require('fs');
 var wabt = require("wabt")();
 
-var filename = '{test.wast}';
+var filename = '{test.wat}';
 var text = nodeFS['readFileSync'](filename, "utf8");
 
 var features = {'sat_float_to_int':true, 'sign_extension':true};
