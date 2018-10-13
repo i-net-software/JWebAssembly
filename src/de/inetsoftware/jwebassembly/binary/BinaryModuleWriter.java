@@ -62,7 +62,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
-    private List<ValueType>             locals;
+    private List<ValueType>             locals              = new ArrayList<>();
 
     private Map<String, Global>         globals             = new LinkedHashMap<>();
 
@@ -197,6 +197,24 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         stream.writeVaruint32( section.size() );
         section.writeTo( stream );
 
+        // write function parameter names
+        stream.write( 2 ); // 2 - Local names
+        section.reset();
+        section.writeVaruint32( functions.size() );
+        for( Entry<String, Function> entry : functions.entrySet() ) {
+            Function func = entry.getValue();
+            section.writeVaruint32( func.id ); // function index
+            List<String> paramNames = func.paramNames;
+            int count = paramNames == null ? 0 : paramNames.size();
+            section.writeVaruint32( count ); // count of locals
+            for( int i = 0; i < count; i++ ) {
+                section.writeVaruint32( i );
+                section.writeString( paramNames.get( i ) );
+            }
+        }
+        stream.writeVaruint32( section.size() );
+        section.writeTo( stream );
+
         wasm.writeSection( SectionType.Custom, stream );
     }
 
@@ -251,20 +269,30 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         function = functions.get( name.signatureName );
         functionType = new FunctionType();
         codeStream.reset();
+        locals.clear();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParam( String kind, ValueType valueType ) throws IOException {
+    protected void writeMethodParam( String kind, ValueType valueType, @Nullable String name ) throws IOException {
         switch( kind ) {
             case "param":
                 functionType.params.add( valueType );
-                return;
+                break;
             case "result":
                 functionType.result = valueType;
                 return;
+            case "local":
+                locals.add( valueType );
+                break;
+        }
+        if( debugNames && name != null ) {
+            if( function.paramNames == null ) {
+                function.paramNames = new ArrayList<>();
+            }
+            function.paramNames.add( name );
         }
     }
 
@@ -272,14 +300,13 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamFinish( List<ValueType> locals ) throws IOException {
+    protected void writeMethodParamFinish() throws IOException {
         int typeId = functionTypes.indexOf( functionType );
         if( typeId < 0 ) {
             typeId = functionTypes.size();
             functionTypes.add( functionType );
         }
         function.typeId = typeId;
-        this.locals = locals;
     }
 
     /**

@@ -17,7 +17,6 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,22 +89,20 @@ public abstract class ModuleWriter implements Closeable {
      *            "param", "result" or "local"
      * @param valueType
      *            the data type of the parameter
+     * @param name
+     *            optional name of the parameter
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodParam( String kind, ValueType valueType ) throws IOException;
+    protected abstract void writeMethodParam( String kind, ValueType valueType, @Nullable String name ) throws IOException;
 
     /**
      * Finish the function parameter.
      * 
-     * @param locals
-     *            a list with types of local variables
-     * 
-     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodParamFinish( List<ValueType> locals ) throws IOException;
+    protected abstract void writeMethodParamFinish() throws IOException;
 
     /**
      * Complete the method

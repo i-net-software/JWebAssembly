@@ -29,6 +29,7 @@ import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 
@@ -130,7 +131,7 @@ public class ModuleGenerator {
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
-                writeMethodSignature( method );
+                writeMethodSignature( method, null );
             } else {
                 writer.prepareFunction( name );
             }
@@ -162,7 +163,7 @@ public class ModuleGenerator {
                 byteCode = code.getByteCode();
                 writeCode( byteCode, method.getConstantPool() );
                 localVariables.calculate();
-                writeMethodSignature( method );
+                writeMethodSignature( method, code.getLocalVariableTable() );
 
                 for( WasmInstruction instruction : instructions ) {
                     instruction.writeTo( writer );
@@ -207,7 +208,7 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( MethodInfo method ) throws IOException, WasmException {
+    private void writeMethodSignature( MethodInfo method, LocalVariableTable variables ) throws IOException, WasmException {
         String signature = method.getDescription();
         String kind = "param";
         int paramCount = 0;
@@ -217,16 +218,29 @@ public class ModuleGenerator {
                 kind = "result";
                 continue;
             }
+            String name = null;
             if( kind == "param" ) {
+                if( variables != null ) {
+                    name = variables.getPosition( paramCount ).getName( method.getConstantPool() );
+                }
                 paramCount++;
             }
             type = ValueType.getValueType( signature, i );
             if( type != null ) {
-                writer.writeMethodParam( kind, type );
+                writer.writeMethodParam( kind, type, name );
             }
         }
         this.returnType = type;
-        writer.writeMethodParamFinish( localVariables.getLocalTypes( paramCount ) );
+        List<ValueType> localTypes = localVariables.getLocalTypes( paramCount );
+        for( int i = 0; i < localTypes.size(); i++ ) {
+            type = localTypes.get( i );
+            String name = null;
+            if( variables != null ) {
+                name = variables.getPosition( paramCount ).getName( method.getConstantPool() );
+            }
+            writer.writeMethodParam( "local", type, name );
+        }
+        writer.writeMethodParamFinish( );
     }
 
     /**

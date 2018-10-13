@@ -18,12 +18,12 @@ package de.inetsoftware.jwebassembly.text;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
@@ -40,6 +40,8 @@ import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 public class TextModuleWriter extends ModuleWriter {
 
     private Appendable      output;
+
+    private final boolean   debugNames;
 
     private StringBuilder   methodOutput = new StringBuilder();
 
@@ -61,6 +63,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     public TextModuleWriter( Appendable output, HashMap<String, String> properties ) throws IOException {
         this.output = output;
+        debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         output.append( "(module" );
         inset++;
     }
@@ -112,22 +115,22 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParam( String kind, ValueType valueType ) throws IOException {
-        methodOutput.append( " (" ).append( kind ).append( ' ' ).append( valueType.toString() ).append( ')' );
+    protected void writeMethodParam( String kind, ValueType valueType, @Nullable String name ) throws IOException {
+        methodOutput.append( " (" ).append( kind );
+        if( debugNames && name != null ) {
+            methodOutput.append( " $" ).append( name );
+        }
+        methodOutput.append( ' ' ).append( valueType.toString() ).append( ')' );
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamFinish( List<ValueType> locals ) throws IOException {
+    protected void writeMethodParamFinish( ) throws IOException {
         if( isImport ) {
             isImport = false;
             output.append( "))" );
-        } else {
-            for( ValueType valueType : locals ) {
-                methodOutput.append( " (local " ).append( valueType.toString() ).append( ')' );
-            }
         }
     }
 
