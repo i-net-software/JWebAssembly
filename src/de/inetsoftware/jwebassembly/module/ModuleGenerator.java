@@ -159,7 +159,7 @@ public class ModuleGenerator {
                 writer.writeMethodStart( name );
 
                 localVariables.reset();
-                branchManager.reset();
+                branchManager.reset( code.getExceptionTable() );
 
                 byteCode = code.getByteCode();
                 writeCode( byteCode, method.getConstantPool() );
@@ -388,10 +388,12 @@ public class ModuleGenerator {
                     case 74: // dstore_3
                         instr = loadStore( ValueType.f64, false, op - 71, codePos );
                         break;
-                    //TODO case 75: // astore_0
-                    //TODO case 76: // astore_1
-                    //TODO case 77: // astore_2
-                    //TODO case 78: // astore_3
+                    case 75: // astore_0
+                    case 76: // astore_1
+                    case 77: // astore_2
+                    case 78: // astore_3
+                        instr = loadStore( ValueType.anyref, false, op - 75, codePos );
+                        break;
                     //TODO case 79: // iastore
                     //TODO case 80: // lastore
                     //TODO case 81: // fastore

@@ -345,6 +345,15 @@ public class TextModuleWriter extends ModuleWriter {
             case UNREACHABLE:
                 name = "unreachable";
                 break;
+            case TRY:
+                name = "try";
+                insetAfter++;
+                break;
+            case CATCH:
+                inset--;
+                name = "catch";
+                insetAfter++;
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }

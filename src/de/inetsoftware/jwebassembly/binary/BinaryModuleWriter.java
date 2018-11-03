@@ -749,6 +749,13 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case UNREACHABLE:
                 codeStream.writeOpCode( UNREACHABLE );
                 break;
+            case TRY:
+                codeStream.writeOpCode( TRY );
+                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the try. currently we does not use it
+                break;
+            case CATCH:
+                codeStream.writeOpCode( CATCH );
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }

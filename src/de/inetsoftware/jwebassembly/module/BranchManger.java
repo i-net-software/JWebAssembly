@@ -26,6 +26,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.CodeInputStream;
+import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
 
 /**
@@ -57,10 +58,13 @@ class BranchManger {
     /**
      * Remove all branch information for reusing the manager.
      */
-    void reset() {
+    void reset( TryCatchFinally[] exceptionTable ) {
         allParsedOperations.clear();
         root.clear();
         loops.clear();
+        for( TryCatchFinally ex : exceptionTable ) {
+            allParsedOperations.add( new TryCatchParsedBlock( ex ) );
+        }
     }
 
     /**
@@ -223,6 +227,9 @@ class BranchManger {
                     break;
                 case LOOP:
                     calculateLoop( parent, parsedBlock, parsedOperations );
+                    break;
+                case TRY:
+                    calculateTry( parent, (TryCatchParsedBlock)parsedBlock, parsedOperations );
                     break;
                 default:
                     throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, null, null, parsedBlock.lineNumber );
@@ -570,6 +577,35 @@ class BranchManger {
     }
 
     /**
+     * Calculate the needed nodes for try/catch
+     * @param parent
+     *            the parent branch
+     * @param tryBlock
+     *            the virtual TRY operation
+     * @param parsedOperations
+     *            the not consumed operations in the parent branch
+     */
+    private void calculateTry ( BranchNode parent, TryCatchParsedBlock tryBlock, List<ParsedBlock> parsedOperations ) {
+        TryCatchFinally tryCatch = tryBlock.tryCatch;
+
+        int gotoPos = tryCatch.getEnd(); // alternativ we can use tryCatch.getHandler()-3
+        int endPos = parent.endPos;
+        for( int i = 0; i < parsedOperations.size(); i++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( i );
+            if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition) {
+                parsedOperations.remove( i );
+                endPos = parsedBlock.endPosition;
+                break;
+            }
+            if( parsedBlock.startPosition > gotoPos ) {
+                break;
+            }
+        }
+        parent.add( new BranchNode( tryBlock.startPosition, tryCatch.getHandler(), WasmBlockOperator.TRY, null ) );
+        parent.add( new BranchNode( tryCatch.getHandler(), endPos, WasmBlockOperator.CATCH, WasmBlockOperator.END ) );
+    }
+
+    /**
      * Check on every instruction position if there any branch is ending
      * 
      * @param byteCode
@@ -679,6 +715,18 @@ class BranchManger {
             this.keys = keys;
             this.positions = positions;
             this.defaultPosition = defaultPosition;
+        }
+    }
+
+    /**
+     * Description of a parsed try-Catch structure.
+     */
+    private static class TryCatchParsedBlock extends ParsedBlock {
+        private final TryCatchFinally tryCatch;
+
+        TryCatchParsedBlock( TryCatchFinally tryCatch ) {
+            super( JavaBlockOperator.TRY, tryCatch.getStart(), 0, -1 );
+            this.tryCatch = tryCatch;
         }
     }
 

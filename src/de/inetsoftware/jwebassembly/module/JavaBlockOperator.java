@@ -27,4 +27,5 @@ public enum JavaBlockOperator {
     GOTO,
     SWITCH,
     LOOP,
+    TRY,
 }

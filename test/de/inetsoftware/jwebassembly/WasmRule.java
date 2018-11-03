@@ -291,7 +291,7 @@ public class WasmRule extends TemporaryFolder {
      *             if the download failed
      */
     private ProcessBuilder spiderMonkeyCommand() throws IOException {
-        return new ProcessBuilder( spiderMonkey.getCommand(), spiderMonkeyScript.getAbsolutePath() );
+        return new ProcessBuilder( spiderMonkey.getCommand(), "--wasm-gc", spiderMonkeyScript.getAbsolutePath() );
     }
 
     /**
@@ -312,7 +312,8 @@ public class WasmRule extends TemporaryFolder {
                 command += "/bin/node";
             }
         }
-        return new ProcessBuilder( command, "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", script.getAbsolutePath() );
+        // details see with command: node --v8-options
+        return new ProcessBuilder( command, "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", "--experimental-wasm-eh", "--experimental-wasm-anyref", script.getAbsolutePath() );
     }
 
     /**
