@@ -34,6 +34,18 @@ public class WasmException extends RuntimeException {
      * 
      * @param message
      *            the error message
+     * @param lineNumber
+     *            the line number in Java Code
+     */
+    public WasmException( String message, int lineNumber ) {
+        this( message, null, null, lineNumber );
+    }
+
+    /**
+     * Create a new instance.
+     * 
+     * @param message
+     *            the error message
      * @param sourceFile
      *            the sourceFile of the Java code
      * @param className
@@ -44,6 +56,7 @@ public class WasmException extends RuntimeException {
     public WasmException( String message, String sourceFile, String className, int lineNumber ) {
         super( message );
         this.sourceFile = sourceFile;
+        this.className = className;
         this.lineNumber = lineNumber;
     }
 
@@ -56,6 +69,19 @@ public class WasmException extends RuntimeException {
     private WasmException( Throwable cause ) {
         super( cause );
         lineNumber = -1;
+    }
+
+    /**
+     * Create a wrapped exception needed.
+     * 
+     * @param cause
+     *            the wrapped cause
+     * @param lineNumber
+     *            the line number in Java Code
+     * @return a new instance
+     */
+    public static WasmException create( Throwable cause, int lineNumber ) {
+        return create( cause, null, null, lineNumber );
     }
 
     /**
