@@ -73,6 +73,10 @@ class LocaleVariableManager {
      *            the memory/slot index of the local variable
      */
     void use( ValueType valueType, int slot ) {
+        if( slot < 0 ) {
+            needTempI32 = true;
+            return;
+        }
         ensureCapacity( slot );
         size = Math.max( size, slot + 1 );
         LocaleVariable var = variables[slot];
