@@ -29,7 +29,7 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
@@ -356,7 +356,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeGlobalAccess( boolean load, FunctionName name, ConstantRef ref ) throws IOException {
+    protected void writeGlobalAccess( boolean load, FunctionName name, Member ref ) throws IOException {
         Global var = globals.get( name.fullName );
         if( var == null ) { // if not declared then create a definition in the global section
             var = new Global();

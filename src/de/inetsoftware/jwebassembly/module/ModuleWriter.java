@@ -21,7 +21,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.Member;
 
 /**
  * Module Writer base class.
@@ -156,7 +156,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeGlobalAccess( boolean load, FunctionName name, ConstantRef ref ) throws IOException;
+    protected abstract void writeGlobalAccess( boolean load, FunctionName name, Member ref ) throws IOException;
 
 
     /**

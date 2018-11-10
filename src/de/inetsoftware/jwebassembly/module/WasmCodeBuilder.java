@@ -77,15 +77,30 @@ public abstract class WasmCodeBuilder {
      *            the value type
      * @param load
      *            true: if load
-     * @param idx
-     *            the memory/slot idx of the variable
+     * @param javaIdx
+     *            the memory/slot index of the variable in Java byte code
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
     @Nonnull
-    protected void addLoadStoreInstruction( ValueType valueType, boolean load, @Nonnegative int idx, int javaCodePos ) {
-        localVariables.use( valueType, idx );
-        instructions.add( new WasmLoadStoreInstruction( load, idx, localVariables, javaCodePos ) );
+    protected void addLoadStoreInstruction( ValueType valueType, boolean load, @Nonnegative int javaIdx, int javaCodePos ) {
+        localVariables.use( valueType, javaIdx );
+        instructions.add( new WasmLoadStoreInstruction( load, javaIdx, localVariables, javaCodePos ) );
+    }
+
+    /**
+     * Create a WasmLoadStoreInstruction get_local/set_local.
+     * 
+     * @param load
+     *            true: if load
+     * @param wasmIdx
+     *            the index of the variable
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     */
+    @Nonnull
+    protected void addLoadStoreInstruction( boolean load, @Nonnegative int wasmIdx, int javaCodePos ) {
+        instructions.add( new WasmLoadStoreInstruction( load, wasmIdx, null, javaCodePos ) );
     }
 
     /**

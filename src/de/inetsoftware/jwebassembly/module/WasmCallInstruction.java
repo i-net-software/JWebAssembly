@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.Member;
 
 /**
  * WasmInstruction for a function call.
@@ -30,7 +30,7 @@ import de.inetsoftware.classparser.ConstantRef;
  */
 class WasmCallInstruction extends WasmInstruction {
 
-    private final ConstantRef method;
+    private final Member    method;
 
     private final ValueType valueType;
 
@@ -42,11 +42,11 @@ class WasmCallInstruction extends WasmInstruction {
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmCallInstruction( ConstantRef method, int javaCodePos ) {
+    WasmCallInstruction( Member method, int javaCodePos ) {
         super( javaCodePos );
         this.method = method;
         String signature = method.getType();
-        this.valueType = ValueType.getValueType(  signature, signature.indexOf( ')' ) + 1 );
+        this.valueType = ValueType.getValueType( signature, signature.indexOf( ')' ) + 1 );
     }
 
     /**
@@ -55,7 +55,6 @@ class WasmCallInstruction extends WasmInstruction {
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         writer.writeFunctionCall( new FunctionName( method ).signatureName );
     }
-
 
     /**
      * {@inheritDoc}
@@ -77,8 +76,8 @@ class WasmCallInstruction extends WasmInstruction {
                 return paramCount;
             }
             paramCount++;
-            ValueType.getValueType(  signature, i );
+            ValueType.getValueType( signature, i );
         }
-        throw new Error(); 
+        throw new Error();
     }
 }

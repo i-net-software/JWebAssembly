@@ -96,7 +96,7 @@ public class ModuleGenerator {
             MethodInfo[] methods = classFile.getMethods();
             for( MethodInfo method : methods ) {
                 Code code = method.getCode();
-                if( method.getName().equals( "<init>" ) && method.getDescription().equals( "()V" )
+                if( method.getName().equals( "<init>" ) && method.getType().equals( "()V" )
                                 && code.isSuperInitReturn( classFile.getSuperClass() ) ) {
                     continue; //default constructor
                 }
@@ -149,7 +149,7 @@ public class ModuleGenerator {
                 writeExport( name, method );
                 writer.writeMethodStart( name );
 
-                codeBuilder.buildCode( code, !method.getDescription().endsWith( ")V" ) );
+                codeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
                 writeMethodSignature( method, code.getLocalVariableTable(), codeBuilder );
 
                 for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
@@ -200,7 +200,7 @@ public class ModuleGenerator {
      *             if some Java code can't converted
      */
     private void writeMethodSignature( MethodInfo method, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
-        String signature = method.getDescription();
+        String signature = method.getType();
         String kind = "param";
         int paramCount = 0;
         ValueType type = null;

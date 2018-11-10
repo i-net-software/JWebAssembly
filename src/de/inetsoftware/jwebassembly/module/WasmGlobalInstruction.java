@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.Member;
 
 /**
  * WasmInstruction for set and get global variables.
@@ -30,9 +30,9 @@ import de.inetsoftware.classparser.ConstantRef;
  */
 class WasmGlobalInstruction extends WasmInstruction {
 
-    private boolean     load;
+    private boolean load;
 
-    private ConstantRef ref;
+    private Member  ref;
 
     /**
      * Create an instance of a load/store instruction
@@ -44,7 +44,7 @@ class WasmGlobalInstruction extends WasmInstruction {
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmGlobalInstruction( boolean load, ConstantRef ref, int javaCodePos ) {
+    WasmGlobalInstruction( boolean load, Member ref, int javaCodePos ) {
         super( javaCodePos );
         this.load = load;
         this.ref = ref;

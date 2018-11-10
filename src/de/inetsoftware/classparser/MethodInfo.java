@@ -27,7 +27,7 @@ import de.inetsoftware.classparser.Attributes.AttributeInfo;
 /**
  * @author Volker Berlin
  */
-public class MethodInfo {
+public class MethodInfo implements Member {
 
     private final int          accessFlags;
 
@@ -99,8 +99,17 @@ public class MethodInfo {
     /**
      * @return the name
      */
+    @Override
     public String getName() {
         return name;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getClassName() {
+        return getDeclaringClassFile().getThisClass().getName();
     }
 
     /**
@@ -125,7 +134,8 @@ public class MethodInfo {
     /**
      * Get the signature of the method without generic types.
      */
-    public String getDescription() {
+    @Override
+    public String getType() {
         return description;
     }
 

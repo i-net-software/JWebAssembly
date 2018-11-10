@@ -18,8 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.classparser.ConstantRef;
-import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.classparser.Member;
 
 /**
  * Described the name of WebAssembly function.
@@ -40,28 +39,15 @@ public class FunctionName {
     public final String signatureName;
 
     /**
-     * Create a new instance from the given parsed Java method.
+     * Create a new instance from the given reference in the ConstantPool or parsed method.
      * 
-     * @param method
+     * @param methodOrField
      *            the Java method
      */
-    FunctionName( @Nonnull MethodInfo method ) {
-        String methodName = method.getName();
-        String className = method.getDeclaringClassFile().getThisClass().getName();
+    FunctionName( @Nonnull Member methodOrField ) {
+        String methodName = methodOrField.getName();
+        String className = methodOrField.getClassName();
         fullName = className + '.' + methodName;
-        signatureName = fullName + method.getDescription();
-    }
-
-    /**
-     * Create a new instance from the given reference in the ConstantPool.
-     * 
-     * @param method
-     *            the Java method
-     */
-    FunctionName( @Nonnull ConstantRef method ) {
-        String methodName = method.getName();
-        String className = method.getConstantClass().getName();
-        fullName = className + '.' + methodName;
-        signatureName = fullName + method.getType();
+        signatureName = fullName + methodOrField.getType();
     }
 }

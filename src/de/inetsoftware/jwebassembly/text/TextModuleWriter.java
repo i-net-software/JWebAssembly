@@ -22,7 +22,7 @@ import java.util.HashSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
@@ -176,7 +176,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeGlobalAccess( boolean load, FunctionName name, ConstantRef ref ) throws IOException {
+    protected void writeGlobalAccess( boolean load, FunctionName name, Member ref ) throws IOException {
         if( !globals.contains( name.fullName ) ) {
             // declare global variable if not already declared.
             output.append( "\n  " );
