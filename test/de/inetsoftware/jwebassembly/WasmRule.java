@@ -29,6 +29,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import javax.annotation.Nonnull;
+
 import org.junit.rules.TemporaryFolder;
 
 /**
@@ -41,6 +43,8 @@ public class WasmRule extends TemporaryFolder {
     private static final boolean      IS_WINDOWS   = System.getProperty( "os.name" ).toLowerCase().indexOf( "win" ) >= 0;
 
     private static final SpiderMonkey spiderMonkey = new SpiderMonkey();
+
+    private static boolean            wastInstalled;
 
     private final Class<?>[]          classes;
 
@@ -113,11 +117,29 @@ public class WasmRule extends TemporaryFolder {
             spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
             nodeWastScript = createScript( "WatTest.js" );
 
-            ProcessBuilder processBuilder = IS_WINDOWS ? new ProcessBuilder( "cmd", "/C", "npm", "install", "wabt@nightly" ) : new ProcessBuilder( "npm", "install", "wabt@nightly" );
+            if( !wastInstalled ) {
+                wastInstalled = true;
+                ProcessBuilder processBuilder = new ProcessBuilder( "npm", "install", "-g", "wabt@nightly" );
+                if( IS_WINDOWS ) {
+                    processBuilder.command().add( 0, "cmd" );
+                    processBuilder.command().add( 1, "/C" );
+                }
+                //processBuilder.directory( getRoot() );
+                processBuilder.redirectOutput( Redirect.INHERIT );
+                processBuilder.redirectError( Redirect.INHERIT );
+                System.out.println( String.join( " ", processBuilder.command() ) );
+                Process process = processBuilder.start();
+                int exitCode = process.waitFor();
+                if( exitCode != 0 ) {
+                    fail( readStream( process.getErrorStream() ) );
+                }
+            }
+            ProcessBuilder processBuilder = new ProcessBuilder( "npm", "link", "wabt" );
+            if( IS_WINDOWS ) {
+                processBuilder.command().add( 0, "cmd" );
+                processBuilder.command().add( 1, "/C" );
+            }
             processBuilder.directory( getRoot() );
-            processBuilder.redirectOutput( Redirect.INHERIT );
-            processBuilder.redirectError( Redirect.INHERIT );
-            System.out.println( String.join( " ", processBuilder.command() ) );
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
             if( exitCode != 0 ) {
@@ -295,13 +317,12 @@ public class WasmRule extends TemporaryFolder {
     }
 
     /**
-     * Create a ProcessBuilder for node.js
+     * The executable of the node command.
      * 
-     * @param script
-     *            the path to the script that should be executed
-     * @return the value from the script
+     * @return the node executable
      */
-    private static ProcessBuilder nodeJsCommand( File script ) {
+    @Nonnull
+    private static String nodeExecuable() {
         String command = System.getProperty( "node.dir" );
         if( command == null ) {
             command = "node";
@@ -312,6 +333,18 @@ public class WasmRule extends TemporaryFolder {
                 command += "/bin/node";
             }
         }
+        return command;
+    }
+
+    /**
+     * Create a ProcessBuilder for node.js
+     * 
+     * @param script
+     *            the path to the script that should be executed
+     * @return the value from the script
+     */
+    private static ProcessBuilder nodeJsCommand( File script ) {
+        String command = nodeExecuable();
         // details see with command: node --v8-options
         return new ProcessBuilder( command, "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", "--experimental-wasm-eh", "--experimental-wasm-anyref", script.getAbsolutePath() );
     }
