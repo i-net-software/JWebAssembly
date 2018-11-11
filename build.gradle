@@ -17,6 +17,7 @@ repositories {
 
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    testCompile 'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'de.inetsoftware:jwebassembly-api:+'
     testCompile 'junit:junit:+'
 }
