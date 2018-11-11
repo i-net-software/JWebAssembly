@@ -99,8 +99,8 @@ public abstract class WasmCodeBuilder {
      *            the code position/offset in the Java method
      */
     @Nonnull
-    protected void addLoadStoreInstruction( boolean load, @Nonnegative int wasmIdx, int javaCodePos ) {
-        instructions.add( new WasmLoadStoreInstruction( load, wasmIdx, null, javaCodePos ) );
+    protected void addLocalInstruction( boolean load, @Nonnegative int wasmIdx, int javaCodePos ) {
+        instructions.add( new WasmLocalInstruction( load, wasmIdx, javaCodePos ) );
     }
 
     /**
