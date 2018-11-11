@@ -44,8 +44,6 @@ public class WasmRule extends TemporaryFolder {
 
     private static final SpiderMonkey spiderMonkey = new SpiderMonkey();
 
-    private static boolean            wastInstalled;
-
     private final Class<?>[]          classes;
 
     private File                      wasmFile;
@@ -117,29 +115,23 @@ public class WasmRule extends TemporaryFolder {
             spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
             nodeWastScript = createScript( "WatTest.js" );
 
-            if( !wastInstalled ) {
-                wastInstalled = true;
-                ProcessBuilder processBuilder = new ProcessBuilder( "npm", "install", "-g", "wabt@nightly" );
-                if( IS_WINDOWS ) {
-                    processBuilder.command().add( 0, "cmd" );
-                    processBuilder.command().add( 1, "/C" );
-                }
-                //processBuilder.directory( getRoot() );
-                processBuilder.redirectOutput( Redirect.INHERIT );
-                processBuilder.redirectError( Redirect.INHERIT );
-                System.out.println( String.join( " ", processBuilder.command() ) );
-                Process process = processBuilder.start();
-                int exitCode = process.waitFor();
-                if( exitCode != 0 ) {
-                    fail( readStream( process.getErrorStream() ) );
-                }
-            }
-            ProcessBuilder processBuilder = new ProcessBuilder( "npm", "link", "wabt" );
+            //create dummy files to prevent error messages
+            FileOutputStream jsonPackage = new FileOutputStream( new File( getRoot(), "package.json" ) );
+            jsonPackage.write( "{\"name\":\"test\",  \"description\": \"description\", \"license\": \"Apache-2.0\", \"repository\": {}}".getBytes() );
+            jsonPackage.close();
+            jsonPackage = new FileOutputStream( new File( getRoot(), "package-lock.json" ) );
+            jsonPackage.write( "{\"lockfileVersion\": 1}".getBytes() );
+            jsonPackage.close();
+
+            ProcessBuilder processBuilder = new ProcessBuilder( "npm", "install", "wabt@nightly" );
             if( IS_WINDOWS ) {
                 processBuilder.command().add( 0, "cmd" );
                 processBuilder.command().add( 1, "/C" );
             }
             processBuilder.directory( getRoot() );
+            processBuilder.redirectOutput( Redirect.INHERIT );
+            processBuilder.redirectError( Redirect.INHERIT );
+            System.out.println( String.join( " ", processBuilder.command() ) );
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
             if( exitCode != 0 ) {
