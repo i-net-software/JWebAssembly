@@ -102,6 +102,16 @@ public class WatParserTest {
     }
 
     @Test
+    public void f32_max() throws IOException {
+        test( "f32.max" );
+    }
+
+    @Test
+    public void f64_max() throws IOException {
+        test( "f64.max" );
+    }
+
+    @Test
     public void i32_const() throws IOException {
         test( " i32.const -7 " );
     }
