@@ -64,6 +64,11 @@ public class JWebAssembly {
     public static final String EXPORT_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.Export";
 
     /**
+     * The name of the annotation for native WASM code in text format. 
+     */
+    public static final String TEXTCODE_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.WasmTextCode";
+
+    /**
      * Create a instance.
      */
     public JWebAssembly() {
