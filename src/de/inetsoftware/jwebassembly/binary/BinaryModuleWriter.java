@@ -617,6 +617,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                 }
                 break;
+            case max:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_MAX;
+                        break;
+                    case f64:
+                        op = F64_MAX;
+                        break;
+                }
+                break;
         }
         if( op == 0 ) {
             throw new Error( valueType + "." + numOp );

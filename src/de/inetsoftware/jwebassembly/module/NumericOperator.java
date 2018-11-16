@@ -37,4 +37,5 @@ public enum NumericOperator {
     lt,
     le,
     ge,
+    max,
 }
