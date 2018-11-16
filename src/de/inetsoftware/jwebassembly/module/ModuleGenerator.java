@@ -30,6 +30,7 @@ import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
  * Generate the WebAssembly output.
@@ -40,7 +41,9 @@ public class ModuleGenerator {
 
     private final ModuleWriter              writer;
 
-    private final JavaMethodWasmCodeBuilder codeBuilder = new JavaMethodWasmCodeBuilder();
+    private final JavaMethodWasmCodeBuilder javaCodeBuilder = new JavaMethodWasmCodeBuilder();
+
+    private final WatParser                 watParser = new WatParser();
 
     private String                          sourceFile;
 
@@ -147,20 +150,29 @@ public class ModuleGenerator {
             if( method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION  ) != null ) {
                 return;
             }
+            WasmCodeBuilder codeBuilder;
             Code code = method.getCode();
-            if( code != null ) { // abstract methods and interface methods does not have code
-                FunctionName name = new FunctionName( method );
-                writeExport( name, method );
-                writer.writeMethodStart( name );
-
-                codeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
-                writeMethodSignature( method, code.getLocalVariableTable(), codeBuilder );
-
-                for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
-                    instruction.writeTo( writer );
-                }
-                writer.writeMethodFinish();
+            if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  ) != null ) {
+                Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
+                String watCode = (String)wat.get( "value" );
+                watParser.parse( watCode, code == null ? -1 : code.getFirstLineNr() );
+                codeBuilder = watParser;
+            } else if( code != null ) { // abstract methods and interface methods does not have code
+                javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
+                codeBuilder = javaCodeBuilder;
+            } else {
+                return;
             }
+            FunctionName name = new FunctionName( method );
+            writeExport( name, method );
+            writer.writeMethodStart( name );
+
+            writeMethodSignature( method, code.getLocalVariableTable(), codeBuilder );
+
+            for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
+                instruction.writeTo( writer );
+            }
+            writer.writeMethodFinish();
         } catch( Exception ioex ) {
             int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
             throw WasmException.create( ioex, sourceFile, className, lineNumber );
