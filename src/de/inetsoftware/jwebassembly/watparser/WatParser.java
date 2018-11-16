@@ -70,6 +70,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "i32.add":
                         addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos );
                         break;
+                    case "f32.max":
+                        addNumericInstruction( NumericOperator.max, ValueType.f32, javaCodePos );
+                        break;
                     case "i64.extend_s/i32":
                         addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos );
                         break;
@@ -138,7 +141,7 @@ public class WatParser extends WasmCodeBuilder {
                 case '\n':
                 case '\r':
                 case '\t':
-                    if( off + 1 < i ) {
+                    if( off < i ) {
                         tokens.add( wat.substring( off, i ) );
                     }
                     off = i + 1;
