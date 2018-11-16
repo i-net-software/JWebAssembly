@@ -79,6 +79,8 @@ public class WatParser extends WasmCodeBuilder {
                     case "return":
                         addBlockInstruction( WasmBlockOperator.RETURN, null, javaCodePos );
                         break;
+                    default:
+                        throw new WasmException( "Unknown WASM token: " + tok, lineNumber );
                 }
             }
         } catch( Exception ex ) {
