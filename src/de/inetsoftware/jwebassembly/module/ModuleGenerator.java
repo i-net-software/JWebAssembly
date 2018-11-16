@@ -28,6 +28,7 @@ import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 
 /**
@@ -118,7 +119,7 @@ public class ModuleGenerator {
     private void prepareMethod( MethodInfo method ) throws WasmException {
         try {
             FunctionName name = new FunctionName( method );
-            Map<String,Object> annotationValues = method.getAnnotation( "de.inetsoftware.jwebassembly.api.annotation.Import" );
+            Map<String,Object> annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION );
             if( annotationValues != null ) {
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
@@ -143,8 +144,11 @@ public class ModuleGenerator {
     private void writeMethod( MethodInfo method ) throws WasmException {
         CodeInputStream byteCode = null;
         try {
+            if( method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION  ) != null ) {
+                return;
+            }
             Code code = method.getCode();
-            if( code != null && method.getAnnotation( "de.inetsoftware.jwebassembly.api.annotation.Import" ) == null ) { // abstract methods and interface methods does not have code
+            if( code != null ) { // abstract methods and interface methods does not have code
                 FunctionName name = new FunctionName( method );
                 writeExport( name, method );
                 writer.writeMethodStart( name );
@@ -175,7 +179,7 @@ public class ModuleGenerator {
      *             if any IOException occur
      */
     private void writeExport( FunctionName name, MethodInfo method ) throws IOException {
-        Map<String,Object> export = method.getAnnotation( "de.inetsoftware.jwebassembly.api.annotation.Export" );
+        Map<String,Object> export = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION );
         if( export != null ) {
             String exportName = (String)export.get( "name" );
             if( exportName == null ) {

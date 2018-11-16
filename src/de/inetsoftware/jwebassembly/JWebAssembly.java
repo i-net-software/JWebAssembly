@@ -48,7 +48,20 @@ public class JWebAssembly {
 
     private final HashMap<String, String> properties = new HashMap<>();
 
+    /**
+     * Property for adding debug names to the output if true.
+     */
     public static final String DEBUG_NAMES = "DebugNames";
+
+    /**
+     * The name of the annotation for import functions.
+     */
+    public static final String IMPORT_ANNOTATION = "de.inetsoftware.jwebassembly.api.annotation.Import";
+
+    /**
+     * The name of the annotation for export functions.
+     */
+    public static final String EXPORT_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.Export";
 
     /**
      * Create a instance.
