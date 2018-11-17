@@ -25,6 +25,7 @@ import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
 import de.inetsoftware.jwebassembly.api.annotation.Import;
+import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 
 /**
  * @author Volker Berlin
@@ -44,6 +45,7 @@ public class CallFunctions extends AbstractBaseTest {
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
             addParam( list, script, "intCall" );
+            addParam( list, script, "nativeCall" );
         }
         return list;
     }
@@ -72,6 +74,19 @@ public class CallFunctions extends AbstractBaseTest {
 
         @Import( module = "global.Math", name = "max" )
         static int abc( int a, int b) {
+            return Math.max( a, b );
+        }
+
+        @Export
+        static float nativeCall() {
+            return nativeMax( 4.5F,5.5F);
+        }
+
+        @WasmTextCode( "get_local 0 " //
+                        + "get_local 1 " //
+                        + "f32.max " //
+                        + "return" )
+        private static float nativeMax( float a, float b) {
             return Math.max( a, b );
         }
     }
