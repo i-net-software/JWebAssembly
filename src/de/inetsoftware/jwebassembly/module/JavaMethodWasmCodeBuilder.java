@@ -224,6 +224,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addBlockInstruction( WasmBlockOperator.DROP, null, codePos );
                         break;
                     case 89: // dup: duplicate the value on top of the stack
+                        addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_i32", "(I)II" ), codePos );
+                        break;
                     case 90: // dup_x1
                     case 91: // dup_x2
                     case 92: // dup2
