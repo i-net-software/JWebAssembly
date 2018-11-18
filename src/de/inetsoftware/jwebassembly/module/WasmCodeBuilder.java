@@ -22,7 +22,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.Member;
 
 /**
  * Base class for Code Building.
@@ -113,7 +113,7 @@ public abstract class WasmCodeBuilder {
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    protected void addGlobalInstruction( boolean load, ConstantRef ref, int javaCodePos ) {
+    protected void addGlobalInstruction( boolean load, Member ref, int javaCodePos ) {
         instructions.add( new WasmGlobalInstruction( load, ref, javaCodePos ) );
     }
 
@@ -177,7 +177,7 @@ public abstract class WasmCodeBuilder {
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    protected void addCallInstruction( ConstantRef method, int javaCodePos ) {
+    protected void addCallInstruction( Member method, int javaCodePos ) {
         instructions.add( new WasmCallInstruction( method, javaCodePos ) );
     }
 
