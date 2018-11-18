@@ -127,7 +127,7 @@ public class ModuleGenerator {
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
-                writeMethodSignature( method, null, null );
+                writeMethodSignature( method.getType(), method, null, null );
             } else {
                 writer.prepareFunction( name );
             }
@@ -152,12 +152,18 @@ public class ModuleGenerator {
             }
             WasmCodeBuilder codeBuilder;
             Code code = method.getCode();
+            String signature;
             if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  ) != null ) {
                 Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
                 String watCode = (String)wat.get( "value" );
+                signature = (String)wat.get( "signature" );
+                if( signature == null ) {
+                    signature = method.getType();
+                }
                 watParser.parse( watCode, code == null ? -1 : code.getFirstLineNr() );
                 codeBuilder = watParser;
             } else if( code != null ) { // abstract methods and interface methods does not have code
+                signature = method.getType();
                 javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
                 codeBuilder = javaCodeBuilder;
             } else {
@@ -167,7 +173,7 @@ public class ModuleGenerator {
             writeExport( name, method );
             writer.writeMethodStart( name );
 
-            writeMethodSignature( method, code.getLocalVariableTable(), codeBuilder );
+            writeMethodSignature( signature, method, code.getLocalVariableTable(), codeBuilder );
 
             for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
                 instruction.writeTo( writer );
@@ -204,6 +210,8 @@ public class ModuleGenerator {
     /**
      * Write the parameter and return signatures
      * 
+     * @param signature
+     *            the Java signature, typical method.getType();
      * @param method
      *            the method
      * @param variables
@@ -215,8 +223,7 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( MethodInfo method, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
-        String signature = method.getType();
+    private void writeMethodSignature( String signature, MethodInfo method, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
         String kind = "param";
         int paramCount = 0;
         ValueType type = null;
