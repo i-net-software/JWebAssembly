@@ -97,7 +97,7 @@ public class Code {
         }
         AttributeInfo data = attributes.get( "LocalVariableTable" );
         if( data != null ) {
-            localVariableTable = new LocalVariableTable( maxLocals );
+            localVariableTable = new LocalVariableTable( maxLocals, constantPool );
             localVariableTable.read( data.getDataInputStream(), true );
             data = attributes.get( "LocalVariableTypeTable" );
             if( data != null ) {

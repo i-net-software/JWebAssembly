@@ -27,6 +27,8 @@ import javax.annotation.Nullable;
  */
 public class LocalVariableTable {
 
+    private final ConstantPool constantPool;
+
     private LocalVariable[] tablePosition;
 
     private LocalVariable[] table;
@@ -34,11 +36,17 @@ public class LocalVariableTable {
     private int count;
 
     /**
-     * @param maxLocals the count of local variables in the memory
+     * Create a new instance of the code attribute "LocalVariableTable".
+     * 
+     * @param maxLocals
+     *            the count of local variables in the memory
+     * @param constantPool
+     *            Reference to the current ConstantPool
      */
-    LocalVariableTable( int maxLocals ) {
+    LocalVariableTable( int maxLocals, ConstantPool constantPool ) {
         table = new LocalVariable[maxLocals];
         tablePosition = new LocalVariable[maxLocals];
+        this.constantPool = constantPool;
     }
 
     /**
@@ -60,7 +68,7 @@ public class LocalVariableTable {
         }
         boolean[] wasSet = new boolean[table.length];
         for( int i = 0; i < count; i++ ) {
-            LocalVariable var = new LocalVariable( input, i );
+            LocalVariable var = new LocalVariable( input, i, constantPool );
             int idx = var.getIndex();
             if( withPositions ) {
                 tablePosition[i] = var;
@@ -105,6 +113,7 @@ public class LocalVariableTable {
      *
      * @param idx
      *            the index in the memory
+     * @return the LocalVariable
      */
     @Nonnull
     public LocalVariable get( int idx ) {
@@ -116,14 +125,12 @@ public class LocalVariableTable {
      *
      * @param name
      *            needed for evaluate the name.
-     * @param constantPool
-     *            current constant pool
      * @return the LocalVariable or null
      */
     @Nullable
-    public LocalVariable get( String name, ConstantPool constantPool ) {
+    public LocalVariable get( String name ) {
         for( int i=0; i<table.length; i++ ){
-            if( name.equals( table[i].getName( constantPool ) )) {
+            if( name.equals( table[i].getName() )) {
                 return table[i];
             }
         }

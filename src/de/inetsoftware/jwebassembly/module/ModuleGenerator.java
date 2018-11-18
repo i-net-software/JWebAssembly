@@ -127,7 +127,7 @@ public class ModuleGenerator {
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
-                writeMethodSignature( method.getType(), method, null, null );
+                writeMethodSignature( method.getType(), null, null );
             } else {
                 writer.prepareFunction( name );
             }
@@ -173,7 +173,7 @@ public class ModuleGenerator {
             writeExport( name, method );
             writer.writeMethodStart( name );
 
-            writeMethodSignature( signature, method, code.getLocalVariableTable(), codeBuilder );
+            writeMethodSignature( signature, code.getLocalVariableTable(), codeBuilder );
 
             for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
                 instruction.writeTo( writer );
@@ -212,8 +212,6 @@ public class ModuleGenerator {
      * 
      * @param signature
      *            the Java signature, typical method.getType();
-     * @param method
-     *            the method
      * @param variables
      *            Java variable table with names of the variables for debugging
      * @param codeBuilder
@@ -223,7 +221,7 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( String signature, MethodInfo method, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+    private void writeMethodSignature( String signature, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
         String kind = "param";
         int paramCount = 0;
         ValueType type = null;
@@ -235,7 +233,7 @@ public class ModuleGenerator {
             String name = null;
             if( kind == "param" ) {
                 if( variables != null ) {
-                    name = variables.getPosition( paramCount ).getName( method.getConstantPool() );
+                    name = variables.getPosition( paramCount ).getName();
                 }
                 paramCount++;
             }
@@ -250,7 +248,7 @@ public class ModuleGenerator {
                 type = localTypes.get( i );
                 String name = null;
                 if( variables != null ) {
-                    name = variables.getPosition( paramCount ).getName( method.getConstantPool() );
+                    name = variables.getPosition( paramCount ).getName();
                 }
                 writer.writeMethodParam( "local", type, name );
             }

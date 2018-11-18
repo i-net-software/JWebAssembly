@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2017 Volker Berlin (i-net software)
+   Copyright 2011 - 2018 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,17 +24,19 @@ import java.io.IOException;
  */
 public class LocalVariable {
 
-    private int start_pc;
+    private final int start_pc;
 
-    private int length;
+    private final int length;
 
-    private int name_index;
+    private final int name_index;
 
-    private int descriptor_index;
+    private final int descriptor_index;
 
-    private int index;
+    private final int index;
 
-    private int position;
+    private final int position;
+
+    private final ConstantPool constantPool;
 
     private boolean declared;
 
@@ -44,16 +46,21 @@ public class LocalVariable {
      *
      * @param input
      *            the stream of the class
+     * @param position
+     *            the position in the LocalVariableTable
+     * @param constantPool
+     *            Reference to the current ConstantPool
      * @throws IOException
      *             if any I/O error occurs.
      */
-    LocalVariable( DataInputStream input, int position ) throws IOException {
+    LocalVariable( DataInputStream input, int position, ConstantPool constantPool ) throws IOException {
         start_pc = input.readUnsignedShort();
         length = input.readUnsignedShort();
         name_index = input.readUnsignedShort();
         descriptor_index = input.readUnsignedShort();
         index = input.readUnsignedShort();
         this.position = position;
+        this.constantPool = constantPool;
     }
 
     /**
@@ -76,9 +83,10 @@ public class LocalVariable {
 
     /**
      * Get the name of the variable
-     * @param constantPool ConstantPool of the current class
+     * 
+     * @return the name
      */
-    public String getName( ConstantPool constantPool ) {
+    public String getName() {
         return (String)constantPool.get( name_index );
     }
 
