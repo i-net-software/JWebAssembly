@@ -35,4 +35,14 @@ public @interface WasmTextCode {
      * @return the native WASM code
      */
     String value();
+
+    /**
+     * Override the Java signature to support more as one return parameter. If you use this then you can't use it
+     * anymore in Java code directly. It is recommended to use this only with the modifier native.
+     * <p>
+     * Sample: "(I)II"
+     * 
+     * @return optional Java method signature.
+     */
+    String signature() default "";
 }
