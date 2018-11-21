@@ -48,6 +48,8 @@ public class JWebAssembly {
 
     private final HashMap<String, String> properties = new HashMap<>();
 
+    private final List<URL>               libraries  = new ArrayList<>();
+
     /**
      * Property for adding debug names to the output if true.
      */
@@ -122,6 +124,30 @@ public class JWebAssembly {
     }
 
     /**
+     * Add a jar or zip file as library to the compiler. Methods from the library will be add to the wasm only when used.
+     * 
+     * @param library
+     *            a archive file
+     */
+    public void addLibrary( @Nonnull File library ) {
+        try {
+            libraries.add( library.toURI().toURL() );
+        } catch( MalformedURLException ex ) {
+            throw new IllegalArgumentException( ex );
+        }
+    }
+
+    /**
+     * Add a jar or zip file as library to the compiler. Methods from the library will be add to the wasm only when used.
+     * 
+     * @param library
+     *            a archive file
+     */
+    public void addLibrary( @Nonnull URL library ) {
+        libraries.add( library );
+    }
+
+     /**
      * Convert the added files to a WebAssembly module in text representation.
      * 
      * @return the module as string
@@ -222,7 +248,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compile( ModuleWriter writer ) throws IOException, WasmException {
-        ModuleGenerator generator = new ModuleGenerator( writer );
+        ModuleGenerator generator = new ModuleGenerator( writer, libraries );
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             generator.prepare( classFile );

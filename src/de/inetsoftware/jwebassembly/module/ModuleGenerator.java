@@ -16,6 +16,8 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -41,6 +43,8 @@ public class ModuleGenerator {
 
     private final ModuleWriter              writer;
 
+    private final URLClassLoader            libraries;
+
     private final JavaMethodWasmCodeBuilder javaCodeBuilder = new JavaMethodWasmCodeBuilder();
 
     private final WatParser                 watParser = new WatParser();
@@ -54,9 +58,12 @@ public class ModuleGenerator {
      * 
      * @param writer
      *            the target writer
+     * @param libraries
+     *            libraries 
      */
-    public ModuleGenerator( @Nonnull ModuleWriter writer ) {
+    public ModuleGenerator( @Nonnull ModuleWriter writer, List<URL> libraries ) {
         this.writer = writer;
+        this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
     }
 
     /**
