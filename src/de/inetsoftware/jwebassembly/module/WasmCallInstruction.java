@@ -53,7 +53,7 @@ class WasmCallInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeFunctionCall( new FunctionName( method ).signatureName );
+        writer.writeFunctionCall( new FunctionName( method ) );
     }
 
     /**

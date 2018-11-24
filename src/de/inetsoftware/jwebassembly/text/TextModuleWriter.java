@@ -285,10 +285,11 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeFunctionCall( String name ) throws IOException {
+    protected void writeFunctionCall( FunctionName name ) throws IOException {
         newline( methodOutput );
-        name = name.substring( 0, name.indexOf( '(' ) );
-        methodOutput.append( "call $" ).append( name );
+        String signatureName = name.signatureName;
+        signatureName = signatureName.substring( 0, signatureName.indexOf( '(' ) );
+        methodOutput.append( "call $" ).append( signatureName );
     }
 
     /**

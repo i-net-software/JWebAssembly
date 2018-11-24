@@ -186,11 +186,11 @@ public abstract class ModuleWriter implements Closeable {
      * Write a call to a function.
      * 
      * @param name
-     *            the full qualified method name
+     *            the function name
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeFunctionCall( String name ) throws IOException;
+    protected abstract void writeFunctionCall( FunctionName name ) throws IOException;
 
     /**
      * Write a block/branch code
