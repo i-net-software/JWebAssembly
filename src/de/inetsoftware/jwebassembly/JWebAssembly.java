@@ -258,5 +258,6 @@ public class JWebAssembly {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             generator.write( classFile );
         }
+        generator.finish();
     }
 }

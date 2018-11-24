@@ -53,6 +53,8 @@ public class ModuleGenerator {
 
     private String                          className;
 
+    private FunctionManager                 functions = new FunctionManager();
+
     /**
      * Create a new generator.
      * 
@@ -98,6 +100,23 @@ public class ModuleGenerator {
         iterateMethods( classFile, m -> writeMethod( m ) );
     }
 
+    /**
+     * Finish the code generation.
+     */
+    public void finish() {
+        
+    }
+
+    /**
+     * Iterate over all methods of the classFile and run the handler.
+     * 
+     * @param classFile
+     *            the classFile
+     * @param handler
+     *            the handler
+     * @throws WasmException
+     *             if some Java code can't converted
+     */
     private void iterateMethods( ClassFile classFile, Consumer<MethodInfo> handler ) throws WasmException {
         sourceFile = null; // clear previous value for the case an IO exception occur
         className = null;
@@ -131,6 +150,7 @@ public class ModuleGenerator {
             FunctionName name = new FunctionName( method );
             Map<String,Object> annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION );
             if( annotationValues != null ) {
+                functions.writeFunction( name );
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
@@ -179,10 +199,13 @@ public class ModuleGenerator {
             FunctionName name = new FunctionName( method );
             writeExport( name, method );
             writer.writeMethodStart( name );
-
+            functions.writeFunction( name );
             writeMethodSignature( signature, code.getLocalVariableTable(), codeBuilder );
 
             for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
+                if( instruction instanceof WasmCallInstruction ) {
+                    functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
+                }
                 instruction.writeTo( writer );
             }
             writer.writeMethodFinish();
