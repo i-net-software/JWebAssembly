@@ -31,11 +31,13 @@ public class FunctionName {
     /**
      * The name in the WebAssembly.
      */
+    @Nonnull
     public final String fullName;
 
     /**
      * The Java signature which is used in Java byte code to reference the method call.
      */
+    @Nonnull
     public final String signatureName;
 
     /**
@@ -49,5 +51,31 @@ public class FunctionName {
         String className = methodOrField.getClassName();
         fullName = className + '.' + methodName;
         signatureName = fullName + methodOrField.getType();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        return signatureName.hashCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals( Object obj ) {
+        if( this == obj ) {
+            return true;
+        }
+        if( obj == null ) {
+            return false;
+        }
+        if( getClass() != obj.getClass() ) {
+            return false;
+        }
+        FunctionName other = (FunctionName)obj;
+        return signatureName.equals( other.signatureName );
     }
 }
