@@ -34,6 +34,8 @@ class WasmCallInstruction extends WasmInstruction {
 
     private final ValueType valueType;
 
+    private final FunctionName name;
+
     /**
      * Create an instance of a function call instruction
      * 
@@ -45,15 +47,25 @@ class WasmCallInstruction extends WasmInstruction {
     WasmCallInstruction( Member method, int javaCodePos ) {
         super( javaCodePos );
         this.method = method;
+        this.name = new FunctionName( method );
         String signature = method.getType();
         this.valueType = ValueType.getValueType( signature, signature.indexOf( ')' ) + 1 );
+    }
+
+    /**
+     * Get the function name that should be called
+     * @return the name
+     */
+    @Nonnull
+    FunctionName getFunctionName() {
+        return name;
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeFunctionCall( new FunctionName( method ) );
+        writer.writeFunctionCall( name );
     }
 
     /**
