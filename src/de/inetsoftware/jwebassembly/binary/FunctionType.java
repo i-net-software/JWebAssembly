@@ -31,7 +31,7 @@ class FunctionType extends SectionEntry {
 
     final List<ValueType> params = new ArrayList<>();
 
-    ValueType             result;                    // Java has only one return parameter
+    final List<ValueType> results = new ArrayList<>();
 
     /**
      * {@inheritDoc}
@@ -43,11 +43,9 @@ class FunctionType extends SectionEntry {
         for( ValueType valueType : this.params ) {
             stream.write( valueType.getCode() );
         }
-        if( this.result == null ) {
-            stream.writeVaruint32( 0 );
-        } else {
-            stream.writeVaruint32( 1 );
-            stream.write( this.result.getCode() );
+        stream.writeVaruint32( this.results.size() );
+        for( ValueType valueType : this.results ) {
+            stream.write( valueType.getCode() );
         }
     }
 
@@ -56,7 +54,7 @@ class FunctionType extends SectionEntry {
      */
     @Override
     public int hashCode() {
-        return params.hashCode() + 31 * Objects.hashCode( result );
+        return params.hashCode() + 31 * results.hashCode();
     }
 
     /**
@@ -71,6 +69,6 @@ class FunctionType extends SectionEntry {
             return false;
         }
         FunctionType type = (FunctionType)obj;
-        return Objects.equals( params, type.params ) && Objects.equals( result, type.result );
+        return params.equals( type.params ) && results.equals( type.results );
     }
 }
