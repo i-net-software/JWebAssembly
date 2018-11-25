@@ -338,7 +338,7 @@ public class WasmRule extends TemporaryFolder {
     private static ProcessBuilder nodeJsCommand( File script ) {
         String command = nodeExecuable();
         // details see with command: node --v8-options
-        return new ProcessBuilder( command, "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", "--experimental-wasm-eh", "--experimental-wasm-anyref", script.getAbsolutePath() );
+        return new ProcessBuilder( command, "--experimental-wasm-mv", "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", "--experimental-wasm-eh", "--experimental-wasm-anyref", script.getAbsolutePath() );
     }
 
     /**
