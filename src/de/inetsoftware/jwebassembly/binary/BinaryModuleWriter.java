@@ -31,7 +31,6 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
-import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
@@ -710,7 +709,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             if( entry != null ) {
                 id = entry.id;
             } else {
-                throw new WasmException( "Call to unknown function: " + signatureName, null, null, -1 );
+                func = new Function();
+                id = func.id = functions.size() + imports.size();
+                functions.put( signatureName, func );
             }
         }
         codeStream.writeOpCode( CALL );
