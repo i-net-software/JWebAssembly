@@ -287,7 +287,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 functionType.params.add( valueType );
                 break;
             case "result":
-                functionType.result = valueType;
+                functionType.results.add( valueType );
                 return;
             case "local":
                 locals.add( valueType );
