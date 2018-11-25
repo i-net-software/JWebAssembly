@@ -29,6 +29,12 @@ import de.inetsoftware.classparser.Member;
 public class FunctionName {
 
     /**
+     * The Java class name.
+     */
+    @Nonnull
+    public final String className;
+
+    /**
      * The name in the WebAssembly.
      */
     @Nonnull
@@ -41,16 +47,48 @@ public class FunctionName {
     public final String signatureName;
 
     /**
+     * The signature
+     */
+    @Nonnull
+    public final String signature;
+
+    /**
      * Create a new instance from the given reference in the ConstantPool or parsed method.
      * 
      * @param methodOrField
      *            the Java method
      */
     FunctionName( @Nonnull Member methodOrField ) {
-        String methodName = methodOrField.getName();
-        String className = methodOrField.getClassName();
-        fullName = className + '.' + methodName;
-        signatureName = fullName + methodOrField.getType();
+        this( methodOrField, methodOrField.getType() );
+    }
+
+    /**
+     * Create a new instance from the given reference in the ConstantPool and a special signature.
+     * 
+     * @param methodOrField
+     *            the Java method
+     * @param signature
+     *            the Java signature
+     */
+    FunctionName( @Nonnull Member methodOrField, String signature ) {
+        this( methodOrField.getClassName(), methodOrField.getName(), signature );
+    }
+
+    /**
+     * Create a new instance from the given values
+     * 
+     * @param className
+     *            the Java class name
+     * @param methodName
+     *            the Java method name
+     * @param signature
+     *            the Java signature
+     */
+    FunctionName( String className, String methodName, String signature ) {
+        this.className = className;
+        this.fullName = className + '.' + methodName;
+        this.signatureName = fullName + signature;
+        this.signature = signature;
     }
 
     /**
