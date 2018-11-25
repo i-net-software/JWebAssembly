@@ -17,6 +17,8 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.util.HashSet;
 
+import javax.annotation.Nullable;
+
 /**
  * Manage the required function/methods
  * 
@@ -49,5 +51,29 @@ public class FunctionManager {
         if( !writtenFunctions.contains( name.signatureName ) ) {
             toWriteLater.add( name );
         }
+    }
+
+    /**
+     * Get the first FunctionName that is required but was not written.
+     * 
+     * @return the FunctionName or null
+     */
+    @Nullable
+    FunctionName nextWriteLater() {
+        if( toWriteLater.isEmpty() ) {
+            return null;
+        }
+        return toWriteLater.iterator().next();
+    }
+
+    /**
+     * if the given function is required but was not written.
+     * 
+     * @param name
+     *            the function name
+     * @return true, if the function on the to do list
+     */
+    boolean isToWrite( FunctionName name ) {
+        return toWriteLater.contains( name );
     }
 }

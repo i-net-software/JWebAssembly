@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
@@ -102,9 +103,43 @@ public class ModuleGenerator {
 
     /**
      * Finish the code generation.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
      */
-    public void finish() {
-        
+    public void finish() throws IOException {
+        FunctionName next;
+        while( (next = functions.nextWriteLater()) != null ) {
+            InputStream stream = libraries.getResourceAsStream( next.className + ".class" );
+            if( stream == null ) {
+                throw new WasmException( "Missing function: " + next.signatureName, -1 );
+            }
+            ClassFile classFile = new ClassFile( stream );
+            iterateMethods( classFile, method -> {
+                try {
+                    FunctionName name;
+                    Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
+                    if( wat != null ) {
+                        String signature = (String)wat.get( "signature" );
+                        if( signature == null ) {
+                            signature = method.getType();
+                        }
+                        name = new FunctionName( method, signature );
+                    } else {
+                        name = new FunctionName( method );
+                    }
+                    if( functions.isToWrite( name ) ) {
+                        writeMethod( method );
+                    }
+                } catch (IOException ioex){
+                    throw WasmException.create( ioex, sourceFile, className, -1 );
+                }
+            } );
+
+            if( functions.isToWrite( next ) ) {
+                throw new WasmException( "Missing function: " + next.signatureName, -1 );
+            }
+        }
     }
 
     /**
@@ -154,7 +189,7 @@ public class ModuleGenerator {
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
-                writeMethodSignature( method.getType(), null, null );
+                writeMethodSignature( name, null, null );
             } else {
                 writer.prepareFunction( name );
             }
@@ -179,28 +214,29 @@ public class ModuleGenerator {
             }
             WasmCodeBuilder codeBuilder;
             Code code = method.getCode();
-            String signature;
+            FunctionName name;
             if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  ) != null ) {
                 Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
                 String watCode = (String)wat.get( "value" );
-                signature = (String)wat.get( "signature" );
+                String signature = (String)wat.get( "signature" );
                 if( signature == null ) {
                     signature = method.getType();
                 }
+                name = new FunctionName( method, signature );
                 watParser.parse( watCode, code == null ? -1 : code.getFirstLineNr() );
                 codeBuilder = watParser;
             } else if( code != null ) { // abstract methods and interface methods does not have code
-                signature = method.getType();
+                name = new FunctionName( method );
                 javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
                 codeBuilder = javaCodeBuilder;
             } else {
                 return;
             }
-            FunctionName name = new FunctionName( method );
             writeExport( name, method );
             writer.writeMethodStart( name );
             functions.writeFunction( name );
-            writeMethodSignature( signature, code.getLocalVariableTable(), codeBuilder );
+            LocalVariableTable localVariableTable = code == null ? null : code.getLocalVariableTable();
+            writeMethodSignature( name, localVariableTable, codeBuilder ); 
 
             for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
                 if( instruction instanceof WasmCallInstruction ) {
@@ -240,7 +276,7 @@ public class ModuleGenerator {
     /**
      * Write the parameter and return signatures
      * 
-     * @param signature
+     * @param name
      *            the Java signature, typical method.getType();
      * @param variables
      *            Java variable table with names of the variables for debugging
@@ -251,7 +287,8 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( String signature, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+    private void writeMethodSignature( FunctionName name, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+        String signature = name.signature;
         String kind = "param";
         int paramCount = 0;
         ValueType type = null;
@@ -260,27 +297,27 @@ public class ModuleGenerator {
                 kind = "result";
                 continue;
             }
-            String name = null;
+            String paramName = null;
             if( kind == "param" ) {
                 if( variables != null ) {
-                    name = variables.getPosition( paramCount ).getName();
+                    paramName = variables.getPosition( paramCount ).getName();
                 }
                 paramCount++;
             }
             type = ValueType.getValueType( signature, i );
             if( type != null ) {
-                writer.writeMethodParam( kind, type, name );
+                writer.writeMethodParam( kind, type, paramName );
             }
         }
         if( codeBuilder != null ) {
             List<ValueType> localTypes = codeBuilder.getLocalTypes( paramCount );
             for( int i = 0; i < localTypes.size(); i++ ) {
                 type = localTypes.get( i );
-                String name = null;
+                String paramName = null;
                 if( variables != null ) {
-                    name = variables.getPosition( paramCount ).getName();
+                    paramName = variables.getPosition( paramCount ).getName();
                 }
-                writer.writeMethodParam( "local", type, name );
+                writer.writeMethodParam( "local", type, paramName );
             }
         }
         writer.writeMethodParamFinish( );
