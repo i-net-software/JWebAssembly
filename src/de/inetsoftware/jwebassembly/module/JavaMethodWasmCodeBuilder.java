@@ -80,7 +80,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 int codePos = byteCode.getCodePosition();
                 endWithReturn = false;
                 int op = byteCode.readUnsignedByte();
-                switch( op ) {
+                OP: switch( op ) {
                     case 0: // nop
                         break;
                     //TODO case 1: // aconst_null
@@ -224,11 +224,24 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addBlockInstruction( WasmBlockOperator.DROP, null, codePos );
                         break;
                     case 89: // dup: duplicate the value on top of the stack
-                        addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_i32", "(I)II" ), codePos );
-                        break;
+                    case 92: // dup2
+                        switch( findPreviousPushInstruction().getPushValueType() ) {
+                            case i32:
+                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_i32", "(I)II" ), codePos );
+                                break OP;
+                            case f32:
+                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_f32", "(F)FF" ), codePos );
+                                break OP;
+                            case i64:
+                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_i64", "(J)JJ" ), codePos );
+                                break OP;
+                            case f64:
+                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_f64", "(D)DD" ), codePos );
+                                break OP;
+                        }
+                        //$FALL-THROUGH$
                     case 90: // dup_x1
                     case 91: // dup_x2
-                    case 92: // dup2
                     case 93: // dup2_x1
                     case 94: // dup2_x2
                     case 95: // swap
@@ -557,7 +570,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             byteCode.skip( 4 - padding );
         }
         startPosition--;
-        int switchValuestartPosition = findPreviousPushCodePosition();
+        int switchValuestartPosition = findPreviousPushInstruction().getCodePosition();
 
         int defaultPosition = startPosition + byteCode.readInt();
         int[] keys;
@@ -620,12 +633,13 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
     }
 
     /**
-     * We need one value from the stack inside of a block. We need to find the code position on which the block can
+     * We need one value from the stack inside of a block. We need to find the WasmInstruction on which the block can
      * start. If this a function call or numeric expression this can be complex to find the right point.
      * 
-     * @return the code position
+     * @return the WasmInstruction that push the last instruction
      */
-    private int findPreviousPushCodePosition() {
+    @Nonnull
+    private WasmInstruction findPreviousPushInstruction() {
         int valueCount = 0;
         List<WasmInstruction> instructions = getInstructions();
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
@@ -636,10 +650,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             }
             valueCount -= instr.getPopCount();
             if( valueCount == 1 ) {
-                return instr.getCodePosition();
+                return instr;
             }
         }
-        throw new WasmException( "Switch start position not found", -1 ); // should never occur
+        throw new WasmException( "Start position not found", -1 ); // should never occur
     }
 
     /**

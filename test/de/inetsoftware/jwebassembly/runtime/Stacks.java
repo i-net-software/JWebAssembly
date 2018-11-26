@@ -45,7 +45,10 @@ public class Stacks extends AbstractBaseTest {
             if( script == ScriptEngine.SpiderMonkey ) { //TODO SpiderMonkey does not support multiple return values
                 continue;
             }
-            addParam( list, script, "simple" );
+            addParam( list, script, "dupInt" );
+            addParam( list, script, "dupFloat" );
+            addParam( list, script, "dupDouble" );
+            addParam( list, script, "dupLong" );
         }
         return list;
     }
@@ -53,11 +56,35 @@ public class Stacks extends AbstractBaseTest {
     static class TestClass {
 
         @Export
-        static int simple() {
+        static int dupInt() {
             int a = 1;
             int b = 2;
             a = b = 3;
             return b;
+        }
+
+        @Export
+        static float dupFloat() {
+            float a = 1;
+            float b = 2;
+            a = b = 3.25F;
+            return b;
+        }
+
+        @Export
+        static double dupDouble() {
+            double a = 1;
+            double b = 2;
+            a = b = 3.25;
+            return b;
+        }
+
+        @Export
+        static int dupLong() {
+            long a = 1;
+            long b = 2;
+            a = b = 3;
+            return (int)b;
         }
     }
 }

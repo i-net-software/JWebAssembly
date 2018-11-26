@@ -22,4 +22,12 @@ public class NativeHelperCode {
     @WasmTextCode( signature = "(I)II", value = "get_local 0 get_local 0 return" )
     native static void dup_i32();
 
- }
+    @WasmTextCode( signature = "(F)FF", value = "get_local 0 get_local 0 return" )
+    native static void dup_f32();
+
+    @WasmTextCode( signature = "(J)JJ", value = "get_local 0 get_local 0 return" )
+    native static void dup_i64();
+
+    @WasmTextCode( signature = "(D)DD", value = "get_local 0 get_local 0 return" )
+    native static void dup_f64();
+}
