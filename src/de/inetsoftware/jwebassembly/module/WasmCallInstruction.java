@@ -30,11 +30,13 @@ import de.inetsoftware.classparser.Member;
  */
 class WasmCallInstruction extends WasmInstruction {
 
-    private final Member    method;
+    private final Member       method;
 
-    private final ValueType valueType;
+    private ValueType          valueType;
 
     private final FunctionName name;
+
+    private int                paramCount = -1;
 
     /**
      * Create an instance of a function call instruction
@@ -48,12 +50,11 @@ class WasmCallInstruction extends WasmInstruction {
         super( javaCodePos );
         this.method = method;
         this.name = new FunctionName( method );
-        String signature = method.getType();
-        this.valueType = ValueType.getValueType( signature, signature.indexOf( ')' ) + 1 );
     }
 
     /**
      * Get the function name that should be called
+     * 
      * @return the name
      */
     @Nonnull
@@ -72,6 +73,7 @@ class WasmCallInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     ValueType getPushValueType() {
+        countParams();
         return valueType;
     }
 
@@ -80,16 +82,27 @@ class WasmCallInstruction extends WasmInstruction {
      */
     @Override
     int getPopCount() {
-        String signature = method.getType();
-        int paramCount = 0;
-        ValueType type = null;
-        for( int i = 1; i < signature.length(); i++ ) {
-            if( signature.charAt( i ) == ')' ) {
-                return paramCount;
-            }
-            paramCount++;
-            ValueType.getValueType( signature, i );
+        countParams();
+        return paramCount;
+    }
+
+    /**
+     * Count the parameters in the signature
+     */
+    private void countParams() {
+        if( paramCount >= 0 ) {
+            return;
         }
-        throw new Error();
+        ValueTypeParser parser = new ValueTypeParser( method.getType() );
+        paramCount = 0;
+        while( parser.next() != null ) {
+            paramCount++;
+        }
+        valueType = parser.next();
+        ValueType type;
+        while( (type = parser.next()) != null ) {
+            valueType = type;
+            paramCount--;
+        }
     }
 }

@@ -180,7 +180,7 @@ public class TextModuleWriter extends ModuleWriter {
         if( !globals.contains( name.fullName ) ) {
             // declare global variable if not already declared.
             output.append( "\n  " );
-            String type = ValueType.getValueType( ref.getType(), 0 ).toString();
+            String type = ValueType.getValueType( ref.getType() ).toString();
             output.append( "(global $" ).append( name.fullName ).append( " (mut " ).append( type ).append( ") " ).append( type ).append( ".const 0)" );
             globals.add( name.fullName );
         }

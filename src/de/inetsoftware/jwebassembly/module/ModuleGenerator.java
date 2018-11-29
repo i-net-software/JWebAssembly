@@ -289,24 +289,21 @@ public class ModuleGenerator {
      */
     private void writeMethodSignature( FunctionName name, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
         String signature = name.signature;
-        String kind = "param";
         int paramCount = 0;
-        ValueType type = null;
-        for( int i = 1; i < signature.length(); i++ ) {
-            if( signature.charAt( i ) == ')' ) {
-                kind = "result";
-                continue;
-            }
-            String paramName = null;
-            if( kind == "param" ) {
-                if( variables != null ) {
-                    paramName = variables.getPosition( paramCount ).getName();
+        ValueTypeParser parser = new ValueTypeParser( signature );
+        ValueType type;
+        for( String kind : new String[] {"param","result"}) {
+            while( (type = parser.next()) != null ) {
+                String paramName = null;
+                if( kind == "param" ) {
+                    if( variables != null ) {
+                        paramName = variables.getPosition( paramCount ).getName();
+                    }
+                    paramCount++;
                 }
-                paramCount++;
-            }
-            type = ValueType.getValueType( signature, i );
-            if( type != null ) {
-                writer.writeMethodParam( kind, type, paramName );
+                if( type != ValueType.empty ) {
+                    writer.writeMethodParam( kind, type, paramName );
+                }
             }
         }
         if( codeBuilder != null ) {

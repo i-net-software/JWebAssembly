@@ -57,9 +57,8 @@ public class Stacks extends AbstractBaseTest {
 
         @Export
         static int dupInt() {
-            int a = 1;
-            int b = 2;
-            a = b = 3;
+            int a, b, c, d;
+            a = b = c = d = 3;
             return b;
         }
 

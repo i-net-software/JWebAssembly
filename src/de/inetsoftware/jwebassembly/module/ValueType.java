@@ -58,36 +58,10 @@ public enum ValueType {
      * 
      * @param javaSignature
      *            the signature
-     * @param idx
-     *            the index in the signature
-     * @return the value type or null if void
+     * @return the value type
      */
-    public static ValueType getValueType( String javaSignature, int idx ) {
-        String javaType;
-        switch( javaSignature.charAt( idx ) ) {
-            case '[': // array
-                javaType = "array";
-                break;
-            case 'L':
-                javaType = "object";
-                break;
-            case 'B': // byte
-            case 'C': // char
-            case 'S': // short
-            case 'I': // int
-                return ValueType.i32;
-            case 'D': // double
-                return ValueType.f64;
-            case 'F': // float
-                return ValueType.f32;
-            case 'J': // long
-                return ValueType.i64;
-            case 'V': // void
-                return null;
-            default:
-                javaType = javaSignature.substring( idx, idx + 1 );
-        }
-        throw new WasmException( "Not supported Java data type in method signature: " + javaType, null, null, -1 );
+    public static ValueType getValueType( String javaSignature ) {
+        return new ValueTypeParser( javaSignature ).next();
     }
 
 }

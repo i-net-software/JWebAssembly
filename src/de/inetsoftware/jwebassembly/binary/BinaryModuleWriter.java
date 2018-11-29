@@ -366,7 +366,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( var == null ) { // if not declared then create a definition in the global section
             var = new Global();
             var.id = globals.size();
-            var.type = ValueType.getValueType( ref.getType(), 0 );
+            var.type = ValueType.getValueType( ref.getType() );
             var.mutability = true;
             globals.put( name.fullName, var );
         }

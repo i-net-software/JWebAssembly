@@ -62,7 +62,7 @@ class WasmGlobalInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     ValueType getPushValueType() {
-        return load ? ValueType.getValueType( ref.getType(), 0 ) : null;
+        return load ? ValueType.getValueType( ref.getType() ) : null;
     }
 
     /**
