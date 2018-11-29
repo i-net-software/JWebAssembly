@@ -228,7 +228,11 @@ interface InstructionOpcodes {
 
     static final int I64_DIV_S = 0x7F; 
 
+    static final int I64_DIV_U = 0x80; 
+
     static final int I64_REM_S = 0x81;
+
+    static final int I64_REM_U = 0x82;
 
     static final int I64_AND   = 0x83; 
 
@@ -245,6 +249,8 @@ interface InstructionOpcodes {
     static final int I64_ROTL  = 0x89; 
 
     static final int I64_ROTR  = 0x8A; 
+
+    static final int F32_ABS   = 0x8B; 
 
     static final int F32_NEG   = 0x8C; 
 
@@ -344,6 +350,16 @@ interface InstructionOpcodes {
     static final int F64_CONVERT_U_I64      = 0xBA;
 
     static final int F64_PROMOTE_F32        = 0xBB;
+
+    // === Reinterpretations
+
+    static final int I32_REINTERPRET_F32    = 0xBC;
+
+    static final int I64_REINTERPRET_F64    = 0xBD;
+
+    static final int F32_REINTERPRET_I32    = 0xBE;
+
+    static final int F64_REINTERPRET_I64    = 0xBF;
 
     // === Sign-extension operators ====== https://github.com/WebAssembly/design/issues/1178
 
