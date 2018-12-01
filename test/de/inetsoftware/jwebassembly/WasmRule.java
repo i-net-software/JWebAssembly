@@ -54,7 +54,9 @@ public class WasmRule extends TemporaryFolder {
 
     private File                      spiderMonkeyScript;
 
-    private File                      nodeWastScript;
+    private File                      nodeWatScript;
+
+    private File                      spiderMonkeyWatScript;
 
     private boolean                   failed;
 
@@ -113,7 +115,8 @@ public class WasmRule extends TemporaryFolder {
 
             nodeScript = createScript( "nodetest.js" );
             spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
-            nodeWastScript = createScript( "WatTest.js" );
+            nodeWatScript = createScript( "WatTest.js" );
+            spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js" );
 
             //create dummy files to prevent error messages
             FileOutputStream jsonPackage = new FileOutputStream( new File( getRoot(), "package.json" ) );
@@ -253,13 +256,16 @@ public class WasmRule extends TemporaryFolder {
         try {
             switch( script ) {
                 case SpiderMonkey:
-                    processBuilder = spiderMonkeyCommand();
+                    processBuilder = spiderMonkeyCommand( spiderMonkeyScript );
+                    break;
+                case SpiderMonkeyWat:
+                    processBuilder = spiderMonkeyCommand( spiderMonkeyWatScript );
                     break;
                 case NodeJS:
                     processBuilder = nodeJsCommand( nodeScript );
                     break;
-                case NodeWast:
-                    processBuilder = nodeJsCommand( nodeWastScript );
+                case NodeWat:
+                    processBuilder = nodeJsCommand( nodeWatScript );
                     break;
                 default:
                     throw new IllegalStateException( script.toString() );
@@ -304,8 +310,8 @@ public class WasmRule extends TemporaryFolder {
      * @throws IOException
      *             if the download failed
      */
-    private ProcessBuilder spiderMonkeyCommand() throws IOException {
-        return new ProcessBuilder( spiderMonkey.getCommand(), "--wasm-gc", spiderMonkeyScript.getAbsolutePath() );
+    private ProcessBuilder spiderMonkeyCommand( File script ) throws IOException {
+        return new ProcessBuilder( spiderMonkey.getCommand(), "--wasm-gc", script.getAbsolutePath() );
     }
 
     /**

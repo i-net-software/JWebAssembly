@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2018 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,17 @@ import java.util.Collection;
 public enum ScriptEngine {
     NodeJS,
     SpiderMonkey,
-    NodeWast;
+    NodeWat,
+    SpiderMonkeyWat,
+    ;
 
     public static Collection<ScriptEngine[]> testParams() {
-        ScriptEngine[][] val = {{ScriptEngine.SpiderMonkey},{ScriptEngine.NodeJS},{ScriptEngine.NodeWast}};
+        ScriptEngine[][] val = { //
+                        { ScriptEngine.SpiderMonkey }, //
+                        { ScriptEngine.NodeJS }, //
+                        { ScriptEngine.NodeWat }, //
+//                        { ScriptEngine.SpiderMonkeyWat },//
+        };
         return Arrays.asList(val);
     }
 }
