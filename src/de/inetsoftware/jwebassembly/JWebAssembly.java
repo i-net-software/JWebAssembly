@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -169,7 +170,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     public void compileToText( File file ) throws WasmException {
-        try (OutputStreamWriter output = new OutputStreamWriter( new FileOutputStream( file ), StandardCharsets.UTF_8 )) {
+        try (OutputStreamWriter output = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( file ) ), StandardCharsets.UTF_8 )) {
             compileToText( output );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
@@ -214,7 +215,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     public void compileToBinary( File file ) throws WasmException {
-        try (FileOutputStream output = new FileOutputStream( file )) {
+        try (OutputStream output = new BufferedOutputStream( new FileOutputStream( file ) )) {
             compileToBinary( output );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
