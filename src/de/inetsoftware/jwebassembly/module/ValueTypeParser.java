@@ -56,7 +56,7 @@ public class ValueTypeParser {
                 next();
                 return ValueType.anyref;
             case 'L':
-                idx = sig.indexOf( ';', idx );
+                idx = sig.indexOf( ';', idx ) + 1;
                 return ValueType.anyref;
             case 'B': // byte
             case 'C': // char
