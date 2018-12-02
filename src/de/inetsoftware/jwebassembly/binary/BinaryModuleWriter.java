@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.module.ArrayOperator;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
@@ -777,5 +778,31 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             default:
                 throw new Error( "Unknown block: " + op );
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, ValueType valueType ) throws IOException {
+        int opCode;
+        switch(op) {
+            case NEW:
+                opCode = ARRAY_NEW;
+                break;
+            case GET:
+                opCode = ARRAY_GET;
+                break;
+            case SET:
+                opCode = ARRAY_SET;
+                break;
+            case LENGTH:
+                opCode = ARRAY_LEN;
+                break;
+            default:
+                throw new Error( "Unknown operator: " + op );
+        }
+        codeStream.writeOpCode( opCode );
+        codeStream.writeValueType( valueType );
     }
 }

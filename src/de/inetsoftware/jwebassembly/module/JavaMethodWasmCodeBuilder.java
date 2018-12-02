@@ -131,7 +131,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 24: // dload
                         addLoadStoreInstruction( ValueType.f64, true, byteCode.readUnsignedByte(), codePos );
                         break;
-                    //TODO case 25: // aload
+                    case 25: // aload
+                        addLoadStoreInstruction( ValueType.anyref, true, byteCode.readUnsignedByte(), codePos );
+                        break;
                     case 26: // iload_0
                     case 27: // iload_1
                     case 28: // iload_2
@@ -156,11 +158,15 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 41: // dload_3
                         addLoadStoreInstruction( ValueType.f64, true, op - 38, codePos );
                         break;
-                    //TODO case 42: //aload_0
-                    //TODO case 43: //aload_1
-                    //TODO case 44: //aload_2
-                    //TODO case 45: //aload_3
-                    //TODO case 46: // iaload
+                    case 42: //aload_0
+                    case 43: //aload_1
+                    case 44: //aload_2
+                    case 45: //aload_3
+                        addLoadStoreInstruction( ValueType.anyref, true, op - 42, codePos );
+                        break;
+                    case 46: // iaload
+                        addArrayInstruction( ArrayOperator.GET, ValueType.i32, codePos );
+                        break;
                     //TODO case 47: // laload
                     //TODO case 48: // faload
                     //TODO case 49: // daload
@@ -180,7 +186,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 57: // dstore
                         addLoadStoreInstruction( ValueType.f64, false, byteCode.readUnsignedByte(), codePos );
                         break;
-                    //TODO case 58: // astore
+                    case 58: // astore
+                        addLoadStoreInstruction( ValueType.anyref, false, byteCode.readUnsignedByte(), codePos );
+                        break;
                     case 59: // istore_0
                     case 60: // istore_1
                     case 61: // istore_2
@@ -211,14 +219,16 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 78: // astore_3
                         addLoadStoreInstruction( ValueType.anyref, false, op - 75, codePos );
                         break;
-                    //TODO case 79: // iastore
-                    //TODO case 80: // lastore
-                    //TODO case 81: // fastore
-                    //TODO case 82: // dastore
-                    //TODO case 83: // aastore
-                    //TODO case 84: // bastore
-                    //TODO case 85: // castore
-                    //TODO case 86: // sastore
+                    case 79: // iastore
+                        addArrayInstruction( ArrayOperator.SET, ValueType.i32, codePos );
+                        break;
+                        //TODO case 80: // lastore
+                        //TODO case 81: // fastore
+                        //TODO case 82: // dastore
+                        //TODO case 83: // aastore
+                        //TODO case 84: // bastore
+                        //TODO case 85: // castore
+                        //TODO case 86: // sastore
                     case 87: // pop
                     case 88: // pop2
                         addBlockInstruction( WasmBlockOperator.DROP, null, codePos );
@@ -237,6 +247,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 break OP;
                             case f64:
                                 addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_f64", "(D)DD" ), codePos );
+                                break OP;
+                            case anyref:
+                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_anyref", "(Ljava.lang.Object;)Ljava.lang.Object;Ljava.lang.Object;" ), codePos );
                                 break OP;
                         }
                         //$FALL-THROUGH$
@@ -518,9 +531,36 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     //TODO case 185: // invokeinterface
                     //TODO case 186: // invokedynamic
                     //TODO case 187: // new
-                    //TODO case 188: // newarray
+                    case 188: // newarray
+                        int typeValue = byteCode.readByte();
+                        switch( typeValue ) {
+                            case 4: // boolean 
+                            case 5: // char 
+                                type = ValueType.i32; 
+                                break;
+                            case 6: //float
+                                type = ValueType.f32;
+                                break;
+                            case 7: //double 
+                                type = ValueType.f64;
+                                break;
+                            case 8: //byte 
+                            case 9: //short 
+                            case 10: //int 
+                                type = ValueType.i32;
+                                break;
+                            case 11: //long 
+                                type = ValueType.i64;
+                                break;
+                            default:
+                                throw new WasmException( "Invalid Java byte code newarray: " + typeValue, byteCode.getLineNumber() );
+                        }
+                        addArrayInstruction( ArrayOperator.NEW, type, codePos );
+                        break;
                     //TODO case 189: // anewarray
-                    //TODO case 190: // arraylength
+                    case 190: // arraylength
+                        addArrayInstruction( ArrayOperator.LENGTH, ValueType.i32, codePos );
+                        break;
                     //TODO case 191: // athrow
                     //TODO case 192: // checkcast
                     //TODO case 193: // instanceof

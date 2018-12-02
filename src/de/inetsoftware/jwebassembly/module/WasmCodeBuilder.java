@@ -205,4 +205,18 @@ public abstract class WasmCodeBuilder {
     protected void addNopInstruction( int javaCodePos ) {
         instructions.add( new WasmNopInstruction( javaCodePos ) );
     }
+
+    /**
+     * Add an array operation to the instruction list as marker on the code position.
+     * 
+     * @param op
+     *            the operation
+     * @param type
+     *            the array type
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     */
+    protected void addArrayInstruction( ArrayOperator op, ValueType type, int javaCodePos ) {
+        instructions.add( new WasmArrayInstruction( op, type, javaCodePos ) );
+    }
 }

@@ -30,4 +30,7 @@ public class NativeHelperCode {
 
     @WasmTextCode( signature = "(D)DD", value = "get_local 0 get_local 0 return" )
     native static void dup_f64();
+
+    @WasmTextCode( signature = "(Ljava.lang.Object;)Ljava.lang.Object;Ljava.lang.Object;", value = "get_local 0 get_local 0 return" )
+    native static void dup_anyref();
 }

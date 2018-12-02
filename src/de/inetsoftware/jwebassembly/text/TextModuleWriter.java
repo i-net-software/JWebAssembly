@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.module.ArrayOperator;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.NumericOperator;
@@ -361,5 +362,28 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         methodOutput.append( name );
         inset += insetAfter;
+    }
+
+    @Override
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, ValueType valueType ) throws IOException {
+        String operation;
+        switch( op ) {
+            case NEW:
+                operation = "new";
+                break;
+            case GET:
+                operation = "get";
+                break;
+            case SET:
+                operation = "set";
+                break;
+            case LENGTH:
+                operation = "len";
+                break;
+            default:
+                throw new Error( "Unknown operator: " + op );
+        }
+        newline( methodOutput );
+        methodOutput.append( "array." ).append( operation ).append( ' ' ).append( valueType );
     }
 }

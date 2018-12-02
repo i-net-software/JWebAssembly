@@ -396,4 +396,23 @@ interface InstructionOpcodes {
     static final int I64_TRUNC_S_SAT_F64    = 0xFC06;
 
     static final int I64_TRUNC_U_SAT_F64    = 0xFC07;
+
+    // === GC opcodes (unofficial, experimental) ===== https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
+
+    static final int STRUCT_NEW             = 0xFC50;
+
+    static final int STRUCT_GET             = 0xFC51;
+
+    static final int STRUCT_SET             = 0xFC52;
+
+    static final int STRUCT_NARROW          = 0xFC53;
+
+
+    static final int ARRAY_NEW              = 0xFC60;
+
+    static final int ARRAY_GET              = 0xFC61;
+
+    static final int ARRAY_SET              = 0xFC62;
+
+    static final int ARRAY_LEN              = 0xFC63;
 }

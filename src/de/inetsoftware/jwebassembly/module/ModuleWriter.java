@@ -203,4 +203,16 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeBlockCode( @Nonnull WasmBlockOperator op, @Nullable Object data ) throws IOException;
+
+    /**
+     * Write an array operation.
+     * 
+     * @param op
+     *            the operation
+     * @param valueType
+     *            the resulting type
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, ValueType valueType ) throws IOException;
 }
