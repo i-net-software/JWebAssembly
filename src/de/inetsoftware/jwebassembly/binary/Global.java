@@ -37,7 +37,7 @@ class Global extends SectionEntry {
      */
     @Override
     void writeSectionEntry( WasmOutputStream stream ) throws IOException {
-        stream.write( this.type.getCode() );
+        stream.writeValueType( this.type );
         stream.write( this.mutability ? 1 : 0 );
         stream.writeConst( 0, this.type );
         stream.writeOpCode( InstructionOpcodes.END );

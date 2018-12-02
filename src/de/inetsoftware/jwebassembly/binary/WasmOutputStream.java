@@ -64,6 +64,18 @@ class WasmOutputStream extends FilterOutputStream {
     }
 
     /**
+     * Write a value type.
+     * 
+     * @param type
+     *            a type constant
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    public void writeValueType( ValueType type ) throws IOException {
+        write( type.getCode() );
+    }
+
+    /**
      * Write a integer little endian (ever 4 bytes)
      * 
      * @param value

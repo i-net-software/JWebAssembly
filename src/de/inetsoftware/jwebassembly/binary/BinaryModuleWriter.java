@@ -323,7 +323,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         localsStream.writeVaruint32( locals.size() );
         for( ValueType valueType : locals ) {
             localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
-            localsStream.write( valueType.getCode() );
+            localsStream.writeValueType( valueType );
         }
         functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
         localsStream.writeTo( functionsStream );
@@ -729,7 +729,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case IF:
                 codeStream.writeOpCode( IF );
-                codeStream.write( ((ValueType)data).getCode() );
+                codeStream.writeValueType( ((ValueType)data) );
                 break;
             case ELSE:
                 codeStream.writeOpCode( ELSE );
@@ -742,7 +742,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case BLOCK:
                 codeStream.writeOpCode( BLOCK );
-                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the block. currently we does not use it
+                codeStream.writeValueType( ValueType.empty ); // void; the return type of the block. currently we does not use it
                 break;
             case BR:
                 codeStream.writeOpCode( BR );
@@ -762,14 +762,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case LOOP:
                 codeStream.writeOpCode( LOOP );
-                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the loop. currently we does not use it
+                codeStream.writeValueType( ValueType.empty ); // void; the return type of the loop. currently we does not use it
                 break;
             case UNREACHABLE:
                 codeStream.writeOpCode( UNREACHABLE );
                 break;
             case TRY:
                 codeStream.writeOpCode( TRY );
-                codeStream.write( ValueType.empty.getCode() ); // void; the return type of the try. currently we does not use it
+                codeStream.writeValueType( ValueType.empty ); // void; the return type of the try. currently we does not use it
                 break;
             case CATCH:
                 codeStream.writeOpCode( CATCH );

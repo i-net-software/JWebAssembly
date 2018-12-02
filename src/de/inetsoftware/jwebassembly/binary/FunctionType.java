@@ -38,14 +38,14 @@ class FunctionType extends SectionEntry {
      */
     @Override
     void writeSectionEntry( WasmOutputStream stream ) throws IOException {
-        stream.write( ValueType.func.getCode() );
+        stream.writeValueType( ValueType.func );
         stream.writeVaruint32( this.params.size() );
         for( ValueType valueType : this.params ) {
-            stream.write( valueType.getCode() );
+            stream.writeValueType( valueType );
         }
         stream.writeVaruint32( this.results.size() );
         for( ValueType valueType : this.results ) {
-            stream.write( valueType.getCode() );
+            stream.writeValueType( valueType );
         }
     }
 
