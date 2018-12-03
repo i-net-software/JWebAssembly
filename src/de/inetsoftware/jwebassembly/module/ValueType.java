@@ -21,15 +21,15 @@ import de.inetsoftware.jwebassembly.WasmException;
  * @author Volker Berlin
  */
 public enum ValueType {
-    i32(0x7f),
-    i64(0x7e),
-    f32(0x7d),
-    f64(0x7c),
-    anyfunc(0x70),
-    anyref(0x6f),
-    except_ref(0x68),
-    func(0x60),
-    empty(0x40), // empty block_type
+    i32(-0x01),
+    i64(-0x02),
+    f32(-0x03),
+    f64(-0x04),
+    anyfunc(-0x10),
+    anyref(-0x11),
+    except_ref(-0x12),
+    func(-0x20),
+    empty(-0x40), // empty block_type
     ;
 
     private final int code;

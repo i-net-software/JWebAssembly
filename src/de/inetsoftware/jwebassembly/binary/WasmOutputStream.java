@@ -72,7 +72,7 @@ class WasmOutputStream extends FilterOutputStream {
      *             if an I/O error occurs.
      */
     public void writeValueType( ValueType type ) throws IOException {
-        write( type.getCode() );
+        writeVarint( type.getCode() );
     }
 
     /**
