@@ -21,6 +21,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
  * WasmInstruction for set and get global variables.

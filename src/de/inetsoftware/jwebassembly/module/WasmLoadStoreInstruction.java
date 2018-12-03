@@ -21,6 +21,8 @@ import java.io.IOException;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+
 /**
  * WasmInstruction for load and store local variables.
  * 

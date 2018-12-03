@@ -25,6 +25,10 @@ import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
  * Convert Java Byte Code to a list of WasmInstruction.

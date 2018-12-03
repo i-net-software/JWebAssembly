@@ -28,6 +28,9 @@ import javax.annotation.Nonnull;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
  * This calculate the goto offsets from Java back to block operations

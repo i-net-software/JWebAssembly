@@ -31,13 +31,13 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
-import de.inetsoftware.jwebassembly.module.ArrayOperator;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
-import de.inetsoftware.jwebassembly.module.NumericOperator;
-import de.inetsoftware.jwebassembly.module.ValueType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
-import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
  * Module Writer for binary format. http://webassembly.org/docs/binary-encoding/

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.inetsoftware.jwebassembly.module;
+package de.inetsoftware.jwebassembly.wasm;
 
 /**
  * @author Volker Berlin

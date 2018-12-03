@@ -21,6 +21,8 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
 /**
  * WasmInstruction for a function call.

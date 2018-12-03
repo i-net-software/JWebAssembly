@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import de.inetsoftware.jwebassembly.module.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
  * An entry in the type section of the WebAssembly.

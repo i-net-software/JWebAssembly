@@ -17,6 +17,8 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+
 /**
  * Cast operations for converting one data type to another
  * 

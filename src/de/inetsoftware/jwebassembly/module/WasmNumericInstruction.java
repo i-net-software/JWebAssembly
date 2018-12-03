@@ -21,6 +21,9 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+
 /**
  * WasmInstruction for numeric operation.
  * 

@@ -14,7 +14,7 @@
    limitations under the License.
 
 */
-package de.inetsoftware.jwebassembly.module;
+package de.inetsoftware.jwebassembly.wasm;
 
 /**
  * Block operators in the WASM byte code.

@@ -24,11 +24,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.NumericOperator;
-import de.inetsoftware.jwebassembly.module.ValueType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
-import de.inetsoftware.jwebassembly.module.WasmBlockOperator;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
+import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
  * Parser for text format of a function.

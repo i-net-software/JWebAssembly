@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
  * This manager monitor the locale variables of a method to create a translation from the slot based index in Java to
