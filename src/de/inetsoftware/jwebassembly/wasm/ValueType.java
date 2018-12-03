@@ -29,6 +29,7 @@ public enum ValueType {
     anyref(-0x11),
     except_ref(-0x12),
     func(-0x20),
+    struct(-0x30),
     empty(-0x40), // empty block_type
     ;
 
