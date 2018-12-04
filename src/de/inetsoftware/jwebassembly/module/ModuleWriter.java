@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
@@ -213,10 +214,10 @@ public abstract class ModuleWriter implements Closeable {
      * 
      * @param op
      *            the operation
-     * @param valueType
+     * @param type
      *            the resulting type
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, ValueType valueType ) throws IOException;
+    protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException;
 }

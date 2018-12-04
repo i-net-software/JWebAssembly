@@ -36,6 +36,7 @@ import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
@@ -784,7 +785,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeArrayOperator( @Nonnull ArrayOperator op, ValueType valueType ) throws IOException {
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException {
         int opCode;
         switch(op) {
             case NEW:
@@ -803,6 +804,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 throw new Error( "Unknown operator: " + op );
         }
         codeStream.writeOpCode( opCode );
-        codeStream.writeValueType( valueType );
+        codeStream.writeValueType( type );
     }
 }

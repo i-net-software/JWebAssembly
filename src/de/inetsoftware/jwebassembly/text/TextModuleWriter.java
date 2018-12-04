@@ -29,6 +29,7 @@ import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
@@ -365,7 +366,7 @@ public class TextModuleWriter extends ModuleWriter {
     }
 
     @Override
-    protected void writeArrayOperator( @Nonnull ArrayOperator op, ValueType valueType ) throws IOException {
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException {
         String operation;
         switch( op ) {
             case NEW:
@@ -384,6 +385,6 @@ public class TextModuleWriter extends ModuleWriter {
                 throw new Error( "Unknown operator: " + op );
         }
         newline( methodOutput );
-        methodOutput.append( "array." ).append( operation ).append( ' ' ).append( valueType );
+        methodOutput.append( "array." ).append( operation ).append( ' ' ).append( type );
     }
 }

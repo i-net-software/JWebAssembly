@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -35,29 +36,29 @@ class WasmArrayInstruction extends WasmInstruction {
 
     private final ArrayOperator op;
 
-    private final ValueType     valueType;
+    private final StorageType   type;
 
     /**
      * Create an instance of numeric operation.
      * 
-     * @param numOp
-     *            the numeric operation
-     * @param valueType
+     * @param op
+     *            the array operation
+     * @param type
      *            the type of the parameters
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable ValueType valueType, int javaCodePos ) {
+    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable StorageType type, int javaCodePos ) {
         super( javaCodePos );
         this.op = op;
-        this.valueType = valueType;
+        this.type = type;
     }
 
     /**
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeArrayOperator( op, valueType );
+        writer.writeArrayOperator( op, type );
     }
 
     /**
@@ -68,7 +69,7 @@ class WasmArrayInstruction extends WasmInstruction {
             case NEW:
                 return ValueType.anyref;
             case GET:
-                return valueType;
+                return type instanceof ValueType ? (ValueType)type : ValueType.anyref;
             case SET:
                 return null;
             case LENGTH:

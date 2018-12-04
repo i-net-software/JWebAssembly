@@ -15,12 +15,10 @@
  */
 package de.inetsoftware.jwebassembly.wasm;
 
-import de.inetsoftware.jwebassembly.WasmException;
-
 /**
  * @author Volker Berlin
  */
-public enum ValueType {
+public enum ValueType implements StorageType {
     i32(-0x01),
     i64(-0x02),
     f32(-0x03),
@@ -50,6 +48,7 @@ public enum ValueType {
      * 
      * @return the code
      */
+    @Override
     public int getCode() {
         return code;
     }
