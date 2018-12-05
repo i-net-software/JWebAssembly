@@ -37,6 +37,7 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
@@ -799,6 +800,30 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case LENGTH:
                 opCode = ARRAY_LEN;
+                break;
+            default:
+                throw new Error( "Unknown operator: " + op );
+        }
+        codeStream.writeOpCode( opCode );
+        codeStream.writeValueType( type );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeStructOperator( StructOperator op, StorageType type ) throws IOException {
+        int opCode;
+        switch(op) {
+            case NEW:
+            case NEW_DEFAULT:
+                opCode = STRUCT_NEW;
+                break;
+            case GET:
+                opCode = STRUCT_GET;
+                break;
+            case SET:
+                opCode = STRUCT_SET;
                 break;
             default:
                 throw new Error( "Unknown operator: " + op );

@@ -25,6 +25,7 @@ import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
@@ -220,4 +221,16 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException;
+
+    /**
+     * Write a struct operation
+     * 
+     * @param op
+     *            the operation
+     * @param type
+     *            the type of the struct
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeStructOperator( StructOperator op, StorageType type ) throws IOException;
 }

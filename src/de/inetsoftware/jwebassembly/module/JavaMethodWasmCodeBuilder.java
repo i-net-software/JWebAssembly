@@ -22,11 +22,14 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
+import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
@@ -534,7 +537,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     //TODO case 185: // invokeinterface
                     //TODO case 186: // invokedynamic
-                    //TODO case 187: // new
+                    case 187: // new
+                        String name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
+                        StorageType storageType = ValueType.anyref;
+                        addStructInstruction( StructOperator.NEW_DEFAULT, storageType, codePos );
+                        break;
                     case 188: // newarray
                         int typeValue = byteCode.readByte();
                         switch( typeValue ) {

@@ -30,6 +30,7 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
@@ -365,6 +366,9 @@ public class TextModuleWriter extends ModuleWriter {
         inset += insetAfter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException {
         String operation;
@@ -386,5 +390,31 @@ public class TextModuleWriter extends ModuleWriter {
         }
         newline( methodOutput );
         methodOutput.append( "array." ).append( operation ).append( ' ' ).append( type );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeStructOperator( StructOperator op, StorageType type ) throws IOException {
+        String operation;
+        switch( op ) {
+            case NEW:
+                operation = "new";
+                break;
+            case NEW_DEFAULT:
+                operation = "new_default";
+                break;
+            case GET:
+                operation = "get";
+                break;
+            case SET:
+                operation = "set";
+                break;
+            default:
+                throw new Error( "Unknown operator: " + op );
+        }
+        newline( methodOutput );
+        methodOutput.append( "struct." ).append( operation ).append( ' ' ).append( type );
     }
 }
