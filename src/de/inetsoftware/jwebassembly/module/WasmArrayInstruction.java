@@ -27,7 +27,7 @@ import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
- * WasmInstruction for numeric operation.
+ * WasmInstruction for an array operation.
  * 
  * @author Volker Berlin
  *
@@ -39,7 +39,7 @@ class WasmArrayInstruction extends WasmInstruction {
     private final StorageType   type;
 
     /**
-     * Create an instance of numeric operation.
+     * Create an instance of an array operation.
      * 
      * @param op
      *            the array operation
