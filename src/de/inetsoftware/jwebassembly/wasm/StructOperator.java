@@ -17,7 +17,7 @@
 package de.inetsoftware.jwebassembly.wasm;
 
 /**
- * Operation on Arrays.
+ * Operation on structs.
  * 
  * @author Volker Berlin
  */
