@@ -94,6 +94,9 @@ public class WasmRule extends TemporaryFolder {
         }
     }
 
+    /**
+     * Compile the classes of the test.
+     */
     public void compile() throws IOException, WasmException {
         JWebAssembly wasm = new JWebAssembly();
         for( Class<?> clazz : classes ) {
@@ -344,7 +347,12 @@ public class WasmRule extends TemporaryFolder {
     private static ProcessBuilder nodeJsCommand( File script ) {
         String command = nodeExecuable();
         // details see with command: node --v8-options
-        return new ProcessBuilder( command, "--experimental-wasm-mv", "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", "--experimental-wasm-eh", "--experimental-wasm-anyref", script.getAbsolutePath() );
+        ProcessBuilder processBuilder = new ProcessBuilder( command, "--experimental-wasm-mv", "--experimental-wasm-se", "--experimental-wasm-sat-f2i-conversions", "--experimental-wasm-eh", "--experimental-wasm-anyref", script.getName() );
+        if( IS_WINDOWS ) {
+            processBuilder.command().add( 0, "cmd" );
+            processBuilder.command().add( 1, "/C" );
+        }
+        return processBuilder;
     }
 
     /**
