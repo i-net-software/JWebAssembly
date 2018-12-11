@@ -59,14 +59,6 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void prepareImport( FunctionName name, String importModule, String importName ) throws IOException;
 
     /**
-     * Prepare a single function in the prepare phase.
-     * 
-     * @param name
-     *            the function name
-     */
-    protected void prepareFunction( FunctionName name ) {}
-
-    /**
      * Write an export directive
      * @param name
      *            the function name

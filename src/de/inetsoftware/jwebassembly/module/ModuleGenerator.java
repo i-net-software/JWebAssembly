@@ -192,8 +192,6 @@ public class ModuleGenerator {
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
                 writeMethodSignature( name, null, null );
-            } else {
-                writer.prepareFunction( name );
             }
         } catch( Exception ioex ) {
             throw WasmException.create( ioex, sourceFile, className, -1 );

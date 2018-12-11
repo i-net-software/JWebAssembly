@@ -58,8 +58,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private WasmOutputStream            codeStream          = new WasmOutputStream();
 
-    private WasmOutputStream            functionsStream     = new WasmOutputStream();
-
     private List<FunctionType>          functionTypes       = new ArrayList<>();
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
@@ -175,7 +173,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
         WasmOutputStream stream = new WasmOutputStream();
         stream.writeVaruint32( size );
-        functionsStream.writeTo( stream );
+        for( Function func : functions.values() ) {
+            func.functionsStream.writeTo( stream );
+        }
         wasm.writeSection( SectionType.Code, stream );
     }
 
@@ -241,14 +241,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void prepareFunction( FunctionName name ) {
-        functions.put( name.signatureName, new Function() );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void prepareFinish() {
         // initialize the function index IDs
         // https://github.com/WebAssembly/design/blob/master/Modules.md#function-index-space
@@ -274,7 +266,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeMethodStart( FunctionName name ) throws IOException {
-        function = functions.get( name.signatureName );
+        function = getFunction( name );
         functionType = new FunctionType();
         codeStream.reset();
         locals.clear();
@@ -328,6 +320,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
             localsStream.writeValueType( valueType );
         }
+        WasmOutputStream functionsStream = function.functionsStream = new WasmOutputStream();
         functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
         localsStream.writeTo( functionsStream );
         codeStream.writeTo( functionsStream );
@@ -702,23 +695,31 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeFunctionCall( FunctionName name ) throws IOException {
+        Function func = getFunction( name );
+        codeStream.writeOpCode( CALL );
+        codeStream.writeVaruint32( func.id );
+    }
+
+    /**
+     * Get the function object for the name. If not exists then it will be created.
+     * 
+     * @param name
+     *            the function name
+     * @return the function object
+     */
+    @Nonnull
+    private Function getFunction( FunctionName name ) {
         String signatureName = name.signatureName;
-        int id;
         Function func = functions.get( signatureName );
-        if( func != null ) {
-            id = func.id;
-        } else {
-            ImportFunction entry = imports.get( signatureName );
-            if( entry != null ) {
-                id = entry.id;
-            } else {
+        if( func == null ) {
+            func = imports.get( signatureName );
+            if( func == null ) {
                 func = new Function();
-                id = func.id = functions.size() + imports.size();
+                func.id = functions.size() + imports.size();
                 functions.put( signatureName, func );
             }
         }
-        codeStream.writeOpCode( CALL );
-        codeStream.writeVaruint32( id );
+        return func;
     }
 
     /**

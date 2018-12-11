@@ -31,6 +31,8 @@ class Function extends SectionEntry {
 
     List<String> paramNames;
 
+    WasmOutputStream functionsStream;
+
     /**
      * {@inheritDoc}
      */
