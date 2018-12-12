@@ -255,7 +255,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                             case f64:
                                 addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_f64", "(D)DD" ), codePos );
                                 break OP;
-                            case anyref:
+                            case anyref_:
                                 addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_anyref", "(Ljava.lang.Object;)Ljava.lang.Object;Ljava.lang.Object;" ), codePos );
                                 break OP;
                         }

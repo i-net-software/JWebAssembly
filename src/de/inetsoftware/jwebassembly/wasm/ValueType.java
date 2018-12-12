@@ -24,12 +24,14 @@ public enum ValueType implements StorageType {
     f32(-0x03),
     f64(-0x04),
     anyfunc(-0x10),
-    anyref(-0x11),
+    anyref_(-0x11),
     except_ref(-0x12),
     func(-0x20),
     struct(-0x30),
     empty(-0x40), // empty block_type
     ;
+
+    public static final ValueType anyref = i64; //TODO remove if anyref is supported
 
     private final int code;
 
