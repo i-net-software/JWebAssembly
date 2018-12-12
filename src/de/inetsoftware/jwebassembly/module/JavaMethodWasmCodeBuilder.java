@@ -242,7 +242,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 92: // dup2
-                        switch( findPreviousPushInstruction().getPushValueType() ) {
+                        switch( findPreviousPushInstructionPushValueType() ) {
                             case i32:
                                 addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_i32", "(I)II" ), codePos );
                                 break OP;
@@ -621,7 +621,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             byteCode.skip( 4 - padding );
         }
         startPosition--;
-        int switchValuestartPosition = findPreviousPushInstruction().getCodePosition();
+        int switchValuestartPosition = findPreviousPushInstructionCodePosition();
 
         int defaultPosition = startPosition + byteCode.readInt();
         int[] keys;
@@ -687,10 +687,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      * We need one value from the stack inside of a block. We need to find the WasmInstruction on which the block can
      * start. If this a function call or numeric expression this can be complex to find the right point.
      * 
-     * @return the WasmInstruction that push the last instruction
+     * @return the code position that push the last instruction
      */
     @Nonnull
-    private WasmInstruction findPreviousPushInstruction() {
+    private int findPreviousPushInstructionCodePosition() {
         int valueCount = 0;
         List<WasmInstruction> instructions = getInstructions();
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
@@ -701,10 +701,32 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             }
             valueCount -= instr.getPopCount();
             if( valueCount == 1 ) {
-                return instr;
+                return instr.getCodePosition();
             }
         }
         throw new WasmException( "Start position not found", -1 ); // should never occur
+    }
+
+    /**
+     * We need the value type from the stack.
+     * 
+     * @return the type of the last push value
+     */
+    @Nonnull
+    private ValueType findPreviousPushInstructionPushValueType() {
+        int valueCount = 0;
+        List<WasmInstruction> instructions = getInstructions();
+        for( int i = instructions.size() - 1; i >= 0; i-- ) {
+            WasmInstruction instr = instructions.get( i );
+            ValueType valueType = instr.getPushValueType();
+            if( valueType != null ) {
+                if( ++valueCount == 1 ) {
+                    return valueType;
+                }
+            }
+            valueCount -= instr.getPopCount();
+        }
+        throw new WasmException( "Push Value not found", -1 ); // should never occur
     }
 
     /**
