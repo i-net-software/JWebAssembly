@@ -217,6 +217,7 @@ public class WasmRule extends TemporaryFolder {
                 try {
                     Class<?> clazz = classes[i];
                     method = clazz.getDeclaredMethod( methodName, types );
+                    break;
                 } catch( NoSuchMethodException ex ) {
                     if( i == classes.length - 1 ) {
                         throw ex;
