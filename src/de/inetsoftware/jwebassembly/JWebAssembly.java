@@ -255,10 +255,6 @@ public class JWebAssembly {
             generator.prepare( classFile );
         }
         generator.prepareFinish();
-        for( URL url : classFiles ) {
-            ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
-            generator.write( classFile );
-        }
         generator.finish();
     }
 }

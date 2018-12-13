@@ -92,18 +92,6 @@ public class ModuleGenerator {
     }
 
     /**
-     * Write the content of the class to the writer.
-     * 
-     * @param classFile
-     *            the class file
-     * @throws WasmException
-     *             if some Java code can't converted
-     */
-    public void write( ClassFile classFile ) throws WasmException {
-        iterateMethods( classFile, m -> writeMethod( m ) );
-    }
-
-    /**
      * Finish the code generation.
      * 
      * @throws IOException
@@ -163,10 +151,6 @@ public class ModuleGenerator {
             MethodInfo[] methods = classFile.getMethods();
             for( MethodInfo method : methods ) {
                 Code code = method.getCode();
-                if( method.getName().equals( "<init>" ) && method.getType().equals( "()V" )
-                                && code.isSuperInitReturn( classFile.getSuperClass() ) ) {
-                    continue; //default constructor
-                }
                 handler.accept( method );
             }
         } catch( IOException ioex ) {
@@ -192,6 +176,11 @@ public class ModuleGenerator {
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
                 writeMethodSignature( name, null, null );
+            } else {
+                annotationValues = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION );
+                if( annotationValues != null ) {
+                    functions.functionCall( name );
+                }
             }
         } catch( Exception ioex ) {
             throw WasmException.create( ioex, sourceFile, className, -1 );
