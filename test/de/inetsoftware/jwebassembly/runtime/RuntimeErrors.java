@@ -32,6 +32,7 @@ import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.api.annotation.Import;
 
 /**
  * @author Volker Berlin
@@ -72,17 +73,21 @@ public class RuntimeErrors {
         }
     }
 
-    @Test
-    public void floatRem() throws IOException {
-        WasmRule wasm = new WasmRule( TestModulo.class );
+    private void compileErrorTest( String expectedMessge, Class<?> classes ) throws IOException {
+        WasmRule wasm = new WasmRule( classes );
         try {
             wasm.compile();
-            fail( "Floating modulo is not supported" );
+            fail( "Exception expected with: " + expectedMessge );
         } catch( WasmException ex ) {
-            assertTrue( ex.toString(), ex.getMessage().contains( "Modulo/Remainder" ) );
+            assertTrue( "Wrong error message: " + ex.getMessage(), ex.getMessage().contains( expectedMessge ) );
         } finally {
             wasm.delete();
         }
+
+    }
+    @Test
+    public void floatRem() throws IOException {
+        compileErrorTest( "Modulo/Remainder", TestModulo.class );
     }
 
     static class TestModulo {
@@ -90,6 +95,31 @@ public class RuntimeErrors {
         static float longReturn() {
             float a = 3.4F;
             return a % 2F;
+        }
+    }
+
+    @Test
+    public void nonStaticExport() throws IOException {
+        compileErrorTest( "Export method must be static:", NonStaticExport.class );
+    }
+
+    static class NonStaticExport {
+        @Export
+        float function() {
+            return 1;
+        }
+    }
+
+
+    @Test
+    public void nonStaticImport() throws IOException {
+        compileErrorTest( "Import method must be static:", NonStaticImport.class );
+    }
+
+    static class NonStaticImport {
+        @Import( module = "m", name = "n" )
+        float function() {
+            return 1;
         }
     }
 }

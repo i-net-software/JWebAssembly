@@ -171,14 +171,20 @@ public class ModuleGenerator {
             FunctionName name = new FunctionName( method );
             Map<String,Object> annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION );
             if( annotationValues != null ) {
+                if( !method.isStatic() ) {
+                    throw new WasmException( "Import method must be static: " + name.fullName, -1 );
+                }
                 functions.writeFunction( name );
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
-                writeMethodSignature( name, null, null );
+                writeMethodSignature( name, true, null, null );
             } else {
                 annotationValues = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION );
                 if( annotationValues != null ) {
+                    if( !method.isStatic() ) {
+                        throw new WasmException( "Export method must be static: " + name.fullName, -1 );
+                    }
                     functions.functionCall( name );
                 }
             }
@@ -225,7 +231,7 @@ public class ModuleGenerator {
             writer.writeMethodStart( name );
             functions.writeFunction( name );
             LocalVariableTable localVariableTable = code == null ? null : code.getLocalVariableTable();
-            writeMethodSignature( name, localVariableTable, codeBuilder ); 
+            writeMethodSignature( name, method.isStatic(), localVariableTable, codeBuilder ); 
 
             for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
                 if( instruction instanceof WasmCallInstruction ) {
@@ -267,6 +273,8 @@ public class ModuleGenerator {
      * 
      * @param name
      *            the Java signature, typical method.getType();
+     * @param isStatic
+     *            if method is static
      * @param variables
      *            Java variable table with names of the variables for debugging
      * @param codeBuilder
@@ -276,9 +284,12 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( FunctionName name, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+    private void writeMethodSignature( FunctionName name, boolean isStatic, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
         String signature = name.signature;
         int paramCount = 0;
+        if( !isStatic ) {
+            writer.writeMethodParam( "param", ValueType.anyref, "this" );
+        }
         ValueTypeParser parser = new ValueTypeParser( signature );
         ValueType type;
         for( String kind : new String[] {"param","result"}) {
@@ -296,6 +307,9 @@ public class ModuleGenerator {
             }
         }
         if( codeBuilder != null ) {
+            if( !isStatic ) {
+                paramCount++;
+            }
             List<ValueType> localTypes = codeBuilder.getLocalTypes( paramCount );
             for( int i = 0; i < localTypes.size(); i++ ) {
                 type = localTypes.get( i );
