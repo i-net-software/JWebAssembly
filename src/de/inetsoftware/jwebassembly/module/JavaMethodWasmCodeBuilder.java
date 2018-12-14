@@ -529,7 +529,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     //TODO case 180: // getfield
                     //TODO case 181: // putfield
                     //TODO case 182: // invokevirtual
-                    //TODO case 183: // invokespecial
+                    case 183: // invokespecial, invoke a constructor
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
                         ref = (ConstantRef)constantPool.get( idx );
