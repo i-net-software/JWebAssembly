@@ -26,4 +26,5 @@ public enum StructOperator {
     NEW_DEFAULT,
     GET,
     SET,
+    NULL,
 }
