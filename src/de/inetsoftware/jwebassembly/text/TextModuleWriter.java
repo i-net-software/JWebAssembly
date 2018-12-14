@@ -400,21 +400,34 @@ public class TextModuleWriter extends ModuleWriter {
         String operation;
         switch( op ) {
             case NEW:
-                operation = "new";
+                operation = "struct.new";
                 break;
             case NEW_DEFAULT:
-                operation = "new_default";
+                operation = "struct.new_default";
                 break;
             case GET:
-                operation = "get";
+                operation = "struct.get";
                 break;
             case SET:
-                operation = "set";
+                operation = "struct.set";
+                break;
+            case NULL:
+                operation = "ref.null";
+                type = null;
                 break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }
         newline( methodOutput );
-        methodOutput.append( "struct." ).append( operation ).append( ' ' ).append( type );
+        methodOutput.append( operation );
+        if( type != null ) {
+            int typeCode = type.getCode();
+            methodOutput.append( ' ' );
+            if( typeCode < 0 ) {
+                methodOutput.append( type );
+            } else {
+                methodOutput.append( typeCode );
+            }
+        }
     }
 }

@@ -826,10 +826,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case SET:
                 opCode = STRUCT_SET;
                 break;
+            case NULL:
+                opCode = REF_NULL;
+                type = null;
+                break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }
         codeStream.writeOpCode( opCode );
-        codeStream.writeValueType( type );
+        if( type != null ) {
+            codeStream.writeValueType( type );
+        }
     }
 }
