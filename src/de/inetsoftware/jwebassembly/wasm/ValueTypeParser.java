@@ -58,6 +58,7 @@ public class ValueTypeParser {
             case 'L':
                 idx = sig.indexOf( ';', idx ) + 1;
                 return ValueType.anyref;
+            case 'Z': // boolean
             case 'B': // byte
             case 'C': // char
             case 'S': // short
