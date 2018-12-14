@@ -90,7 +90,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 OP: switch( op ) {
                     case 0: // nop
                         break;
-                    //TODO case 1: // aconst_null
+                    case 1: // aconst_null
+                        addStructInstruction( StructOperator.NULL, ValueType.anyref, codePos );
+                        break;
                     case 2: // iconst_m1
                     case 3: // iconst_0
                     case 4: // iconst_1
