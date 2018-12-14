@@ -229,6 +229,9 @@ public class WasmRule extends TemporaryFolder {
             if( expected instanceof Character ) { // WASM does not support char that it is number
                 expected = new Integer( ((Character)expected).charValue() );
             }
+            if( expected instanceof Boolean ) { // WASM does not support boolean that it is number
+                expected = new Integer( ((Boolean)expected) ? 1 : 0 );
+            }
 
             for( int i = 0; i < params.length; i++ ) {
                 if( params[i] instanceof Character ) {
