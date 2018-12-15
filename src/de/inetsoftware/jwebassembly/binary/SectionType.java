@@ -29,6 +29,8 @@ enum SectionType {
     Export, //   7   Exports
     Start, //    8   Start function declaration
     Element, //  9   Elements section
-    Code, //    10  Function bodies (code)
-    Data, //    11  Data segments
+    Code, //    10   Function bodies (code)
+    Data, //    11   Data segments
+    Reserved, //12
+    Event, //   13   Event declarations, Exceptions
 }
