@@ -209,7 +209,16 @@ public class TextModuleWriter extends ModuleWriter {
                     case le:
                     case ge:
                         op += "_s";
+                        break;
+                    case ifnonnull:
+                        methodOutput.append( "ref.isnull" );
+                        writeNumericOperator( NumericOperator.eqz, ValueType.i32 );
+                        return;
+                    case ifnull:
+                        methodOutput.append( "ref.isnull" );
+                        return;
                 }
+                break;
         }
         methodOutput.append( valueType ).append( '.' ).append( op );
     }

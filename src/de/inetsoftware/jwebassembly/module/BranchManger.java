@@ -696,6 +696,12 @@ class BranchManger {
                 case ge:
                     newOp = NumericOperator.lt;
                     break;
+                case ifnull:
+                    newOp = NumericOperator.ifnonnull;
+                    break;
+                case ifnonnull:
+                    newOp = NumericOperator.ifnull;
+                    break;
                 default:
                     throw new WasmException( "Not a compare operation: " + instr.numOp, null, null, lineNumber );
             }

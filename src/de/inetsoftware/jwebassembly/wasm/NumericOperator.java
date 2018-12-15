@@ -31,6 +31,7 @@ public enum NumericOperator {
     shl,
     shr_s,
     shr_u,
+    eqz,
     eq,
     ne,
     gt,
@@ -38,4 +39,6 @@ public enum NumericOperator {
     le,
     ge,
     max,
+    ifnull,
+    ifnonnull,
 }

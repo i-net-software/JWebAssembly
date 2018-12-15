@@ -257,7 +257,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                             case f64:
                                 addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_f64", "(D)DD" ), codePos );
                                 break OP;
-                            case anyref_:
+                            case anyref:
                                 addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_anyref", "(Ljava.lang.Object;)Ljava.lang.Object;Ljava.lang.Object;" ), codePos );
                                 break OP;
                         }
@@ -581,8 +581,12 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     //TODO case 195: // monitorexit
                     //TODO case 196: // wide
                     //TODO case 197: // multianewarray
-                    //TODO case 198: // ifnull
-                    //TODO case 199: // ifnonnull
+                    case 198: // ifnull
+                        opIfCompareCondition( NumericOperator.ifnull, byteCode, codePos );
+                        break;
+                    case 199: // ifnonnull
+                        opIfCompareCondition( NumericOperator.ifnonnull, byteCode, codePos );
+                        break;
                     //TODO case 200: // goto_w
                     //TODO case 201: // jsr_w
                     default:
