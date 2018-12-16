@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -38,6 +39,14 @@ class WasmNopInstruction extends WasmInstruction {
      */
     WasmNopInstruction( int javaCodePos ) {
         super( javaCodePos );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Type getType() {
+        return Type.Nop;
     }
 
     /**

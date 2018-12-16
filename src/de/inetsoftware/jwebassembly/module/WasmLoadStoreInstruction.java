@@ -21,6 +21,7 @@ import java.io.IOException;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -54,6 +55,14 @@ class WasmLoadStoreInstruction extends WasmInstruction {
         this.load = load;
         this.idx = idx;
         this.localVariables = localVariables;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Type getType() {
+        return Type.LoadStore;
     }
 
     /**

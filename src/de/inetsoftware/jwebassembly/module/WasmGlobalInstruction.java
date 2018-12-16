@@ -21,6 +21,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -49,6 +50,14 @@ class WasmGlobalInstruction extends WasmInstruction {
         super( javaCodePos );
         this.load = load;
         this.ref = ref;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Type getType() {
+        return Type.Global;
     }
 
     /**

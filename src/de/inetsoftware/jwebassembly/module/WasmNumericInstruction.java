@@ -21,6 +21,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -50,6 +51,14 @@ class WasmNumericInstruction extends WasmInstruction {
         super( javaCodePos );
         this.numOp = numOp;
         this.valueType = valueType;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Type getType() {
+        return Type.Numeric;
     }
 
     /**

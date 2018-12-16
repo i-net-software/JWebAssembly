@@ -233,8 +233,11 @@ public class ModuleGenerator {
             writeMethodSignature( name, method.isStatic(), localVariableTable, codeBuilder ); 
 
             for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
-                if( instruction instanceof WasmCallInstruction ) {
-                    functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
+                switch( instruction.getType() ) {
+                    case Call:
+                        functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
+                        break;
+                    default:
                 }
                 instruction.writeTo( writer );
             }

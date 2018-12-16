@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -40,6 +41,14 @@ class WasmConvertInstruction extends WasmInstruction {
     WasmConvertInstruction( ValueTypeConvertion conversion, int javaCodePos ) {
         super( javaCodePos );
         this.conversion = conversion;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Type getType() {
+        return Type.Convert;
     }
 
     /**

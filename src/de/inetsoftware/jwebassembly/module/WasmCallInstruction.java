@@ -55,6 +55,14 @@ class WasmCallInstruction extends WasmInstruction {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    Type getType() {
+        return Type.Call;
+    }
+
+    /**
      * Get the function name that should be called
      * 
      * @return the name

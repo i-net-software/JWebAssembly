@@ -21,6 +21,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -61,6 +62,14 @@ class WasmConstInstruction extends WasmInstruction {
      */
     WasmConstInstruction( Number value, int javaCodePos ) {
         this( value, getValueType( value ), javaCodePos );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Type getType() {
+        return Type.Const;
     }
 
     /**

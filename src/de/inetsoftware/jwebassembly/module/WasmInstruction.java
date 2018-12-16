@@ -31,6 +31,13 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 abstract class WasmInstruction {
 
+    /**
+     * Type of instruction to faster differ as with instanceof.
+     */
+    static enum Type {
+        LoadStore, Const, Convert, Local, Global, Block, Numeric, Nop, Call, Array, Struct;
+    }
+
     private int javaCodePos;
 
     /**
@@ -42,6 +49,13 @@ abstract class WasmInstruction {
     WasmInstruction( int javaCodePos ) {
         this.javaCodePos = javaCodePos;
     }
+
+    /**
+     * Get the type of instruction
+     * @return the type
+     */
+    @Nonnull
+    abstract Type getType();
 
     /**
      * Write this instruction to the WASM module.
