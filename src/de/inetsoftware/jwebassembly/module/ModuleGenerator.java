@@ -150,7 +150,6 @@ public class ModuleGenerator {
             className = classFile.getThisClass().getName();
             MethodInfo[] methods = classFile.getMethods();
             for( MethodInfo method : methods ) {
-                Code code = method.getCode();
                 handler.accept( method );
             }
         } catch( IOException ioex ) {
