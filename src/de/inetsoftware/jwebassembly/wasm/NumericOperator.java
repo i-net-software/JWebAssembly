@@ -41,4 +41,6 @@ public enum NumericOperator {
     max,
     ifnull,
     ifnonnull,
+    ref_eq,
+    ref_ne,
 }

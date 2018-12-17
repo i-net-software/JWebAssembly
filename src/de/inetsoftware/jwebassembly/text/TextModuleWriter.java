@@ -217,6 +217,13 @@ public class TextModuleWriter extends ModuleWriter {
                     case ifnull:
                         methodOutput.append( "ref.isnull" );
                         return;
+                    case ref_ne:
+                        methodOutput.append( "ref.eq" );
+                        writeNumericOperator( NumericOperator.eqz, ValueType.i32 );
+                        return;
+                    case ref_eq:
+                        methodOutput.append( "ref.eq" );
+                        return;
                 }
                 break;
         }

@@ -480,8 +480,12 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 164: // if_icmple
                         opIfCompareCondition( NumericOperator.le, byteCode, codePos );
                         break;
-                    //TODO case 165: // if_acmpeq
-                    //TODO case 166: // if_acmpne
+                    case 165: // if_acmpeq
+                        opIfCompareCondition( NumericOperator.ref_eq, byteCode, codePos );
+                        break;
+                    case 166: // if_acmpne
+                        opIfCompareCondition( NumericOperator.ref_ne, byteCode, codePos );
+                        break;
                     case 167: // goto
                         int offset = byteCode.readShort();
                         branchManager.addGotoOperator( codePos, offset, byteCode.getLineNumber() );

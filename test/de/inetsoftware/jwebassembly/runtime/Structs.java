@@ -43,6 +43,8 @@ public class Structs extends AbstractBaseTest {
             ScriptEngine script = val[0];
             addParam( list, script, "isNull" );
             addParam( list, script, "isNotNull" );
+            addParam( list, script, "isSame" );
+            addParam( list, script, "isNotSame" );
             addParam( list, script, "simple" );
         }
         return list;
@@ -66,6 +68,20 @@ public class Structs extends AbstractBaseTest {
         static boolean isNotNull() {
             Object val = null;
             return val != null;
+        }
+
+        @Export
+        static boolean isSame() {
+            Object val1 = null;
+            Object val2 = null;
+            return val1 == val2;
+        }
+
+        @Export
+        static boolean isNotSame() {
+            Object val1 = null;
+            Object val2 = null;
+            return val1 != val2;
         }
 
         @Export

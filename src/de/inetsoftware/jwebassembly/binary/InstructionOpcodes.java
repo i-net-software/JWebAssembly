@@ -379,6 +379,8 @@ interface InstructionOpcodes {
 
     static final int REF_ISNULL             = 0xD1;
 
+    static final int REF_EQ                 = 0xD2;
+
     // === Non-trapping float-to-int conversions ====== https://github.com/WebAssembly/design/issues/1143
 
     static final int I32_TRUNC_S_SAT_F32    = 0xFC00;

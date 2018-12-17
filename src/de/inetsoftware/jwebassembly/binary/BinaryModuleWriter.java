@@ -635,6 +635,13 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.writeOpCode( REF_ISNULL );
                 op = I32_EQZ;
                 break;
+            case ref_eq:
+                op = REF_EQ;
+                break;
+            case ref_ne:
+                codeStream.writeOpCode( REF_EQ );
+                op = I32_EQZ;
+                break;
         }
         if( op == 0 ) {
             throw new Error( valueType + "." + numOp );
