@@ -22,8 +22,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
-import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -54,6 +52,15 @@ class WasmStructInstruction extends WasmInstruction {
         super( javaCodePos );
         this.op = op;
         this.type = type;
+    }
+
+    /**
+     * Get the storage type of this instruction.
+     * 
+     * @return the type
+     */
+    StorageType getStorageType() {
+        return type;
     }
 
     /**

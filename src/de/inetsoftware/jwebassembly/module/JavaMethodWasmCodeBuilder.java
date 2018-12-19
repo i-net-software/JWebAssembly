@@ -26,6 +26,7 @@ import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
@@ -545,7 +546,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     //TODO case 186: // invokedynamic
                     case 187: // new
                         String name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
-                        StorageType storageType = ValueType.anyref;
+                        StorageType storageType = new StructType(name);
                         addStructInstruction( StructOperator.NEW_DEFAULT, storageType, codePos );
                         break;
                     case 188: // newarray

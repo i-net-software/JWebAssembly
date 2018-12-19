@@ -58,6 +58,8 @@ public class ModuleGenerator {
 
     private FunctionManager                 functions = new FunctionManager();
 
+    private TypeManager                     types = new TypeManager();
+
     /**
      * Create a new generator.
      * 
@@ -237,6 +239,8 @@ public class ModuleGenerator {
                     case Call:
                         functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
                         break;
+                    case Struct:
+                        types.useType( ((WasmStructInstruction)instruction).getStorageType() );
                     default:
                 }
                 instruction.writeTo( writer );
