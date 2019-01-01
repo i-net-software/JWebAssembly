@@ -162,6 +162,15 @@ public class ClassFile {
     }
 
     /**
+     * Get the fields of the class.
+     * 
+     * @return the fields
+     */
+    public FieldInfo[] getFields() {
+        return fields;
+    }
+
+    /**
      * The access flags of the class.
      * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1-200-E
      * http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#23242
