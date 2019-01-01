@@ -103,6 +103,7 @@ public class WasmRule extends TemporaryFolder {
             URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
             wasm.addFile( url );
         }
+        wasm.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
         textCompiled = wasm.compileToText();
         try {
             create();
@@ -113,7 +114,6 @@ public class WasmRule extends TemporaryFolder {
             }
 
             wasmFile = newFile( "test.wasm" );
-            wasm.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
             wasm.compileToBinary( wasmFile );
 
             nodeScript = createScript( "nodetest.js" );
