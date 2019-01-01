@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2017 Volker Berlin (i-net software)
+   Copyright 2011 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -73,7 +73,16 @@ public class FieldInfo {
      * Get the name of the field
      * @return the name
      */
-    public Object getName() {
+    public String getName() {
         return name;
+    }
+
+    /**
+     * Get the type of the field.
+     * 
+     * @return the type
+     */
+    public String getType() {
+        return description;
     }
 }
