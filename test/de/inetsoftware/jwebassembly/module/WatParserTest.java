@@ -44,7 +44,8 @@ public class WatParserTest {
             instruction.writeTo( writer );
         }
         writer.writeMethodFinish();
-        String expected = normalize( "(module " + wat + " )" );
+        writer.close();
+        String expected = normalize( "(module " + wat + " ) )" );
         String actual = normalize( builder );
         assertEquals( expected, actual );
     }

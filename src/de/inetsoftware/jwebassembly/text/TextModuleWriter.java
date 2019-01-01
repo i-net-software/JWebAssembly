@@ -76,6 +76,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     public void close() throws IOException {
+        output.append( methodOutput );
         inset--;
         newline( output );
         output.append( ')' );
@@ -87,8 +88,8 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void prepareImport( FunctionName name, String importModule, String importName ) throws IOException {
         if( importName != null ) {
-            newline( output );
-            output.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( name.fullName );
+            newline( methodOutput );
+            methodOutput.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( name.fullName );
             isImport = true;
         }
     }
@@ -107,7 +108,6 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodStart( FunctionName name ) throws IOException {
-        methodOutput.setLength( 0 );
         newline( methodOutput );
         methodOutput.append( "(func $" );
         methodOutput.append( name.fullName );
@@ -133,7 +133,7 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeMethodParamFinish( ) throws IOException {
         if( isImport ) {
             isImport = false;
-            output.append( "))" );
+            methodOutput.append( "))" );
         }
     }
 
@@ -142,10 +142,9 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodFinish() throws IOException {
-        output.append( methodOutput );
         inset--;
-        newline( output );
-        output.append( ')' );
+        newline( methodOutput );
+        methodOutput.append( ')' );
     }
 
     /**
