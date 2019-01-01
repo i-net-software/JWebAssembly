@@ -27,6 +27,24 @@ Status of the project
 * Multiple threads - required the next version of WebAssembly
 * Memory Management - required the next version of WebAssembly with GC
 
+### Status of Required WebAssembly Features
+The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly.
+
+| Feature                 | V8     | SpiderMonkey | WABT   |
+| ----------------------- | ------ | ------------ | ------ |
+| [floar-to-int][1]       | yes    | yes          | yes    |
+| [Sign-extension][2]     | yes    | yes          | yes    |
+| [Multi-value][3]        | yes    | -            | yes    |
+| [Reference Types][4]    | yes    | yes          | -      |
+| [Garbage collection][5] | -      | partly       | -      |
+| [Exceptions][6]         | partly | -            | partly |
+
+- For V8 it based on the [V8 - node.js integrations builds](https://ci.chromium.org/p/v8/builders/luci.v8.ci/V8%20Linux64%20-%20node.js%20integration).
+- For SpiderMonkey it based on the nightly build of [jsshell](https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/).
+- For WABT it based on [libwabt.js](https://github.com/WebAssembly/wabt/blob/master/demo/libwabt.js) via node module wabt@nightly.
+
+To use it also some flags and switches are needed.
+
 Required Java Version
 ----
 JWebAssembly requires Java SE 8 or higher. It is tested with Java SE 8 on [travis-ci.org](https://travis-ci.org/i-net-software/jwebassembly).
@@ -72,3 +90,10 @@ In version 1 of WebAssembly you can only compile:
 If you want to develop some tools like plugins for a build system or an IDE, then you need
 * to include the full contents of the packages [de.inetsoftware.jwebassembly](https://github.com/i-net-software/JWebAssembly/tree/master/src/de/inetsoftware/jwebassembly) and [de.inetsoftware.classparser](https://github.com/i-net-software/JWebAssembly/tree/master/src/de/inetsoftware/classparser) and its subpackages.
 * Create an instance of [de.inetsoftware.jwebassembly.JWebAssembly](https://github.com/i-net-software/JWebAssembly/blob/master/src/de/inetsoftware/jwebassembly/JWebAssembly.java) class and use its API.
+
+[1]: https://github.com/WebAssembly/nontrapping-float-to-int-conversions
+[2]: https://github.com/WebAssembly/sign-extension-ops
+[3]: https://github.com/WebAssembly/multi-value
+[4]: https://github.com/WebAssembly/reference-types
+[5]: https://github.com/webassembly/gc
+[6]: https://github.com/WebAssembly/exception-handling
