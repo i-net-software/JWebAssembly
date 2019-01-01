@@ -16,7 +16,11 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.wasm.StorageType;
 
@@ -27,7 +31,7 @@ import de.inetsoftware.jwebassembly.wasm.StorageType;
  */
 class TypeManager {
 
-    private final HashMap<String, StructType> map = new HashMap<>();
+    private final Map<String, StructType> map = new LinkedHashMap<>();
 
     /**
      * Use the type in the output.
@@ -46,6 +50,16 @@ class TypeManager {
                 type.code = existingType.code;
             }
         }
+    }
+
+    /**
+     * Get the registered types in numeric order.
+     * 
+     * @return the types
+     */
+    @Nonnull
+    Collection<StructType> getTypes() {
+        return map.values();
     }
 
     /**
@@ -75,6 +89,14 @@ class TypeManager {
         @Override
         public int getCode() {
             return code;
+        }
+
+        /**
+         * Get the name of the Java type
+         * @return the name
+         */
+        public String getName() {
+            return name;
         }
     }
 }
