@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -58,7 +59,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private WasmOutputStream            codeStream          = new WasmOutputStream();
 
-    private List<FunctionType>          functionTypes       = new ArrayList<>();
+    private List<TypeEntry>             functionTypes       = new ArrayList<>();
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
@@ -224,6 +225,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         section.writeTo( stream );
 
         wasm.writeSection( SectionType.Custom, stream );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int writeStruct( String typeName, List<NamedStorageType> fields ) throws IOException {
+        int typeId = functionTypes.size();
+        functionTypes.add( new StructType( fields ) );
+        return typeId;
     }
 
     /**

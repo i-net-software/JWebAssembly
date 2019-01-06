@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -36,31 +37,43 @@ class WasmStructInstruction extends WasmInstruction {
 
     private final StructOperator op;
 
-    private final StorageType    type;
+    private final String         typeName;
+
+    private       StorageType    type;
 
     /**
      * Create an instance of numeric operation.
      * 
      * @param op
      *            the struct operation
-     * @param type
-     *            the type of the parameters
+     * @param typeName
+     *            the type name of the parameters
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nullable StorageType type, int javaCodePos ) {
+    WasmStructInstruction( @Nullable StructOperator op, @Nullable String typeName, int javaCodePos ) {
         super( javaCodePos );
         this.op = op;
-        this.type = type;
+        this.typeName = typeName;
     }
 
     /**
-     * Get the storage type of this instruction.
+     * Get the type name of this instruction.
      * 
      * @return the type
      */
-    StorageType getStorageType() {
-        return type;
+    String getTypeName() {
+        return typeName;
+    }
+
+    /**
+     * Set the resolved StructType for the typeName
+     * 
+     * @param type
+     *            the type
+     */
+    void setType( StructType type ) {
+        this.type = type;
     }
 
     /**

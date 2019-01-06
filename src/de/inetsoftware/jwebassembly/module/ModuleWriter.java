@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -43,6 +45,19 @@ public abstract class ModuleWriter implements Closeable {
     public void prepareFinish() {
 
     }
+
+    /**
+     * Write a type/struct.
+     * 
+     * @param typeName
+     *            the name
+     * @param fields
+     *            the fields
+     * @return type ID
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract int writeStruct( String typeName, List<NamedStorageType> fields ) throws IOException;
 
     /**
      * Prepare a imported single function in the prepare phase.

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,20 +36,13 @@ class TypeManager {
     /**
      * Use the type in the output.
      * 
-     * @param storageType
+     * @param type
      *            the reference to a type
+     * @param id
+     *            the id in the type section of the wasm
      */
-    void useType( StorageType storageType ) {
-        if( storageType instanceof StructType ) {
-            StructType type = (StructType)storageType;
-            StructType existingType = map.get( type.name );
-            if( existingType == null ) {
-                type.code = map.size();
-                map.put( type.name, type );
-            } else {
-                type.code = existingType.code;
-            }
-        }
+    void useType( StructType type, int id ) {
+        type.code = id;
     }
 
     /**
@@ -63,25 +56,29 @@ class TypeManager {
     }
 
     /**
+     * Get the StructType. If needed an instance is created.
+     * 
+     * @param name
+     *            the type name
+     * @return the struct type
+     */
+    StructType valueOf( String name ) {
+        StructType type = map.get( name );
+        if( type == null ) {
+            type = new StructType();
+            map.put( name, type );
+        }
+        return type;
+    }
+
+    /**
      * A reference to a type.
      * 
      * @author Volker Berlin
      */
     static class StructType implements StorageType {
 
-        private final String name;
-
-        private int          code;
-
-        /**
-         * Create a reference to type
-         * 
-         * @param name
-         *            the Java class name
-         */
-        StructType( String name ) {
-            this.name = name;
-        }
+        private int          code = Integer.MIN_VALUE;
 
         /**
          * {@inheritDoc}
@@ -89,14 +86,6 @@ class TypeManager {
         @Override
         public int getCode() {
             return code;
-        }
-
-        /**
-         * Get the name of the Java type
-         * @return the name
-         */
-        public String getName() {
-            return name;
         }
     }
 }

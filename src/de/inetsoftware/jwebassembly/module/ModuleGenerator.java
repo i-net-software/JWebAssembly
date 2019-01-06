@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -29,10 +30,14 @@ import javax.annotation.Nullable;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
+import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
@@ -131,6 +136,41 @@ public class ModuleGenerator {
             if( functions.isToWrite( next ) ) {
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
+        }
+    }
+
+    /**
+     * Set the StructType into the instruction and write the types/structs if needed.
+     * 
+     * @param instruction
+     *            the struct instruction
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void setStructType( WasmStructInstruction instruction ) throws IOException {
+        String name = instruction.getTypeName();
+        if( name != null ) {
+            StructType type = types.valueOf( name );
+            if( type.getCode() == Integer.MIN_VALUE ) {
+                String className = name;
+                InputStream stream = libraries.getResourceAsStream( className + ".class" );
+                if( stream == null ) {
+                    throw new WasmException( "Missing class: " + className, -1 );
+                }
+                ClassFile classFile = new ClassFile( stream );
+                ArrayList<NamedStorageType> list = new ArrayList<>();
+                FieldInfo[] fields = classFile.getFields();
+                for( FieldInfo field : fields ) {
+                    if( field.isStatic() ) {
+                        continue;
+                    }
+                    StorageType fieldtype = new ValueTypeParser( field.getType() ).next();
+                    list.add( new NamedStorageType( fieldtype, field.getName() ) );
+                }
+                int id = writer.writeStruct( className, list );
+                types.useType( type, id );
+            }
+            instruction.setType( type );
         }
     }
 
@@ -240,7 +280,8 @@ public class ModuleGenerator {
                         functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
                         break;
                     case Struct:
-                        types.useType( ((WasmStructInstruction)instruction).getStorageType() );
+                        setStructType( (WasmStructInstruction)instruction );
+                        break;
                     default:
                 }
                 instruction.writeTo( writer );

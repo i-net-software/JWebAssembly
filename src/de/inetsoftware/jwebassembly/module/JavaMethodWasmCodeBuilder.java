@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,8 @@ import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -92,7 +90,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 0: // nop
                         break;
                     case 1: // aconst_null
-                        addStructInstruction( StructOperator.NULL, ValueType.anyref, codePos );
+                        addStructInstruction( StructOperator.NULL, null, codePos );
                         break;
                     case 2: // iconst_m1
                     case 3: // iconst_0
@@ -261,6 +259,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                             case anyref:
                                 addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_anyref", "(Ljava.lang.Object;)Ljava.lang.Object;Ljava.lang.Object;" ), codePos );
                                 break OP;
+                            default:
                         }
                         //$FALL-THROUGH$
                     case 90: // dup_x1
@@ -546,8 +545,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     //TODO case 186: // invokedynamic
                     case 187: // new
                         String name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
-                        StorageType storageType = new StructType(name);
-                        addStructInstruction( StructOperator.NEW_DEFAULT, storageType, codePos );
+                        addStructInstruction( StructOperator.NEW_DEFAULT, name, codePos );
                         break;
                     case 188: // newarray
                         int typeValue = byteCode.readByte();

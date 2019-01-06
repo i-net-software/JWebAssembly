@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.text;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,6 +29,7 @@ import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -80,6 +82,31 @@ public class TextModuleWriter extends ModuleWriter {
         inset--;
         newline( output );
         output.append( ')' );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int writeStruct( String typeName, List<NamedStorageType> fields ) throws IOException {
+        int oldInset = inset;
+        inset = 1;
+        newline( output );
+        output.append( "(type $" ).append( typeName ).append( " (struct" );
+        inset++;
+        for( NamedStorageType field : fields ) {
+            newline( output );
+            output.append( "(field" );
+            if( debugNames && field.name != null ) {
+                output.append( " $" ).append( field.name );
+            }
+            output.append( ' ' ).append( field.type.toString() ).append( ')' );
+        }
+        inset--;
+        newline( output );
+        output.append( "))" );
+        inset = oldInset;
+        return 0;
     }
 
     /**

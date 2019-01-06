@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package de.inetsoftware.jwebassembly.binary;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -27,7 +26,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  * 
  * @author Volker Berlin
  */
-class FunctionType extends SectionEntry {
+class FunctionType extends TypeEntry {
 
     final List<ValueType> params = new ArrayList<>();
 
@@ -37,8 +36,15 @@ class FunctionType extends SectionEntry {
      * {@inheritDoc}
      */
     @Override
-    void writeSectionEntry( WasmOutputStream stream ) throws IOException {
-        stream.writeValueType( ValueType.func );
+    ValueType getTypeForm() {
+        return ValueType.func;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void writeSectionEntryDetails( WasmOutputStream stream ) throws IOException {
         stream.writeVaruint32( this.params.size() );
         for( ValueType valueType : this.params ) {
             stream.writeValueType( valueType );

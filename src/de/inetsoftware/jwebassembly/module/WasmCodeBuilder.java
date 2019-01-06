@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,12 +231,12 @@ public abstract class WasmCodeBuilder {
      * 
      * @param op
      *            the operation
-     * @param type
-     *            the array type
+     * @param typeName
+     *            the type name
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    protected void addStructInstruction( StructOperator op, StorageType type, int javaCodePos ) {
-        instructions.add( new WasmStructInstruction( op, type, javaCodePos ) );
+    protected void addStructInstruction( StructOperator op, String typeName, int javaCodePos ) {
+        instructions.add( new WasmStructInstruction( op, typeName, javaCodePos ) );
     }
 }
