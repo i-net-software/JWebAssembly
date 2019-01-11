@@ -29,7 +29,7 @@ import de.inetsoftware.jwebassembly.wasm.StorageType;
  * 
  * @author Volker Berlin
  */
-class TypeManager {
+public class TypeManager {
 
     private final Map<String, StructType> map = new LinkedHashMap<>();
 
@@ -62,10 +62,10 @@ class TypeManager {
      *            the type name
      * @return the struct type
      */
-    StructType valueOf( String name ) {
+    public StructType valueOf( String name ) {
         StructType type = map.get( name );
         if( type == null ) {
-            type = new StructType();
+            type = new StructType( name );
             map.put( name, type );
         }
         return type;
@@ -78,7 +78,19 @@ class TypeManager {
      */
     static class StructType implements StorageType {
 
-        private int          code = Integer.MIN_VALUE;
+        private final String name;
+
+        private int          code = Integer.MAX_VALUE;
+
+        /**
+         * Create a reference to type
+         * 
+         * @param name
+         *            the Java class name
+         */
+        StructType( String name ) {
+            this.name = name;
+        }
 
         /**
          * {@inheritDoc}
@@ -86,6 +98,22 @@ class TypeManager {
         @Override
         public int getCode() {
             return code;
+        }
+
+        /**
+         * Get the name of the Java type
+         * @return the name
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString() {
+            return "$" + name;
         }
     }
 }

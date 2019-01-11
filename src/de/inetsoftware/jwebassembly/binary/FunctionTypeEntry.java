@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,29 @@
 package de.inetsoftware.jwebassembly.binary;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
- * An struct type entry in the type section of the WebAssembly.
+ * An entry in the type section of the WebAssembly.
  * 
  * @author Volker Berlin
  */
-class StructType extends TypeEntry {
+class FunctionTypeEntry extends TypeEntry {
 
-    private final List<NamedStorageType> fields;
+    final List<StorageType> params = new ArrayList<>();
 
-    /**
-     * Create a new instance.
-     * 
-     * @param fields
-     *            the fields of the struct
-     */
-    StructType( List<NamedStorageType> fields ) {
-        this.fields = fields;
-    }
+    final List<StorageType> results = new ArrayList<>();
 
     /**
      * {@inheritDoc}
      */
     @Override
     ValueType getTypeForm() {
-        return ValueType.struct;
+        return ValueType.func;
     }
 
     /**
@@ -53,10 +46,13 @@ class StructType extends TypeEntry {
      */
     @Override
     void writeSectionEntryDetails( WasmOutputStream stream ) throws IOException {
-        stream.writeVaruint32( this.fields.size() );
-        for( NamedStorageType field : this.fields ) {
-            stream.writeVarint( 1 ); // 0 - immutable; 1 - mutable 
-            stream.writeValueType( field.type );
+        stream.writeVaruint32( this.params.size() );
+        for( StorageType valueType : this.params ) {
+            stream.writeValueType( valueType );
+        }
+        stream.writeVaruint32( this.results.size() );
+        for( StorageType valueType : this.results ) {
+            stream.writeValueType( valueType );
         }
     }
 
@@ -65,7 +61,7 @@ class StructType extends TypeEntry {
      */
     @Override
     public int hashCode() {
-        return fields.hashCode();
+        return params.hashCode() + 31 * results.hashCode();
     }
 
     /**
@@ -79,7 +75,7 @@ class StructType extends TypeEntry {
         if( obj == null || obj.getClass() != getClass() ) {
             return false;
         }
-        StructType type = (StructType)obj;
-        return fields.equals( type.fields );
+        FunctionTypeEntry type = (FunctionTypeEntry)obj;
+        return params.equals( type.params ) && results.equals( type.results );
     }
 }

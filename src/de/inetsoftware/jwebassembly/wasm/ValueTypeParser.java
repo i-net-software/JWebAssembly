@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.wasm;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager;
 
 /**
  * Parser for a Java signature. This can be a method signature or a signature of a field.
@@ -27,14 +28,29 @@ public class ValueTypeParser {
 
     private int          idx;
 
+    private TypeManager  types;
+
     /**
      * Create a new parser.
      * 
      * @param javaSignature
-     *            the Jav signature
+     *            the Java signature
      */
     public ValueTypeParser( String javaSignature ) {
-        sig = javaSignature;
+        this( javaSignature, null );
+    }
+
+    /**
+     * Create a new parser.
+     * 
+     * @param javaSignature
+     *            the Java signature
+     * @param types
+     *            the optional type manager
+     */
+    public ValueTypeParser( String javaSignature, TypeManager types ) {
+        this.sig = javaSignature;
+        this.types = types;
         if( javaSignature.startsWith( "(" ) ) {
             idx++;
         }
@@ -45,7 +61,7 @@ public class ValueTypeParser {
      * 
      * @return next type or null
      */
-    public ValueType next() {
+    public StorageType next() {
         if( idx >= sig.length() ) {
             return null;
         }
@@ -56,8 +72,10 @@ public class ValueTypeParser {
                 next();
                 return ValueType.anyref;
             case 'L':
-                idx = sig.indexOf( ';', idx ) + 1;
-                return ValueType.anyref;
+                int idx2 = sig.indexOf( ';', idx );
+                String name = sig.substring( idx, idx2 );
+                idx = idx2 + 1;
+                return types == null ? ValueType.anyref : types.valueOf( name );
             case 'Z': // boolean
             case 'B': // byte
             case 'C': // char

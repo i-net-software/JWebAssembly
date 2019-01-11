@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -108,9 +108,9 @@ class WasmCallInstruction extends WasmInstruction {
         while( parser.next() != null ) {
             paramCount++;
         }
-        valueType = parser.next();
+        valueType = (ValueType)parser.next();
         ValueType type;
-        while( (type = parser.next()) != null ) {
+        while( (type = (ValueType)parser.next()) != null ) {
             valueType = type;
             paramCount--;
         }

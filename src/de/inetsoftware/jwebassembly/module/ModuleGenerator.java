@@ -151,26 +151,43 @@ public class ModuleGenerator {
         String name = instruction.getTypeName();
         if( name != null ) {
             StructType type = types.valueOf( name );
-            if( type.getCode() == Integer.MIN_VALUE ) {
-                String className = name;
-                InputStream stream = libraries.getResourceAsStream( className + ".class" );
-                if( stream == null ) {
-                    throw new WasmException( "Missing class: " + className, -1 );
-                }
-                ClassFile classFile = new ClassFile( stream );
-                ArrayList<NamedStorageType> list = new ArrayList<>();
-                FieldInfo[] fields = classFile.getFields();
-                for( FieldInfo field : fields ) {
-                    if( field.isStatic() ) {
-                        continue;
-                    }
-                    StorageType fieldtype = new ValueTypeParser( field.getType() ).next();
-                    list.add( new NamedStorageType( fieldtype, field.getName() ) );
-                }
-                int id = writer.writeStruct( className, list );
-                types.useType( type, id );
-            }
             instruction.setType( type );
+            if( type.getCode() == Integer.MAX_VALUE ) {
+                writeStructType( type );
+            }
+        }
+    }
+
+    /**
+     * Write the struct type
+     * 
+     * @param type
+     *            the type
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeStructType( StructType type ) throws IOException {
+        String className = type.getName();
+        InputStream stream = libraries.getResourceAsStream( className + ".class" );
+        if( stream == null ) {
+            throw new WasmException( "Missing class: " + className, -1 );
+        }
+        ClassFile classFile = new ClassFile( stream );
+        ArrayList<NamedStorageType> list = new ArrayList<>();
+        FieldInfo[] fields = classFile.getFields();
+        for( FieldInfo field : fields ) {
+            if( field.isStatic() ) {
+                continue;
+            }
+            StorageType fieldtype = new ValueTypeParser( field.getType(), types ).next();
+            list.add( new NamedStorageType( fieldtype, field.getName() ) );
+        }
+        int id = writer.writeStruct( className, list );
+        types.useType( type, id );
+        for( NamedStorageType namedType : list ) {
+            if( namedType.type.getCode() == Integer.MAX_VALUE ) {
+                writeStructType( (StructType)namedType.type );
+            }
         }
     }
 
@@ -338,7 +355,7 @@ public class ModuleGenerator {
             writer.writeMethodParam( "param", ValueType.anyref, "this" );
         }
         ValueTypeParser parser = new ValueTypeParser( signature );
-        ValueType type;
+        StorageType type;
         for( String kind : new String[] {"param","result"}) {
             while( (type = parser.next()) != null ) {
                 String paramName = null;

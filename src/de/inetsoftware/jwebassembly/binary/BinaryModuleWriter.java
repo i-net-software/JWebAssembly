@@ -63,7 +63,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
-    private List<ValueType>             locals              = new ArrayList<>();
+    private List<StorageType>           locals              = new ArrayList<>();
 
     private Map<String, Global>         globals             = new LinkedHashMap<>();
 
@@ -73,7 +73,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Function                    function;
 
-    private FunctionType                functionType;
+    private FunctionTypeEntry                functionType;
 
     /**
      * Create new instance.
@@ -233,7 +233,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected int writeStruct( String typeName, List<NamedStorageType> fields ) throws IOException {
         int typeId = functionTypes.size();
-        functionTypes.add( new StructType( fields ) );
+        functionTypes.add( new StructTypeEntry( fields ) );
         return typeId;
     }
 
@@ -245,7 +245,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         ImportFunction importFunction;
         function = importFunction = new ImportFunction(importModule, importName);
         imports.put( name.signatureName, importFunction );
-        functionType = new FunctionType();
+        functionType = new FunctionTypeEntry();
     }
 
     /**
@@ -278,7 +278,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void writeMethodStart( FunctionName name ) throws IOException {
         function = getFunction( name );
-        functionType = new FunctionType();
+        functionType = new FunctionTypeEntry();
         codeStream.reset();
         locals.clear();
     }
@@ -287,7 +287,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParam( String kind, ValueType valueType, @Nullable String name ) throws IOException {
+    protected void writeMethodParam( String kind, StorageType valueType, @Nullable String name ) throws IOException {
         switch( kind ) {
             case "param":
                 functionType.params.add( valueType );
@@ -327,7 +327,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     protected void writeMethodFinish() throws IOException {
         WasmOutputStream localsStream = new WasmOutputStream();
         localsStream.writeVaruint32( locals.size() );
-        for( ValueType valueType : locals ) {
+        for( StorageType valueType : locals ) {
             localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
             localsStream.writeValueType( valueType );
         }

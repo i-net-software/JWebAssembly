@@ -107,7 +107,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodParam( String kind, ValueType valueType, @Nullable String name ) throws IOException;
+    protected abstract void writeMethodParam( String kind, StorageType valueType, @Nullable String name ) throws IOException;
 
     /**
      * Finish the function parameter.

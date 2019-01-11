@@ -100,7 +100,14 @@ public class TextModuleWriter extends ModuleWriter {
             if( debugNames && field.name != null ) {
                 output.append( " $" ).append( field.name );
             }
-            output.append( " (mut " ).append( field.type.toString() ).append( "))" );
+            output.append( " (mut " );
+            StorageType type = field.type;
+            if( type.getCode() < 0 ) {
+                output.append( type.toString() );
+            } else {
+                output.append( "(ref " ).append( type.toString() ).append( ')' );
+            }
+            output.append( "))" );
         }
         inset--;
         newline( output );
@@ -145,7 +152,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParam( String kind, ValueType valueType, @Nullable String name ) throws IOException {
+    protected void writeMethodParam( String kind, StorageType valueType, @Nullable String name ) throws IOException {
         methodOutput.append( " (" ).append( kind );
         if( debugNames && name != null ) {
             methodOutput.append( " $" ).append( name );
