@@ -100,7 +100,7 @@ public class TextModuleWriter extends ModuleWriter {
             if( debugNames && field.name != null ) {
                 output.append( " $" ).append( field.name );
             }
-            output.append( ' ' ).append( field.type.toString() ).append( ')' );
+            output.append( " (mut " ).append( field.type.toString() ).append( "))" );
         }
         inset--;
         newline( output );
