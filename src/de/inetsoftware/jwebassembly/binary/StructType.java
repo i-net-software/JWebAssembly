@@ -55,7 +55,7 @@ class StructType extends TypeEntry {
     void writeSectionEntryDetails( WasmOutputStream stream ) throws IOException {
         stream.writeVaruint32( this.fields.size() );
         for( NamedStorageType field : this.fields ) {
-            stream.writeVarint( 0 );
+            stream.writeVarint( 1 ); // 0 - immutable; 1 - mutable 
             stream.writeValueType( field.type );
         }
     }
