@@ -25,7 +25,7 @@ public enum ValueType implements StorageType {
     f64(-0x04),
     anyfunc(-0x10),
     anyref(-0x11),
-    except_ref(-0x12),
+    except_ref(-0x18), // https://github.com/WebAssembly/exception-handling/blob/master/proposals/Exceptions.md
     func(-0x20),
     struct(-0x30),
     empty(-0x40), // empty block_type
