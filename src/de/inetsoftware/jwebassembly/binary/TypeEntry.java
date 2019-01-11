@@ -31,7 +31,7 @@ abstract class TypeEntry extends SectionEntry {
      */
     @Override
     final void writeSectionEntry( WasmOutputStream stream ) throws IOException {
-        stream.writeValueType( ValueType.func );
+        stream.writeValueType( getTypeForm() );
         writeSectionEntryDetails( stream );
     }
 
