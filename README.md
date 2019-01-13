@@ -18,14 +18,15 @@ Status of the project
 * [Gradle Plugin](https://github.com/i-net-software/JWebAssembly-Gradle)
 
 ### Partially Finished
-* Binary format file writer (145 of 201 byte code instructions)
-* Text format file writer (145 of 201 byte code instructions)
-
-### Open Features
+* Binary format file writer and Text format file writer (171 of 201 byte code instructions)
 * Support for native methods [#2](https://github.com/i-net-software/JWebAssembly/issues/2)
 * Exception handling - required the next version of WebAssembly
 * Multiple threads - required the next version of WebAssembly
 * Memory Management - required the next version of WebAssembly with GC
+
+### Open Features
+* Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
+* Library for accessing the DOM
 
 ### Status of Required WebAssembly Features
 The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly.
