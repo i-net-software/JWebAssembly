@@ -233,10 +233,12 @@ public abstract class WasmCodeBuilder {
      *            the operation
      * @param typeName
      *            the type name
+     * @param fieldName
+     *            the name of field if needed for the operation
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    protected void addStructInstruction( StructOperator op, String typeName, int javaCodePos ) {
-        instructions.add( new WasmStructInstruction( op, typeName, javaCodePos ) );
+    protected void addStructInstruction( StructOperator op, @Nullable String typeName, @Nullable String fieldName, int javaCodePos ) {
+        instructions.add( new WasmStructInstruction( op, typeName, fieldName, javaCodePos ) );
     }
 }

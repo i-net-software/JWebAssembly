@@ -236,8 +236,9 @@ public abstract class ModuleWriter implements Closeable {
      *            the operation
      * @param type
      *            the type of the struct
+     * @param fieldName TODO
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeStructOperator( StructOperator op, StorageType type ) throws IOException;
+    protected abstract void writeStructOperator( StructOperator op, StorageType type, String fieldName ) throws IOException;
 }

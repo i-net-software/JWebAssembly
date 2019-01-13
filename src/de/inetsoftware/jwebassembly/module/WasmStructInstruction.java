@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ class WasmStructInstruction extends WasmInstruction {
 
     private       StorageType    type;
 
+    private final String         fieldName;
+
     /**
      * Create an instance of numeric operation.
      * 
@@ -48,13 +50,16 @@ class WasmStructInstruction extends WasmInstruction {
      *            the struct operation
      * @param typeName
      *            the type name of the parameters
+     * @param fieldName
+     *            the name of field if needed for the operation
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nullable String typeName, int javaCodePos ) {
+    WasmStructInstruction( @Nullable StructOperator op, @Nullable String typeName, @Nullable String fieldName, int javaCodePos ) {
         super( javaCodePos );
         this.op = op;
         this.typeName = typeName;
+        this.fieldName = fieldName;
     }
 
     /**
@@ -88,7 +93,7 @@ class WasmStructInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeStructOperator( op, type );
+        writer.writeStructOperator( op, type, fieldName );
     }
 
     /**

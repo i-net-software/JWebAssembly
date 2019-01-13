@@ -173,7 +173,7 @@ public class ModuleGenerator {
             throw new WasmException( "Missing class: " + className, -1 );
         }
         ClassFile classFile = new ClassFile( stream );
-        ArrayList<NamedStorageType> list = new ArrayList<>();
+        List<NamedStorageType> list = new ArrayList<>();
         FieldInfo[] fields = classFile.getFields();
         for( FieldInfo field : fields ) {
             if( field.isStatic() ) {

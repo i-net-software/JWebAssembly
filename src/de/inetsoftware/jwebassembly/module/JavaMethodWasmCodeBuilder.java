@@ -90,7 +90,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 0: // nop
                         break;
                     case 1: // aconst_null
-                        addStructInstruction( StructOperator.NULL, null, codePos );
+                        addStructInstruction( StructOperator.NULL, null, null, codePos );
                         break;
                     case 2: // iconst_m1
                     case 3: // iconst_0
@@ -532,8 +532,14 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
                         addGlobalInstruction( false, ref, codePos );
                         break;
-                    //TODO case 180: // getfield
-                    //TODO case 181: // putfield
+                    case 180: // getfield
+                        ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
+                        addStructInstruction( StructOperator.GET, ref.getClassName(), ref.getName(), codePos );
+                        break;
+                    case 181: // putfield
+                        ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
+                        addStructInstruction( StructOperator.SET, ref.getClassName(), ref.getName(), codePos );
+                        break;
                     //TODO case 182: // invokevirtual
                     case 183: // invokespecial, invoke a constructor
                     case 184: // invokestatic
@@ -545,7 +551,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     //TODO case 186: // invokedynamic
                     case 187: // new
                         String name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
-                        addStructInstruction( StructOperator.NEW_DEFAULT, name, codePos );
+                        addStructInstruction( StructOperator.NEW_DEFAULT, name, null, codePos );
                         break;
                     case 188: // newarray
                         int typeValue = byteCode.readByte();

@@ -257,8 +257,10 @@ public class TextModuleWriter extends ModuleWriter {
                     case ref_eq:
                         methodOutput.append( "ref.eq" );
                         return;
+                    default:
                 }
                 break;
+            default:
         }
         methodOutput.append( valueType ).append( '.' ).append( op );
     }
@@ -320,8 +322,10 @@ public class TextModuleWriter extends ModuleWriter {
     }
 
     /**
-     * Add a newline the insets.
+     * Add a newline with the insets.
      * 
+     * @param output
+     *            the target
      * @throws IOException
      *             if any I/O error occur
      */
@@ -445,7 +449,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeStructOperator( StructOperator op, StorageType type ) throws IOException {
+    protected void writeStructOperator( StructOperator op, StorageType type, String fieldName ) throws IOException {
         String operation;
         switch( op ) {
             case NEW:
@@ -470,13 +474,10 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         methodOutput.append( operation );
         if( type != null ) {
-            int typeCode = type.getCode();
-            methodOutput.append( ' ' );
-            if( typeCode < 0 ) {
-                methodOutput.append( type );
-            } else {
-                methodOutput.append( typeCode );
-            }
+            methodOutput.append( ' ' ).append( type );
+        }
+        if( fieldName != null ) {
+            methodOutput.append( " $" ).append( fieldName );
         }
     }
 }
