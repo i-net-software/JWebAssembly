@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package de.inetsoftware.jwebassembly.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -43,7 +42,14 @@ public class Arrays extends AbstractBaseTest {
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
             addParam( list, script, "length" );
-            addParam( list, script, "loop" );
+            addParam( list, script, "loopByte" );
+            addParam( list, script, "loopShort" );
+            addParam( list, script, "loopChar" );
+            addParam( list, script, "loopInt" );
+            addParam( list, script, "loopLong" );
+            addParam( list, script, "loopFloat" );
+            addParam( list, script, "loopDouble" );
+            addParam( list, script, "loopObject" );
         }
         return list;
     }
@@ -62,11 +68,81 @@ public class Arrays extends AbstractBaseTest {
         }
 
         @Export
-        static int loop() {
+        static byte loopByte() {
+            byte[] data = {-1,2,3};
+            byte sum = 0;
+            for( byte i : data ) {
+                sum += i;
+            }
+            return sum;
+        }
+
+        @Export
+        static short loopShort() {
+            short[] data = {-1,-2,-3};
+            short sum = 0;
+            for( short i : data ) {
+                sum += i;
+            }
+            return sum;
+        }
+
+        @Export
+        static char loopChar() {
+            char[] data = {1,2,0x8000};
+            char sum = 0;
+            for( char i : data ) {
+                sum += i;
+            }
+            return sum;
+        }
+
+        @Export
+        static int loopInt() {
             int[] data = {1,2,3};
             int sum = 0;
             for( int i : data ) {
                 sum += i;
+            }
+            return sum;
+        }
+
+        @Export
+        static int loopLong() {
+            long[] data = {1,2,3};
+            long sum = 0;
+            for( long i : data ) {
+                sum += i;
+            }
+            return (int)sum;
+        }
+
+        @Export
+        static float loopFloat() {
+            float[] data = {1,2,3};
+            float sum = 0;
+            for( float i : data ) {
+                sum += i;
+            }
+            return sum;
+        }
+
+        @Export
+        static double loopDouble() {
+            double[] data = {1,2,3};
+            double sum = 0;
+            for( double i : data ) {
+                sum += i;
+            }
+            return sum;
+        }
+
+        @Export
+        static int loopObject() {
+            Object[] data = {null,null,null};
+            int sum = 0;
+            for( Object obj : data ) {
+                sum++;
             }
             return sum;
         }

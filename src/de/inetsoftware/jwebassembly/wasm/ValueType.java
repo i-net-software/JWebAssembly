@@ -23,6 +23,8 @@ public enum ValueType implements StorageType {
     i64(-0x02),
     f32(-0x03),
     f64(-0x04),
+    i8(-0x05), //TODO dummy value for https://github.com/WebAssembly/gc
+    i16(-0x06), //TODO dummy value for https://github.com/WebAssembly/gc
     anyfunc(-0x10),
     anyref(-0x11),
     except_ref(-0x18), // https://github.com/WebAssembly/exception-handling/blob/master/proposals/Exceptions.md

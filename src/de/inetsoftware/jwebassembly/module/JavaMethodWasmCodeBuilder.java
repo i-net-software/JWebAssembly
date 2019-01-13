@@ -28,6 +28,7 @@ import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.StorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -175,13 +176,28 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 46: // iaload
                         addArrayInstruction( ArrayOperator.GET, ValueType.i32, codePos );
                         break;
-                    //TODO case 47: // laload
-                    //TODO case 48: // faload
-                    //TODO case 49: // daload
-                    //TODO case 50: // aaload
-                    //TODO case 51: // baload
-                    //TODO case 52: // caload
-                    //TODO case 53: // saload
+                    case 47: // laload
+                        addArrayInstruction( ArrayOperator.GET, ValueType.i64, codePos );
+                        break;
+                    case 48: // faload
+                        addArrayInstruction( ArrayOperator.GET, ValueType.f32, codePos );
+                        break;
+                    case 49: // daload
+                        addArrayInstruction( ArrayOperator.GET, ValueType.f64, codePos );
+                        break;
+                    case 50: // aaload
+                        StorageType storeType = findPreviousPushInstructionPushValueType();
+                        addArrayInstruction( ArrayOperator.GET, storeType, codePos );
+                        break;
+                    case 51: // baload
+                        addArrayInstruction( ArrayOperator.GET, ValueType.i8, codePos );
+                        break;
+                    case 52: // caload
+                        addArrayInstruction( ArrayOperator.GET, ValueType.i16, codePos );
+                        break;
+                    case 53: // saload
+                        addArrayInstruction( ArrayOperator.GET, ValueType.i16, codePos );
+                        break;
                     case 54: // istore
                         addLoadStoreInstruction( ValueType.i32, false, byteCode.readUnsignedByte(), codePos );
                         break;
@@ -230,13 +246,28 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 79: // iastore
                         addArrayInstruction( ArrayOperator.SET, ValueType.i32, codePos );
                         break;
-                        //TODO case 80: // lastore
-                        //TODO case 81: // fastore
-                        //TODO case 82: // dastore
-                        //TODO case 83: // aastore
-                        //TODO case 84: // bastore
-                        //TODO case 85: // castore
-                        //TODO case 86: // sastore
+                    case 80: // lastore
+                        addArrayInstruction( ArrayOperator.SET, ValueType.i64, codePos );
+                        break;
+                    case 81: // fastore
+                        addArrayInstruction( ArrayOperator.SET, ValueType.f32, codePos );
+                        break;
+                    case 82: // dastore
+                        addArrayInstruction( ArrayOperator.SET, ValueType.f64, codePos );
+                        break;
+                    case 83: // aastore
+                        storeType = findPreviousPushInstructionPushValueType();
+                        addArrayInstruction( ArrayOperator.SET, storeType, codePos );
+                        break;
+                    case 84: // bastore
+                        addArrayInstruction( ArrayOperator.SET, ValueType.i8, codePos );
+                        break;
+                    case 85: // castore
+                        addArrayInstruction( ArrayOperator.SET, ValueType.i16, codePos );
+                        break;
+                    case 86: // sastore
+                        addArrayInstruction( ArrayOperator.SET, ValueType.i16, codePos );
+                        break;
                     case 87: // pop
                     case 88: // pop2
                         addBlockInstruction( WasmBlockOperator.DROP, null, codePos );
@@ -579,7 +610,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         }
                         addArrayInstruction( ArrayOperator.NEW, type, codePos );
                         break;
-                    //TODO case 189: // anewarray
+                    case 189: // anewarray
+                        name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
+                        type = ValueType.anyref; //TODO we need to use the right type from name
+                        addArrayInstruction( ArrayOperator.NEW, type, codePos );
+                        break;
                     case 190: // arraylength
                         addArrayInstruction( ArrayOperator.LENGTH, ValueType.i32, codePos );
                         break;
