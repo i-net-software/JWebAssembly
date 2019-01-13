@@ -86,8 +86,9 @@ public class Structs extends AbstractBaseTest {
 
         @Export
         static int simple() {
-            Object val = new Abc();
-            return 1;
+            Abc val = new Abc2();
+            val.a = 63;
+            return val.a;
         }
 
     }
@@ -96,5 +97,9 @@ public class Structs extends AbstractBaseTest {
         int  a;
 
         long b;
+    }
+
+    static class Abc2 extends Abc {
+        Abc  abc;
     }
 }
