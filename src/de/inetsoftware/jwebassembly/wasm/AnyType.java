@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,22 @@
 package de.inetsoftware.jwebassembly.wasm;
 
 /**
+ * Interface of all possible types in WebAssembly. This are predefined (native) types and custom types in the type section.
  * <pre><code>
  * numtype ::= i32 | i64 | f32 | f64
  * packedtype ::= i8 | i16
  * reftype ::= anyref | anyfunc | nullref
  * valtype ::= numtype | reftype
+ * deftype ::= functype | structtype | arraytype
  * 
  * storagetype ::= valtype | packedtype
  * </code></pre>
  * @author Volker Berlin
  */
-public interface StorageType {
+public interface AnyType {
 
     /**
-     * The operation code in WebAssembly.
+     * The type code(typeidx) in WebAssembly. Predefined types have an negative typeidx. Custom types have the positive index in the type section.
      * 
      * @return the code
      */

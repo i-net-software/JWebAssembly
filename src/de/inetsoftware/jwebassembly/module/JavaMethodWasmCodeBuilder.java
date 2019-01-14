@@ -28,7 +28,7 @@ import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -186,7 +186,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.GET, ValueType.f64, codePos );
                         break;
                     case 50: // aaload
-                        StorageType storeType = findPreviousPushInstructionPushValueType();
+                        AnyType storeType = findPreviousPushInstructionPushValueType();
                         addArrayInstruction( ArrayOperator.GET, storeType, codePos );
                         break;
                     case 51: // baload

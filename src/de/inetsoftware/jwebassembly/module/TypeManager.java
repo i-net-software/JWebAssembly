@@ -22,7 +22,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 
 /**
  * Manage the written and to write types (classes)
@@ -76,7 +76,7 @@ public class TypeManager {
      * 
      * @author Volker Berlin
      */
-    static class StructType implements StorageType {
+    static class StructType implements AnyType {
 
         private final String name;
 

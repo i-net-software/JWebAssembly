@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -222,7 +222,7 @@ public abstract class WasmCodeBuilder {
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    protected void addArrayInstruction( ArrayOperator op, StorageType type, int javaCodePos ) {
+    protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos ) {
         instructions.add( new WasmArrayInstruction( op, type, javaCodePos ) );
     }
 

@@ -61,7 +61,7 @@ public class ValueTypeParser {
      * 
      * @return next type or null
      */
-    public StorageType next() {
+    public AnyType next() {
         if( idx >= sig.length() ) {
             return null;
         }

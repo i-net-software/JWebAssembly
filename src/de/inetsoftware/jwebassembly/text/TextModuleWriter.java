@@ -31,7 +31,7 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -101,7 +101,7 @@ public class TextModuleWriter extends ModuleWriter {
                 output.append( " $" ).append( field.name );
             }
             output.append( " (mut " );
-            StorageType type = field.type;
+            AnyType type = field.type;
             if( type.getCode() < 0 ) {
                 output.append( type.toString() );
             } else {
@@ -152,7 +152,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParam( String kind, StorageType valueType, @Nullable String name ) throws IOException {
+    protected void writeMethodParam( String kind, AnyType valueType, @Nullable String name ) throws IOException {
         methodOutput.append( " (" ).append( kind );
         if( debugNames && name != null ) {
             methodOutput.append( " $" ).append( name );
@@ -423,7 +423,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException {
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, AnyType type ) throws IOException {
         String operation;
         switch( op ) {
             case NEW:
@@ -449,7 +449,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeStructOperator( StructOperator op, StorageType type, String fieldName ) throws IOException {
+    protected void writeStructOperator( StructOperator op, AnyType type, String fieldName ) throws IOException {
         String operation;
         switch( op ) {
             case NEW:

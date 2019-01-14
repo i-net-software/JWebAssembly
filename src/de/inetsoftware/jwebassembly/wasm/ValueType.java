@@ -18,7 +18,7 @@ package de.inetsoftware.jwebassembly.wasm;
 /**
  * @author Volker Berlin
  */
-public enum ValueType implements StorageType {
+public enum ValueType implements AnyType {
     i32(-0x01),
     i64(-0x02),
     f32(-0x03),

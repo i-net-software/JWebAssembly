@@ -37,7 +37,7 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
@@ -179,7 +179,7 @@ public class ModuleGenerator {
             if( field.isStatic() ) {
                 continue;
             }
-            StorageType fieldtype = new ValueTypeParser( field.getType(), types ).next();
+            AnyType fieldtype = new ValueTypeParser( field.getType(), types ).next();
             list.add( new NamedStorageType( fieldtype, field.getName() ) );
         }
         int id = writer.writeStruct( className, list );
@@ -355,7 +355,7 @@ public class ModuleGenerator {
             writer.writeMethodParam( "param", ValueType.anyref, "this" );
         }
         ValueTypeParser parser = new ValueTypeParser( signature );
-        StorageType type;
+        AnyType type;
         for( String kind : new String[] {"param","result"}) {
             while( (type = parser.next()) != null ) {
                 String paramName = null;

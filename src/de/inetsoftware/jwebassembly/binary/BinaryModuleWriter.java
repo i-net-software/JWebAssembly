@@ -37,7 +37,7 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -63,7 +63,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
-    private List<StorageType>           locals              = new ArrayList<>();
+    private List<AnyType>           locals              = new ArrayList<>();
 
     private Map<String, Global>         globals             = new LinkedHashMap<>();
 
@@ -287,7 +287,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParam( String kind, StorageType valueType, @Nullable String name ) throws IOException {
+    protected void writeMethodParam( String kind, AnyType valueType, @Nullable String name ) throws IOException {
         switch( kind ) {
             case "param":
                 functionType.params.add( valueType );
@@ -327,7 +327,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     protected void writeMethodFinish() throws IOException {
         WasmOutputStream localsStream = new WasmOutputStream();
         localsStream.writeVaruint32( locals.size() );
-        for( StorageType valueType : locals ) {
+        for( AnyType valueType : locals ) {
             localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
             localsStream.writeValueType( valueType );
         }
@@ -812,7 +812,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException {
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, AnyType type ) throws IOException {
         int opCode;
         switch(op) {
             case NEW:
@@ -838,7 +838,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeStructOperator( StructOperator op, StorageType type, String fieldName ) throws IOException {
+    protected void writeStructOperator( StructOperator op, AnyType type, String fieldName ) throws IOException {
         int opCode;
         switch(op) {
             case NEW:

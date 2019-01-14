@@ -22,7 +22,7 @@ package de.inetsoftware.jwebassembly.wasm;
  */
 public class NamedStorageType {
 
-    public final StorageType type;
+    public final AnyType type;
 
     public final String    name;
 
@@ -31,7 +31,7 @@ public class NamedStorageType {
      * @param type the type
      * @param name the name
      */
-    public NamedStorageType( StorageType type, String name ) {
+    public NamedStorageType( AnyType type, String name ) {
         this.type = type;
         this.name = name;
     }

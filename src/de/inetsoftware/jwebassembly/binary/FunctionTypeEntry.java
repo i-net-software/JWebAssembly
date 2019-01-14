@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -29,9 +29,9 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class FunctionTypeEntry extends TypeEntry {
 
-    final List<StorageType> params = new ArrayList<>();
+    final List<AnyType> params = new ArrayList<>();
 
-    final List<StorageType> results = new ArrayList<>();
+    final List<AnyType> results = new ArrayList<>();
 
     /**
      * {@inheritDoc}
@@ -47,11 +47,11 @@ class FunctionTypeEntry extends TypeEntry {
     @Override
     void writeSectionEntryDetails( WasmOutputStream stream ) throws IOException {
         stream.writeVaruint32( this.params.size() );
-        for( StorageType valueType : this.params ) {
+        for( AnyType valueType : this.params ) {
             stream.writeValueType( valueType );
         }
         stream.writeVaruint32( this.results.size() );
-        for( StorageType valueType : this.results ) {
+        for( AnyType valueType : this.results ) {
             stream.writeValueType( valueType );
         }
     }

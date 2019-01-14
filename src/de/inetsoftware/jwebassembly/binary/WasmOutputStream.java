@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -72,7 +72,7 @@ class WasmOutputStream extends FilterOutputStream {
      * @throws IOException
      *             if an I/O error occurs.
      */
-    public void writeValueType( StorageType type ) throws IOException {
+    public void writeValueType( AnyType type ) throws IOException {
         writeVarint( type.getCode() );
     }
 

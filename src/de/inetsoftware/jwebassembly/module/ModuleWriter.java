@@ -26,7 +26,7 @@ import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -107,7 +107,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodParam( String kind, StorageType valueType, @Nullable String name ) throws IOException;
+    protected abstract void writeMethodParam( String kind, AnyType valueType, @Nullable String name ) throws IOException;
 
     /**
      * Finish the function parameter.
@@ -227,7 +227,7 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, StorageType type ) throws IOException;
+    protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, AnyType type ) throws IOException;
 
     /**
      * Write a struct operation
@@ -240,5 +240,5 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeStructOperator( StructOperator op, StorageType type, String fieldName ) throws IOException;
+    protected abstract void writeStructOperator( StructOperator op, AnyType type, String fieldName ) throws IOException;
 }

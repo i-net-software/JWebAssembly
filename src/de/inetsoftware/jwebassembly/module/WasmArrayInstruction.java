@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -37,7 +36,7 @@ class WasmArrayInstruction extends WasmInstruction {
 
     private final ArrayOperator op;
 
-    private final StorageType   type;
+    private final AnyType   type;
 
     /**
      * Create an instance of an array operation.
@@ -49,7 +48,7 @@ class WasmArrayInstruction extends WasmInstruction {
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable StorageType type, int javaCodePos ) {
+    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable AnyType type, int javaCodePos ) {
         super( javaCodePos );
         this.op = op;
         this.type = type;

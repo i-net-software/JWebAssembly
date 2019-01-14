@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
-import de.inetsoftware.jwebassembly.wasm.StorageType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -39,7 +39,7 @@ class WasmStructInstruction extends WasmInstruction {
 
     private final String         typeName;
 
-    private       StorageType    type;
+    private       AnyType    type;
 
     private final String         fieldName;
 
