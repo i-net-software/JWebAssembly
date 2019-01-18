@@ -17,10 +17,12 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
@@ -103,15 +105,14 @@ class WasmCallInstruction extends WasmInstruction {
         if( paramCount >= 0 ) {
             return;
         }
-        ValueTypeParser parser = new ValueTypeParser( method.getType() );
+        Iterator<AnyType> parser = new ValueTypeParser( method.getType() );
         paramCount = 0;
         while( parser.next() != null ) {
             paramCount++;
         }
         valueType = (ValueType)parser.next();
-        ValueType type;
-        while( (type = (ValueType)parser.next()) != null ) {
-            valueType = type;
+        while( parser.hasNext() ) {
+            valueType = (ValueType)parser.next();
             paramCount--;
         }
     }

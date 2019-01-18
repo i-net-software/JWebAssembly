@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -354,10 +355,10 @@ public class ModuleGenerator {
         if( !isStatic ) {
             writer.writeMethodParam( "param", ValueType.anyref, "this" );
         }
-        ValueTypeParser parser = new ValueTypeParser( signature );
+        Iterator<AnyType> parser = new ValueTypeParser( signature );
         AnyType type;
         for( String kind : new String[] {"param","result"}) {
-            while( (type = parser.next()) != null ) {
+            while( parser.hasNext() && (type = parser.next()) != null ) {
                 String paramName = null;
                 if( kind == "param" ) {
                     if( variables != null ) {

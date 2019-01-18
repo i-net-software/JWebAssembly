@@ -15,6 +15,9 @@
  */
 package de.inetsoftware.jwebassembly.wasm;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager;
 
@@ -23,7 +26,7 @@ import de.inetsoftware.jwebassembly.module.TypeManager;
  * 
  * @author Volker Berlin
  */
-public class ValueTypeParser {
+public class ValueTypeParser implements Iterator<AnyType> {
     private final String sig;
 
     private int          idx;
@@ -57,13 +60,20 @@ public class ValueTypeParser {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public boolean hasNext() {
+        return idx < sig.length();
+    }
+
+    /**
      * Get the next value in the signature or null if the parameter are end or the signature is end.
      * 
      * @return next type or null
      */
     public AnyType next() {
-        if( idx >= sig.length() ) {
-            return null;
+        if( !hasNext() ) {
+            throw new NoSuchElementException();
         }
         switch( sig.charAt( idx++ ) ) {
             case ')':
