@@ -24,7 +24,6 @@ import javax.annotation.Nonnull;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
-import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
 /**
  * WasmInstruction for a function call.
@@ -33,8 +32,6 @@ import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
  *
  */
 class WasmCallInstruction extends WasmInstruction {
-
-    private final Member       method;
 
     private ValueType          valueType;
 
@@ -52,7 +49,6 @@ class WasmCallInstruction extends WasmInstruction {
      */
     WasmCallInstruction( Member method, int javaCodePos ) {
         super( javaCodePos );
-        this.method = method;
         this.name = new FunctionName( method );
     }
 
@@ -105,7 +101,7 @@ class WasmCallInstruction extends WasmInstruction {
         if( paramCount >= 0 ) {
             return;
         }
-        Iterator<AnyType> parser = new ValueTypeParser( method.getType() );
+        Iterator<AnyType> parser = name.getSignature();
         paramCount = 0;
         while( parser.next() != null ) {
             paramCount++;

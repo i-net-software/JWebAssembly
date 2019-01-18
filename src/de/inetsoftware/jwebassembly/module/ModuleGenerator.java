@@ -350,12 +350,11 @@ public class ModuleGenerator {
      *             if some Java code can't converted
      */
     private void writeMethodSignature( FunctionName name, boolean isStatic, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
-        String signature = name.signature;
         int paramCount = 0;
         if( !isStatic ) {
             writer.writeMethodParam( "param", ValueType.anyref, "this" );
         }
-        Iterator<AnyType> parser = new ValueTypeParser( signature );
+        Iterator<AnyType> parser = name.getSignature();
         AnyType type;
         for( String kind : new String[] {"param","result"}) {
             while( parser.hasNext() && (type = parser.next()) != null ) {

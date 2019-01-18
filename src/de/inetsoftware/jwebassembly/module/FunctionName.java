@@ -16,9 +16,13 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import java.util.Iterator;
+
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
 /**
  * Described the name of WebAssembly function.
@@ -50,7 +54,7 @@ public class FunctionName {
      * The signature
      */
     @Nonnull
-    public final String signature;
+    private final String signature;
 
     /**
      * Create a new instance from the given reference in the ConstantPool or parsed method.
@@ -115,5 +119,15 @@ public class FunctionName {
         }
         FunctionName other = (FunctionName)obj;
         return signatureName.equals( other.signatureName );
+    }
+
+    /**
+     * Get the method signature iterator for parameter and return values.
+     * 
+     * @return the iterator
+     */
+    @Nonnull
+    public Iterator<AnyType> getSignature() {
+        return new ValueTypeParser( signature );
     }
 }
