@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -39,7 +40,7 @@ class LocaleVariableManager {
 
     private boolean              needTempI32;
 
-    private ArrayList<ValueType> localTypes = new ArrayList<>();
+    private ArrayList<AnyType> localTypes = new ArrayList<>();
 
     /**
      * Create a new instance.
@@ -73,7 +74,7 @@ class LocaleVariableManager {
      * @param slot
      *            the memory/slot index of the local variable
      */
-    void use( ValueType valueType, int slot ) {
+    void use( AnyType valueType, int slot ) {
         if( slot < 0 ) {
             needTempI32 = true;
             return;
@@ -112,7 +113,7 @@ class LocaleVariableManager {
      *            the count of method parameter which should be exclude
      * @return the reused list with fresh values
      */
-    List<ValueType> getLocalTypes( int paramCount ) {
+    List<AnyType> getLocalTypes( int paramCount ) {
         localTypes.clear();
         for( int i = 0; i < size; i++ ) {
             LocaleVariable var = variables[i];
@@ -154,7 +155,7 @@ class LocaleVariableManager {
      *            the memory/slot index of the local variable in Java
      * @return the ValueType
      */
-    ValueType getValueType( int slot ) {
+    AnyType getValueType( int slot ) {
         return variables[slot].valueType;
     }
 
@@ -178,8 +179,8 @@ class LocaleVariableManager {
      * The state of a single local variable slot.
      */
     private static class LocaleVariable {
-        private ValueType valueType;
+        private AnyType valueType;
 
-        private int       idx = -1;
+        private int     idx = -1;
     }
 }

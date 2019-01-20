@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -270,7 +271,7 @@ class BranchManger {
                 if( i > 0 ) {
                     calculate( branch, parsedOperations.subList( 0, i ) );
                 }
-                ValueType blockType = calculateBlockType( startPos, branch.endPos );
+                AnyType blockType = calculateBlockType( startPos, branch.endPos );
                 branch.data = blockType;
                 // end position can not be outside of the parent
                 endPos = Math.min( parsedBlock.endPosition, parent.endPos );
@@ -340,8 +341,8 @@ class BranchManger {
      * @return the value type
      */
     @Nonnull
-    private ValueType calculateBlockType( int startPos, int endPos ) {
-        ArrayDeque<ValueType> stack = new ArrayDeque<>();
+    private AnyType calculateBlockType( int startPos, int endPos ) {
+        ArrayDeque<AnyType> stack = new ArrayDeque<>();
         stack.push( ValueType.empty );
         for( WasmInstruction instr : instructions ) {
             int codePos = instr.getCodePosition();
@@ -355,7 +356,7 @@ class BranchManger {
             for( int p = 0; p < popCount; p++ ) {
                 stack.pop();
             }
-            ValueType pushValue = instr.getPushValueType();
+            AnyType pushValue = instr.getPushValueType();
             if( pushValue != null ) {
                 stack.push( pushValue );
             }

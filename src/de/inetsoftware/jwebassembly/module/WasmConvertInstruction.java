@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -62,7 +63,7 @@ class WasmConvertInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
-    ValueType getPushValueType() {
+    AnyType getPushValueType() {
         switch( conversion ) {
             case l2i:
             case f2i:

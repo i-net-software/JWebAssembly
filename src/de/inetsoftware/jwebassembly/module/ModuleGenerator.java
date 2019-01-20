@@ -386,7 +386,7 @@ public class ModuleGenerator {
             if( !isStatic ) {
                 paramCount++;
             }
-            List<ValueType> localTypes = codeBuilder.getLocalTypes( paramCount );
+            List<AnyType> localTypes = codeBuilder.getLocalTypes( paramCount );
             for( int i = 0; i < localTypes.size(); i++ ) {
                 type = localTypes.get( i );
                 String paramName = null;

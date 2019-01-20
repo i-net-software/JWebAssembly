@@ -57,7 +57,7 @@ public abstract class WasmCodeBuilder {
      *            the count of method parameter which should be exclude
      * @return the reused list with fresh values
      */
-    List<ValueType> getLocalTypes( int paramCount ) {
+    List<AnyType> getLocalTypes( int paramCount ) {
         return localVariables.getLocalTypes( paramCount );
     }
 
@@ -89,7 +89,7 @@ public abstract class WasmCodeBuilder {
      *            the code position/offset in the Java method
      */
     @Nonnull
-    protected void addLoadStoreInstruction( ValueType valueType, boolean load, @Nonnegative int javaIdx, int javaCodePos ) {
+    protected void addLoadStoreInstruction( AnyType valueType, boolean load, @Nonnegative int javaIdx, int javaCodePos ) {
         localVariables.use( valueType, javaIdx );
         instructions.add( new WasmLoadStoreInstruction( load, javaIdx, localVariables, javaCodePos ) );
     }

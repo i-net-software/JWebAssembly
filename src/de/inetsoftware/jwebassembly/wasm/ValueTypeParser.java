@@ -99,7 +99,7 @@ public class ValueTypeParser implements Iterator<AnyType> {
             case 'J': // long
                 return ValueType.i64;
             case 'V': // void
-                return ValueType.empty;
+                return null;
             default:
                 throw new WasmException( "Not supported Java data type in method signature: " + sig.substring( idx - 1 ), -1 );
         }

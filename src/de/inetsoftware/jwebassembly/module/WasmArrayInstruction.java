@@ -72,7 +72,7 @@ class WasmArrayInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
-    ValueType getPushValueType() {
+    AnyType getPushValueType() {
         switch( op ) {
             case NEW:
                 return ValueType.anyref;
@@ -95,10 +95,11 @@ class WasmArrayInstruction extends WasmInstruction {
         switch( op ) {
             case NEW:
             case GET:
+                return 2;
             case LENGTH:
                 return 1;
             case SET:
-                return 0;
+                return 3;
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );
         }

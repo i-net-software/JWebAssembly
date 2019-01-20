@@ -241,7 +241,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 76: // astore_1
                     case 77: // astore_2
                     case 78: // astore_3
-                        addLoadStoreInstruction( ValueType.anyref, false, op - 75, codePos );
+                        storeType = findPreviousPushInstructionPushValueType();
+                        addLoadStoreInstruction( storeType, false, op - 75, codePos );
                         break;
                     case 79: // iastore
                         addArrayInstruction( ArrayOperator.SET, ValueType.i32, codePos );
@@ -729,7 +730,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
         List<WasmInstruction> instructions = getInstructions();
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
             WasmInstruction instr = instructions.get( i );
-            ValueType valueType = instr.getPushValueType();
+            AnyType valueType = instr.getPushValueType();
             if( valueType != null ) {
                 valueCount++;
             }
@@ -747,12 +748,12 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      * @return the type of the last push value
      */
     @Nonnull
-    private ValueType findPreviousPushInstructionPushValueType() {
+    private AnyType findPreviousPushInstructionPushValueType() {
         int valueCount = 0;
         List<WasmInstruction> instructions = getInstructions();
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
             WasmInstruction instr = instructions.get( i );
-            ValueType valueType = instr.getPushValueType();
+            AnyType valueType = instr.getPushValueType();
             if( valueType != null ) {
                 if( ++valueCount == 1 ) {
                     return valueType;

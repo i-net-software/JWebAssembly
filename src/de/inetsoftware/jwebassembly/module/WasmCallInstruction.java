@@ -79,7 +79,7 @@ class WasmCallInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
-    ValueType getPushValueType() {
+    AnyType getPushValueType() {
         countParams();
         return valueType;
     }

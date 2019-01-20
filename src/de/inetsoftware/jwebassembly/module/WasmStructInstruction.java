@@ -39,7 +39,7 @@ class WasmStructInstruction extends WasmInstruction {
 
     private final String         typeName;
 
-    private       AnyType    type;
+    private       AnyType        type;
 
     private final String         fieldName;
 
@@ -99,14 +99,14 @@ class WasmStructInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
-    ValueType getPushValueType() {
+    AnyType getPushValueType() {
         switch( op ) {
             case NEW:
             case NEW_DEFAULT:
             case NULL:
                 return ValueType.anyref;
             case GET:
-                return type instanceof ValueType ? (ValueType)type : ValueType.anyref;
+                return type;
             case SET:
                 return null;
             default:
@@ -125,6 +125,7 @@ class WasmStructInstruction extends WasmInstruction {
             case GET:
                 return 1;
             case SET:
+            case NULL:
                 return 0;
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );
