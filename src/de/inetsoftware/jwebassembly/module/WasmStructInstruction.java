@@ -103,6 +103,7 @@ class WasmStructInstruction extends WasmInstruction {
         switch( op ) {
             case NEW:
             case NEW_DEFAULT:
+            case NULL:
                 return ValueType.anyref;
             case GET:
                 return type instanceof ValueType ? (ValueType)type : ValueType.anyref;
