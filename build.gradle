@@ -81,8 +81,12 @@ task nodeVersion(type: NodeTask) {
 }
 
 test {
-    testLogging.showStandardStreams = true
-    testLogging.exceptionFormat = 'full'
+    testLogging {
+        showStandardStreams = true
+        showStackTraces = true
+        exceptionFormat = 'full'
+        events 'passed', 'skipped', 'failed'
+    }
 }
 
 
