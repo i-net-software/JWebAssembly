@@ -274,25 +274,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 92: // dup2
-                        switch( findPreviousPushInstructionPushValueType() ) {
-                            case i32:
-                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_i32", "(I)II" ), codePos );
-                                break OP;
-                            case f32:
-                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_f32", "(F)FF" ), codePos );
-                                break OP;
-                            case i64:
-                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_i64", "(J)JJ" ), codePos );
-                                break OP;
-                            case f64:
-                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_f64", "(D)DD" ), codePos );
-                                break OP;
-                            case anyref:
-                                addCallInstruction( new SyntheticMember( "de/inetsoftware/jwebassembly/module/NativeHelperCode", "dup_anyref", "(Ljava.lang.Object;)Ljava.lang.Object;Ljava.lang.Object;" ), codePos );
-                                break OP;
-                            default:
-                        }
-                        //$FALL-THROUGH$
+                        storeType = findPreviousPushInstructionPushValueType();
+                        addCallInstruction( new SyntheticFunctionName( "dup" + storeType, "get_local 0 get_local 0 return", storeType, null, storeType, storeType ), codePos );
+                        break;
                     case 90: // dup_x1
                     case 91: // dup_x2
                     case 93: // dup2_x1
@@ -576,7 +560,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
                         ref = (ConstantRef)constantPool.get( idx );
-                        addCallInstruction( ref, codePos );
+                        addCallInstruction( new FunctionName( ref ), codePos );
                         break;
                     //TODO case 185: // invokeinterface
                     //TODO case 186: // invokedynamic

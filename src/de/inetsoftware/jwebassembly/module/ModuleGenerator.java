@@ -110,29 +110,35 @@ public class ModuleGenerator {
         while( (next = functions.nextWriteLater()) != null ) {
             InputStream stream = libraries.getResourceAsStream( next.className + ".class" );
             if( stream == null ) {
-                throw new WasmException( "Missing function: " + next.signatureName, -1 );
-            }
-            ClassFile classFile = new ClassFile( stream );
-            iterateMethods( classFile, method -> {
-                try {
-                    FunctionName name;
-                    Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
-                    if( wat != null ) {
-                        String signature = (String)wat.get( "signature" );
-                        if( signature == null ) {
-                            signature = method.getType();
-                        }
-                        name = new FunctionName( method, signature );
-                    } else {
-                        name = new FunctionName( method );
-                    }
-                    if( functions.isToWrite( name ) ) {
-                        writeMethod( method );
-                    }
-                } catch (IOException ioex){
-                    throw WasmException.create( ioex, sourceFile, className, -1 );
+                if( next instanceof SyntheticFunctionName ) {
+                    watParser.parse( ((SyntheticFunctionName)next).getCode(), -1 );
+                    writeMethodImpl( next, true, null, watParser );
+                } else {
+                    throw new WasmException( "Missing function: " + next.signatureName, -1 );
                 }
-            } );
+            } else {
+                ClassFile classFile = new ClassFile( stream );
+                iterateMethods( classFile, method -> {
+                    try {
+                        FunctionName name;
+                        Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
+                        if( wat != null ) {
+                            String signature = (String)wat.get( "signature" );
+                            if( signature == null ) {
+                                signature = method.getType();
+                            }
+                            name = new FunctionName( method, signature );
+                        } else {
+                            name = new FunctionName( method );
+                        }
+                        if( functions.isToWrite( name ) ) {
+                            writeMethod( method );
+                        }
+                    } catch (IOException ioex){
+                        throw WasmException.create( ioex, sourceFile, className, -1 );
+                    }
+                } );
+            }
 
             if( functions.isToWrite( next ) ) {
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
@@ -268,6 +274,7 @@ public class ModuleGenerator {
             }
             WasmCodeBuilder codeBuilder;
             Code code = method.getCode();
+            LocalVariableTable localVariableTable;
             FunctionName name;
             if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  ) != null ) {
                 Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
@@ -279,36 +286,41 @@ public class ModuleGenerator {
                 name = new FunctionName( method, signature );
                 watParser.parse( watCode, code == null ? -1 : code.getFirstLineNr() );
                 codeBuilder = watParser;
+                localVariableTable = null;
             } else if( code != null ) { // abstract methods and interface methods does not have code
                 name = new FunctionName( method );
                 javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
                 codeBuilder = javaCodeBuilder;
+                localVariableTable = code.getLocalVariableTable();
             } else {
                 return;
             }
             writeExport( name, method );
-            writer.writeMethodStart( name );
-            functions.writeFunction( name );
-            LocalVariableTable localVariableTable = code == null ? null : code.getLocalVariableTable();
-            writeMethodSignature( name, method.isStatic(), localVariableTable, codeBuilder ); 
-
-            for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
-                switch( instruction.getType() ) {
-                    case Call:
-                        functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
-                        break;
-                    case Struct:
-                        setStructType( (WasmStructInstruction)instruction );
-                        break;
-                    default:
-                }
-                instruction.writeTo( writer );
-            }
-            writer.writeMethodFinish();
+            writeMethodImpl( name, method.isStatic(), localVariableTable, codeBuilder );
         } catch( Exception ioex ) {
             int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
             throw WasmException.create( ioex, sourceFile, className, lineNumber );
         }
+    }
+
+    private void writeMethodImpl( FunctionName name, boolean isStatic, LocalVariableTable localVariableTable, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
+        writer.writeMethodStart( name );
+        functions.writeFunction( name );
+        writeMethodSignature( name, isStatic, localVariableTable, codeBuilder ); 
+
+        for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
+            switch( instruction.getType() ) {
+                case Call:
+                    functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
+                    break;
+                case Struct:
+                    setStructType( (WasmStructInstruction)instruction );
+                    break;
+                default:
+            }
+            instruction.writeTo( writer );
+        }
+        writer.writeMethodFinish();
     }
 
     /**

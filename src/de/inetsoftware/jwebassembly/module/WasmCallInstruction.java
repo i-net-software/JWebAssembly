@@ -21,7 +21,6 @@ import java.util.Iterator;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -42,14 +41,14 @@ class WasmCallInstruction extends WasmInstruction {
     /**
      * Create an instance of a function call instruction
      * 
-     * @param method
-     *            the reference to the Java method
+     * @param name
+     *            the function name that should be called
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmCallInstruction( Member method, int javaCodePos ) {
+    WasmCallInstruction( FunctionName name, int javaCodePos ) {
         super( javaCodePos );
-        this.name = new FunctionName( method );
+        this.name = name;
     }
 
     /**

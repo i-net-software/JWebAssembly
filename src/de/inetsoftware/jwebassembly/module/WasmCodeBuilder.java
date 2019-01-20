@@ -178,13 +178,13 @@ public abstract class WasmCodeBuilder {
     /**
      * Add a static function call.
      * 
-     * @param method
-     *            reference to a static method
+     * @param name
+     *            the function name that should be called
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    protected void addCallInstruction( Member method, int javaCodePos ) {
-        instructions.add( new WasmCallInstruction( method, javaCodePos ) );
+    protected void addCallInstruction( FunctionName name, int javaCodePos ) {
+        instructions.add( new WasmCallInstruction( name, javaCodePos ) );
     }
 
     /**
