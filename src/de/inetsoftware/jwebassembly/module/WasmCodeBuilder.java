@@ -41,6 +41,8 @@ public abstract class WasmCodeBuilder {
 
     private final List<WasmInstruction> instructions   = new ArrayList<>();
 
+    private TypeManager                 types;
+
     /**
      * Get the list of instructions
      * 
@@ -48,6 +50,16 @@ public abstract class WasmCodeBuilder {
      */
     List<WasmInstruction> getInstructions() {
         return instructions;
+    }
+
+    /**
+     * Initialize the code builder;
+     * 
+     * @param types
+     *            the type manager
+     */
+    void init( TypeManager types ) {
+        this.types = types;
     }
 
     /**
@@ -239,6 +251,6 @@ public abstract class WasmCodeBuilder {
      *            the code position/offset in the Java method
      */
     protected void addStructInstruction( StructOperator op, @Nullable String typeName, @Nullable String fieldName, int javaCodePos ) {
-        instructions.add( new WasmStructInstruction( op, typeName, fieldName, javaCodePos ) );
+        instructions.add( new WasmStructInstruction( op, typeName == null ? null : types.valueOf( typeName ), fieldName, javaCodePos ) );
     }
 }

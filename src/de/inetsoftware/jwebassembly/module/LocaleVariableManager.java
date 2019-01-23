@@ -83,8 +83,14 @@ class LocaleVariableManager {
         size = Math.max( size, slot + 1 );
         LocaleVariable var = variables[slot];
         if( var.valueType != null && var.valueType != valueType ) {
-            throw new WasmException( "Redefine local variable type from " + var.valueType + " to "
-                            + valueType, null, null, -1 );
+            if( var.valueType.getCode() >= 0 && valueType == ValueType.anyref ) {
+                return;
+            }
+            if( valueType.getCode() >= 0 && var.valueType == ValueType.anyref ) {
+                // set the more specific type
+            } else {
+                throw new WasmException( "Redefine local variable type from " + var.valueType + " to " + valueType, null, null, -1 );
+            }
         }
         var.valueType = valueType;
     }

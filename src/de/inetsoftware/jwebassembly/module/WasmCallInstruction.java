@@ -22,7 +22,6 @@ import java.util.Iterator;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.wasm.AnyType;
-import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
  * WasmInstruction for a function call.
@@ -32,7 +31,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmCallInstruction extends WasmInstruction {
 
-    private ValueType          valueType;
+    private AnyType            valueType;
 
     private final FunctionName name;
 
@@ -105,9 +104,9 @@ class WasmCallInstruction extends WasmInstruction {
         while( parser.next() != null ) {
             paramCount++;
         }
-        valueType = (ValueType)parser.next();
+        valueType = parser.next();
         while( parser.hasNext() ) {
-            valueType = (ValueType)parser.next();
+            valueType = parser.next();
             paramCount--;
         }
     }

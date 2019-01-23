@@ -77,6 +77,8 @@ public class ModuleGenerator {
     public ModuleGenerator( @Nonnull ModuleWriter writer, List<URL> libraries ) {
         this.writer = writer;
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
+        javaCodeBuilder.init( types );
+        ((WasmCodeBuilder)watParser).init( types );
     }
 
     /**
@@ -155,13 +157,9 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     private void setStructType( WasmStructInstruction instruction ) throws IOException {
-        String name = instruction.getTypeName();
-        if( name != null ) {
-            StructType type = types.valueOf( name );
-            instruction.setType( type );
-            if( type.getCode() == Integer.MAX_VALUE ) {
-                writeStructType( type );
-            }
+        StructType type = instruction.getStructType();
+        if( type != null && type.getCode() == Integer.MAX_VALUE ) {
+            writeStructType( type );
         }
     }
 

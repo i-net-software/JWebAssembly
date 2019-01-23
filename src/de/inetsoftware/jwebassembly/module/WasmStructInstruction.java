@@ -37,9 +37,7 @@ class WasmStructInstruction extends WasmInstruction {
 
     private final StructOperator op;
 
-    private final String         typeName;
-
-    private       AnyType        type;
+    private final StructType     type;
 
     private final String         fieldName;
 
@@ -48,37 +46,27 @@ class WasmStructInstruction extends WasmInstruction {
      * 
      * @param op
      *            the struct operation
-     * @param typeName
-     *            the type name of the parameters
+     * @param type
+     *            the type of the parameters
      * @param fieldName
      *            the name of field if needed for the operation
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nullable String typeName, @Nullable String fieldName, int javaCodePos ) {
+    WasmStructInstruction( @Nullable StructOperator op, @Nullable StructType type, @Nullable String fieldName, int javaCodePos ) {
         super( javaCodePos );
         this.op = op;
-        this.typeName = typeName;
+        this.type = type;
         this.fieldName = fieldName;
     }
 
     /**
-     * Get the type name of this instruction.
+     * Get the struct type of this instruction.
      * 
      * @return the type
      */
-    String getTypeName() {
-        return typeName;
-    }
-
-    /**
-     * Set the resolved StructType for the typeName
-     * 
-     * @param type
-     *            the type
-     */
-    void setType( StructType type ) {
-        this.type = type;
+    StructType getStructType() {
+        return type;
     }
 
     /**
@@ -101,10 +89,10 @@ class WasmStructInstruction extends WasmInstruction {
      */
     AnyType getPushValueType() {
         switch( op ) {
-            case NEW:
-            case NEW_DEFAULT:
             case NULL:
                 return ValueType.anyref;
+            case NEW:
+            case NEW_DEFAULT:
             case GET:
                 return type;
             case SET:
