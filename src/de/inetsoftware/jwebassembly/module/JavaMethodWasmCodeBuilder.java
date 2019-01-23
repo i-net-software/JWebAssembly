@@ -87,7 +87,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 int codePos = byteCode.getCodePosition();
                 endWithReturn = false;
                 int op = byteCode.readUnsignedByte();
-                OP: switch( op ) {
+                switch( op ) {
                     case 0: // nop
                         break;
                     case 1: // aconst_null
