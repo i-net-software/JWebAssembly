@@ -31,6 +31,6 @@ enum SectionType {
     Element, //  9   Elements section
     Code, //    10   Function bodies (code)
     Data, //    11   Data segments
-    Reserved, //12
+    DataCount,//12   Count of data segments https://github.com/WebAssembly/bulk-memory-operations/blob/master/proposals/bulk-memory-operations/Overview.md
     Event, //   13   Event declarations, Exceptions
 }
