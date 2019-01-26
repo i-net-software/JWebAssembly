@@ -8,8 +8,12 @@ JWebAssembly
 JWebAssembly is a Java bytecode to [WebAssembly](http://webassembly.org/) compiler. It uses Java class files as input. That it can compile any language that compile to Java bytecode.
 As output it generates the binary format (.wasm file) or the text format (.wat file).
 
+The difference to similar projects is that not a complete VM with GC and memory management should be ported. It's more like a 1: 1 conversion. The generated WebAssembly code is similar in size to the original Java class files.
+
 Status of the project
 ----
+
+The project is currently not production ready but you can run already some tests.
 
 ### Finished Components
 * Java byte code parser
@@ -18,7 +22,7 @@ Status of the project
 * [Gradle Plugin](https://github.com/i-net-software/JWebAssembly-Gradle)
 
 ### Partially Finished
-* Binary format file writer and Text format file writer (171 of 201 byte code instructions)
+* Binary format file writer and Text format file writer (183 of 201 Java byte code instructions)
 * Support for native methods [#2](https://github.com/i-net-software/JWebAssembly/issues/2)
 * Exception handling - required the next version of WebAssembly
 * Multiple threads - required the next version of WebAssembly
@@ -48,12 +52,12 @@ To use it also some flags and switches are needed.
 
 Required Java Version
 ----
-JWebAssembly requires Java SE 8 or higher. It is tested with Java SE 8 on [travis-ci.org](https://travis-ci.org/i-net-software/jwebassembly).
+The JWebAssembly compiler requires Java SE 8 or higher. It is tested with Java SE 8 on [travis-ci.org](https://travis-ci.org/i-net-software/jwebassembly).
 
 ## Usage
 
 ### Exporting functions
-To export a Java function to make it accessible from JavaScript you need add the annotation de.inetsoftware.jwebassembly.api.annotation.Export.
+To export a Java function to make it accessible from JavaScript, you must add the annotation de.inetsoftware.jwebassembly.api.annotation.Export.
 
 ```java
 import de.inetsoftware.jwebassembly.api.annotation.Export;
@@ -65,7 +69,7 @@ public static int add( int a, int b ) {
 ```
 
 ### importing functions
-To import a JavaScript function to make it accessible from Java you need add the annotation de.inetsoftware.jwebassembly.api.annotation.Import.
+To import a JavaScript function to make it accessible from Java, you must add the annotation de.inetsoftware.jwebassembly.api.annotation.Import.
 The method can be declared native or can have a Java implementation which will be ignored on compiling.
 
 ```java
@@ -82,6 +86,8 @@ static int max( int a, int b) {
 In version 1 of WebAssembly you can only compile:
 * static methods
 * use the data types int, long float and double
+
+This is state of JWebAssembly 0.1.
 
 ### Alternatives
 * [TeaVM](https://github.com/konsoletyper/teavm)
