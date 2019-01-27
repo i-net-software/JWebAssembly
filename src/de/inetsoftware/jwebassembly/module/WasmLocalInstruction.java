@@ -61,13 +61,24 @@ class WasmLocalInstruction extends WasmInstruction {
     }
 
     /**
+     * Get the number of the locals
+     * 
+     * @return the index
+     */
+    @Nonnegative
+    int getIndex() {
+        return idx;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        int index = getIndex();
         if( load ) {
-            writer.writeLoad( idx );
+            writer.writeLoad( index );
         } else {
-            writer.writeStore( idx );
+            writer.writeStore( index );
         }
     }
 

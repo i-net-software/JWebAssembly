@@ -16,12 +16,8 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
-import java.io.IOException;
-
 import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
 
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 
 /**
@@ -30,11 +26,7 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  * @author Volker Berlin
  *
  */
-class WasmLoadStoreInstruction extends WasmInstruction {
-
-    private boolean               load;
-
-    private int                   idx;
+class WasmLoadStoreInstruction extends WasmLocalInstruction {
 
     private LocaleVariableManager localVariables;
 
@@ -51,9 +43,7 @@ class WasmLoadStoreInstruction extends WasmInstruction {
      *            the code position/offset in the Java method
      */
     WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos ) {
-        super( javaCodePos );
-        this.load = load;
-        this.idx = idx;
+        super( load, idx, javaCodePos );
         this.localVariables = localVariables;
     }
 
@@ -61,34 +51,14 @@ class WasmLoadStoreInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     @Override
-    Type getType() {
-        return Type.LoadStore;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        int index = localVariables.get( idx ); // translate slot index to position index
-        if( load ) {
-            writer.writeLoad( index );
-        } else {
-            writer.writeStore( index );
-        }
+    int getIndex() {
+        return localVariables.get( super.getIndex() ); // translate slot index to position index
     }
 
     /**
      * {@inheritDoc}
      */
     AnyType getPushValueType() {
-        return load ? localVariables.getValueType( idx ) : null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    int getPopCount() {
-        return load ? 0 : 1;
+        return getPopCount() == 0 ? localVariables.getValueType( super.getIndex() ) : null;
     }
 }
