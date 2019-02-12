@@ -20,6 +20,7 @@ dependencies {
     testCompile 'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'de.inetsoftware:jwebassembly-api:+'
     testCompile 'junit:junit:+'
+    testCompile 'org.apache.commons:commons-compress:1.2'
 }
 
 sourceSets {
