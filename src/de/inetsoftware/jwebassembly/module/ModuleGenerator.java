@@ -66,6 +66,8 @@ public class ModuleGenerator {
 
     private TypeManager                     types = new TypeManager();
 
+    private CodeOptimizer                   optimizer = new CodeOptimizer();
+
     /**
      * Create a new generator.
      * 
@@ -304,9 +306,11 @@ public class ModuleGenerator {
     private void writeMethodImpl( FunctionName name, boolean isStatic, LocalVariableTable localVariableTable, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
         writer.writeMethodStart( name );
         functions.writeFunction( name );
-        writeMethodSignature( name, isStatic, localVariableTable, codeBuilder ); 
+        writeMethodSignature( name, isStatic, localVariableTable, codeBuilder );
 
-        for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
+        List<WasmInstruction> instructions = codeBuilder.getInstructions();
+        optimizer.optimze( instructions );
+        for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Call:
                     functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
