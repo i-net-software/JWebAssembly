@@ -32,6 +32,7 @@ import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.FieldInfo;
+import de.inetsoftware.classparser.LocalVariable;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
@@ -393,7 +394,10 @@ public class ModuleGenerator {
                 type = localTypes.get( i );
                 String paramName = null;
                 if( variables != null ) {
-                    paramName = variables.getPosition( paramCount + i ).getName();
+                    LocalVariable variable = variables.getPosition( paramCount + i );
+                    if( variable != null ) {
+                        paramName = variable.getName();
+                    }
                 }
                 writer.writeMethodParam( "local", type, paramName );
             }
