@@ -393,7 +393,7 @@ public class ModuleGenerator {
                 type = localTypes.get( i );
                 String paramName = null;
                 if( variables != null ) {
-                    paramName = variables.getPosition( paramCount ).getName();
+                    paramName = variables.getPosition( paramCount + i ).getName();
                 }
                 writer.writeMethodParam( "local", type, paramName );
             }
