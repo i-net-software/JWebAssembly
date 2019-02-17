@@ -394,9 +394,12 @@ public class ModuleGenerator {
                 type = localTypes.get( i );
                 String paramName = null;
                 if( variables != null ) {
-                    LocalVariable variable = variables.getPosition( paramCount + i );
-                    if( variable != null ) {
-                        paramName = variable.getName();
+                    int idx = paramCount + i;
+                    if( idx < variables.getPositionSize() ) {
+                        LocalVariable variable = variables.getPosition( idx );
+                        if( variable != null ) {
+                            paramName = variable.getName();
+                        }
                     }
                 }
                 writer.writeMethodParam( "local", type, paramName );
