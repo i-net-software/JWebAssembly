@@ -26,6 +26,7 @@ public enum ScriptEngine {
     SpiderMonkey,
     NodeWat,
     SpiderMonkeyWat,
+    Wat2Wasm,
     ;
 
     public static Collection<ScriptEngine[]> testParams() {
@@ -34,6 +35,7 @@ public enum ScriptEngine {
                         { ScriptEngine.NodeJS }, //
                         { ScriptEngine.NodeWat }, //
 //                        { ScriptEngine.SpiderMonkeyWat },//
+                        { ScriptEngine.Wat2Wasm }, //
         };
         return Arrays.asList(val);
     }

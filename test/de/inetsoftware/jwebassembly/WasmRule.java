@@ -44,6 +44,8 @@ public class WasmRule extends TemporaryFolder {
 
     private static final SpiderMonkey spiderMonkey = new SpiderMonkey();
 
+    private static final Wat2Wasm     wat2Wasm = new Wat2Wasm();
+
     private final Class<?>[]          classes;
 
     private File                      wasmFile;
@@ -57,6 +59,8 @@ public class WasmRule extends TemporaryFolder {
     private File                      nodeWatScript;
 
     private File                      spiderMonkeyWatScript;
+
+    private File                      wat2WasmScript;
 
     private boolean                   failed;
 
@@ -96,8 +100,11 @@ public class WasmRule extends TemporaryFolder {
 
     /**
      * Compile the classes of the test.
+     * 
+     * @throws WasmException
+     *             if the compiling is failing
      */
-    public void compile() throws IOException, WasmException {
+    public void compile() throws WasmException {
         JWebAssembly wasm = new JWebAssembly();
         for( Class<?> clazz : classes ) {
             URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
@@ -116,10 +123,10 @@ public class WasmRule extends TemporaryFolder {
             wasmFile = newFile( "test.wasm" );
             wasm.compileToBinary( wasmFile );
 
-            nodeScript = createScript( "nodetest.js" );
-            spiderMonkeyScript = createScript( "SpiderMonkeyTest.js" );
-            nodeWatScript = createScript( "WatTest.js" );
-            spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js" );
+            nodeScript = createScript( "nodetest.js", "{test.wasm}", wasmFile.getName() );
+            spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", wasmFile.getName() );
+            nodeWatScript = createScript( "WatTest.js", "{test.wat}", watFile.getName() );
+            spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test.wat}", watFile.getName() );
 
             //create dummy files to prevent error messages
             FileOutputStream jsonPackage = new FileOutputStream( new File( getRoot(), "package.json" ) );
@@ -134,18 +141,50 @@ public class WasmRule extends TemporaryFolder {
                 processBuilder.command().add( 0, "cmd" );
                 processBuilder.command().add( 1, "/C" );
             }
-            processBuilder.directory( getRoot() );
-            processBuilder.redirectOutput( Redirect.INHERIT );
-            processBuilder.redirectError( Redirect.INHERIT );
-            System.out.println( String.join( " ", processBuilder.command() ) );
-            Process process = processBuilder.start();
-            int exitCode = process.waitFor();
-            if( exitCode != 0 ) {
-                fail( readStream( process.getErrorStream() ) );
-            }
+            execute( processBuilder );
         } catch( Throwable ex ) {
             System.out.println( textCompiled );
             throwException( ex );
+        }
+    }
+
+    /**
+     * Prepare the Wat2Wasm tool if not already do. Fire an JUnit fail if the process produce an error.
+     * 
+     * @throws Exception
+     *             if any error occur.
+     */
+    private void prepareWat2Wasm() throws Exception {
+        if( wat2WasmScript == null ) {
+            String cmd = wat2Wasm.getCommand();
+            File wat2WasmFile = new File( getRoot(), "wat2Wasm.wasm" );
+            // the wat2wasm tool
+            ProcessBuilder processBuilder =
+                            new ProcessBuilder( cmd, watFile.toString(), "-o", wat2WasmFile.toString(), "--enable-saturating-float-to-int", "--enable-sign-extension", "--enable-multi-value" );
+            execute( processBuilder );
+
+            // create the node script
+            wat2WasmScript = createScript( "nodetest.js", "{test.wasm}", wat2WasmFile.getName() );
+        }
+    }
+
+    /**
+     * Execute a external process and redirect the output to the console. Fire an JUnit fail if the process produce an error.
+     * 
+     * @param processBuilder
+     *            the process definition
+     * @throws Exception
+     *             if any error occur
+     */
+    private void execute( ProcessBuilder processBuilder ) throws Exception {
+        processBuilder.directory( getRoot() );
+        processBuilder.redirectOutput( Redirect.INHERIT );
+        processBuilder.redirectError( Redirect.INHERIT );
+        System.out.println( String.join( " ", processBuilder.command() ) );
+        Process process = processBuilder.start();
+        int exitCode = process.waitFor();
+        if( exitCode != 0 ) {
+            fail( readStream( process.getErrorStream() ) );
         }
     }
 
@@ -154,18 +193,21 @@ public class WasmRule extends TemporaryFolder {
      * 
      * @param name
      *            the resource name
+     * @param placeholder
+     *            A placeholder that should be replaced.
+     * @param value
+     *            the replacing value.
      * @return The saved file name
      * @throws IOException
      *             if any IO error occur
      */
-    private File createScript( String name ) throws IOException {
-        File file = newFile( name );
+    private File createScript( String name, String placeholder, String value ) throws IOException {
+        File file = File.createTempFile( "wasm", name, getRoot() );
         URL scriptUrl = getClass().getResource( name );
-        String expected = readStream( scriptUrl.openStream() );
-        expected = expected.replace( "{test.wasm}", wasmFile.getName() );
-        expected = expected.replace( "{test.wat}", watFile.getName() );
+        String script = readStream( scriptUrl.openStream() );
+        script = script.replace( placeholder, value );
         try (FileOutputStream scriptStream = new FileOutputStream( file )) {
-            scriptStream.write( expected.getBytes( StandardCharsets.UTF_8 ) );
+            scriptStream.write( script.getBytes( StandardCharsets.UTF_8 ) );
         }
         return file;
     }
@@ -274,6 +316,10 @@ public class WasmRule extends TemporaryFolder {
                 case NodeWat:
                     processBuilder = nodeJsCommand( nodeWatScript );
                     break;
+                case Wat2Wasm:
+                    prepareWat2Wasm();
+                    processBuilder = nodeJsCommand( wat2WasmScript );
+                    break;
                 default:
                     throw new IllegalStateException( script.toString() );
             }
@@ -313,6 +359,7 @@ public class WasmRule extends TemporaryFolder {
     /**
      * Create a ProcessBuilder for spider monkey script shell.
      * 
+     * @param script the file name of a *.js script
      * @return the value from the script
      * @throws IOException
      *             if the download failed
@@ -366,6 +413,7 @@ public class WasmRule extends TemporaryFolder {
      *            the InputStream
      * @return the string
      */
+    @SuppressWarnings( "resource" )
     public static String readStream( InputStream input ) {
         try (Scanner scanner = new Scanner( input ).useDelimiter( "\\A" )) {
             return scanner.hasNext() ? scanner.next() : "";
