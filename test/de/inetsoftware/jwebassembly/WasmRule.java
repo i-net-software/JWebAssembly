@@ -125,8 +125,22 @@ public class WasmRule extends TemporaryFolder {
 
             nodeScript = createScript( "nodetest.js", "{test.wasm}", wasmFile.getName() );
             spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", wasmFile.getName() );
-            nodeWatScript = createScript( "WatTest.js", "{test.wat}", watFile.getName() );
             spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test.wat}", watFile.getName() );
+        } catch( Throwable ex ) {
+            System.out.println( textCompiled );
+            throwException( ex );
+        }
+    }
+
+    /**
+     * Prepare the node wabt module.
+     * 
+     * @throws Exception
+     *             if any error occur.
+     */
+    private void prepareNodeWat() throws Exception {
+        if( nodeWatScript == null ) {
+            nodeWatScript = createScript( "WatTest.js", "{test.wat}", watFile.getName() );
 
             //create dummy files to prevent error messages
             FileOutputStream jsonPackage = new FileOutputStream( new File( getRoot(), "package.json" ) );
@@ -142,9 +156,6 @@ public class WasmRule extends TemporaryFolder {
                 processBuilder.command().add( 1, "/C" );
             }
             execute( processBuilder );
-        } catch( Throwable ex ) {
-            System.out.println( textCompiled );
-            throwException( ex );
         }
     }
 
@@ -314,6 +325,7 @@ public class WasmRule extends TemporaryFolder {
                     processBuilder = nodeJsCommand( nodeScript );
                     break;
                 case NodeWat:
+                    prepareNodeWat();
                     processBuilder = nodeJsCommand( nodeWatScript );
                     break;
                 case Wat2Wasm:
