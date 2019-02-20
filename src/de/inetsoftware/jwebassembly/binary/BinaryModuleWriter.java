@@ -40,6 +40,7 @@ import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
@@ -350,17 +351,19 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeLoad( int idx ) throws IOException {
-        codeStream.writeOpCode( GET_LOCAL );
-        codeStream.writeVaruint32( idx );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeStore( int idx ) throws IOException {
-        codeStream.writeOpCode( SET_LOCAL );
+    protected void writeLocal( VariableOperator op, int idx ) throws IOException {
+        int code;
+        switch( op ) {
+            case get:
+                code = LOCAL_GET;
+                break;
+            case set:
+                code = LOCAL_SET;
+                break;
+            default:
+                code = LOCAL_TEE;
+        }
+        codeStream.writeOpCode( code );
         codeStream.writeVaruint32( idx );
     }
 

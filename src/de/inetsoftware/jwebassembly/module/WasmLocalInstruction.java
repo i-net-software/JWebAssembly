@@ -21,8 +21,10 @@ import java.io.IOException;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
+
+import static de.inetsoftware.jwebassembly.wasm.VariableOperator.*;
 
 /**
  * WasmInstruction for load and store local variables.
@@ -32,7 +34,7 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 class WasmLocalInstruction extends WasmInstruction {
 
-    private boolean               load;
+    private VariableOperator      op;
 
     private int                   idx;
 
@@ -48,7 +50,7 @@ class WasmLocalInstruction extends WasmInstruction {
      */
     WasmLocalInstruction( boolean load, @Nonnegative int idx, int javaCodePos ) {
         super( javaCodePos );
-        this.load = load;
+        this.op = load ? get : set;
         this.idx = idx;
     }
 
@@ -75,11 +77,7 @@ class WasmLocalInstruction extends WasmInstruction {
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         int index = getIndex();
-        if( load ) {
-            writer.writeLoad( index );
-        } else {
-            writer.writeStore( index );
-        }
+        writer.writeLocal( op, index );
     }
 
     /**
@@ -94,6 +92,6 @@ class WasmLocalInstruction extends WasmInstruction {
      */
     @Override
     int getPopCount() {
-        return load ? 0 : 1;
+        return op == get  ? 0 : 1;
     }
 }

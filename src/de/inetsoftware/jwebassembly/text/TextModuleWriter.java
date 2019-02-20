@@ -34,6 +34,7 @@ import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
@@ -194,18 +195,9 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeLoad( int idx ) throws IOException {
+    protected void writeLocal( VariableOperator op, int idx ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( "get_local " ).append( Integer.toString( idx ) );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeStore( int idx ) throws IOException {
-        newline( methodOutput );
-        methodOutput.append( "set_local " ).append( Integer.toString( idx ) );
+        methodOutput.append( "local." ).append( op ).append( ' ' ).append( Integer.toString( idx ) );
     }
 
     /**

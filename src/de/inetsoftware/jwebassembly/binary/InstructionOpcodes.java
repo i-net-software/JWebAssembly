@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,11 +90,11 @@ interface InstructionOpcodes {
 
     // === Variable access ===========
 
-    static final int GET_LOCAL         = 0x20;
+    static final int LOCAL_GET         = 0x20;
 
-    static final int SET_LOCAL         = 0x21;
+    static final int LOCAL_SET         = 0x21;
 
-    static final int TEE_LOCAL         = 0x22;
+    static final int LOCAL_TEE         = 0x22;
 
     static final int GET_GLOBAL        = 0x23;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,13 +88,13 @@ public class WatParserTest {
     }
 
     @Test
-    public void getLocal() throws IOException {
-        test( "get_local 1" );
+    public void Local_get() throws IOException {
+        test( "local.get 1" );
     }
 
     @Test
-    public void setLocal() throws IOException {
-        test( "set_local 2" );
+    public void Local_set() throws IOException {
+        test( "local.set 2" );
     }
 
     @Test

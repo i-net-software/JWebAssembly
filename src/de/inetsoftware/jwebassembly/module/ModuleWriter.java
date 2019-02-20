@@ -29,6 +29,7 @@ import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
@@ -138,24 +139,16 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeConst( Number value, ValueType valueType ) throws IOException;
 
     /**
-     * Write a variable load.
+     * Write a local variable operation.
      * 
+     * @param op
+     *            the operation
      * @param idx
      *            the index of the parameter variable
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeLoad( int idx ) throws IOException;
-
-    /**
-     * Write a variable store.
-     * 
-     * @param idx
-     *            the index of the parameter variable
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    protected abstract void writeStore( int idx ) throws IOException;
+    protected abstract void writeLocal( VariableOperator op, int idx ) throws IOException;
 
     /**
      * Write a set_global variable

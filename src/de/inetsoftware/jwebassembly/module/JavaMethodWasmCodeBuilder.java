@@ -276,7 +276,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 89: // dup: duplicate the value on top of the stack
                     case 92: // dup2
                         storeType = findPreviousPushInstructionPushValueType();
-                        addCallInstruction( new SyntheticFunctionName( "dup" + storeType, "get_local 0 get_local 0 return", storeType, null, storeType, storeType ), codePos );
+                        addCallInstruction( new SyntheticFunctionName( "dup" + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos );
                         break;
                     case 90: // dup_x1
                     case 91: // dup_x2

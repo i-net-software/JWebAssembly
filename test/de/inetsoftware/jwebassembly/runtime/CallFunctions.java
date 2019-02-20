@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,8 +82,8 @@ public class CallFunctions extends AbstractBaseTest {
             return nativeMax( 4.5F,5.5F);
         }
 
-        @WasmTextCode( "get_local 0 " //
-                        + "get_local 1 " //
+        @WasmTextCode( "local.get 0 " //
+                        + "local.get 1 " //
                         + "f32.max " //
                         + "return" )
         private static float nativeMax( float a, float b) {
