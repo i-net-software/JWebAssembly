@@ -213,7 +213,7 @@ public class TextModuleWriter extends ModuleWriter {
             globals.add( name.fullName );
         }
         newline( methodOutput );
-        methodOutput.append( load ? "get_global $" : "set_global $" ).append( name.fullName );
+        methodOutput.append( load ? "global.get $" : "global.set $" ).append( name.fullName );
     }
 
     /**
@@ -265,40 +265,40 @@ public class TextModuleWriter extends ModuleWriter {
         String op;
         switch( cast ) {
             case i2l:
-                op = "i64.extend_s/i32";
+                op = "i64.extend_i32_s";
                 break;
             case i2f:
-                op = "f32.convert_s/i32";
+                op = "f32.convert_i32_s";
                 break;
             case i2d:
-                op = "f64.convert_s/i32";
+                op = "f64.convert_i32_s";
                 break;
             case l2i:
-                op = "i32.wrap/i64";
+                op = "i32.wrap_i64";
                 break;
             case l2f:
-                op = "f32.convert_s/i64";
+                op = "f32.convert_i64_s";
                 break;
             case l2d:
-                op = "f64.convert_s/i64";
+                op = "f64.convert_i64_s";
                 break;
             case f2i:
-                op = "i32.trunc_s:sat/f32";
+                op = "i32.trunc_sat_f32_s";
                 break;
             case f2l:
-                op = "i64.trunc_s:sat/f32";
+                op = "i64.trunc_sat_f32_s";
                 break;
             case f2d:
-                op = "f64.promote/f32";
+                op = "f64.promote_f32";
                 break;
             case d2i:
-                op = "i32.trunc_s:sat/f64";
+                op = "i32.trunc_sat_f64_s";
                 break;
             case d2l:
-                op = "i64.trunc_s:sat/f64";
+                op = "i64.trunc_sat_f64_s";
                 break;
             case d2f:
-                op = "f32.demote/f64";
+                op = "f32.demote_f64";
                 break;
             case i2b:
                 op = "i32.extend8_s";

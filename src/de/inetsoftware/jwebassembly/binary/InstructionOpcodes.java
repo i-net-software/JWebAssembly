@@ -311,43 +311,43 @@ interface InstructionOpcodes {
 
     static final int I32_WRAP_I64           = 0xA7;
 
-    static final int I32_TRUNC_S_F32        = 0xA8;
+    static final int I32_TRUNC_F32_S        = 0xA8;
 
-    static final int I32_TRUNC_U_F32        = 0xA9;
+    static final int I32_TRUNC_F32_U        = 0xA9;
 
-    static final int I32_TRUNC_S_F64        = 0xAA;
+    static final int I32_TRUNC_F64_S        = 0xAA;
 
-    static final int I32_TRUNC_U_F64        = 0xAB;
+    static final int I32_TRUNC_F64_U        = 0xAB;
 
-    static final int I64_EXTEND_S_I32       = 0xAC;
+    static final int I64_EXTEND_I32_S       = 0xAC;
 
-    static final int I64_EXTEND_U_I32       = 0xAD;
+    static final int I64_EXTEND_I32_U       = 0xAD;
 
-    static final int I64_TRUNC_S_F32        = 0xAE;
+    static final int I64_TRUNC_F32_S        = 0xAE;
 
-    static final int I64_TRUNC_U_F32        = 0xAF;
+    static final int I64_TRUNC_F32_U        = 0xAF;
 
-    static final int I64_TRUNC_S_F64        = 0xB0;
+    static final int I64_TRUNC_F64_S        = 0xB0;
 
-    static final int I64_TRUNC_U_F64        = 0xB1;
+    static final int I64_TRUNC_F64_U        = 0xB1;
 
-    static final int F32_CONVERT_S_I32      = 0xB2;
+    static final int F32_CONVERT_I32_S      = 0xB2;
 
-    static final int F32_CONVERT_U_I32      = 0xB3;
+    static final int F32_CONVERT_I32_U      = 0xB3;
 
-    static final int F32_CONVERT_S_I64      = 0xB4;
+    static final int F32_CONVERT_I64_S      = 0xB4;
 
-    static final int F32_CONVERT_U_I64      = 0xB5;
+    static final int F32_CONVERT_I64_U      = 0xB5;
 
     static final int F32_DEMOTE_F64         = 0xB6;
 
-    static final int F64_CONVERT_S_I32      = 0xB7;
+    static final int F64_CONVERT_I32_S      = 0xB7;
 
-    static final int F64_CONVERT_U_I32      = 0xB8;
+    static final int F64_CONVERT_I32_U      = 0xB8;
 
-    static final int F64_CONVERT_S_I64      = 0xB9;
+    static final int F64_CONVERT_I64_S      = 0xB9;
 
-    static final int F64_CONVERT_U_I64      = 0xBA;
+    static final int F64_CONVERT_I64_U      = 0xBA;
 
     static final int F64_PROMOTE_F32        = 0xBB;
 
@@ -383,21 +383,21 @@ interface InstructionOpcodes {
 
     // === Non-trapping float-to-int conversions ====== https://github.com/WebAssembly/design/issues/1143
 
-    static final int I32_TRUNC_S_SAT_F32    = 0xFC00;
+    static final int I32_TRUNC_SAT_F32_S    = 0xFC00;
 
-    static final int I32_TRUNC_U_SAT_F32    = 0xFC01;
+    static final int I32_TRUNC_SAT_F32_U    = 0xFC01;
 
-    static final int I32_TRUNC_S_SAT_F64    = 0xFC02;
+    static final int I32_TRUNC_SAT_F64_S    = 0xFC02;
 
-    static final int I32_TRUNC_U_SAT_F64    = 0xFC03;
+    static final int I32_TRUNC_SAT_F64_U    = 0xFC03;
 
-    static final int I64_TRUNC_S_SAT_F32    = 0xFC04;
+    static final int I64_TRUNC_SAT_F32_S    = 0xFC04;
 
-    static final int I64_TRUNC_U_SAT_F32    = 0xFC05;
+    static final int I64_TRUNC_SAT_F32_U    = 0xFC05;
 
-    static final int I64_TRUNC_S_SAT_F64    = 0xFC06;
+    static final int I64_TRUNC_SAT_F64_S    = 0xFC06;
 
-    static final int I64_TRUNC_U_SAT_F64    = 0xFC07;
+    static final int I64_TRUNC_SAT_F64_U    = 0xFC07;
 
     // === GC opcodes (unofficial, experimental) ===== https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
 

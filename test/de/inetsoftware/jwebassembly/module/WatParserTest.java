@@ -118,8 +118,8 @@ public class WatParserTest {
     }
 
     @Test
-    public void i64_extend_s_i32() throws IOException {
-        test( "i64.extend_s/i32" );
+    public void i64_extend_i32_s() throws IOException {
+        test( "i64.extend_i32_s" );
     }
 
     @Test

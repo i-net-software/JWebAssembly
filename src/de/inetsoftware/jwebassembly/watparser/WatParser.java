@@ -76,7 +76,7 @@ public class WatParser extends WasmCodeBuilder {
                     case "f64.max":
                         addNumericInstruction( NumericOperator.max, ValueType.f64, javaCodePos );
                         break;
-                    case "i64.extend_s/i32":
+                    case "i64.extend_i32_s":
                         addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos );
                         break;
 //                    case "call":

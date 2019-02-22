@@ -671,37 +671,37 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         int op;
         switch( cast ) {
             case i2l:
-                op = I64_EXTEND_S_I32;
+                op = I64_EXTEND_I32_S;
                 break;
             case i2f:
-                op = F32_CONVERT_S_I32;
+                op = F32_CONVERT_I32_S;
                 break;
             case i2d:
-                op = F64_CONVERT_S_I32;
+                op = F64_CONVERT_I32_S;
                 break;
             case l2i:
                 op = I32_WRAP_I64;
                 break;
             case l2f:
-                op = F32_CONVERT_S_I64;
+                op = F32_CONVERT_I64_S;
                 break;
             case l2d:
-                op = F64_CONVERT_S_I64;
+                op = F64_CONVERT_I64_S;
                 break;
             case f2i:
-                op = I32_TRUNC_S_SAT_F32;
+                op = I32_TRUNC_SAT_F32_S;
                 break;
             case f2l:
-                op = I64_TRUNC_S_SAT_F32;
+                op = I64_TRUNC_SAT_F32_S;
                 break;
             case f2d:
                 op = F64_PROMOTE_F32;
                 break;
             case d2i:
-                op = I32_TRUNC_S_SAT_F64;
+                op = I32_TRUNC_SAT_F64_S;
                 break;
             case d2l:
-                op = I64_TRUNC_S_SAT_F64;
+                op = I64_TRUNC_SAT_F64_S;
                 break;
             case d2f:
                 op = F32_DEMOTE_F64;
