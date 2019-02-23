@@ -157,8 +157,13 @@ public class JWebAssembly {
      */
     public String compileToText() throws WasmException {
         StringBuilder output = new StringBuilder();
-        compileToText( output );
-        return output.toString();
+        try {
+            compileToText( output );
+            return output.toString();
+        } catch( Exception ex ) {
+            System.err.println( output );
+            throw ex;
+        }
     }
 
     /**
