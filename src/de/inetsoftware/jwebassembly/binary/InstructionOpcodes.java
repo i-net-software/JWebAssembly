@@ -53,7 +53,7 @@ interface InstructionOpcodes {
 
     static final int RETHROW             = 0x09;
 
-    static final int CATCHALL            = 0x0A;
+    static final int BR_ON_EXN           = 0x0A;
 
     static final int END       = 0x0B;
 
