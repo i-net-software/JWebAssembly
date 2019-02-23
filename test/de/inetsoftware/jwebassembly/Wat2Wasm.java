@@ -45,6 +45,8 @@ class Wat2Wasm {
     /**
      * Check if there is a new version of the script engine
      * 
+     * @param target
+     *            the target directory
      * @throws IOException
      *             if any error occur
      */
@@ -62,17 +64,19 @@ class Wat2Wasm {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
 
-        HttpURLConnection conn = (HttpURLConnection)new URL( "https://api.github.com/repos/WebAssembly/wabt/releases/latest" ).openConnection();
+        URL url = new URL( "https://github.com/WebAssembly/wabt/releases/latest" );
+        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         InputStream input = conn.getInputStream();
-        String json = WasmRule.readStream( input );
+        String data = WasmRule.readStream( input );
 
-        Pattern pattern = Pattern.compile( "https://github.com/WebAssembly/wabt/releases/download/[0-9.]*/wabt-[0-9.]*-" + fileName );
-        Matcher matcher = pattern.matcher( json );
+        Pattern pattern = Pattern.compile( "/WebAssembly/wabt/releases/download/[0-9.]*/wabt-[0-9.]*-" + fileName );
+        Matcher matcher = pattern.matcher( data );
         Assert.assertTrue( matcher.find() );
         String downloadUrl = matcher.group();
-        System.out.println( "\tDownload: " + downloadUrl );
+        url = new URL( url, downloadUrl );
+        System.out.println( "\tDownload: " + url );
 
-        conn = (HttpURLConnection)new URL( downloadUrl ).openConnection();
+        conn = (HttpURLConnection)url.openConnection();
         if( target.exists() ) {
             conn.setIfModifiedSince( target.lastModified() );
         }
