@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
@@ -61,11 +62,16 @@ class BranchManger {
 
     /**
      * Remove all branch information for reusing the manager.
+     * 
+     * @param code
+     *            the Java method code
      */
-    void reset( TryCatchFinally[] exceptionTable ) {
+    void reset( @Nonnull Code code ) {
         allParsedOperations.clear();
         root.clear();
         loops.clear();
+        root.endPos = code.getCodeSize();
+        TryCatchFinally[] exceptionTable = code.getExceptionTable();
         for( TryCatchFinally ex : exceptionTable ) {
             allParsedOperations.add( new TryCatchParsedBlock( ex ) );
         }
@@ -753,7 +759,7 @@ class BranchManger {
 
         private final int               startPos;
 
-        private final int               endPos;
+        private       int               endPos;
 
         private final WasmBlockOperator startOp;
 
