@@ -13,12 +13,14 @@ version = '0.1'
 
 repositories {
     jcenter()
+    maven { url 'https://jitpack.io' } // for snapshot of the API
 }
 
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'com.google.code.findbugs:jsr305:3.0.1'
-    testCompile 'de.inetsoftware:jwebassembly-api:+'
+    //testCompile 'de.inetsoftware:jwebassembly-api:+'
+    testCompile 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
     testCompile 'junit:junit:+'
     testCompile 'org.apache.commons:commons-compress:1.2'
 }
