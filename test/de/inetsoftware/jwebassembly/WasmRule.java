@@ -111,6 +111,15 @@ public class WasmRule extends TemporaryFolder {
             wasm.addFile( url );
         }
         wasm.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
+
+        // add the libraries that it can be scanned for annotations
+        final String[] libraries = System.getProperty("java.class.path").split(File.pathSeparator);
+        for( String lib : libraries ) {
+            if( lib.endsWith( ".jar" ) || lib.toLowerCase().contains( "jwebassembly-api" ) ) {
+                wasm.addLibrary( new File(lib) );
+            }
+        }
+
         textCompiled = wasm.compileToText();
         try {
             create();

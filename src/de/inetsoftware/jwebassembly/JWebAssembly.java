@@ -72,6 +72,11 @@ public class JWebAssembly {
     public static final String TEXTCODE_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.WasmTextCode";
 
     /**
+     * The name of the annotation for replacing a single method of the Java runtime. 
+     */
+    public static final String REPLACE_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.Replace";
+
+    /**
      * Create a instance.
      */
     public JWebAssembly() {

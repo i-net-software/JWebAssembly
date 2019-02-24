@@ -15,15 +15,21 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,8 +44,8 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
-import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
@@ -77,11 +83,57 @@ public class ModuleGenerator {
      * @param libraries
      *            libraries 
      */
-    public ModuleGenerator( @Nonnull ModuleWriter writer, List<URL> libraries ) {
+    public ModuleGenerator( @Nonnull ModuleWriter writer, @Nonnull List<URL> libraries ) {
         this.writer = writer;
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
         javaCodeBuilder.init( types );
         ((WasmCodeBuilder)watParser).init( types );
+        scanLibraries( libraries );
+    }
+
+    /**
+     * Scan the libraries for annotated methods
+     * 
+     * @param libraries
+     *            libraries
+     */
+    private void scanLibraries( @Nonnull List<URL> libraries ) {
+        // search for replacement methods in the libraries
+        for( URL url : libraries ) {
+            try {
+                File file = new File(url.toURI());
+                if( file.isDirectory() ) {
+                    for( Iterator<Path> iterator = Files.walk( file.toPath() ).iterator(); iterator.hasNext(); ) {
+                        Path path = iterator.next();
+                        if( path.toString().endsWith( ".class" ) ) {
+                            ClassFile classFile = new ClassFile( new BufferedInputStream( Files.newInputStream( path ) ) );
+                            prepare( classFile );
+                        }
+                    };
+                }
+            } catch( Exception e ) {
+                e.printStackTrace();
+            }
+
+            try (ZipInputStream input = new ZipInputStream( url.openStream() )) {
+                do {
+                    ZipEntry entry = input.getNextEntry();
+                    if( entry == null ) {
+                        break;
+                    }
+                    if( entry.getName().endsWith( ".class" ) ) {
+                        ClassFile classFile = new ClassFile( new BufferedInputStream( input ) {
+                            @Override
+                            public void close() {
+                            } // does not close the zip stream
+                        } );
+                        prepare( classFile );
+                    }
+                } while( true );
+            } catch( IOException e ) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -135,9 +187,10 @@ public class ModuleGenerator {
                             name = new FunctionName( method, signature );
                         } else {
                             name = new FunctionName( method );
+                            method = functions.replace( name, method );
                         }
                         if( functions.isToWrite( name ) ) {
-                            writeMethod( method );
+                            writeMethod( name, method );
                         }
                     } catch (IOException ioex){
                         throw WasmException.create( ioex, sourceFile, className, -1 );
@@ -235,8 +288,8 @@ public class ModuleGenerator {
     private void prepareMethod( MethodInfo method ) throws WasmException {
         try {
             FunctionName name = new FunctionName( method );
-            Map<String,Object> annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION );
-            if( annotationValues != null ) {
+            Map<String,Object> annotationValues;
+            if( (annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION )) != null ) {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Import method must be static: " + name.fullName, -1 );
                 }
@@ -245,14 +298,22 @@ public class ModuleGenerator {
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
                 writeMethodSignature( name, true, null, null );
-            } else {
-                annotationValues = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION );
-                if( annotationValues != null ) {
-                    if( !method.isStatic() ) {
-                        throw new WasmException( "Export method must be static: " + name.fullName, -1 );
-                    }
-                    functions.functionCall( name );
+                return;
+            }
+            if( (annotationValues = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION )) != null ) {
+                if( !method.isStatic() ) {
+                    throw new WasmException( "Export method must be static: " + name.fullName, -1 );
                 }
+                functions.functionCall( name );
+                return;
+            }
+            if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
+                String className = ((String)annotationValues.get( "className" )).replace( ".", "/" );
+                String methodName = (String)annotationValues.get( "methodName" );
+                String signature = (String)annotationValues.get( "signature" );
+                name = new FunctionName( className, methodName, signature );
+                functions.addReplacement( name, method );
+                return;
             }
         } catch( Exception ioex ) {
             throw WasmException.create( ioex, sourceFile, className, -1 );
@@ -267,7 +328,7 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethod( MethodInfo method ) throws WasmException {
+    private void writeMethod( FunctionName name, MethodInfo method ) throws WasmException {
         CodeInputStream byteCode = null;
         try {
             if( method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION  ) != null ) {
@@ -276,7 +337,6 @@ public class ModuleGenerator {
             WasmCodeBuilder codeBuilder;
             Code code = method.getCode();
             LocalVariableTable localVariableTable;
-            FunctionName name;
             if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  ) != null ) {
                 Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
                 String watCode = (String)wat.get( "value" );
@@ -284,12 +344,10 @@ public class ModuleGenerator {
                 if( signature == null ) {
                     signature = method.getType();
                 }
-                name = new FunctionName( method, signature );
                 watParser.parse( watCode, code == null ? -1 : code.getFirstLineNr() );
                 codeBuilder = watParser;
                 localVariableTable = null;
             } else if( code != null ) { // abstract methods and interface methods does not have code
-                name = new FunctionName( method );
                 javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
                 codeBuilder = javaCodeBuilder;
                 localVariableTable = code.getLocalVariableTable();

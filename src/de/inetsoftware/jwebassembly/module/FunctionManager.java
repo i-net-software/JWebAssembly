@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,13 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import de.inetsoftware.classparser.MethodInfo;
 
 /**
  * Manage the required function/methods
@@ -29,6 +33,8 @@ public class FunctionManager {
     private HashSet<String>       writtenFunctions = new HashSet<>();
 
     private HashSet<FunctionName> toWriteLater     = new HashSet<>();
+
+    private HashMap<FunctionName, MethodInfo> replacement = new HashMap<>();
 
     /**
      * Mark the a function as written to the wasm file.
@@ -75,5 +81,32 @@ public class FunctionManager {
      */
     boolean isToWrite( FunctionName name ) {
         return toWriteLater.contains( name );
+    }
+
+    /**
+     * Add a replacement for a method
+     * 
+     * @param name
+     *            the name of the method which should be replaced
+     * @param method
+     *            the new implementation
+     */
+    void addReplacement( FunctionName name, MethodInfo method ) {
+        replacement.put( name, method );
+    }
+
+    /**
+     * Check if there is a replacement method
+     * 
+     * @param name
+     *            the name
+     * @param method
+     *            the current method
+     * @return the method that should be write
+     */
+    @Nonnull
+    MethodInfo replace( FunctionName name, MethodInfo method ) {
+        MethodInfo newMethod = replacement.get( name );
+        return newMethod != null ? newMethod : method;
     }
 }
