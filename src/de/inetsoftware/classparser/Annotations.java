@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,19 @@ import java.util.Map;
  */
 public class Annotations {
 
-    private final Map<String,Map<String,Object>> annotations = new HashMap<>();
-
     /**
-     * Read the annotations structure.
-     * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.17
+     * Read the annotations structure. http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.17
+     * 
      * @param input
+     *            the stream of the RuntimeInvisibleAnnotations attribute
      * @param constantPool
+     *            the ConstantPool of the class
      * @throws IOException
+     *             if an I/O error occurs
+     * @return the map of the annotation names to its attributes
      */
-    public Annotations( DataInputStream input, ConstantPool constantPool ) throws IOException {
+    static Map<String,Map<String,Object>> read( DataInputStream input, ConstantPool constantPool ) throws IOException {
+        Map<String,Map<String,Object>> annotations = new HashMap<>();
         int count = input.readUnsignedShort();
         for( int i = 0; i < count; i++ ) {
             String className = (String)constantPool.get( input.readUnsignedShort() );
@@ -66,14 +69,6 @@ public class Annotations {
                 valuePairs.put( key, value );
             }
         }
-    }
-
-    /**
-     * Get the key values of the annotation for the given class.
-     * @param className the class name of the annotation
-     * @return a map with the properties of the annotation or null if there is no annotation.
-     */
-    public Map<String, Object> get( String className ) {
-        return annotations.get( className );
+        return annotations;
     }
 }

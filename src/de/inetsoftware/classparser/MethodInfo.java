@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2018 Volker Berlin (i-net software)
+   Copyright 2011 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package de.inetsoftware.classparser;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -45,17 +46,20 @@ public class MethodInfo implements Member {
 
     private ClassFile          classFile;
 
-    private Annotations        annotations;
+    private Map<String,Map<String,Object>> annotations;
 
     /**
-     * Read the method_info structure
-     * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6
+     * Read the method_info structure http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6
      * http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#1513
      *
      * @param input
+     *            the stream of the class file
      * @param constantPool
-     * @param classFile the declaring class file
+     *            the ConstantPool of the class
+     * @param classFile
+     *            the declaring class file
      * @throws IOException
+     *             if an I/O error occurs
      */
     MethodInfo( DataInputStream input, ConstantPool constantPool, ClassFile classFile ) throws IOException {
         this.accessFlags = input.readUnsignedShort();
@@ -141,6 +145,10 @@ public class MethodInfo implements Member {
 
     /**
      * Get the signature of the method with generic types.
+     * 
+     * @return the signature
+     * @throws IOException
+     *             if an I/O error occurs
      */
     public String getSignature() throws IOException {
         AttributeInfo info = getAttributes().get( "Signature" );
@@ -164,21 +172,6 @@ public class MethodInfo implements Member {
     }
 
     /**
-     * Get the annotations with @Retention(RetentionPolicy.CLASS)
-     * @return the annotations if there any exists else null
-     */
-    @Nullable
-    public Annotations getRuntimeInvisibleAnnotations() throws IOException {
-        if( annotations == null ) {
-            AttributeInfo data = attributes.get( "RuntimeInvisibleAnnotations" );
-            if( data != null ) {
-                annotations =  new Annotations( data.getDataInputStream(), constantPool );
-            }
-        }
-        return annotations;
-    }
-
-    /**
      * Get a single annotation or null
      * 
      * @param annotation
@@ -189,11 +182,15 @@ public class MethodInfo implements Member {
      */
     @Nullable
     public Map<String, Object> getAnnotation( String annotation ) throws IOException {
-        Annotations annotations = getRuntimeInvisibleAnnotations();
-        if( annotations != null ) {
-            return annotations.get( annotation );
+        if( annotations == null ) {
+            AttributeInfo data = attributes.get( "RuntimeInvisibleAnnotations" );
+            if( data != null ) {
+                annotations =  Annotations.read( data.getDataInputStream(), constantPool );
+            } else {
+                annotations = Collections.emptyMap();
+            }
         }
-        return null;
+        return annotations.get( annotation );
     }
 
     /**
