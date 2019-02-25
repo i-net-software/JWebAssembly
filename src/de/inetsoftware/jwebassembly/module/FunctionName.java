@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -93,6 +93,20 @@ public class FunctionName {
         this.fullName = className + '.' + methodName;
         this.signatureName = fullName + signature;
         this.signature = signature;
+    }
+
+    /**
+     * Create a new instance from the given values
+     * 
+     * @param signatureName
+     *            the full Java method signature like "com/foo/Bar.method()V"
+     */
+    FunctionName( String signatureName ) {
+        this.className = signatureName.substring( 0, signatureName.indexOf( '.' ) );
+        int idx = signatureName.indexOf( '(' );
+        this.fullName = signatureName.substring( 0, idx );
+        this.signatureName = signatureName;
+        this.signature = signatureName.substring( idx );
     }
 
     /**

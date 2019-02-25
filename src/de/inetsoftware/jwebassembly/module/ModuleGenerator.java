@@ -308,10 +308,8 @@ public class ModuleGenerator {
                 return;
             }
             if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
-                String className = ((String)annotationValues.get( "className" )).replace( ".", "/" );
-                String methodName = (String)annotationValues.get( "methodName" );
-                String signature = (String)annotationValues.get( "signature" );
-                name = new FunctionName( className, methodName, signature );
+                String signatureName = (String)annotationValues.get( "value" );
+                name = new FunctionName( signatureName );
                 functions.addReplacement( name, method );
                 return;
             }
@@ -323,6 +321,8 @@ public class ModuleGenerator {
     /**
      * Write the content of a method.
      * 
+     * @param name
+     *            the function name that should be written. This can be differ from the value in the MethodInfo
      * @param method
      *            the method
      * @throws WasmException
