@@ -371,6 +371,15 @@ public class ModuleGenerator {
         optimizer.optimze( instructions );
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
+                case Block:
+                    switch( ((WasmBlockInstruction)instruction).getOperation() ) {
+                        case TRY:
+                        case CATCH:
+                            writer.writeException();
+                            break;
+                        default:
+                    }
+                    break;
                 case Call:
                     functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
                     break;

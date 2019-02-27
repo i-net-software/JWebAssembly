@@ -64,7 +64,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
-    private List<AnyType>           locals              = new ArrayList<>();
+    private List<AnyType>               locals              = new ArrayList<>();
 
     private Map<String, Global>         globals             = new LinkedHashMap<>();
 
@@ -74,7 +74,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Function                    function;
 
-    private FunctionTypeEntry                functionType;
+    private FunctionTypeEntry           functionType;
+
+    private int                         exceptionSignatureIndex       = -1;
 
     /**
      * Create new instance.
@@ -109,6 +111,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeSection( SectionType.Import, imports.values() );
         writeSection( SectionType.Function, functions.values() );
         writeSection( SectionType.Global, globals.values() );
+        writeEventSection();
         writeExportSection();
         writeCodeSection();
         writeDebugNames();
@@ -135,6 +138,25 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 entry.writeSectionEntry( stream );
             }
             wasm.writeSection( type, stream );
+        }
+    }
+
+    /**
+     * Write the event section if needed.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeEventSection() throws IOException {
+        if( exceptionSignatureIndex >= 0 ) {
+            WasmOutputStream stream = new WasmOutputStream();
+            stream.writeVaruint32( 1 );
+
+            // event declaration
+            stream.writeVaruint32( 0 ); // event type: exception = 0
+            stream.writeVaruint32( exceptionSignatureIndex );
+
+            wasm.writeSection( SectionType.Export, stream );
         }
     }
 
@@ -236,6 +258,22 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         int typeId = functionTypes.size();
         functionTypes.add( new StructTypeEntry( fields ) );
         return typeId;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeException() throws IOException {
+        if( exceptionSignatureIndex <= 0 ) {
+            FunctionTypeEntry exceptionType = new FunctionTypeEntry();
+            exceptionType.params.add( ValueType.anyref );
+            exceptionSignatureIndex = functionTypes.indexOf( exceptionType );
+            if( exceptionSignatureIndex < 0 ) {
+                exceptionSignatureIndex = functionTypes.size();
+                functionTypes.add( exceptionType );
+            }
+        }
     }
 
     /**

@@ -61,6 +61,14 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract int writeStruct( String typeName, List<NamedStorageType> fields ) throws IOException;
 
     /**
+     * Mark to write exceptions
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeException() throws IOException;
+
+    /**
      * Prepare a imported single function in the prepare phase.
      * 
      * @param name

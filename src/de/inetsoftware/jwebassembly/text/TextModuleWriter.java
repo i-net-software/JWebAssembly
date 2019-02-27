@@ -57,6 +57,8 @@ public class TextModuleWriter extends ModuleWriter {
 
     private HashSet<String> globals      = new HashSet<>();
 
+    private boolean         useExceptions;
+
     /**
      * Create a new instance.
      * 
@@ -115,6 +117,21 @@ public class TextModuleWriter extends ModuleWriter {
         output.append( "))" );
         inset = oldInset;
         return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeException() throws IOException {
+        if( !useExceptions ) {
+            useExceptions = true;
+            int oldInset = inset;
+            inset = 1;
+            newline( output );
+            output.append( "(event (param anyref))" );
+            inset = oldInset;
+        }
     }
 
     /**

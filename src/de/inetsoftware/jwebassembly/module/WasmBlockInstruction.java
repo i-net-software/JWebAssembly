@@ -21,7 +21,6 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -60,6 +59,14 @@ class WasmBlockInstruction extends WasmInstruction {
     @Override
     Type getType() {
         return Type.Block;
+    }
+
+    /**
+     * Get the operation
+     * @return the op
+     */
+    WasmBlockOperator getOperation() {
+        return op;
     }
 
     /**
