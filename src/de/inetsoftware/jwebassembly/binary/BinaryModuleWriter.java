@@ -115,6 +115,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeExportSection();
         writeCodeSection();
         writeDebugNames();
+        writeProducersSection();
 
         wasm.close();
     }
@@ -246,6 +247,40 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
         stream.writeVaruint32( section.size() );
         section.writeTo( stream );
+
+        wasm.writeSection( SectionType.Custom, stream );
+    }
+
+    /**
+     * Write producer information to wasm
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeProducersSection() throws IOException {
+        Package pack = getClass().getPackage();
+        String version = pack == null ? null : pack.getImplementationVersion();
+
+        WasmOutputStream stream = new WasmOutputStream();
+        stream.writeString( "producers" ); // Custom Section name "producers", content is part of the section length
+
+        stream.writeVaruint32( 2 ); // field_count; number of fields that follow (language and processed-by)
+
+        // field source language list
+        stream.writeString( "language" );
+        stream.writeVaruint32( 1 ); // field_value_count; number of value strings that follow
+        stream.writeString( "Java bytecode" );
+
+        // field individual tool list
+        stream.writeString( "processed-by" );
+        if( version == null ) {
+            stream.writeVaruint32( 1 ); // field_value_count; number of value strings that follow
+            stream.writeString( "JWebAssembly" );
+        } else {
+            stream.writeVaruint32( 2 ); // field_value_count; number of value strings that follow
+            stream.writeString( "JWebAssembly" );
+            stream.writeString( version );
+        }
 
         wasm.writeSection( SectionType.Custom, stream );
     }
