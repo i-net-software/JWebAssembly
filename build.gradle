@@ -44,6 +44,14 @@ sourceSets {
     }
 }
 
+jar {
+    manifest {
+        attributes( 'Implementation-Title': 'JWebAssembly-API',
+                    'Implementation-Vendor': 'i-net software',
+                    'Implementation-Version': version)
+    }
+}
+
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.java
@@ -65,7 +73,7 @@ artifacts {
 }
 
 node {
-    version = '10.8.0'
+    version = '11.10.1'
 //    version = '+'
     download = true
 }
