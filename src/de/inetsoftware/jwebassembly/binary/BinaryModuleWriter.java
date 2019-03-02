@@ -847,7 +847,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case BLOCK:
                 codeStream.writeOpCode( BLOCK );
-                codeStream.writeValueType( ValueType.empty ); // void; the return type of the block. currently we does not use it
+                codeStream.writeValueType( data == null ? ValueType.empty : (ValueType)data ); // void; the return type of the block. 
                 break;
             case BR:
                 codeStream.writeOpCode( BR );
@@ -878,6 +878,18 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case CATCH:
                 codeStream.writeOpCode( CATCH );
+                break;
+            case THROW:
+                codeStream.writeOpCode( THROW );
+                codeStream.writeVaruint32( 0 );             // event/exception ever 0 because currently there is only one with signature anyref
+                break;
+            case RETHROW:
+                codeStream.writeOpCode( RETHROW );
+                break;
+            case BR_ON_EXN:
+                codeStream.writeOpCode( BR_ON_EXN );
+                codeStream.writeVaruint32( (Integer)data ); // break depth
+                codeStream.writeVaruint32( 0 );             // event/exception ever 0 because currently there is only one with signature anyref
                 break;
             default:
                 throw new Error( "Unknown block: " + op );

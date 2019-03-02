@@ -48,7 +48,9 @@ class BranchManger {
 
     private final HashMap<Integer, ParsedBlock> loops               = new HashMap<>();
 
-    private final List<WasmInstruction> instructions;
+    private final List<WasmInstruction>         instructions;
+
+    private TryCatchFinally[]                   exceptionTable;
 
     /**
      * Create a branch manager.
@@ -71,7 +73,7 @@ class BranchManger {
         root.clear();
         loops.clear();
         root.endPos = code.getCodeSize();
-        TryCatchFinally[] exceptionTable = code.getExceptionTable();
+        exceptionTable = code.getExceptionTable();
         for( TryCatchFinally ex : exceptionTable ) {
             allParsedOperations.add( new TryCatchParsedBlock( ex ) );
         }
@@ -588,6 +590,36 @@ class BranchManger {
 
     /**
      * Calculate the needed nodes for try/catch
+     * Sample: The follow Java code:
+     * 
+     * <pre>
+     * try {
+     *   code1
+     * catch(Exception ex)
+     *   code2
+     * }
+     * code3
+     * </pre>
+     *
+     * Should be converted to the follow Wasm code for tableswitch:
+     * 
+     * <pre>
+     * block
+     *   block (result anyref)
+     *     try
+     *       code1
+     *     catch
+     *       br_on_exn 1 0
+     *       rethrow
+     *     end
+     *     br 1
+     *   end
+     *   local.set x
+     *   code2
+     * end
+     * code3
+     * </pre>
+     *
      * @param parent
      *            the parent branch
      * @param tryBlock
@@ -595,14 +627,14 @@ class BranchManger {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void calculateTry ( BranchNode parent, TryCatchParsedBlock tryBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateTry( BranchNode parent, TryCatchParsedBlock tryBlock, List<ParsedBlock> parsedOperations ) {
         TryCatchFinally tryCatch = tryBlock.tryCatch;
 
         int gotoPos = tryCatch.getEnd(); // alternativ we can use tryCatch.getHandler()-3
         int endPos = parent.endPos;
         for( int i = 0; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition) {
+            if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
                 parsedOperations.remove( i );
                 endPos = parsedBlock.endPosition;
                 break;
@@ -611,8 +643,40 @@ class BranchManger {
                 break;
             }
         }
-        parent.add( new BranchNode( tryBlock.startPosition, tryCatch.getHandler(), WasmBlockOperator.TRY, null ) );
-        parent.add( new BranchNode( tryCatch.getHandler(), endPos, WasmBlockOperator.CATCH, WasmBlockOperator.END ) );
+        int startPos = tryBlock.startPosition;
+        int catchPos = tryCatch.getHandler();
+        BranchNode node = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        parent.add( node );
+        parent = node;
+
+        node = new BranchNode( startPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, ValueType.anyref );
+        parent.add( node );
+        parent = node;
+
+        parent.add( new BranchNode( startPos, catchPos, WasmBlockOperator.TRY, null ) );
+        BranchNode catchNode = new BranchNode( catchPos, catchPos, WasmBlockOperator.CATCH, WasmBlockOperator.END );
+        parent.add( catchNode );
+
+        catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 1 ) );
+        catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
+
+        parent.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR, null, 1 ) );
+    }
+
+    /**
+     * Check if there are a start of a catch block on the code position.
+     * 
+     * @param codePosition
+     *            the code position
+     * @return true, if there is a catch block
+     */
+    boolean isCatch( int codePosition ) {
+        for( TryCatchFinally tryCatch : exceptionTable ) {
+            if( tryCatch.getHandler() == codePosition ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

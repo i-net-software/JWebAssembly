@@ -389,6 +389,9 @@ public class TextModuleWriter extends ModuleWriter {
                 break;
             case BLOCK:
                 name = "block";
+                if( data != null ) {
+                    name += " (result " + data + ")";
+                }
                 insetAfter++;
                 break;
             case BR:
@@ -419,6 +422,15 @@ public class TextModuleWriter extends ModuleWriter {
                 inset--;
                 name = "catch";
                 insetAfter++;
+                break;
+            case THROW:
+                name = "throw 0"; // currently there is only one event/exception with anyref
+                break;
+            case RETHROW:
+                name = "rethrow";
+                break;
+            case BR_ON_EXN:
+                name = "br_on_exn " + data + " 0"; // br_on_exn, break depth, event; // currently there is only one event/exception with anyref
                 break;
             default:
                 throw new Error( "Unknown block: " + op );

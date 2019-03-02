@@ -241,7 +241,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 76: // astore_1
                     case 77: // astore_2
                     case 78: // astore_3
-                        storeType = findPreviousPushInstructionPushValueType();
+                        if( branchManager.isCatch( codePos ) ) {
+                            storeType = ValueType.anyref; // for the catch there are no previous instructions
+                        } else {
+                            storeType = findPreviousPushInstructionPushValueType();
+                        }
                         addLoadStoreInstruction( storeType, false, op - 75, codePos );
                         break;
                     case 79: // iastore
@@ -556,7 +560,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
                         addStructInstruction( StructOperator.SET, ref.getClassName(), ref.getName(), codePos );
                         break;
-                    //TODO case 182: // invokevirtual
+                    case 182: // invokevirtual
                     case 183: // invokespecial, invoke a constructor
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();
@@ -603,7 +607,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 190: // arraylength
                         addArrayInstruction( ArrayOperator.LENGTH, ValueType.i32, codePos );
                         break;
-                    //TODO case 191: // athrow
+                    case 191: // athrow
+                        addBlockInstruction( WasmBlockOperator.THROW, null, codePos );
+                        break;
                     //TODO case 192: // checkcast
                     //TODO case 193: // instanceof
                     //TODO case 194: // monitorenter
