@@ -89,7 +89,7 @@ class LocaleVariableManager {
             if( valueType.getCode() >= 0 && var.valueType == ValueType.anyref ) {
                 // set the more specific type
             } else {
-                throw new WasmException( "Redefine local variable type from " + var.valueType + " to " + valueType, null, null, -1 );
+                throw new WasmException( "Redefine local variable type from " + var.valueType + " to " + valueType + " in slot " + slot, null, null, -1 );
             }
         }
         var.valueType = valueType;
