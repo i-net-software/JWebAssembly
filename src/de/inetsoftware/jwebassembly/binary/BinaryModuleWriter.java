@@ -157,7 +157,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             stream.writeVaruint32( 0 ); // event type: exception = 0
             stream.writeVaruint32( exceptionSignatureIndex );
 
-            wasm.writeSection( SectionType.Export, stream );
+            wasm.writeSection( SectionType.Event, stream );
         }
     }
 
