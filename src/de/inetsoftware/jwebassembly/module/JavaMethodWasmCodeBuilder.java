@@ -26,9 +26,9 @@ import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -81,11 +81,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      *             if some Java code can't converted
      */
     private void writeCode( CodeInputStream byteCode, ConstantPool constantPool, boolean hasReturn  ) throws WasmException {
-        boolean endWithReturn = false;
         try {
             while( byteCode.available() > 0 ) {
                 int codePos = byteCode.getCodePosition();
-                endWithReturn = false;
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
                     case 0: // nop
@@ -542,7 +540,6 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 break;
                         }
                         addBlockInstruction( WasmBlockOperator.RETURN, type, codePos );
-                        endWithReturn = true;
                         break;
                     case 178: // getstatic
                         ConstantRef ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
@@ -630,8 +627,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             }
             branchManager.calculate();
             branchManager.handle( byteCode ); // add branch operations
-            if( !endWithReturn && hasReturn ) {
-                // if a method ends with a loop without a break then code after the loop is no reachable
+            if( hasReturn && !isEndsWithReturn() ) {
+                // if a method ends with a loop or block without a break then code after the loop is no reachable
                 // Java does not need a return byte code in this case
                 // But WebAssembly need the dead code to validate
                 addBlockInstruction( WasmBlockOperator.UNREACHABLE, null, byteCode.getCodePosition() );

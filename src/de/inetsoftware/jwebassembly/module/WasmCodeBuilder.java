@@ -23,9 +23,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -50,6 +51,19 @@ public abstract class WasmCodeBuilder {
      */
     List<WasmInstruction> getInstructions() {
         return instructions;
+    }
+
+    /**
+     * Check if the last instruction is a return instruction
+     * 
+     * @return true, if a return
+     */
+    boolean isEndsWithReturn() {
+        WasmInstruction instr = instructions.get( instructions.size() - 1 );
+        if( instr.getType() == Type.Block ) {
+            return ((WasmBlockInstruction)instr).getOperation() == WasmBlockOperator.RETURN;
+        }
+        return false;
     }
 
     /**
