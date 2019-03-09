@@ -332,7 +332,7 @@ class BranchManger {
      */
     private int calculateBreakDeep( BranchNode parent, int endPos ) {
         int deep = -1;
-        while( parent != null && parent.endPos == endPos ) {
+        while( parent != null && parent.endPos == endPos && parent.data == null ) {
             deep++;
             parent = parent.parent;
         }
@@ -630,12 +630,13 @@ class BranchManger {
     private void calculateTry( BranchNode parent, TryCatchParsedBlock tryBlock, List<ParsedBlock> parsedOperations ) {
         TryCatchFinally tryCatch = tryBlock.tryCatch;
 
-        int gotoPos = tryCatch.getEnd(); // alternativ we can use tryCatch.getHandler()-3
+        int gotoPos = tryCatch.getHandler()-3; //tryCatch.getEnd() points some time bevore and some time after the goto 
         int endPos = parent.endPos;
-        for( int i = 0; i < parsedOperations.size(); i++ ) {
-            ParsedBlock parsedBlock = parsedOperations.get( i );
+        int idx;
+        for( idx = 0; idx < parsedOperations.size(); idx++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( idx );
             if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
-                parsedOperations.remove( i );
+                parsedOperations.remove( idx );
                 endPos = parsedBlock.endPosition;
                 break;
             }
@@ -653,12 +654,19 @@ class BranchManger {
         parent.add( node );
         parent = node;
 
-        parent.add( new BranchNode( startPos, catchPos, WasmBlockOperator.TRY, null ) );
+        BranchNode tryNode = new BranchNode( startPos, catchPos, WasmBlockOperator.TRY, null );
+        parent.add( tryNode );
+        calculate( tryNode, parsedOperations.subList( 0, idx ) );
+
         BranchNode catchNode = new BranchNode( catchPos, catchPos, WasmBlockOperator.CATCH, WasmBlockOperator.END );
         parent.add( catchNode );
 
-        catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 1 ) );
-        catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
+        if( tryCatch.isFinally() ) {
+            catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.DROP, null ) );
+        } else {
+            catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 1 ) );
+            catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
+        }
 
         parent.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR, null, 1 ) );
     }

@@ -42,6 +42,10 @@ public class Exceptions extends AbstractBaseTest {
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
             addParam( list, script, "simple" );
+            addParam( list, script, "direct" );
+            addParam( list, script, "rethrow" );
+            addParam( list, script, "tryFinally" );
+            addParam( list, script, "complex" );
         }
         return list;
     }
@@ -56,10 +60,6 @@ public class Exceptions extends AbstractBaseTest {
 
         @Export
         static int simple() {
-            return 1;
-        }
-
-        static int simple2() {
             int r;
             try {
                 r = 5 / 0;
@@ -77,5 +77,51 @@ public class Exceptions extends AbstractBaseTest {
                 return 2;
             }
         }
+
+        @Export
+        static int rethrow() {
+            try {
+                return 5 / 0;
+            } catch(Exception ex ) {
+                throw ex;
+            }
+        }
+
+        @Export
+        static int tryFinally() {
+            int v = 1;
+            try {
+                v++;
+                v = 5 / 0;
+            } finally {
+                v++;
+                return v;
+            }
+        }
+
+        @Export
+        static int complex() {
+            int v = 1;
+            try {
+                if( v == 1 ) {
+                    v++;
+                    v = divNull();
+                } else {
+                    v += 2;
+                }
+            } finally {
+                v++;
+                return v;
+            }
+        }
+
+        private static int divNull() {
+            return 5 / 0;
+        }
+//        @Export
+//        static int npe() {
+//            Object obj = new NullPointerException();
+//            return 3;
+//        }
     }
 }
