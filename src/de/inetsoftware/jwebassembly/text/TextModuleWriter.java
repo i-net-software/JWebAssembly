@@ -432,6 +432,10 @@ public class TextModuleWriter extends ModuleWriter {
             case BR_ON_EXN:
                 name = "br_on_exn " + data + " 0"; // br_on_exn, break depth, event; // currently there is only one event/exception with anyref
                 break;
+            case MONITOR_ENTER:
+            case MONITOR_EXIT:
+                name = "drop";
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }

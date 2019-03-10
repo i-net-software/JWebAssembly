@@ -891,6 +891,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.writeVaruint32( (Integer)data ); // break depth
                 codeStream.writeVaruint32( 0 );             // event/exception ever 0 because currently there is only one with signature anyref
                 break;
+            case MONITOR_ENTER:
+            case MONITOR_EXIT:
+                codeStream.writeOpCode( DROP );
+                break;
             default:
                 throw new Error( "Unknown block: " + op );
         }

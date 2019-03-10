@@ -609,8 +609,12 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     //TODO case 192: // checkcast
                     //TODO case 193: // instanceof
-                    //TODO case 194: // monitorenter
-                    //TODO case 195: // monitorexit
+                    case 194: // monitorenter
+                        addBlockInstruction( WasmBlockOperator.MONITOR_ENTER, null, codePos );
+                        break;
+                    case 195: // monitorexit
+                        addBlockInstruction( WasmBlockOperator.MONITOR_EXIT, null, codePos );
+                        break;
                     //TODO case 196: // wide
                     //TODO case 197: // multianewarray
                     case 198: // ifnull

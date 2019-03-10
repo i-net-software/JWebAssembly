@@ -118,6 +118,18 @@ public class Exceptions extends AbstractBaseTest {
         private static int divNull() {
             return 5 / 0;
         }
+
+        // a synchronized also add an try/finally internally 
+        @Export
+        static int sync() {
+            int v = 1;
+            Object monitor = new Object();
+            synchronized( monitor ) {
+                v++;
+            }
+            return v;
+        }
+
 //        @Export
 //        static int npe() {
 //            Object obj = new NullPointerException();
