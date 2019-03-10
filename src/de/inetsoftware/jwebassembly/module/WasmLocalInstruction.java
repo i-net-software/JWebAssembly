@@ -63,6 +63,25 @@ class WasmLocalInstruction extends WasmInstruction {
     }
 
     /**
+     * Get the operator
+     * 
+     * @return the operator
+     */
+    VariableOperator getOperator() {
+        return op;
+    }
+
+    /**
+     * Set the operator
+     * 
+     * @param op
+     *            the operator
+     */
+    void setOperator( VariableOperator op ) {
+        this.op = op;
+    }
+
+    /**
      * Get the number of the locals
      * 
      * @return the index

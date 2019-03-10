@@ -17,6 +17,9 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.util.List;
 
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
+
 /**
  * Optimize the code of a single method/function through using of WebAssembly features without equivalent in Java.
  * 
@@ -35,6 +38,22 @@ class CodeOptimizer {
             WasmInstruction instr = instructions.get( i );
             switch( instr.getType() ) {
                 case Local:
+                    // merge local.set, local.get --> local.tee 
+                    if( i == 0 ) {
+                        continue;
+                    }
+                    if(  instructions.get( i-1 ).getType() != Type.Local ) {
+                        continue;
+                    }
+                    WasmLocalInstruction local1 = (WasmLocalInstruction)instructions.get( i-1 );
+                    WasmLocalInstruction local2 = (WasmLocalInstruction)instr;
+                    if( local1.getIndex() != local2.getIndex() ) {
+                        continue;
+                    }
+                    if( local1.getOperator() == VariableOperator.set && local2.getOperator() == VariableOperator.get ) {
+                        local1.setOperator( VariableOperator.tee );
+                        instructions.remove( i );
+                    }
                     break;
                 default:
             }
