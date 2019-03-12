@@ -103,8 +103,58 @@ public class WatParserTest {
     }
 
     @Test
+    public void i32_const() throws IOException {
+        test( " i32.const -7 " );
+    }
+
+    @Test
+    public void i32_trunc_sat_f32_s() throws IOException {
+        test( "i32.trunc_sat_f32_s" );
+    }
+
+    @Test
+    public void i64_extend_i32_s() throws IOException {
+        test( "i64.extend_i32_s" );
+    }
+
+    @Test
+    public void i64_trunc_sat_f64_s() throws IOException {
+        test( "i64.trunc_sat_f64_s" );
+    }
+
+    @Test
+    public void f32_convert_i32_s() throws IOException {
+        test( "f32.convert_i32_s" );
+    }
+
+    @Test
+    public void f32_div() throws IOException {
+        test( "f32.div" );
+    }
+
+    @Test
     public void f32_max() throws IOException {
         test( "f32.max" );
+    }
+
+    @Test
+    public void f32_mul() throws IOException {
+        test( "f32.mul" );
+    }
+
+    @Test
+    public void f32_sub() throws IOException {
+        test( "f32.sub" );
+    }
+
+    @Test
+    public void f64_convert_i64_s() throws IOException {
+        test( "f64.convert_i64_s" );
+    }
+
+    @Test
+    public void f64_div() throws IOException {
+        test( "f64.div" );
     }
 
     @Test
@@ -113,13 +163,13 @@ public class WatParserTest {
     }
 
     @Test
-    public void i32_const() throws IOException {
-        test( " i32.const -7 " );
+    public void f64_mul() throws IOException {
+        test( "f64.mul" );
     }
 
     @Test
-    public void i64_extend_i32_s() throws IOException {
-        test( "i64.extend_i32_s" );
+    public void f64_sub() throws IOException {
+        test( "f64.sub" );
     }
 
     @Test
@@ -130,5 +180,10 @@ public class WatParserTest {
     @Test
     public void errorMissingToken() throws IOException {
         testError( "i32.const", "Missing Token in wasm text format after token: i32.const" );
+    }
+
+    @Test
+    public void errorUnknownToken() throws IOException {
+        testError( "foobar", "Unknown WASM token: foobar" );
     }
 }

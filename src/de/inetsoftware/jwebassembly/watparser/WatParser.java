@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 -2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -37,14 +37,13 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public class WatParser extends WasmCodeBuilder {
 
-    public WatParser() {
-    }
-
     /**
      * Parse the given wasm text format and generate a list of WasmInstuctions
      * 
      * @param wat
      *            the text format content of a function
+     * @param lineNumber
+     *            the line number for an error message
      */
     public void parse( String wat, int lineNumber ) {
         try {
@@ -70,14 +69,44 @@ public class WatParser extends WasmCodeBuilder {
                     case "i32.add":
                         addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos );
                         break;
+                    case "i32.trunc_sat_f32_s":
+                        addConvertInstruction( ValueTypeConvertion.f2i, javaCodePos );
+                        break;
+                    case "i64.extend_i32_s":
+                        addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos );
+                        break;
+                    case "i64.trunc_sat_f64_s":
+                        addConvertInstruction( ValueTypeConvertion.d2l, javaCodePos );
+                        break;
+                    case "f32.convert_i32_s":
+                        addConvertInstruction( ValueTypeConvertion.i2f, javaCodePos );
+                        break;
+                    case "f32.div":
+                        addNumericInstruction( NumericOperator.div, ValueType.f32, javaCodePos );
+                        break;
                     case "f32.max":
                         addNumericInstruction( NumericOperator.max, ValueType.f32, javaCodePos );
+                        break;
+                    case "f32.mul":
+                        addNumericInstruction( NumericOperator.mul, ValueType.f32, javaCodePos );
+                        break;
+                    case "f32.sub":
+                        addNumericInstruction( NumericOperator.sub, ValueType.f32, javaCodePos );
+                        break;
+                    case "f64.convert_i64_s":
+                        addConvertInstruction( ValueTypeConvertion.l2d, javaCodePos );
+                        break;
+                    case "f64.div":
+                        addNumericInstruction( NumericOperator.div, ValueType.f64, javaCodePos );
                         break;
                     case "f64.max":
                         addNumericInstruction( NumericOperator.max, ValueType.f64, javaCodePos );
                         break;
-                    case "i64.extend_i32_s":
-                        addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos );
+                    case "f64.mul":
+                        addNumericInstruction( NumericOperator.mul, ValueType.f64, javaCodePos );
+                        break;
+                    case "f64.sub":
+                        addNumericInstruction( NumericOperator.sub, ValueType.f64, javaCodePos );
                         break;
 //                    case "call":
 //                        addCallInstruction( method, javaCodePos );
