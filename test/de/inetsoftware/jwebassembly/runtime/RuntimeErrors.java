@@ -110,4 +110,14 @@ public class RuntimeErrors {
             return 1;
         }
     }
+
+    @Test
+    public void nativeMethod() throws IOException {
+        compileErrorTest( "Abstract or native method can not be used:", NativeMethod.class );
+    }
+
+    static class NativeMethod {
+        @Export
+        native static float function();
+    }
 }

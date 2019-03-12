@@ -352,7 +352,7 @@ public class ModuleGenerator {
                 codeBuilder = javaCodeBuilder;
                 localVariableTable = code.getLocalVariableTable();
             } else {
-                return;
+                throw new WasmException( "Abstract or native method can not be used: " + name.fullName, -1 );
             }
             writeExport( name, method );
             writeMethodImpl( name, method.isStatic(), localVariableTable, codeBuilder );
