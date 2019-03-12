@@ -181,6 +181,7 @@ public class MathOperations extends AbstractBaseTest {
             float a = -54321F;
             a *= 3F;
             a /= -8F;
+            a %= 37.5F;
             return a;
         }
 
@@ -189,6 +190,7 @@ public class MathOperations extends AbstractBaseTest {
             double a = -54321.0;
             a *= 3F;
             a /= -5F;
+            a %= 37.5;
             return a;
         }
 

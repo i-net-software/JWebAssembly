@@ -85,18 +85,6 @@ public class RuntimeErrors {
         }
 
     }
-    @Test
-    public void floatRem() throws IOException {
-        compileErrorTest( "Modulo/Remainder", TestModulo.class );
-    }
-
-    static class TestModulo {
-        @Export
-        static float longReturn() {
-            float a = 3.4F;
-            return a % 2F;
-        }
-    }
 
     @Test
     public void nonStaticExport() throws IOException {

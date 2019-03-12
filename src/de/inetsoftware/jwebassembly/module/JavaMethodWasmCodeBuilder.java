@@ -342,9 +342,13 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addNumericInstruction( NumericOperator.rem, ValueType.i64, codePos );
                         break;
                     case 114: // frem
+                        //helper function like: (a - (int)(a / b) * (float)b) 
+                        addCallInstruction( new SyntheticFunctionName( "frem", "local.get 0 local.get 0 local.get 1 f32.div i32.trunc_sat_f32_s f32.convert_i32_s local.get 1 f32.mul f32.sub return", ValueType.f32, ValueType.f32, null, ValueType.f32 ), codePos );
+                        break;
                     case 115: // drem
-                        //TODO can be implemented with a helper function like: (a - (long)(a / b) * (double)b) 
-                        throw new WasmException( "Modulo/Remainder for floating numbers is not supported in WASM. Use int or long data types." + op, byteCode.getLineNumber() );
+                        //helper function like: (a - (long)(a / b) * (double)b) 
+                        addCallInstruction( new SyntheticFunctionName( "drem", "local.get 0 local.get 0 local.get 1 f64.div i64.trunc_sat_f64_s f64.convert_i64_s local.get 1 f64.mul f64.sub return", ValueType.f64, ValueType.f64, null, ValueType.f64 ), codePos );
+                        break;
                     case 116: // ineg
                         addConstInstruction( -1, ValueType.i32, codePos );
                         addNumericInstruction( NumericOperator.mul, ValueType.i32, codePos );

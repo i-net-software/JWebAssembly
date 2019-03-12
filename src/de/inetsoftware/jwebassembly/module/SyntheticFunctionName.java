@@ -40,7 +40,7 @@ public class SyntheticFunctionName extends FunctionName {
      * @param code
      *            the WAT code (WASM in text form)
      * @param signature
-     *            the method signature
+     *            the method signature, first the parameters, then null and the the return types
      */
     public SyntheticFunctionName( String name, String code, AnyType... signature ) {
         super( "", name, "()V" ); //TODO better signature name
