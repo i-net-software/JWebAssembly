@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,22 @@ public class SpiderMonkey {
         URL url = new URL( "https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-" + fileName
                         + ".zip" );
         System.out.println( "\tDownload: " + url );
+        command = target.getAbsolutePath() + "/js";
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        conn.setConnectTimeout( 5000 );
         if( target.exists() ) {
             conn.setIfModifiedSince( target.lastModified() );
         }
-        InputStream input = conn.getInputStream();
-        command = target.getAbsolutePath() + "/js";
+        InputStream input;
+        try {
+            input = conn.getInputStream();
+        } catch( IOException ex ) {
+            if( target.exists() ) {
+                System.err.println( ex );
+                return;
+            }
+            throw ex;
+        }
         if( conn.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED ) {
             System.out.println( "\tUP-TP-DATE, use version from " + Instant.ofEpochMilli( target.lastModified() ) );
             return;
