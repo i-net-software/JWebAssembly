@@ -94,4 +94,17 @@ public class CodeInputStream extends DataInputStream {
             return pos;
         }
     }
+
+    /**
+     * Read an unsigned index. For example for a variable.
+     * 
+     * @param wide
+     *            true, 2 byte index
+     * @return the unsigned value
+     * @throws IOException
+     *             if any I/O errors occur
+     */
+    public int readUnsignedIndex( boolean wide ) throws IOException {
+        return wide ? readUnsignedShort() : readUnsignedByte();
+    }
 }

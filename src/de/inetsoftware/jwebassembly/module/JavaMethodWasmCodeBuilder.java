@@ -82,6 +82,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      */
     private void writeCode( CodeInputStream byteCode, ConstantPool constantPool, boolean hasReturn  ) throws WasmException {
         try {
+            boolean wide = false;
             while( byteCode.available() > 0 ) {
                 int codePos = byteCode.getCodePosition();
                 int op = byteCode.readUnsignedByte();
@@ -127,19 +128,19 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addConstInstruction( (Number)constantPool.get( byteCode.readUnsignedShort() ), codePos );
                         break;
                     case 21: // iload
-                        addLoadStoreInstruction( ValueType.i32, true, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.i32, true, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 22: // lload
-                        addLoadStoreInstruction( ValueType.i64, true, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.i64, true, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 23: // fload
-                        addLoadStoreInstruction( ValueType.f32, true, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.f32, true, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 24: // dload
-                        addLoadStoreInstruction( ValueType.f64, true, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.f64, true, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 25: // aload
-                        addLoadStoreInstruction( ValueType.anyref, true, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.anyref, true, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 26: // iload_0
                     case 27: // iload_1
@@ -197,19 +198,19 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.GET, ValueType.i16, codePos );
                         break;
                     case 54: // istore
-                        addLoadStoreInstruction( ValueType.i32, false, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.i32, false, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 55: // lstore
-                        addLoadStoreInstruction( ValueType.i64, false, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.i64, false, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 56: // fstore
-                        addLoadStoreInstruction( ValueType.f32, false, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.f32, false, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 57: // dstore
-                        addLoadStoreInstruction( ValueType.f64, false, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.f64, false, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 58: // astore
-                        addLoadStoreInstruction( ValueType.anyref, false, byteCode.readUnsignedByte(), codePos );
+                        addLoadStoreInstruction( ValueType.anyref, false, byteCode.readUnsignedIndex( wide ), codePos );
                         break;
                     case 59: // istore_0
                     case 60: // istore_1
@@ -403,9 +404,9 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addNumericInstruction( NumericOperator.xor, ValueType.i64, codePos );
                         break;
                     case 132: // iinc
-                        int idx = byteCode.readUnsignedByte();
+                        int idx = byteCode.readUnsignedIndex( wide );
                         addLoadStoreInstruction( ValueType.i32, true, idx, codePos );
-                        addConstInstruction( (int)byteCode.readByte(), ValueType.i32, codePos );
+                        addConstInstruction( (int)(wide ? byteCode.readShort() : byteCode.readByte()), ValueType.i32, codePos );
                         addNumericInstruction( NumericOperator.add, ValueType.i32, codePos);
                         addLoadStoreInstruction( ValueType.i32, false, idx, codePos );
                         break;
@@ -619,7 +620,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 195: // monitorexit
                         addBlockInstruction( WasmBlockOperator.MONITOR_EXIT, null, codePos );
                         break;
-                    //TODO case 196: // wide
+                    case 196: // wide
+                        // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.wide
+                        wide = true;
+                        continue;
                     //TODO case 197: // multianewarray
                     case 198: // ifnull
                         opIfCompareCondition( NumericOperator.ifnull, byteCode, codePos );
@@ -632,6 +636,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     default:
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, byteCode.getLineNumber() );
                 }
+                wide = false;
             }
             branchManager.calculate();
             branchManager.handle( byteCode ); // add branch operations
