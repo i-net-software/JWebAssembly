@@ -6,7 +6,7 @@ JWebAssembly
 [![Coverage Status](https://coveralls.io/repos/github/i-net-software/JWebAssembly/badge.svg?branch=master)](https://coveralls.io/github/i-net-software/JWebAssembly?branch=master)
 
 JWebAssembly is a Java bytecode to [WebAssembly](http://webassembly.org/) compiler. It uses Java class files as input. That it can compile any language that compile to Java bytecode.
-As output it generates the binary format (.wasm file) or the text format (.wat file).
+As output it generates the binary format (.wasm file) or the text format (.wat file). The target is to run Java natively in the browser with WebAssembly.
 
 The difference to similar projects is that not a complete VM with GC and memory management should be ported. It's more like a 1: 1 conversion. The generated WebAssembly code is similar in size to the original Java class files.
 
@@ -22,7 +22,7 @@ The project is currently not production ready but you can run already some tests
 * [Gradle Plugin](https://github.com/i-net-software/JWebAssembly-Gradle)
 
 ### Partially Finished
-* Binary format file writer and Text format file writer (183 of 201 Java byte code instructions)
+* Binary format file writer and Text format file writer (191 of 201 Java byte code instructions)
 * Support for native methods [#2](https://github.com/i-net-software/JWebAssembly/issues/2)
 * Exception handling - required the next version of WebAssembly
 * Multiple threads - required the next version of WebAssembly
