@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.text;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +49,8 @@ public class TextModuleWriter extends ModuleWriter {
     private Appendable      output;
 
     private final boolean   debugNames;
+
+    private final ArrayList<String> methodParamNames = new ArrayList<>();
 
     private StringBuilder   methodOutput = new StringBuilder();
 
@@ -164,6 +167,7 @@ public class TextModuleWriter extends ModuleWriter {
         methodOutput.append( "(func $" );
         methodOutput.append( name.fullName );
         inset++;
+        methodParamNames.clear();
     }
 
     /**
@@ -172,8 +176,13 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeMethodParam( String kind, AnyType valueType, @Nullable String name ) throws IOException {
         methodOutput.append( " (" ).append( kind );
-        if( debugNames && name != null ) {
-            methodOutput.append( " $" ).append( name );
+        if( debugNames ) { 
+            if( name != null ) {
+                methodOutput.append( " $" ).append( name );
+            }
+            if( kind != "result" ) {
+                methodParamNames.add( name );
+            }
         }
         methodOutput.append( ' ' ).append( valueType.toString() ).append( ')' );
     }
@@ -214,7 +223,13 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeLocal( VariableOperator op, int idx ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( "local." ).append( op ).append( ' ' ).append( Integer.toString( idx ) );
+        methodOutput.append( "local." ).append( op ).append( ' ' );
+        String name = idx < methodParamNames.size() ? methodParamNames.get( idx ) : null;
+        if( name == null ) {
+            methodOutput.append( Integer.toString( idx ) );
+        } else {
+            methodOutput.append( '$' ).append( name );
+        }
     }
 
     /**
