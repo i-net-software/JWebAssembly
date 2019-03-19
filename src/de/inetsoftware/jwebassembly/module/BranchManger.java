@@ -86,11 +86,13 @@ class BranchManger {
      *            the byte position of the start position
      * @param offset
      *            the relative jump position
+     * @param nextPosition
+     *            the position of the next instruction
      * @param lineNumber
      *            the current line number
      */
-    void addGotoOperator( int startPosition, int offset, int lineNumber ) {
-        allParsedOperations.add( new ParsedBlock( JavaBlockOperator.GOTO, startPosition, offset, lineNumber ) );
+    void addGotoOperator( int startPosition, int offset, int nextPosition, int lineNumber ) {
+        allParsedOperations.add( new ParsedBlock( JavaBlockOperator.GOTO, startPosition, offset, nextPosition, lineNumber ) );
     }
 
     /**
@@ -152,10 +154,10 @@ class BranchManger {
                         int start = parsedBlock.endPosition;
                         ParsedBlock loop = loops.get( start );
                         if( loop == null ) {
-                            loop = new ParsedBlock( JavaBlockOperator.LOOP, start, 0, parsedBlock.lineNumber );
+                            loop = new ParsedBlock( JavaBlockOperator.LOOP, start, 0, start, parsedBlock.lineNumber );
                             loops.put( start, loop );
                         }
-                        loop.endPosition = parsedBlock.startPosition + 3;
+                        loop.endPosition = parsedBlock.nextPosition;
                         break;
                     default:
                         throw new WasmException( "Unimplemented loop code operation: " + parsedBlock.op, null, null, parsedBlock.lineNumber );
@@ -174,12 +176,12 @@ class BranchManger {
                         // CONDITION:
                         // if<cond> START:
                         // we can not match this in WASM because a missing GOTO that we need to move the condition to the start of the loop
-                        int nextPos = parsedBlock.startPosition + 3;
+                        int nextPos = parsedBlock.nextPosition;
                         for( int n = b + 1; n < allParsedOperations.size(); n++ ) {
                             ParsedBlock nextBlock = allParsedOperations.get( n );
                             if( nextBlock.op == JavaBlockOperator.IF && nextBlock.endPosition == nextPos ) {
                                 int conditionStart = parsedBlock.endPosition; // 15
-                                int conditionEnd = nextBlock.startPosition + 3; // 22
+                                int conditionEnd = nextBlock.nextPosition; // 22
                                 int conditionNew = parsedBlock.startPosition; // 4
                                 int conditionIdx = -1;
 
@@ -262,7 +264,7 @@ class BranchManger {
     private void calculateIf( BranchNode parent, IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
         int i = 0;
         int endPos = Math.min( startBlock.endPosition, parent.endPos );
-        int startPos = startBlock.startPosition + 3;
+        int startPos = startBlock.nextPosition;
         if( startPos > endPos ) {
             // the condition in a do while(condition) loop
             parent.add( new BranchNode( startPos, startPos, WasmBlockOperator.BR_IF, null, 0 ) );
@@ -717,12 +719,15 @@ class BranchManger {
 
         int                       endPosition;
 
+        int                       nextPosition;
+
         int                       lineNumber;
 
-        private ParsedBlock( JavaBlockOperator op, int startPosition, int offset, int lineNumber ) {
+        private ParsedBlock( JavaBlockOperator op, int startPosition, int offset, int nextPosition, int lineNumber ) {
             this.op = op;
             this.startPosition = startPosition;
             this.endPosition = startPosition + offset;
+            this.nextPosition = nextPosition;
             this.lineNumber = lineNumber;
         }
     }
@@ -747,7 +752,7 @@ class BranchManger {
          *            the compare instruction
          */
         private IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
-            super( JavaBlockOperator.IF, startPosition, offset, lineNumber );
+            super( JavaBlockOperator.IF, startPosition, offset, startPosition + 3, lineNumber );
             this.instr = instr;
         }
 
@@ -805,7 +810,7 @@ class BranchManger {
         private int   defaultPosition;
 
         public SwitchParsedBlock( int startPosition, int offset, int lineNumber, int[] keys, int[] positions, int defaultPosition ) {
-            super( JavaBlockOperator.SWITCH, startPosition, offset, lineNumber );
+            super( JavaBlockOperator.SWITCH, startPosition, offset, startPosition, lineNumber );
             this.keys = keys;
             this.positions = positions;
             this.defaultPosition = defaultPosition;
@@ -819,7 +824,7 @@ class BranchManger {
         private final TryCatchFinally tryCatch;
 
         TryCatchParsedBlock( TryCatchFinally tryCatch ) {
-            super( JavaBlockOperator.TRY, tryCatch.getStart(), 0, -1 );
+            super( JavaBlockOperator.TRY, tryCatch.getStart(), 0, tryCatch.getStart(), -1 );
             this.tryCatch = tryCatch;
         }
     }

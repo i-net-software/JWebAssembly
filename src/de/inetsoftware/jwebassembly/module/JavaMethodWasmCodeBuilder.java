@@ -511,7 +511,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 167: // goto
                         int offset = byteCode.readShort();
-                        branchManager.addGotoOperator( codePos, offset, byteCode.getLineNumber() );
+                        branchManager.addGotoOperator( codePos, offset, byteCode.getCodePosition(), byteCode.getLineNumber() );
                         addNopInstruction( codePos ); // marker of the line number for the branch manager
                         break;
                     //TODO case 168: // jsr
