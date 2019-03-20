@@ -631,7 +631,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 199: // ifnonnull
                         opIfCompareCondition( NumericOperator.ifnonnull, byteCode, codePos );
                         break;
-                    //TODO case 200: // goto_w
+                    case 200: // goto_w
+                        offset = byteCode.readInt();
+                        branchManager.addGotoOperator( codePos, offset, byteCode.getCodePosition(), byteCode.getLineNumber() );
+                        addNopInstruction( codePos ); // marker of the line number for the branch manager
+                        break;
                     //TODO case 201: // jsr_w
                     default:
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, byteCode.getLineNumber() );

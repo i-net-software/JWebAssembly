@@ -270,35 +270,52 @@ class BranchManger {
             parent.add( new BranchNode( startPos, startPos, WasmBlockOperator.BR_IF, null, 0 ) );
             return;
         }
-        int gotoPos = endPos - 3; // 3 - byte size of goto instruction
         BranchNode branch = null;
         for( ; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition) {
+            if( parsedBlock.nextPosition == endPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
                 parsedOperations.remove( i );
-                branch = new BranchNode( startPos, startBlock.endPosition, WasmBlockOperator.IF, null );
+                int elsePos = startBlock.endPosition;
+                // end position can not be outside of the parent
+                endPos = Math.min( parsedBlock.endPosition, parent.endPos );
+
+                // special case if there is only one goto in the IF block. Occur with goto_w
+                if( parsedBlock.startPosition == startPos ) {
+                    int nextPos = Math.min( parsedBlock.endPosition, parent.endPos );
+                    for( int j = i; j < parsedOperations.size(); j++ ) {
+                        ParsedBlock parsedBlock2 = parsedOperations.get( j );
+                        if( parsedBlock2.nextPosition == nextPos && parsedBlock2.op == JavaBlockOperator.GOTO && parsedBlock2.startPosition < parsedBlock2.endPosition ) {
+                            parsedOperations.remove( j );
+                            elsePos = nextPos;
+                            endPos = parsedBlock2.endPosition;
+                            startBlock.negateCompare();
+                            i = j;
+                        }
+                    }
+                }
+
+                branch = new BranchNode( startPos, elsePos, WasmBlockOperator.IF, null );
                 parent.add( branch );
                 if( i > 0 ) {
                     calculate( branch, parsedOperations.subList( 0, i ) );
+                    i = 0;
                 }
                 AnyType blockType = calculateBlockType( startPos, branch.endPos );
                 branch.data = blockType;
-                // end position can not be outside of the parent
-                endPos = Math.min( parsedBlock.endPosition, parent.endPos );
 
                 // if with block type signature must have an else block
                 int breakDeep = blockType == ValueType.empty ? calculateBreakDeep( parent, endPos ) : -1;
                 if( breakDeep >= 0 ) {
                     branch.endOp = WasmBlockOperator.END;
-                    branch.add(  new BranchNode( startBlock.endPosition, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
+                    branch.add(  new BranchNode( elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
                     endPos = branch.endPos;
                 } else {
-                    branch = new BranchNode( startBlock.endPosition, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
+                    branch = new BranchNode( elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
                     parent.add( branch );
                 }
                 break;
             }
-            if( parsedBlock.startPosition > gotoPos ) {
+            if( parsedBlock.nextPosition > endPos ) {
                 break;
             }
         }
