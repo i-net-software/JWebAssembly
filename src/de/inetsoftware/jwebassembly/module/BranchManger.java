@@ -179,36 +179,25 @@ class BranchManger {
                         int nextPos = parsedBlock.nextPosition;
                         for( int n = b + 1; n < allParsedOperations.size(); n++ ) {
                             ParsedBlock nextBlock = allParsedOperations.get( n );
-                            if( nextBlock.op == JavaBlockOperator.IF && nextBlock.endPosition == nextPos ) {
-                                int conditionStart = parsedBlock.endPosition; // 15
-                                int conditionEnd = nextBlock.nextPosition; // 22
-                                int conditionNew = parsedBlock.startPosition; // 4
-                                int conditionIdx = -1;
-
-                                int i;
-                                for( i = 0; i < instructions.size(); i++ ) {
-                                    WasmInstruction instr = instructions.get( i );
-                                    int codePos = instr.getCodePosition();
-                                    if( codePos == nextPos ) {
-                                        conditionIdx = i;
-                                    }
-                                    if( codePos >= conditionEnd ) {
-                                        break;
-                                    }
-                                    if( codePos >= conditionStart ) {
-                                        instr.setCodePosition( conditionNew );
-                                        instructions.remove( i );
-                                        instructions.add( conditionIdx++, instr );
-                                    }
-                                }
-
-                                parsedBlock.op = JavaBlockOperator.LOOP;
-                                parsedBlock.endPosition = conditionEnd;
+                            if( nextBlock.op == JavaBlockOperator.IF && nextBlock.endPosition == nextPos ) { // Eclipse loop with normal goto
+                                int conditionStart = parsedBlock.endPosition;
+                                int conditionEnd = nextBlock.nextPosition;
+                                convertToLoop( parsedBlock, conditionStart, conditionEnd );
                                 allParsedOperations.remove( n );
-                                instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew ) );
-                                instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew ) );
                                 ((IfParsedBlock)nextBlock).negateCompare();
                                 break;
+                            }
+                            if( nextBlock.op == JavaBlockOperator.GOTO && nextBlock.endPosition == nextPos && n > 1 ) { // Eclipse loop with wide goto_w
+                                ParsedBlock prevBlock = allParsedOperations.get( n - 1 );
+                                if( prevBlock.op == JavaBlockOperator.IF && prevBlock.endPosition == nextBlock.nextPosition ) {
+                                    System.err.println( nextBlock );
+                                    int conditionStart = parsedBlock.endPosition;
+                                    int conditionEnd = prevBlock.nextPosition;
+                                    convertToLoop( parsedBlock, conditionStart, conditionEnd );
+                                    allParsedOperations.remove( n );
+                                    allParsedOperations.remove( n - 1 );
+                                    break;
+                                }
                             }
                         }
                         break;
@@ -218,6 +207,45 @@ class BranchManger {
         }
 
         allParsedOperations.addAll( loops.values() );
+    }
+
+    /**
+     * Convert the GOTO block with condition at the end into a loop block and move the condition from the end to the
+     * start like wasm it required.
+     * 
+     * @param gotoBlock
+     *            the goto block
+     * @param conditionStart
+     *            the code position where condition code start
+     * @param conditionEnd
+     *            the end position
+     */
+    private void convertToLoop( ParsedBlock gotoBlock, int conditionStart, int conditionEnd ) {
+        int conditionNew = gotoBlock.startPosition;
+        int nextPos = gotoBlock.nextPosition;
+        int conditionIdx = -1;
+
+        int i;
+        for( i = 0; i < instructions.size(); i++ ) {
+            WasmInstruction instr = instructions.get( i );
+            int codePos = instr.getCodePosition();
+            if( codePos == nextPos ) {
+                conditionIdx = i;
+            }
+            if( codePos >= conditionEnd ) {
+                break;
+            }
+            if( codePos >= conditionStart ) {
+                instr.setCodePosition( conditionNew );
+                instructions.remove( i );
+                instructions.add( conditionIdx++, instr );
+            }
+        }
+
+        gotoBlock.op = JavaBlockOperator.LOOP;
+        gotoBlock.endPosition = conditionEnd;
+        instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew ) );
+        instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew ) );
     }
 
     /**

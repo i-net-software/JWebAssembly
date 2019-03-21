@@ -39,26 +39,35 @@ public class Wide extends AbstractBaseTest {
         ArrayList<Object[]> list = new ArrayList<>();
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
-            addParam( list, script, "abc" );
+            addParam( list, script, "thenBranch" );
+            addParam( list, script, "elseBranch" );
         }
         return list;
     }
 
     static class TestClass {
 
+        @Export
+        static int thenBranch() {
+            return wide(true);
+        }
+
+        @Export
+        static int elseBranch() {
+            return wide(false);
+        }
+
         /**
          * more as 255 variable slots
          * @return
          */
         @Export
-        static int abc() {
+        static int wide( boolean then) {
             int i = 42;
-            if( 42 == i ) {
-// TODO
-//                for( int j = 0; j < 10; j++ ) {
-//                    i++;
-//                }
-                i++;
+            if( then ) {
+                for( int j = 0; j < 10; j++ ) {
+                    i++;
+                }
             } else {
                 int j = 0;
                 long a0 = 0;
