@@ -81,6 +81,10 @@ interface InstructionOpcodes {
 
     static final int CALL_INDIRECT = 0x11;
 
+    static final int RETURN_CALL          = 0x12; // tail call
+
+    static final int RETURN_CALL_INDIRECT = 0x13; // tail call
+
     static final int DROP      = 0x1A;
 
     /**
