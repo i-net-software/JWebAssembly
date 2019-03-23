@@ -514,8 +514,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         branchManager.addGotoOperator( codePos, offset, byteCode.getCodePosition(), byteCode.getLineNumber() );
                         addNopInstruction( codePos ); // marker of the line number for the branch manager
                         break;
-                    //TODO case 168: // jsr
-                    //TODO case 169: // ret
+                    case 168: // jsr
+                    case 169: // ret
+                    case 201: // jsr_w
+                        throw new WasmException( "Finally block of Java 5 or older is not supported. Compile the sources with a Java SE 6 or newer: " + op, byteCode.getLineNumber() );
                     case 170: // tableswitch
                     case 171: // lookupswitch
                         writeSwitchCode( byteCode, op == 171 );
@@ -636,7 +638,6 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         branchManager.addGotoOperator( codePos, offset, byteCode.getCodePosition(), byteCode.getLineNumber() );
                         addNopInstruction( codePos ); // marker of the line number for the branch manager
                         break;
-                    //TODO case 201: // jsr_w
                     default:
                         throw new WasmException( "Unimplemented Java byte code operation: " + op, byteCode.getLineNumber() );
                 }
