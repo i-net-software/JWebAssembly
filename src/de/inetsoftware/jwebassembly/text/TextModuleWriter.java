@@ -202,6 +202,14 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
+    protected void markCodePosition( int javaCodePosition ) {
+        // nothing
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeMethodFinish() throws IOException {
         inset--;
         newline( methodOutput );

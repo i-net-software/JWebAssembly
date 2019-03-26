@@ -369,6 +369,8 @@ public class ModuleGenerator {
 
         List<WasmInstruction> instructions = codeBuilder.getInstructions();
         optimizer.optimze( instructions );
+
+        int lastCodePosition = -1;
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Block:
@@ -387,6 +389,11 @@ public class ModuleGenerator {
                     setStructType( (WasmStructInstruction)instruction );
                     break;
                 default:
+            }
+            int codePosition = instruction.getCodePosition();
+            if( codePosition >= 0 && codePosition != lastCodePosition ) {
+                writer.markCodePosition( codePosition );
+                lastCodePosition = codePosition;
             }
             instruction.writeTo( writer );
         }

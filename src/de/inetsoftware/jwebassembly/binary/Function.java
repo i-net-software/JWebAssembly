@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,5 +39,17 @@ class Function extends SectionEntry {
     @Override
     void writeSectionEntry( WasmOutputStream stream ) throws IOException {
         stream.writeVaruint32( this.typeId );
+    }
+
+    /**
+     * Add code position marker for a source map.
+     * 
+     * @param streamPosition
+     *            the position in the function stream
+     * @param javaCodePosition
+     *            the position in the Java Source file
+     */
+    void markCodePosition( int streamPosition, int javaCodePosition ) {
+        // TODO Auto-generated method stub
     }
 }

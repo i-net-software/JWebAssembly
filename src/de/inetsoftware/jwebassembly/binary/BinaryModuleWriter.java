@@ -398,6 +398,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
+    protected void markCodePosition( int javaCodePosition ) {
+        function.markCodePosition( codeStream.size(), javaCodePosition );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeMethodFinish() throws IOException {
         WasmOutputStream localsStream = new WasmOutputStream();
         localsStream.writeVaruint32( locals.size() );

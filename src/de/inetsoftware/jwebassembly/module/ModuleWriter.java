@@ -127,6 +127,14 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeMethodParamFinish() throws IOException;
 
     /**
+     * Mark the current output position with Java code position for crating of a source map.
+     * 
+     * @param javaCodePosition
+     *            the position in the Java code
+     */
+    protected abstract void markCodePosition( int javaCodePosition );
+
+    /**
      * Complete the method
      * 
      * @throws IOException
