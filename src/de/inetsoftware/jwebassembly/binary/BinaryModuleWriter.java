@@ -58,6 +58,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private final boolean               debugNames;
 
+    private final boolean               createSourceMap;
+
     private WasmOutputStream            codeStream          = new WasmOutputStream();
 
     private List<TypeEntry>             functionTypes       = new ArrayList<>();
@@ -90,7 +92,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     public BinaryModuleWriter( OutputStream output, HashMap<String, String> properties ) throws IOException {
         wasm = new WasmOutputStream( output );
-        debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
+        // for now we build the source map together with debug names
+        debugNames = createSourceMap = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
     }
 
     /**
@@ -350,8 +353,11 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodStart( FunctionName name ) throws IOException {
+    protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
         function = getFunction( name );
+        if( createSourceMap ) {
+            function.sourceFile = sourceFile;
+        }
         functionType = new FunctionTypeEntry();
         codeStream.reset();
         locals.clear();
@@ -399,7 +405,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void markCodePosition( int javaCodePosition ) {
-        function.markCodePosition( codeStream.size(), javaCodePosition );
+        if( createSourceMap ) {
+            function.markCodePosition( codeStream.size(), javaCodePosition );
+        }
     }
 
     /**

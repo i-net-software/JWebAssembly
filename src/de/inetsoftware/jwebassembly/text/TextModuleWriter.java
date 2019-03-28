@@ -162,7 +162,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodStart( FunctionName name ) throws IOException {
+    protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "(func $" );
         methodOutput.append( name.fullName );

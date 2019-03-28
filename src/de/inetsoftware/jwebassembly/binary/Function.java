@@ -33,6 +33,8 @@ class Function extends SectionEntry {
 
     WasmOutputStream functionsStream;
 
+    String sourceFile;
+
     /**
      * {@inheritDoc}
      */
@@ -50,6 +52,8 @@ class Function extends SectionEntry {
      *            the position in the Java Source file
      */
     void markCodePosition( int streamPosition, int javaCodePosition ) {
+        if( sourceFile != null ) {
         // TODO Auto-generated method stub
+        }
     }
 }

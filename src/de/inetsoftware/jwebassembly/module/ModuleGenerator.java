@@ -363,7 +363,7 @@ public class ModuleGenerator {
     }
 
     private void writeMethodImpl( FunctionName name, boolean isStatic, LocalVariableTable localVariableTable, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
-        writer.writeMethodStart( name );
+        writer.writeMethodStart( name, sourceFile );
         functions.writeFunction( name );
         writeMethodSignature( name, isStatic, localVariableTable, codeBuilder );
 
