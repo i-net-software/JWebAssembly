@@ -16,7 +16,6 @@
 package de.inetsoftware.jwebassembly.binary;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,10 +33,11 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
+import de.inetsoftware.jwebassembly.module.WasmTarget;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
@@ -53,6 +53,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     private static final byte[]         WASM_BINARY_MAGIC   = { 0, 'a', 's', 'm' };
 
     private static final int            WASM_BINARY_VERSION = 1;
+
+    private WasmTarget                  target;
 
     private WasmOutputStream            wasm;
 
@@ -90,8 +92,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * @throws IOException
      *             if any I/O error occur
      */
-    public BinaryModuleWriter( OutputStream output, HashMap<String, String> properties ) throws IOException {
-        wasm = new WasmOutputStream( output );
+    public BinaryModuleWriter( WasmTarget target, HashMap<String, String> properties ) throws IOException {
+        this.target = target;
         // for now we build the source map together with debug names
         debugNames = createSourceMap = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
     }
@@ -101,6 +103,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     public void close() throws IOException {
+        wasm = new WasmOutputStream( target.getWasmOutput() );
         wasm.write( WASM_BINARY_MAGIC );
         wasm.writeInt32( WASM_BINARY_VERSION );
 

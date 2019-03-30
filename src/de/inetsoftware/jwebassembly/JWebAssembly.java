@@ -36,6 +36,7 @@ import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.jwebassembly.binary.BinaryModuleWriter;
 import de.inetsoftware.jwebassembly.module.ModuleGenerator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
 
 /**
@@ -225,8 +226,8 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     public void compileToBinary( File file ) throws WasmException {
-        try (OutputStream output = new BufferedOutputStream( new FileOutputStream( file ) )) {
-            compileToBinary( output );
+        try (WasmTarget target = new WasmTarget( file ) ) {
+            compileToBinary( target );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
         }
@@ -241,7 +242,23 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     public void compileToBinary( OutputStream output ) throws WasmException {
-        try (BinaryModuleWriter writer = new BinaryModuleWriter( output, properties )) {
+        try (WasmTarget target = new WasmTarget( output )) {
+            compileToBinary( target );
+        } catch( Exception ex ) {
+            throw WasmException.create( ex );
+        }
+    }
+
+    /**
+     * Convert the added files to a WebAssembly module in binary representation.
+     * 
+     * @param target
+     *            the target for the module data
+     * @throws WasmException
+     *             if any conversion error occurs
+     */
+    private void compileToBinary( WasmTarget target ) throws WasmException {
+        try (BinaryModuleWriter writer = new BinaryModuleWriter( target, properties )) {
             compile( writer );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
