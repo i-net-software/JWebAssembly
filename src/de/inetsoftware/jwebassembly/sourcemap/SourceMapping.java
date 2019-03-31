@@ -19,11 +19,11 @@ package de.inetsoftware.jwebassembly.sourcemap;
  * Mapping for Source Map.
  */
 public class SourceMapping {
-    private final int    generatedColumn;
+    private int    generatedColumn;
 
-    private final int    sourceLine;
+    private int    sourceLine;
 
-    private final String sourceFileName;
+    private String sourceFileName;
 
     /**
      * Create a mapping between a Java code line and a WebAssembly code position
@@ -66,5 +66,13 @@ public class SourceMapping {
      */
     String getSourceFileName() {
         return sourceFileName;
+    }
+
+    /**
+     * Ad an offset to the generated column
+     * @param offset the offset
+     */
+    public void addOffset( int offset ) {
+        generatedColumn += offset;
     }
 }

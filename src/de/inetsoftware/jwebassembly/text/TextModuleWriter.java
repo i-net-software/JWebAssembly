@@ -202,7 +202,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void markCodePosition( int javaCodePosition ) {
+    protected void markSourceLine( int javaSourceLine ) {
         // nothing
     }
 

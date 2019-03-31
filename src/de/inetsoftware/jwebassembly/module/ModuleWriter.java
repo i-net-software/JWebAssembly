@@ -131,10 +131,10 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Mark the current output position with Java code position for crating of a source map.
      * 
-     * @param javaCodePosition
-     *            the position in the Java code
+     * @param javaSourceLine
+     *            the line number in the Java code
      */
-    protected abstract void markCodePosition( int javaCodePosition );
+    protected abstract void markSourceLine( int javaSourceLine );
 
     /**
      * Complete the method

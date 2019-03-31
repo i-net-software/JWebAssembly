@@ -109,7 +109,7 @@ public class ModuleGenerator {
                             ClassFile classFile = new ClassFile( new BufferedInputStream( Files.newInputStream( path ) ) );
                             prepare( classFile );
                         }
-                    };
+                    }
                 }
             } catch( Exception e ) {
                 e.printStackTrace();
@@ -370,7 +370,7 @@ public class ModuleGenerator {
         List<WasmInstruction> instructions = codeBuilder.getInstructions();
         optimizer.optimze( instructions );
 
-        int lastCodePosition = -1;
+        int lastJavaSourceLine = -1;
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Block:
@@ -390,10 +390,10 @@ public class ModuleGenerator {
                     break;
                 default:
             }
-            int codePosition = instruction.getCodePosition();
-            if( codePosition >= 0 && codePosition != lastCodePosition ) {
-                writer.markCodePosition( codePosition );
-                lastCodePosition = codePosition;
+            int javaSourceLine = instruction.getLineNumber();
+            if( javaSourceLine >= 0 && javaSourceLine != lastJavaSourceLine ) {
+                writer.markSourceLine( javaSourceLine );
+                lastJavaSourceLine = javaSourceLine;
             }
             instruction.writeTo( writer );
         }

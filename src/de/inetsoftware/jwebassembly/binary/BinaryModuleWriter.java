@@ -35,6 +35,7 @@ import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.sourcemap.SourceMapWriter;
+import de.inetsoftware.jwebassembly.sourcemap.SourceMapping;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -205,14 +206,21 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( size == 0 ) {
             return;
         }
-        SourceMapWriter sourceMap = new SourceMapWriter();
+        SourceMapWriter sourceMap = createSourceMap ? new SourceMapWriter() : null;
+
         WasmOutputStream stream = new WasmOutputStream();
         stream.writeVaruint32( size );
         for( Function func : functions.values() ) {
+            if( sourceMap != null && func.sourceMappings != null ) {
+                for( SourceMapping mapping : func.sourceMappings ) {
+                    mapping.addOffset( wasm.size() );
+                    sourceMap.addMapping( mapping );
+                }
+            }
             func.functionsStream.writeTo( stream );
         }
         wasm.writeSection( SectionType.Code, stream );
-        if( createSourceMap ) {
+        if( sourceMap != null ) {
             sourceMap.generate( target.getSourceMapOutput() );
         }
     }
@@ -412,9 +420,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void markCodePosition( int javaCodePosition ) {
+    protected void markSourceLine( int javaSourceLine ) {
         if( createSourceMap ) {
-            function.markCodePosition( codeStream.size(), javaCodePosition, javaSourceFile );
+            function.markCodePosition( codeStream.size(), javaSourceLine, javaSourceFile );
         }
     }
 
