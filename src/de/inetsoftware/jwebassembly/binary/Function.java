@@ -16,7 +16,10 @@
 package de.inetsoftware.jwebassembly.binary;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import de.inetsoftware.jwebassembly.sourcemap.SourceMapping;
 
 /**
  * An entry in the function section of the WebAssembly.
@@ -25,15 +28,15 @@ import java.util.List;
  */
 class Function extends SectionEntry {
 
-    int id;
+    int                      id;
 
-    int typeId;
+    int                      typeId;
 
-    List<String> paramNames;
+    List<String>             paramNames;
 
-    WasmOutputStream functionsStream;
+    WasmOutputStream         functionsStream;
 
-    String sourceFile;
+    ArrayList<SourceMapping> sourceMappings;
 
     /**
      * {@inheritDoc}
@@ -48,12 +51,15 @@ class Function extends SectionEntry {
      * 
      * @param streamPosition
      *            the position in the function stream
-     * @param javaCodePosition
+     * @param javaSourceLine
      *            the position in the Java Source file
+     * @param sourceFileName
+     *            the name of the Java source file
      */
-    void markCodePosition( int streamPosition, int javaCodePosition ) {
-        if( sourceFile != null ) {
-        // TODO Auto-generated method stub
+    void markCodePosition( int streamPosition, int javaSourceLine, String sourceFileName ) {
+        if( sourceMappings == null ) {
+            sourceMappings = new ArrayList<>();
         }
+        sourceMappings.add( new SourceMapping( streamPosition, javaSourceLine, sourceFileName ) );
     }
 }

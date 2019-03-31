@@ -34,6 +34,7 @@ import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
+import de.inetsoftware.jwebassembly.sourcemap.SourceMapWriter;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -81,6 +82,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     private FunctionTypeEntry           functionType;
 
     private int                         exceptionSignatureIndex       = -1;
+
+    private String                      javaSourceFile;
 
     /**
      * Create new instance.
@@ -202,12 +205,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( size == 0 ) {
             return;
         }
+        SourceMapWriter sourceMap = new SourceMapWriter();
         WasmOutputStream stream = new WasmOutputStream();
         stream.writeVaruint32( size );
         for( Function func : functions.values() ) {
             func.functionsStream.writeTo( stream );
         }
         wasm.writeSection( SectionType.Code, stream );
+        if( createSourceMap ) {
+            sourceMap.generate( target.getSourceMapOutput() );
+        }
     }
 
     /**
@@ -358,9 +365,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
         function = getFunction( name );
-        if( createSourceMap ) {
-            function.sourceFile = sourceFile;
-        }
+        this.javaSourceFile = sourceFile;
         functionType = new FunctionTypeEntry();
         codeStream.reset();
         locals.clear();
@@ -409,7 +414,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void markCodePosition( int javaCodePosition ) {
         if( createSourceMap ) {
-            function.markCodePosition( codeStream.size(), javaCodePosition );
+            function.markCodePosition( codeStream.size(), javaCodePosition, javaSourceFile );
         }
     }
 

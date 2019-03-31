@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nonnull;
 
@@ -32,6 +35,8 @@ public class WasmTarget implements Closeable {
     private File         file;
 
     private OutputStream output;
+
+    private Writer       sourceMap;
 
     /**
      * Create a target with a file.
@@ -69,6 +74,21 @@ public class WasmTarget implements Closeable {
     }
 
     /**
+     * Get the source map OutputStream
+     * 
+     * @return the stream
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    @Nonnull
+    public Writer getSourceMapOutput() throws IOException {
+        if( sourceMap == null && file != null ) {
+            sourceMap = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( file + ".map" ) ), StandardCharsets.UTF_8 );
+        }
+        return sourceMap;
+    }
+
+    /**
      * Close all streams
      * 
      * @throws IOException
@@ -76,6 +96,11 @@ public class WasmTarget implements Closeable {
      */
     @Override
     public void close() throws IOException {
-        output.close();
+        if( output != null ) {
+            output.close();
+        }
+        if( sourceMap != null ) {
+            sourceMap.close();
+        }
     }
 }
