@@ -47,9 +47,11 @@ class WasmLocalInstruction extends WasmInstruction {
      *            the memory/slot idx of the variable
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmLocalInstruction( boolean load, @Nonnegative int idx, int javaCodePos ) {
-        super( javaCodePos );
+    WasmLocalInstruction( boolean load, @Nonnegative int idx, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.op = load ? get : set;
         this.idx = idx;
     }

@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 
 /**
@@ -36,9 +35,11 @@ class WasmNopInstruction extends WasmInstruction {
      * 
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmNopInstruction( int javaCodePos ) {
-        super( javaCodePos );
+    WasmNopInstruction( int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
     }
 
     /**

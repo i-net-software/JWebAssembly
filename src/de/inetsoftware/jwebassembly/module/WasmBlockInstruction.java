@@ -46,9 +46,11 @@ class WasmBlockInstruction extends WasmInstruction {
      *            extra data depending of the operator
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmBlockInstruction( @Nonnull WasmBlockOperator op, @Nullable Object data, int javaCodePos ) {
-        super( javaCodePos );
+    WasmBlockInstruction( @Nonnull WasmBlockOperator op, @Nullable Object data, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.op = op;
         this.data = data;
     }

@@ -44,9 +44,11 @@ class WasmCallInstruction extends WasmInstruction {
      *            the function name that should be called
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmCallInstruction( FunctionName name, int javaCodePos ) {
-        super( javaCodePos );
+    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.name = name;
     }
 

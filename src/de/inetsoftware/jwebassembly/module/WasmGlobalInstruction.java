@@ -21,7 +21,6 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Member;
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -46,9 +45,11 @@ class WasmGlobalInstruction extends WasmInstruction {
      *            reference to a static field
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmGlobalInstruction( boolean load, Member ref, int javaCodePos ) {
-        super( javaCodePos );
+    WasmGlobalInstruction( boolean load, Member ref, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.load = load;
         this.ref = ref;
     }

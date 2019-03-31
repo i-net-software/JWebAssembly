@@ -244,8 +244,8 @@ class BranchManger {
 
         gotoBlock.op = JavaBlockOperator.LOOP;
         gotoBlock.endPosition = conditionEnd;
-        instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew ) );
-        instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew ) );
+        instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew, gotoBlock.lineNumber ) );
+        instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew, gotoBlock.lineNumber  ) );
     }
 
     /**
@@ -743,15 +743,18 @@ class BranchManger {
     void handle( CodeInputStream byteCode ) {
         int codePosition = -1;
         for( int idx = 0; idx < instructions.size(); idx++ ) {
-            int nextCodePosition = instructions.get( idx ).getCodePosition();
+            WasmInstruction instr = instructions.get( idx );
+            int lineNumber;
+            int nextCodePosition = instr.getCodePosition();
             if( nextCodePosition <= codePosition ) {
                 continue;
             } else {
                 codePosition = nextCodePosition;
+                lineNumber = instr.getLineNumber();
             }
-            idx = root.handle( codePosition, instructions, idx );
+            idx = root.handle( codePosition, instructions, idx, lineNumber );
         }
-        root.handle( byteCode.getCodePosition(), instructions, instructions.size() );
+        root.handle( byteCode.getCodePosition(), instructions, instructions.size(), byteCode.getLineNumber() );
     }
 
     /**
@@ -947,20 +950,22 @@ class BranchManger {
          *            the target for instructions
          * @param idx
          *            index in the current instruction
+         * @param lineNumber
+         *            the line number in the Java source code
          * @return the new index in the instructions
          */
-        int handle(  int codePosition, List<WasmInstruction> instructions, int idx ) {
+        int handle(  int codePosition, List<WasmInstruction> instructions, int idx, int lineNumber ) {
             if( codePosition < startPos || codePosition > endPos ) {
                 return idx;
             }
             if( codePosition == startPos && startOp != null ) {
-                instructions.add( idx++, new WasmBlockInstruction( startOp, data, codePosition ) );
+                instructions.add( idx++, new WasmBlockInstruction( startOp, data, codePosition, lineNumber ) );
             }
             for( BranchNode branch : this ) {
-                idx = branch.handle( codePosition, instructions, idx );
+                idx = branch.handle( codePosition, instructions, idx, lineNumber );
             }
             if( codePosition == endPos && endOp != null ) {
-                instructions.add( idx++, new WasmBlockInstruction( endOp, null, codePosition ) );
+                instructions.add( idx++, new WasmBlockInstruction( endOp, null, codePosition, lineNumber ) );
             }
             return idx;
         }

@@ -21,7 +21,6 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -46,9 +45,11 @@ class WasmConstInstruction extends WasmInstruction {
      *            the data type of the number
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmConstInstruction( Number value, ValueType valueType, int javaCodePos ) {
-        super( javaCodePos );
+    WasmConstInstruction( Number value, ValueType valueType, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.value = value;
         this.valueType = valueType;
     }
@@ -60,9 +61,11 @@ class WasmConstInstruction extends WasmInstruction {
      *            the constant value
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmConstInstruction( Number value, int javaCodePos ) {
-        this( value, getValueType( value ), javaCodePos );
+    WasmConstInstruction( Number value, int javaCodePos, int lineNumber ) {
+        this( value, getValueType( value ), javaCodePos, lineNumber );
     }
 
     /**

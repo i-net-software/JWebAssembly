@@ -52,9 +52,11 @@ class WasmStructInstruction extends WasmInstruction {
      *            the name of field if needed for the operation
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nullable StructType type, @Nullable String fieldName, int javaCodePos ) {
-        super( javaCodePos );
+    WasmStructInstruction( @Nullable StructOperator op, @Nullable StructType type, @Nullable String fieldName, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.op = op;
         this.type = type;
         this.fieldName = fieldName;

@@ -38,20 +38,26 @@ abstract class WasmInstruction {
         Const, Convert, Local, Global, Block, Numeric, Nop, Call, Array, Struct;
     }
 
-    private int javaCodePos;
+    private int       javaCodePos;
+
+    private final int lineNumber;
 
     /**
      * Create a new instance of an instruction
      * 
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmInstruction( int javaCodePos ) {
+    WasmInstruction( int javaCodePos, int lineNumber ) {
         this.javaCodePos = javaCodePos;
+        this.lineNumber = lineNumber;
     }
 
     /**
      * Get the type of instruction
+     * 
      * @return the type
      */
     @Nonnull
@@ -69,6 +75,7 @@ abstract class WasmInstruction {
 
     /**
      * Get current code position in Java method.
+     * 
      * @return the position
      */
     int getCodePosition() {
@@ -76,11 +83,22 @@ abstract class WasmInstruction {
     }
 
     /**
+     * Get the line number in the Java source file
+     * 
+     * @return the line number
+     */
+    int getLineNumber() {
+        return lineNumber;
+    }
+
+    /**
      * Set a new code position after reorganize the order
-     * @param newPos new position
+     * 
+     * @param newPos
+     *            new position
      */
     void setCodePosition( int newPos ) {
-        this.javaCodePos = newPos; 
+        this.javaCodePos = newPos;
     }
 
     /**

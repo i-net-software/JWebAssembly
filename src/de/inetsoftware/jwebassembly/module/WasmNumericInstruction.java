@@ -21,7 +21,6 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -47,9 +46,11 @@ class WasmNumericInstruction extends WasmInstruction {
      *            the type of the parameters
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos ) {
-        super( javaCodePos );
+    WasmNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.numOp = numOp;
         this.valueType = valueType;
     }

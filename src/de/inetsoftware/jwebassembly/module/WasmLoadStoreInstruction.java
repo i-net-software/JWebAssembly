@@ -41,9 +41,11 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      *            the manager for local variables
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos ) {
-        super( load, idx, javaCodePos );
+    WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
+        super( load, idx, javaCodePos, lineNumber );
         this.localVariables = localVariables;
     }
 

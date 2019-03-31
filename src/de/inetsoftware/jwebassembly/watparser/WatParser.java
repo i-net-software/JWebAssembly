@@ -55,64 +55,64 @@ public class WatParser extends WasmCodeBuilder {
                 String tok = tokens.get( i );
                 switch( tok ) {
                     case "local.get":
-                        addLocalInstruction( true, getInt( tokens, ++i), javaCodePos );
+                        addLocalInstruction( true, getInt( tokens, ++i), javaCodePos, lineNumber );
                         break;
                     case "local.set":
-                        addLocalInstruction( false, getInt( tokens, ++i), javaCodePos );
+                        addLocalInstruction( false, getInt( tokens, ++i), javaCodePos, lineNumber );
                         break;
 //                    case "get_global":
 //                        addGlobalInstruction( true, ref, javaCodePos );
 //                        break;
                     case "i32.const":
-                        addConstInstruction( getInt( tokens, ++i), ValueType.i32, javaCodePos );
+                        addConstInstruction( getInt( tokens, ++i), ValueType.i32, javaCodePos, lineNumber );
                         break;
                     case "i32.add":
-                        addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos );
+                        addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos, lineNumber );
                         break;
                     case "i32.trunc_sat_f32_s":
-                        addConvertInstruction( ValueTypeConvertion.f2i, javaCodePos );
+                        addConvertInstruction( ValueTypeConvertion.f2i, javaCodePos, lineNumber );
                         break;
                     case "i64.extend_i32_s":
-                        addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos );
+                        addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos, lineNumber );
                         break;
                     case "i64.trunc_sat_f64_s":
-                        addConvertInstruction( ValueTypeConvertion.d2l, javaCodePos );
+                        addConvertInstruction( ValueTypeConvertion.d2l, javaCodePos, lineNumber );
                         break;
                     case "f32.convert_i32_s":
-                        addConvertInstruction( ValueTypeConvertion.i2f, javaCodePos );
+                        addConvertInstruction( ValueTypeConvertion.i2f, javaCodePos, lineNumber );
                         break;
                     case "f32.div":
-                        addNumericInstruction( NumericOperator.div, ValueType.f32, javaCodePos );
+                        addNumericInstruction( NumericOperator.div, ValueType.f32, javaCodePos, lineNumber );
                         break;
                     case "f32.max":
-                        addNumericInstruction( NumericOperator.max, ValueType.f32, javaCodePos );
+                        addNumericInstruction( NumericOperator.max, ValueType.f32, javaCodePos, lineNumber );
                         break;
                     case "f32.mul":
-                        addNumericInstruction( NumericOperator.mul, ValueType.f32, javaCodePos );
+                        addNumericInstruction( NumericOperator.mul, ValueType.f32, javaCodePos, lineNumber );
                         break;
                     case "f32.sub":
-                        addNumericInstruction( NumericOperator.sub, ValueType.f32, javaCodePos );
+                        addNumericInstruction( NumericOperator.sub, ValueType.f32, javaCodePos, lineNumber );
                         break;
                     case "f64.convert_i64_s":
-                        addConvertInstruction( ValueTypeConvertion.l2d, javaCodePos );
+                        addConvertInstruction( ValueTypeConvertion.l2d, javaCodePos, lineNumber );
                         break;
                     case "f64.div":
-                        addNumericInstruction( NumericOperator.div, ValueType.f64, javaCodePos );
+                        addNumericInstruction( NumericOperator.div, ValueType.f64, javaCodePos, lineNumber );
                         break;
                     case "f64.max":
-                        addNumericInstruction( NumericOperator.max, ValueType.f64, javaCodePos );
+                        addNumericInstruction( NumericOperator.max, ValueType.f64, javaCodePos, lineNumber );
                         break;
                     case "f64.mul":
-                        addNumericInstruction( NumericOperator.mul, ValueType.f64, javaCodePos );
+                        addNumericInstruction( NumericOperator.mul, ValueType.f64, javaCodePos, lineNumber );
                         break;
                     case "f64.sub":
-                        addNumericInstruction( NumericOperator.sub, ValueType.f64, javaCodePos );
+                        addNumericInstruction( NumericOperator.sub, ValueType.f64, javaCodePos, lineNumber );
                         break;
 //                    case "call":
 //                        addCallInstruction( method, javaCodePos );
 //                        break;
                     case "return":
-                        addBlockInstruction( WasmBlockOperator.RETURN, null, javaCodePos );
+                        addBlockInstruction( WasmBlockOperator.RETURN, null, javaCodePos, lineNumber );
                         break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );

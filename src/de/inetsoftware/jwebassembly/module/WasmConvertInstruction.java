@@ -17,7 +17,6 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 
-import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -38,9 +37,11 @@ class WasmConvertInstruction extends WasmInstruction {
      *            the conversion type
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmConvertInstruction( ValueTypeConvertion conversion, int javaCodePos ) {
-        super( javaCodePos );
+    WasmConvertInstruction( ValueTypeConvertion conversion, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.conversion = conversion;
     }
 

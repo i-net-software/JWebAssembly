@@ -47,9 +47,11 @@ class WasmArrayInstruction extends WasmInstruction {
      *            the type of the parameters
      * @param javaCodePos
      *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
      */
-    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable AnyType type, int javaCodePos ) {
-        super( javaCodePos );
+    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable AnyType type, int javaCodePos, int lineNumber ) {
+        super( javaCodePos, lineNumber );
         this.op = op;
         this.type = type;
     }
