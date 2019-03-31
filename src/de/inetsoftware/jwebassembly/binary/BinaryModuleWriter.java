@@ -85,7 +85,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     /**
      * Create new instance.
      * 
-     * @param output
+     * @param target
      *            the target for the module data.
      * @param properties
      *            compiler properties
