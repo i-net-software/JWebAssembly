@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmOutputStream extends FilterOutputStream {
 
+    private int count;
+
     /**
      * Create a in memory stream.
      */
@@ -47,6 +49,24 @@ class WasmOutputStream extends FilterOutputStream {
      */
     WasmOutputStream( OutputStream output ) {
         super( output );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void write( int b ) throws IOException {
+        out.write( b );
+        count++;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void write( byte[] b, int off, int len ) throws IOException {
+        out.write( b, off, len );
+        count += len;
     }
 
     /**
@@ -245,13 +265,12 @@ class WasmOutputStream extends FilterOutputStream {
     }
 
     /**
-     * The count of bytes in the stream. Work only for in memory stream.
+     * The count of bytes in the stream.
      * 
      * @return the data size
      */
     int size() {
-        ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
-        return baos.size();
+        return count;
     }
 
     /**
@@ -260,5 +279,6 @@ class WasmOutputStream extends FilterOutputStream {
     void reset() {
         ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
         baos.reset();
+        count = 0;
     }
 }
