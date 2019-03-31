@@ -498,6 +498,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_ADD;
                         break;
+                    default:
                 }
                 break;
             case sub:
@@ -514,6 +515,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_SUB;
                         break;
+                    default:
                 }
                 break;
             case neg:
@@ -524,6 +526,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_NEG;
                         break;
+                    default:
                 }
                 break;
             case mul:
@@ -540,6 +543,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_MUL;
                         break;
+                    default:
                 }
                 break;
             case div:
@@ -556,6 +560,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_DIV;
                         break;
+                    default:
                 }
                 break;
             case rem:
@@ -566,6 +571,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case i64:
                         op = I64_REM_S;
                         break;
+                    default:
                 }
                 break;
             case and:
@@ -576,6 +582,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case i64:
                         op = I64_AND;
                         break;
+                    default:
                 }
                 break;
             case or:
@@ -586,6 +593,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case i64:
                         op = I64_OR;
                         break;
+                    default:
                 }
                 break;
             case xor:
@@ -596,6 +604,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case i64:
                         op = I64_XOR;
                         break;
+                    default:
                 }
                 break;
             case shl:
@@ -606,6 +615,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case i64:
                         op = I64_SHL;
                         break;
+                    default:
                 }
                 break;
             case shr_s:
@@ -616,6 +626,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case i64:
                         op = I64_SHR_S;
                         break;
+                    default:
                 }
                 break;
             case shr_u:
@@ -626,6 +637,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case i64:
                         op = I64_SHR_U;
                         break;
+                    default:
                 }
                 break;
             case eq:
@@ -642,6 +654,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_EQ;
                         break;
+                    default:
                 }
                 break;
             case ne:
@@ -658,6 +671,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_NE;
                         break;
+                    default:
                 }
                 break;
             case gt:
@@ -674,6 +688,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_GT;
                         break;
+                    default:
                 }
                 break;
             case lt:
@@ -690,6 +705,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_LT;
                         break;
+                    default:
                 }
                 break;
             case le:
@@ -706,6 +722,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_LE;
                         break;
+                    default:
                 }
                 break;
             case ge:
@@ -722,6 +739,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_GE;
                         break;
+                    default:
                 }
                 break;
             case max:
@@ -732,6 +750,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     case f64:
                         op = F64_MAX;
                         break;
+                    default:
                 }
                 break;
             case ifnull:
@@ -748,6 +767,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.writeOpCode( REF_EQ );
                 op = I32_EQZ;
                 break;
+            default:
         }
         if( op == 0 ) {
             throw new Error( valueType + "." + numOp );
