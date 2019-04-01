@@ -188,7 +188,7 @@ public class SourceMapWriter {
         void appendLineMappings() throws IOException {
             out.append( '\"' );
             for( SourceMapping mapping : mappings ) {
-                int generatedLine = 1; // ever 1 for WebAssembly
+                int generatedLine = 0; // ever 1 for WebAssembly but line one is coded as zero
                 int generatedColumn = mapping.getGeneratedColumn();
 
                 if( generatedLine > 0 && previousLine != generatedLine ) {

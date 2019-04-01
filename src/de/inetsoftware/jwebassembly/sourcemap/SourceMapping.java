@@ -37,7 +37,7 @@ public class SourceMapping {
      */
     public SourceMapping( int generatedColumn, int sourceLine, String sourceFileName ) {
         this.generatedColumn = generatedColumn;
-        this.sourceLine = sourceLine;
+        this.sourceLine = sourceLine - 1; // The first line is coded as zero
         this.sourceFileName = sourceFileName;
     }
 
