@@ -78,6 +78,16 @@ public class SampleCompileTest {
         assertEquals( expected, text );
     }
 
+    @Test
+    public void compileToBinary() throws Exception {
+        JWebAssembly webAsm = new JWebAssembly();
+        webAsm.addFile( classFile );
+        byte[] actual = webAsm.compileToBinary();
+        byte[] expected = {0, 97, 115, 109, 1, 0, 0, 0};
+        actual = Arrays.copyOf( actual, 8 );
+        assertArrayEquals( expected, actual );
+    }
+
 //    @Test
 //    public void compileToBinary() throws Exception {
 //        URL url = SampleCompileTest.class.getResource( "samples/" + testName + ".wasm" );
