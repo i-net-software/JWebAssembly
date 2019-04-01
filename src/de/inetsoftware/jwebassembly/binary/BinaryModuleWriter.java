@@ -207,21 +207,27 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( size == 0 ) {
             return;
         }
-        SourceMapWriter sourceMap = createSourceMap ? new SourceMapWriter() : null;
 
+        int start = wasm.size();
         WasmOutputStream stream = new WasmOutputStream();
         stream.writeVaruint32( size );
         for( Function func : functions.values() ) {
-            if( sourceMap != null && func.sourceMappings != null ) {
-                for( SourceMapping mapping : func.sourceMappings ) {
-                    mapping.addOffset( wasm.size() );
-                    sourceMap.addMapping( mapping );
-                }
-            }
+            func.addCodeOffset( start + stream.size() );
             func.functionsStream.writeTo( stream );
         }
         wasm.writeSection( SectionType.Code, stream );
+
+        SourceMapWriter sourceMap = createSourceMap ? new SourceMapWriter() : null;
         if( sourceMap != null ) {
+            int offset = wasm.size() - start - stream.size();
+            for( Function func : functions.values() ) {
+                if( func.sourceMappings != null ) {
+                    func.addCodeOffset( offset );
+                    for( SourceMapping mapping : func.sourceMappings ) {
+                        sourceMap.addMapping( mapping );
+                    }
+                }
+            }
             sourceMap.generate( target.getSourceMapOutput() );
         }
     }
@@ -461,6 +467,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         WasmOutputStream functionsStream = function.functionsStream = new WasmOutputStream();
         functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
         localsStream.writeTo( functionsStream );
+        function.addCodeOffset( functionsStream.size() );
         codeStream.writeTo( functionsStream );
         functionsStream.write( END );
     }

@@ -62,4 +62,18 @@ class Function extends SectionEntry {
         }
         sourceMappings.add( new SourceMapping( streamPosition, javaSourceLine, sourceFileName ) );
     }
+
+    /**
+     * Add an offset to the marked code position in the source map
+     * 
+     * @param offset
+     *            the offset
+     */
+    void addCodeOffset( int offset ) {
+        if( sourceMappings != null ) {
+            for( SourceMapping mapping : sourceMappings ) {
+                mapping.addOffset( offset );
+            }
+        }
+    }
 }
