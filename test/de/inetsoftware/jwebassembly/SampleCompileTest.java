@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -87,6 +88,20 @@ public class SampleCompileTest {
         actual = Arrays.copyOf( actual, 8 );
         assertArrayEquals( expected, actual );
     }
+
+    @Test
+    public void npe() throws Exception {
+        JWebAssembly webAsm = new JWebAssembly();
+        webAsm.addFile( classFile );
+        try {
+            webAsm.compileToBinary( (OutputStream)null );
+            fail();
+        } catch( WasmException ex ) {
+            // expected
+            assertTrue( "" + ex.getCause(), ex.getCause() instanceof NullPointerException );
+        }
+    }
+
 
 //    @Test
 //    public void compileToBinary() throws Exception {
