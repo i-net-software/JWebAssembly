@@ -12,8 +12,8 @@ public class SourceMapWriterTest {
     public void simple() throws IOException {
         SourceMapWriter map = new SourceMapWriter();
 
-        map.addMapping( new SourceMapping( 0, 0, "Test1.java" ) );
-        map.addMapping( new SourceMapping( 5, 1, "Test1.java" ) );
+        map.addMapping( new SourceMapping( 0, 1, "Test1.java" ) );
+        map.addMapping( new SourceMapping( 5, 2, "Test1.java" ) );
         map.addMapping( new SourceMapping( 0, 4, "Test2.java" ) );
         map.addMapping( new SourceMapping( 5, 9, "Test2.java" ) );
 
@@ -23,7 +23,7 @@ public class SourceMapWriterTest {
                         "\"version\":3,\n" + 
                         "\"sources\":[\"Test1.java\",\"Test2.java\"],\n" + 
                         "\"names\":[],\n" + 
-                        "\"mappings\":\";AAAA,KACA,LCGA,KAKA;\"\n" + 
+                        "\"mappings\":\"AAAA,KACA,LCEA,KAKA;\"\n" + 
                         "}";
         assertEquals( expected, generate.toString() );
     }
