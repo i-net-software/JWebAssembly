@@ -74,6 +74,19 @@ public class WasmTarget implements Closeable {
     }
 
     /**
+     * Get the URL for the source mapping that should be write into the assembly.
+     * 
+     * @return the URL string or null.
+     */
+    @Nonnull
+    public String getSourceMappingURL() {
+        if( file != null ) {
+            return file.getName() + ".map";
+        }
+        return null;
+    }
+
+    /**
      * Get the source map OutputStream
      * 
      * @return the stream

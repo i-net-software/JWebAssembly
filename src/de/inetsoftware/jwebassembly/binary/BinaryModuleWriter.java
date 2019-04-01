@@ -125,6 +125,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeExportSection();
         writeCodeSection();
         writeDebugNames();
+        writeSourceMappingUrl();
         writeProducersSection();
 
         wasm.close();
@@ -269,6 +270,26 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         stream.writeVaruint32( section.size() );
         section.writeTo( stream );
 
+        wasm.writeSection( SectionType.Custom, stream );
+    }
+
+    /**
+     * Write the source mapping url
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeSourceMappingUrl() throws IOException {
+        if( !createSourceMap ) {
+            return;
+        }
+        String url = target.getSourceMappingURL();
+        if( url == null ) {
+            return;
+        }
+        WasmOutputStream stream = new WasmOutputStream();
+        stream.writeString( "sourceMappingURL" ); // Custom Section name "sourceMappingURL", content is part of the section length
+        stream.writeString( url );
         wasm.writeSection( SectionType.Custom, stream );
     }
 
