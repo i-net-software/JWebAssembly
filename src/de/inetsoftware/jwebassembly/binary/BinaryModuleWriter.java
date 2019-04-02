@@ -400,7 +400,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
         function = getFunction( name );
-        this.javaSourceFile = sourceFile;
+        if( createSourceMap ) {
+            int idx = name.className.lastIndexOf( '/' );
+            this.javaSourceFile = name.className.substring( 0, idx + 1 ) + sourceFile;
+        }
         functionType = new FunctionTypeEntry();
         codeStream.reset();
         locals.clear();
