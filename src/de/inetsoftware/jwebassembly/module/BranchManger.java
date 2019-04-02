@@ -190,7 +190,6 @@ class BranchManger {
                             if( nextBlock.op == JavaBlockOperator.GOTO && nextBlock.endPosition == nextPos && n > 1 ) { // Eclipse loop with wide goto_w
                                 ParsedBlock prevBlock = allParsedOperations.get( n - 1 );
                                 if( prevBlock.op == JavaBlockOperator.IF && prevBlock.endPosition == nextBlock.nextPosition ) {
-                                    System.err.println( nextBlock );
                                     int conditionStart = parsedBlock.endPosition;
                                     int conditionEnd = prevBlock.nextPosition;
                                     convertToLoop( parsedBlock, conditionStart, conditionEnd );
