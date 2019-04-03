@@ -37,7 +37,7 @@ The following table shows the status of future WebAssembly features required by 
 
 | Feature                 | V8     | SpiderMonkey | WABT   |
 | ----------------------- | ------ | ------------ | ------ |
-| [floar-to-int][1]       | yes    | yes          | yes    |
+| [float-to-int][1]       | yes    | yes          | yes    |
 | [Sign-extension][2]     | yes    | yes          | yes    |
 | [Multi-value][3]        | yes    | -            | yes    |
 | [Reference Types][4]    | yes    | yes          | -      |
