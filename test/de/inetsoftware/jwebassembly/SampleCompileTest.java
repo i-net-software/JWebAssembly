@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -102,17 +103,35 @@ public class SampleCompileTest {
         }
     }
 
+    @Test
+    public void binaryIoError() throws Exception {
+        JWebAssembly webAsm = new JWebAssembly();
+        webAsm.addFile( classFile );
+        File tempDir = Files.createTempDirectory( null ).toFile(); 
+        try {
+            webAsm.compileToBinary( tempDir );
+            fail();
+        } catch( WasmException ex ) {
+            // expected
+            tempDir.delete();
+            assertTrue( "" + ex.getCause(), ex.getCause() instanceof IOException );
+            assertEquals( -1, ex.getLineNumber() );
+        }
+    }
 
-//    @Test
-//    public void compileToBinary() throws Exception {
-//        URL url = SampleCompileTest.class.getResource( "samples/" + testName + ".wasm" );
-//        File wasmFile = new File( url.toURI() );
-//        byte[] expected = Files.readAllBytes( wasmFile.toPath() );
-//        JWebAssembly webAsm = new JWebAssembly();
-//        webAsm.addFile( classFile );
-//        byte[] actual = webAsm.compileToBinary();
-//        System.err.println(Arrays.toString( expected ));
-//        System.err.println(Arrays.toString( actual ));
-//        assertArrayEquals( expected, actual );
-//    }
+    @Test
+    public void textIoError() throws Exception {
+        JWebAssembly webAsm = new JWebAssembly();
+        webAsm.addFile( classFile );
+        File tempDir = Files.createTempDirectory( null ).toFile(); 
+        try {
+            webAsm.compileToText( tempDir );
+            fail();
+        } catch( WasmException ex ) {
+            // expected
+            tempDir.delete();
+            assertTrue( "" + ex.getCause(), ex.getCause() instanceof IOException );
+            assertEquals( -1, ex.getLineNumber() );
+        }
+    }
 }
