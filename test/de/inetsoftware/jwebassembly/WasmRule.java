@@ -111,6 +111,7 @@ public class WasmRule extends TemporaryFolder {
             wasm.addFile( url );
         }
         wasm.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
+        assertEquals( "true", wasm.getProperty( JWebAssembly.DEBUG_NAMES ) );
 
         // add the libraries that it can be scanned for annotations
         final String[] libraries = System.getProperty("java.class.path").split(File.pathSeparator);
