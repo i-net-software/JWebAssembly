@@ -138,7 +138,7 @@ public class JWebAssembly {
      */
     public void addLibrary( @Nonnull File library ) {
         try {
-            libraries.add( library.toURI().toURL() );
+            addLibrary( library.toURI().toURL() );
         } catch( MalformedURLException ex ) {
             throw new IllegalArgumentException( ex );
         }
