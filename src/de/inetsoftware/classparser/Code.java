@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2018 Volker Berlin (i-net software)
+   Copyright 2011 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -90,6 +90,13 @@ public class Code {
         return lineNumberTable;
     }
 
+    /**
+     * Get the local variable table of this method.
+     * 
+     * @return the variables
+     * @throws IOException
+     *             if any I/O error occur
+     */
     @Nullable
     public LocalVariableTable getLocalVariableTable() throws IOException{
         if( localVariableTable != null ){
