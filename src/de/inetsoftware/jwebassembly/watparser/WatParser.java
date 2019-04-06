@@ -47,7 +47,7 @@ public class WatParser extends WasmCodeBuilder {
      */
     public void parse( String wat, int lineNumber ) {
         try {
-            reset();
+            reset( null );
 
             List<String> tokens = splitTokens( wat );
             for( int i = 0; i < tokens.size(); i++ ) {

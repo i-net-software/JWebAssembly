@@ -55,7 +55,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
     void buildCode( @Nonnull Code code, boolean hasReturn ) {
         CodeInputStream byteCode = null;
         try {
-            reset();
+            reset( code.getLocalVariableTable() );
             branchManager.reset( code );
 
             byteCode = code.getByteCode();

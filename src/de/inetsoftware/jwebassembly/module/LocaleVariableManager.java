@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -55,8 +56,11 @@ class LocaleVariableManager {
 
     /**
      * Reset the manager to an initial state
+     * 
+     * @param variableTable
+     *            variable table of the Java method.
      */
-    void reset() {
+    void reset( LocalVariableTable variableTable ) {
         for( int i = 0; i < size; i++ ) {
             LocaleVariable var = variables[i];
             var.valueType = null;
@@ -73,8 +77,10 @@ class LocaleVariableManager {
      *            the type of the local variable
      * @param slot
      *            the memory/slot index of the local variable
+     * @param javaCodePos
+     *            the code position/offset in the Java method
      */
-    void use( AnyType valueType, int slot ) {
+    void use( AnyType valueType, int slot, int javaCodePos ) {
         if( slot < 0 ) {
             needTempI32 = true;
             return;
@@ -100,7 +106,7 @@ class LocaleVariableManager {
      */
     void calculate() {
         if( needTempI32 ) {
-            use( ValueType.i32, size );
+            use( ValueType.i32, size, -1 );
         }
         int idx = 0;
         for( int i = 0; i < size; i++ ) {

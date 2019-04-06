@@ -22,6 +22,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -89,10 +90,13 @@ public abstract class WasmCodeBuilder {
 
     /**
      * Reset the code builder.
+     * 
+     * @param variableTable
+     *            variable table of the Java method.
      */
-    protected void reset() {
+    protected void reset( LocalVariableTable variableTable ) {
         instructions.clear();
-        localVariables.reset();
+        localVariables.reset( variableTable );
     }
 
     /**
@@ -118,7 +122,7 @@ public abstract class WasmCodeBuilder {
      */
     @Nonnull
     protected void addLoadStoreInstruction( AnyType valueType, boolean load, @Nonnegative int javaIdx, int javaCodePos, int lineNumber ) {
-        localVariables.use( valueType, javaIdx );
+        localVariables.use( valueType, javaIdx, javaCodePos );
         instructions.add( new WasmLoadStoreInstruction( load, javaIdx, localVariables, javaCodePos, lineNumber ) );
     }
 
