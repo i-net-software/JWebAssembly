@@ -150,7 +150,7 @@ class LocaleVariableManager {
             Variable var = variables[size];
             var.valueType = null;
             var.name = null;
-            var.idx = size;
+            var.idx = i;
             var.startPos = 0;
             var.endPos = Integer.MAX_VALUE;
             size++;
