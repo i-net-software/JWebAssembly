@@ -80,11 +80,12 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      *             if some Java code can't converted
      */
     private void writeCode( CodeInputStream byteCode, ConstantPool constantPool, boolean hasReturn ) throws WasmException {
+        int lineNumber = -1;
         try {
             boolean wide = false;
             while( byteCode.available() > 0 ) {
                 int codePos = byteCode.getCodePosition();
-                int lineNumber = byteCode.getLineNumber();
+                lineNumber = byteCode.getLineNumber();
                 int op = byteCode.readUnsignedByte();
                 switch( op ) {
                     case 0: // nop
@@ -654,10 +655,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 // But WebAssembly need the dead code to validate
                 addBlockInstruction( WasmBlockOperator.UNREACHABLE, null, byteCode.getCodePosition(), byteCode.getLineNumber() );
             }
-        } catch( WasmException ex ) {
-            throw ex;
         } catch( Exception ex ) {
-            throw WasmException.create( ex, byteCode.getLineNumber() );
+            throw WasmException.create( ex, lineNumber );
         }
     }
 
