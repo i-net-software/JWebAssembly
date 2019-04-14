@@ -105,11 +105,9 @@ public class Code {
         AttributeInfo data = attributes.get( "LocalVariableTable" );
         if( data != null ) {
             localVariableTable = new LocalVariableTable( maxLocals, constantPool );
-            localVariableTable.read( data.getDataInputStream(), true );
-            data = attributes.get( "LocalVariableTypeTable" );
-            if( data != null ) {
-                localVariableTable.read( data.getDataInputStream(), false );
-            }
+            localVariableTable.read( data.getDataInputStream() );
+            // we does not need any generics information
+            // data = attributes.get( "LocalVariableTypeTable" );
         }
         return localVariableTable;
     }

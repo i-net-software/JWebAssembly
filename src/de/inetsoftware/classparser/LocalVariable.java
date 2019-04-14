@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2018 Volker Berlin (i-net software)
+   Copyright 2011 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,17 +28,11 @@ public class LocalVariable {
 
     private final int length;
 
-    private final int name_index;
+    private final String name;
 
-    private final int descriptor_index;
+    private final String signature;
 
     private final int index;
-
-    private final int position;
-
-    private final ConstantPool constantPool;
-
-    private boolean declared;
 
     /**
      * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.13
@@ -53,14 +47,12 @@ public class LocalVariable {
      * @throws IOException
      *             if any I/O error occurs.
      */
-    LocalVariable( DataInputStream input, int position, ConstantPool constantPool ) throws IOException {
+    LocalVariable( DataInputStream input, ConstantPool constantPool ) throws IOException {
         start_pc = input.readUnsignedShort();
         length = input.readUnsignedShort();
-        name_index = input.readUnsignedShort();
-        descriptor_index = input.readUnsignedShort();
+        name = (String)constantPool.get( input.readUnsignedShort() );
+        signature = (String)constantPool.get( input.readUnsignedShort() );
         index = input.readUnsignedShort();
-        this.position = position;
-        this.constantPool = constantPool;
     }
 
     /**
@@ -73,39 +65,39 @@ public class LocalVariable {
     }
 
     /**
-     * Get the position in the local variable table.
-     * 
-     * @return the position
-     */
-    public int getPosition() {
-        return position;
-    }
-
-    /**
      * Get the name of the variable
      * 
      * @return the name
      */
     public String getName() {
-        return (String)constantPool.get( name_index );
-    }
-
-    public int getDescriptorIdx() {
-        return descriptor_index;
+        return name;
     }
 
     /**
-     * Was the declaration printed?
-     * @return true if already declared
+     * Get the type/signature of the variable
+     * 
+     * @return the signature
      */
-    public boolean isDeclared() {
-        return declared;
+    public String getSignature() {
+        return signature;
     }
 
     /**
-     * Mark this variable as declared.
+     * Get the code position within the local variable has a value. The first set operation to the variable will start
+     * before this position.
+     * 
+     * @return the position.
      */
-    public void setDeclared() {
-        declared = true;
+    public int getStartPosition() {
+        return start_pc;
+    }
+
+    /**
+     * Get the code position length within the local variable has a value.
+     * 
+     * @return the length
+     */
+    public int getLengthPosition() {
+        return length;
     }
 }

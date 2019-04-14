@@ -89,6 +89,32 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Get the name of the variable or null if no name available
+     * 
+     * @param idx
+     *            the wasm variable index
+     * @return the name
+     */
+    String getLocalName( int idx ) {
+        return localVariables.getLocalName( idx );
+    }
+
+    /**
+     * Get the slot of the temporary variable.
+     * 
+     * @param valueType
+     *            the valueType for the variable
+     * @param startCodePosition
+     *            the start of the Java code position
+     * @param endCodePosition
+     *            the end of the Java code position
+     * @return the slot
+     */
+    int getTempVariable( AnyType valueType, int startCodePosition, int endCodePosition ) {
+        return localVariables.getTempVariable( valueType, startCodePosition, endCodePosition );
+    }
+
+    /**
      * Reset the code builder.
      * 
      * @param variableTable

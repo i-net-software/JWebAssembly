@@ -54,7 +54,7 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      */
     @Override
     int getIndex() {
-        return localVariables.get( super.getIndex() ); // translate slot index to position index
+        return localVariables.get( super.getIndex(), getCodePosition() ); // translate slot index to position index
     }
 
     /**

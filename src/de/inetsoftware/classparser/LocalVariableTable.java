@@ -19,9 +19,6 @@ package de.inetsoftware.classparser;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 /**
  * @author Volker Berlin
  */
@@ -29,11 +26,9 @@ public class LocalVariableTable {
 
     private final ConstantPool constantPool;
 
-    private LocalVariable[] tablePosition;
+    private final int          maxLocals;
 
-    private LocalVariable[] table;
-
-    private int count;
+    private LocalVariable[]    table;
 
     /**
      * Create a new instance of the code attribute "LocalVariableTable".
@@ -44,8 +39,7 @@ public class LocalVariableTable {
      *            Reference to the current ConstantPool
      */
     LocalVariableTable( int maxLocals, ConstantPool constantPool ) {
-        table = new LocalVariable[maxLocals];
-        tablePosition = new LocalVariable[maxLocals];
+        this.maxLocals = maxLocals;
         this.constantPool = constantPool;
     }
 
@@ -55,87 +49,34 @@ public class LocalVariableTable {
      *
      * @param input
      *            the stream of the class
-     * @param withPositions
-     *            a hack if we find a better solution to map the positions LocalVariableTypeTable
      * @throws IOException
      *             if any I/O error occurs.
      */
-    void read( DataInputStream input, boolean withPositions ) throws IOException {
-        count = input.readUnsignedShort();
-        boolean[] wasSet = new boolean[table.length];
+    void read( DataInputStream input ) throws IOException {
+        int count = input.readUnsignedShort();
+        table = new LocalVariable[count];
         for( int i = 0; i < count; i++ ) {
-            LocalVariable var = new LocalVariable( input, i, constantPool );
-            int idx = var.getIndex();
-            if( !wasSet[idx] ) { // does not use index of reused variable
-                table[idx] = var;
-                wasSet[idx] = true;
-            }
-        }
-
-        if( withPositions ) {
-            for( int i = 0, t = 0; i < table.length; i++ ) {
-                LocalVariable var = table[i];
-                if( var != null ) {
-                    tablePosition[t++] = var;
-                }
-            }
+            table[i] = new LocalVariable( input, constantPool );
         }
     }
 
     /**
-     * Get the count of variables.
+     * Get the count of variables/slots. This is not the count of declared LocalVariable in this table. There can be
+     * unnamed helper variables for the compiler which are not in the table. There can be reused slots for different
+     * variables.
+     * 
      * @return the count
      */
-    public int getPositionSize() {
-        return tablePosition.length;
+    public int getMaxLocals() {
+        return maxLocals;
     }
 
     /**
-     * Get the count of storage places a 4 bytes for local variables. Double and long variables need 2 of this places.
+     * Get the declared local variables
      * 
-     * @return the local stack size
+     * @return the variables
      */
-    public int getSize() {
-        return table.length;
-    }
-
-    /**
-     * Get the LocalVariable with it position. The position is continue also with double and long variables. Or if a variable is reused from a other block.
-     *
-     * @param pos
-     *            the position
-     */
-    @Nonnull
-    public LocalVariable getPosition( int pos ) {
-        return tablePosition[pos];
-    }
-
-    /**
-     * Get the LocalVariable with its memory location (slot). The index has empty places with double and long variables.
-     *
-     * @param idx
-     *            the index in the memory
-     * @return the LocalVariable
-     */
-    @Nonnull
-    public LocalVariable get( int idx ) {
-        return table[idx];
-    }
-
-    /**
-     * Find a LocalVariable with a given name.
-     *
-     * @param name
-     *            needed for evaluate the name.
-     * @return the LocalVariable or null
-     */
-    @Nullable
-    public LocalVariable get( String name ) {
-        for( int i=0; i<table.length; i++ ){
-            if( name.equals( table[i].getName() )) {
-                return table[i];
-            }
-        }
-        return null;
+    public LocalVariable[] getTable() {
+        return table;
     }
 }

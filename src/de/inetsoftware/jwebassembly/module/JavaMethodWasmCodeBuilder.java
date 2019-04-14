@@ -692,7 +692,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 keys[i] = byteCode.readInt();
                 positions[i] = startPosition + byteCode.readInt();
             }
-            int tempI32 = -1;
+            int tempI32 = getTempVariable( ValueType.i32, codePos, Integer.MAX_VALUE );
             int block = 0;
             int defaultBlock = -1;
             int currentPos = -1;

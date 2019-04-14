@@ -32,14 +32,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
-import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.FieldInfo;
-import de.inetsoftware.classparser.LocalVariable;
-import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
@@ -169,7 +165,7 @@ public class ModuleGenerator {
             if( stream == null ) {
                 if( next instanceof SyntheticFunctionName ) {
                     watParser.parse( ((SyntheticFunctionName)next).getCode(), -1 );
-                    writeMethodImpl( next, true, null, watParser );
+                    writeMethodImpl( next, true, watParser );
                 } else {
                     throw new WasmException( "Missing function: " + next.signatureName, -1 );
                 }
@@ -297,7 +293,7 @@ public class ModuleGenerator {
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
-                writeMethodSignature( name, true, null, null );
+                writeMethodSignature( name, true, null );
                 return;
             }
             if( (annotationValues = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION )) != null ) {
@@ -328,15 +324,14 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethod( FunctionName name, MethodInfo method ) throws WasmException {
-        CodeInputStream byteCode = null;
+    private void writeMethod( FunctionName name, MethodInfo method ) throws WasmException, IOException {
+        Code code = null;
         try {
             if( method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION  ) != null ) {
                 return;
             }
             WasmCodeBuilder codeBuilder;
-            Code code = method.getCode();
-            LocalVariableTable localVariableTable;
+            code = method.getCode();
             if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  ) != null ) {
                 Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
                 String watCode = (String)wat.get( "value" );
@@ -346,56 +341,58 @@ public class ModuleGenerator {
                 }
                 watParser.parse( watCode, code == null ? -1 : code.getFirstLineNr() );
                 codeBuilder = watParser;
-                localVariableTable = null;
             } else if( code != null ) { // abstract methods and interface methods does not have code
                 javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
                 codeBuilder = javaCodeBuilder;
-                localVariableTable = code.getLocalVariableTable();
             } else {
                 throw new WasmException( "Abstract or native method can not be used: " + name.fullName, -1 );
             }
             writeExport( name, method );
-            writeMethodImpl( name, method.isStatic(), localVariableTable, codeBuilder );
+            writeMethodImpl( name, method.isStatic(), codeBuilder );
         } catch( Exception ioex ) {
-            int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
+            int lineNumber = code == null ? -1 : code.getFirstLineNr();
             throw WasmException.create( ioex, sourceFile, className, lineNumber );
         }
     }
 
-    private void writeMethodImpl( FunctionName name, boolean isStatic, LocalVariableTable localVariableTable, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
+    private void writeMethodImpl( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
         writer.writeMethodStart( name, sourceFile );
         functions.writeFunction( name );
-        writeMethodSignature( name, isStatic, localVariableTable, codeBuilder );
+        writeMethodSignature( name, isStatic, codeBuilder );
 
         List<WasmInstruction> instructions = codeBuilder.getInstructions();
         optimizer.optimze( instructions );
 
         int lastJavaSourceLine = -1;
         for( WasmInstruction instruction : instructions ) {
-            switch( instruction.getType() ) {
-                case Block:
-                    switch( ((WasmBlockInstruction)instruction).getOperation() ) {
-                        case TRY:
-                        case CATCH:
-                            writer.writeException();
-                            break;
-                        default:
-                    }
-                    break;
-                case Call:
-                    functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
-                    break;
-                case Struct:
-                    setStructType( (WasmStructInstruction)instruction );
-                    break;
-                default:
+            try {
+                switch( instruction.getType() ) {
+                    case Block:
+                        switch( ((WasmBlockInstruction)instruction).getOperation() ) {
+                            case TRY:
+                            case CATCH:
+                                writer.writeException();
+                                break;
+                            default:
+                        }
+                        break;
+                    case Call:
+                        functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
+                        break;
+                    case Struct:
+                        setStructType( (WasmStructInstruction)instruction );
+                        break;
+                    default:
+                }
+                int javaSourceLine = instruction.getLineNumber();
+                if( javaSourceLine >= 0 && javaSourceLine != lastJavaSourceLine ) {
+                    writer.markSourceLine( javaSourceLine );
+                    lastJavaSourceLine = javaSourceLine;
+                }
+                instruction.writeTo( writer );
+            } catch( Throwable th ) {
+                throw WasmException.create( th, instruction.getLineNumber() );
             }
-            int javaSourceLine = instruction.getLineNumber();
-            if( javaSourceLine >= 0 && javaSourceLine != lastJavaSourceLine ) {
-                writer.markSourceLine( javaSourceLine );
-                lastJavaSourceLine = javaSourceLine;
-            }
-            instruction.writeTo( writer );
         }
         writer.writeMethodFinish();
     }
@@ -429,8 +426,6 @@ public class ModuleGenerator {
      *            the Java signature, typical method.getType();
      * @param isStatic
      *            if method is static
-     * @param variables
-     *            Java variable table with names of the variables for debugging
      * @param codeBuilder
      *            the calculated variables 
      * @throws IOException
@@ -438,7 +433,7 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( FunctionName name, boolean isStatic, @Nullable LocalVariableTable variables, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+    private void writeMethodSignature( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
         int paramCount = 0;
         if( !isStatic ) {
             writer.writeMethodParam( "param", ValueType.anyref, "this" );
@@ -449,8 +444,8 @@ public class ModuleGenerator {
             while( parser.hasNext() && (type = parser.next()) != null ) {
                 String paramName = null;
                 if( kind == "param" ) {
-                    if( variables != null ) {
-                        paramName = variables.getPosition( paramCount ).getName();
+                    if( codeBuilder != null ) {
+                        paramName = codeBuilder.getLocalName( paramCount );
                     }
                     paramCount++;
                 }
@@ -466,16 +461,8 @@ public class ModuleGenerator {
             List<AnyType> localTypes = codeBuilder.getLocalTypes( paramCount );
             for( int i = 0; i < localTypes.size(); i++ ) {
                 type = localTypes.get( i );
-                String paramName = null;
-                if( variables != null ) {
-                    int idx = paramCount + i;
-                    if( idx < variables.getPositionSize() ) {
-                        LocalVariable variable = variables.getPosition( idx );
-                        if( variable != null ) {
-                            paramName = variable.getName();
-                        }
-                    }
-                }
+                int idx = paramCount + i;
+                String paramName = codeBuilder.getLocalName( idx );
                 writer.writeMethodParam( "local", type, paramName );
             }
         }

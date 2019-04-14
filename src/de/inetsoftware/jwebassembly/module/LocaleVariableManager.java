@@ -18,8 +18,13 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import de.inetsoftware.classparser.LocalVariable;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -35,22 +40,22 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class LocaleVariableManager {
 
-    private LocaleVariable[]     variables;
+    private Variable[]               variables;
 
-    private int                  size;
+    private int                      size;
 
-    private boolean              needTempI32;
+    private final ArrayList<AnyType> localTypes = new ArrayList<>();
 
-    private ArrayList<AnyType> localTypes = new ArrayList<>();
+    private final HashSet<String>    names      = new HashSet<>();
 
     /**
      * Create a new instance.
      */
     LocaleVariableManager() {
         // initialize with a initial capacity that should be enough for the most methods
-        variables = new LocaleVariable[8];
+        variables = new Variable[8];
         for( int i = 0; i < variables.length; i++ ) {
-            variables[i] = new LocaleVariable();
+            variables[i] = new Variable();
         }
     }
 
@@ -61,13 +66,118 @@ class LocaleVariableManager {
      *            variable table of the Java method.
      */
     void reset( LocalVariableTable variableTable ) {
-        for( int i = 0; i < size; i++ ) {
-            LocaleVariable var = variables[i];
-            var.valueType = null;
-            var.idx = -1;
-        }
         size = 0;
-        needTempI32 = false;
+
+        if( variableTable == null ) {
+            return;
+        }
+
+        /**
+         * Java can use reuse a variable slot in a different block. The type can be different in the block. WebAssembly
+         * does not support a type change for a local variable. That we need to create 2 variables. This try the follow
+         * complex code.
+         */
+
+        LocalVariable[] vars = variableTable.getTable();
+        ensureCapacity( vars.length );
+
+        // transfer all declarations from the LocalVariableTable
+        for( int i = 0; i < vars.length; i++ ) {
+            LocalVariable local = vars[i];
+            Variable var = variables[size];
+            var.valueType = ValueType.getValueType( local.getSignature() );
+            var.name = local.getName();
+            var.idx = local.getIndex();
+            var.startPos = local.getStartPosition() - 2;
+            var.endPos = local.getStartPosition() + local.getLengthPosition();
+            size++;
+        }
+
+        // sort to make sure but it should already sorted
+        Arrays.sort( variables, 0, size, (Comparator<Variable>)( v1, v2 ) -> {
+            int comp = Integer.compare( v1.idx, v2.idx );
+            if( comp != 0 ) {
+                return comp;
+            }
+            return Integer.compare( v1.startPos, v2.startPos );
+        } );
+
+        // reduce all duplications if there are no conflicts and expands startPos and endPos
+        for( int i = 0; i < size - 1; i++ ) {
+            Variable var = variables[i];
+            int j = i + 1;
+            Variable var2 = variables[j];
+            if( var.idx == var2.idx ) {
+                if( var.valueType == var2.valueType ) {
+                    var.endPos = var2.endPos;
+                    size--;
+                    int count = size - j;
+                    if( count > 0 ) {
+                        System.arraycopy( variables, j + 1, variables, j, count );
+                        variables[size] = var2;
+                    }
+                    i--;
+                    continue;
+                }
+            } else {
+                var.endPos = Integer.MAX_VALUE;
+                var2.startPos = 0;
+            }
+        }
+        if( size > 0 ) {
+            variables[0].startPos = 0;
+            variables[size - 1].endPos = Integer.MAX_VALUE;
+        }
+
+        // make the names unique if there conflicts. Java can use the same variable name in different blocks. WebAssembly text output does not accept this. 
+        names.clear();
+        for( int i = 0; i < size; i++ ) {
+            Variable var = variables[i];
+            var.valueType = null; // TODO temporary hack
+            var.name = findUniqueVarName( var.name );
+        }
+
+        // add all missing slots that we can add self temporary variables
+        int maxLocals = variableTable.getMaxLocals();
+        NEXT: for( int i = 0; i < maxLocals; i++ ) {
+            for( int j = 0; j < size; j++ ) {
+                Variable var = variables[j];
+                if( var.idx == i ) {
+                    continue NEXT;
+                }
+            }
+            ensureCapacity( size + 1 );
+            Variable var = variables[size];
+            var.valueType = null;
+            var.name = null;
+            var.idx = size;
+            var.startPos = 0;
+            var.endPos = Integer.MAX_VALUE;
+            size++;
+        }
+    }
+
+    /**
+     * Find a unique variable name.
+     * 
+     * @param name
+     *            the suggested name
+     * @return a name that not was used before
+     */
+    private String findUniqueVarName( String name ) {
+        if( names.contains( name ) ) {
+            // duplicate name for a variable in a different block
+            int id = 1;
+            do {
+                String name2 = name + '_' + ++id;
+                if( !names.contains( name2 ) ) {
+                    name = name2;
+                    break;
+                }
+            } while( true );
+        }
+        names.add( name );
+        return name;
     }
 
     /**
@@ -81,13 +191,8 @@ class LocaleVariableManager {
      *            the code position/offset in the Java method
      */
     void use( AnyType valueType, int slot, int javaCodePos ) {
-        if( slot < 0 ) {
-            needTempI32 = true;
-            return;
-        }
-        ensureCapacity( slot );
-        size = Math.max( size, slot + 1 );
-        LocaleVariable var = variables[slot];
+        int idx = get( slot, javaCodePos );
+        Variable var = variables[idx];
         if( var.valueType != null && var.valueType != valueType ) {
             if( var.valueType.getCode() >= 0 && valueType == ValueType.anyref ) {
                 return;
@@ -95,7 +200,8 @@ class LocaleVariableManager {
             if( valueType.getCode() >= 0 && var.valueType == ValueType.anyref ) {
                 // set the more specific type
             } else {
-                throw new WasmException( "Redefine local variable type from " + var.valueType + " to " + valueType + " in slot " + slot, null, null, -1 );
+                throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot "
+                                + slot, null, null, -1 );
             }
         }
         var.valueType = valueType;
@@ -105,16 +211,14 @@ class LocaleVariableManager {
      * Calculate the WebAssembly index position on the consumed data.
      */
     void calculate() {
-        if( needTempI32 ) {
-            use( ValueType.i32, size, -1 );
-        }
-        int idx = 0;
         for( int i = 0; i < size; i++ ) {
-            LocaleVariable var = variables[i];
-            if( var.valueType == null ) { // unused slot or extra slot for double and long values 
-                continue;
+            Variable var = variables[i];
+            if( var.valueType == null ) {
+                size--;
+                System.arraycopy( variables, i + 1, variables, i, size - i );
+                variables[size] = var;
+                i--;
             }
-            var.idx = idx++;
         }
     }
 
@@ -127,23 +231,45 @@ class LocaleVariableManager {
      */
     List<AnyType> getLocalTypes( int paramCount ) {
         localTypes.clear();
-        for( int i = 0; i < size; i++ ) {
-            LocaleVariable var = variables[i];
-            if( var.idx >= paramCount ) {
-                localTypes.add( var.valueType );
-            }
+        for( int i = paramCount; i < size; i++ ) {
+            Variable var = variables[i];
+            localTypes.add( var.valueType );
         }
         return localTypes;
     }
 
     /**
+     * Get the name of the variable or null if no name available
+     * 
+     * @param idx
+     *            the wasm variable index
+     * @return the name
+     */
+    @Nullable
+    String getLocalName( int idx ) {
+        return variables[idx].name;
+    }
+
+    /**
      * Get the slot of the temporary variable.
      * 
+     * @param valueType
+     *            the valueType for the variable
+     * @param startCodePosition
+     *            the start of the Java code position
+     * @param endCodePosition
+     *            the end of the Java code position
      * @return the slot
      */
-    int getTempI32() {
-        needTempI32 = true;
-        return -1;
+    int getTempVariable( AnyType valueType, int startCodePosition, int endCodePosition ) {
+        ensureCapacity( size + 1 );
+        Variable var = variables[size];
+        var.valueType = valueType;
+        var.name = null;
+        var.idx = size;
+        var.startPos = startCodePosition;
+        var.endPos = endCodePosition;
+        return size++;
     }
 
     /**
@@ -151,13 +277,21 @@ class LocaleVariableManager {
      * 
      * @param slot
      *            the memory/slot index of the local variable in Java
+     * @param javaCodePos the current code position in the Java method
      * @return the variable index in WebAssembly
      */
-    int get( int slot ) {
-        if( slot < 0 ) {
-            slot = size - 1; // temp i32
+    int get( int slot, int javaCodePos ) {
+        for( int i = 0; i < size; i++ ) {
+            Variable var = variables[i];
+            if( slot != var.idx ) {
+                continue;
+            }
+            if( var.matchCodePosition( javaCodePos ) ) {
+                return i;
+            }
         }
-        return variables[slot].idx;
+
+        throw new WasmException( "Can not find local variable for slot: " + slot + " on code position " + javaCodePos, -1 );
     }
 
     /**
@@ -182,7 +316,7 @@ class LocaleVariableManager {
             int i = variables.length;
             variables = Arrays.copyOf( variables, slot + 1 );
             for( ; i < variables.length; i++ ) {
-                variables[i] = new LocaleVariable();
+                variables[i] = new Variable();
             }
         }
     }
@@ -190,9 +324,27 @@ class LocaleVariableManager {
     /**
      * The state of a single local variable slot.
      */
-    private static class LocaleVariable {
+    private static class Variable {
+
         private AnyType valueType;
 
+        private String  name;
+
         private int     idx = -1;
+
+        private int     startPos;
+
+        private int     endPos;
+
+        /**
+         * If the variable is valid at this position
+         * 
+         * @param codePosition
+         *            the position to check
+         * @return true, if this variable match
+         */
+        public boolean matchCodePosition( int codePosition ) {
+            return startPos <= codePosition && codePosition <= endPos;
+        }
     }
 }
