@@ -186,7 +186,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.GET, ValueType.f64, codePos, lineNumber );
                         break;
                     case 50: // aaload
-                        AnyType storeType = findPreviousPushInstructionPushValueType();
+                        AnyType storeType = findValueTypeFromStack( 2 );
                         addArrayInstruction( ArrayOperator.GET, storeType, codePos, lineNumber );
                         break;
                     case 51: // baload
@@ -244,7 +244,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         if( branchManager.isCatch( codePos ) ) {
                             storeType = ValueType.anyref; // for the catch there are no previous instructions
                         } else {
-                            storeType = findPreviousPushInstructionPushValueType();
+                            storeType = findValueTypeFromStack( 1 );
                         }
                         addLoadStoreInstruction( storeType, false, op - 75, codePos, lineNumber );
                         break;
@@ -261,7 +261,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.SET, ValueType.f64, codePos, lineNumber );
                         break;
                     case 83: // aastore
-                        storeType = findPreviousPushInstructionPushValueType();
+                        storeType = findValueTypeFromStack( 1 );
                         addArrayInstruction( ArrayOperator.SET, storeType, codePos, lineNumber );
                         break;
                     case 84: // bastore
@@ -279,7 +279,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 92: // dup2
-                        storeType = findPreviousPushInstructionPushValueType();
+                        storeType = findValueTypeFromStack( 1 );
                         addCallInstruction( new SyntheticFunctionName( "dup"
                                         + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber );
                         break;
@@ -768,17 +768,19 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
     /**
      * We need the value type from the stack.
      * 
+     * @param count
+     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
      * @return the type of the last push value
      */
     @Nonnull
-    private AnyType findPreviousPushInstructionPushValueType() {
+    private AnyType findValueTypeFromStack( int count ) {
         int valueCount = 0;
         List<WasmInstruction> instructions = getInstructions();
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
             WasmInstruction instr = instructions.get( i );
             AnyType valueType = instr.getPushValueType();
             if( valueType != null ) {
-                if( ++valueCount == 1 ) {
+                if( ++valueCount == count ) {
                     return valueType;
                 }
             }

@@ -133,7 +133,6 @@ class LocaleVariableManager {
         names.clear();
         for( int i = 0; i < size; i++ ) {
             Variable var = variables[i];
-            var.valueType = null; // TODO temporary hack
             var.name = findUniqueVarName( var.name );
         }
 
