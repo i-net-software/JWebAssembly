@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ package de.inetsoftware.jwebassembly.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.junit.Assume;
 import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
@@ -42,9 +39,6 @@ public class Stacks extends AbstractBaseTest {
         ArrayList<Object[]> list = new ArrayList<>();
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
-            if( script == ScriptEngine.SpiderMonkey ) { //TODO SpiderMonkey does not support multiple return values
-                continue;
-            }
             addParam( list, script, "dupInt" );
             addParam( list, script, "dupFloat" );
             addParam( list, script, "dupDouble" );
