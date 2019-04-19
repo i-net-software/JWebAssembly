@@ -240,7 +240,18 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeConst( Number value, ValueType valueType ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( valueType ).append( ".const " ).append( value );
+        methodOutput.append( valueType ).append( ".const " );
+        switch( valueType ) {
+            case f32:
+                methodOutput.append( Float.toHexString( value.floatValue() ) ).append( " ;;" ).append( value );
+                break;
+            case f64:
+                methodOutput.append( Double.toHexString( value.doubleValue() ) ).append( " ;;" ).append( value );
+                break;
+            default:
+                methodOutput.append( value );
+                break;
+        }
     }
 
     /**
