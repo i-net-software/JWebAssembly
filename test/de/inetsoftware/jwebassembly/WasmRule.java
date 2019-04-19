@@ -48,6 +48,8 @@ public class WasmRule extends TemporaryFolder {
 
     private final Class<?>[]          classes;
 
+    private JWebAssembly              compiler;
+
     private File                      wasmFile;
 
     private File                      watFile;
@@ -105,23 +107,23 @@ public class WasmRule extends TemporaryFolder {
      *             if the compiling is failing
      */
     public void compile() throws WasmException {
-        JWebAssembly wasm = new JWebAssembly();
+        compiler = new JWebAssembly();
         for( Class<?> clazz : classes ) {
             URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
-            wasm.addFile( url );
+            compiler.addFile( url );
         }
-        wasm.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
-        assertEquals( "true", wasm.getProperty( JWebAssembly.DEBUG_NAMES ) );
+        compiler.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
+        assertEquals( "true", compiler.getProperty( JWebAssembly.DEBUG_NAMES ) );
 
         // add the libraries that it can be scanned for annotations
         final String[] libraries = System.getProperty("java.class.path").split(File.pathSeparator);
         for( String lib : libraries ) {
             if( lib.endsWith( ".jar" ) || lib.toLowerCase().contains( "jwebassembly-api" ) ) {
-                wasm.addLibrary( new File(lib) );
+                compiler.addLibrary( new File(lib) );
             }
         }
 
-        textCompiled = wasm.compileToText();
+        textCompiled = compiler.compileToText();
         try {
             create();
 
@@ -131,11 +133,9 @@ public class WasmRule extends TemporaryFolder {
             }
 
             wasmFile = newFile( "test.wasm" );
-            wasm.compileToBinary( wasmFile );
+            compiler.compileToBinary( wasmFile );
 
             nodeScript = createScript( "nodetest.js", "{test.wasm}", wasmFile.getName() );
-            spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", wasmFile.getName() );
-            spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test.wat}", watFile.getName() );
         } catch( Throwable ex ) {
             System.out.println( textCompiled );
             throwException( ex );
@@ -326,10 +326,10 @@ public class WasmRule extends TemporaryFolder {
         try {
             switch( script ) {
                 case SpiderMonkey:
-                    processBuilder = spiderMonkeyCommand( spiderMonkeyScript );
+                    processBuilder = spiderMonkeyCommand( true );
                     break;
                 case SpiderMonkeyWat:
-                    processBuilder = spiderMonkeyCommand( spiderMonkeyWatScript );
+                    processBuilder = spiderMonkeyCommand( false );
                     break;
                 case NodeJS:
                     processBuilder = nodeJsCommand( nodeScript );
@@ -381,12 +381,33 @@ public class WasmRule extends TemporaryFolder {
     /**
      * Create a ProcessBuilder for spider monkey script shell.
      * 
-     * @param script the file name of a *.js script
+     * @param binary true, if the WASM format should be test; false, if the WAT format should be tested.
      * @return the value from the script
      * @throws IOException
      *             if the download failed
      */
-    private ProcessBuilder spiderMonkeyCommand( File script ) throws IOException {
+    private ProcessBuilder spiderMonkeyCommand( boolean binary ) throws IOException {
+        File script;
+        try {
+            System.setProperty( "SpiderMonkey", "true" );
+            if( binary ) {
+                if( spiderMonkeyScript == null ) {
+                    File file = newFile( "spiderMonkey.wasm" );
+                    compiler.compileToBinary( file );
+                    spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                }
+                script = spiderMonkeyScript;
+            } else {
+                if( spiderMonkeyWatScript == null ) {
+                    File file = newFile( "spiderMonkey.wat" );
+                    compiler.compileToText( file );
+                    spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test.wat}", file.getName() );
+                }
+                script = spiderMonkeyWatScript;
+            }
+        } finally {
+            System.clearProperty( "SpiderMonkey" );
+        }
         return new ProcessBuilder( spiderMonkey.getCommand(), "--wasm-gc", script.getAbsolutePath() );
     }
 
