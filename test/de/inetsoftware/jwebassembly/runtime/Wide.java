@@ -61,8 +61,7 @@ public class Wide extends AbstractBaseTest {
          * more as 255 variable slots
          * @return
          */
-        @Export
-        static int wide( boolean then) {
+        private static int wide( boolean then) {
             int i = 42;
             if( then ) {
                 for( int j = 0; j < 10; j++ ) {
@@ -223,7 +222,7 @@ public class Wide extends AbstractBaseTest {
                 double c48 = 48;
                 double c49 = 49;
 
-                // a large block with more as 32 Kbyte of instructions that a goto_w instuction is needed
+                // a large block with more as 32 KByte of instructions that a goto_w instruction is needed
                 c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; 
                 c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; 
                 c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; 
@@ -526,7 +525,7 @@ public class Wide extends AbstractBaseTest {
                 c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; 
                 c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; 
                 c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; c49 += 1000; 
-
+                i = (int)c49;
             }
 
             return i;
