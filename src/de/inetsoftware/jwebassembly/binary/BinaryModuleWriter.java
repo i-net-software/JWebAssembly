@@ -111,11 +111,13 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         wasm.write( WASM_BINARY_MAGIC );
         wasm.writeInt32( WASM_BINARY_VERSION );
 
-//        // Section 42, enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version1.md
-//        wasm.writeVaruint32( 42 );
-//        wasm.writeVaruint32( 1 );
-//        wasm.write( 2 ); // version of GcFeatureOptIn
-//        // End Section 42
+        if( Boolean.getBoolean( "SpiderMonkey" ) ) {
+            // Section 42, enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
+            wasm.writeVaruint32( 42 );
+            wasm.writeVaruint32( 1 );
+            wasm.write( 3 ); // version of GcFeatureOptIn
+            // End Section 42
+        }
 
         writeSection( SectionType.Type, functionTypes );
         writeSection( SectionType.Import, imports.values() );
