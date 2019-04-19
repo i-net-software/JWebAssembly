@@ -46,6 +46,8 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public class TextModuleWriter extends ModuleWriter {
 
+    private final boolean   spiderMonkey = Boolean.getBoolean( "SpiderMonkey" );
+
     private Appendable      output;
 
     private final boolean   debugNames;
@@ -159,7 +161,7 @@ public class TextModuleWriter extends ModuleWriter {
     @Nonnull
     private String normalizeName( FunctionName name ) {
         String fullName = name.fullName;
-        if( Boolean.getBoolean( "SpiderMonkey" ) ) {
+        if( spiderMonkey ) {
             fullName = fullName.replace( '/', '.' ); // TODO HACK for https://bugzilla.mozilla.org/show_bug.cgi?id=1511485
         }
         return fullName;
@@ -266,7 +268,7 @@ public class TextModuleWriter extends ModuleWriter {
             // declare global variable if not already declared.
             output.append( "\n  " );
             String type = ValueType.getValueType( ref.getType() ).toString();
-            output.append( "(global $" ).append( fullName ).append( " (mut " ).append( type ).append( ") " ).append( type ).append( ".const 0)" );
+            output.append( "(global $" ).append( fullName ).append( " (mut " ).append( type ).append( ") (" ).append( type ).append( ".const 0))" );
             globals.add( fullName );
         }
         newline( methodOutput );
