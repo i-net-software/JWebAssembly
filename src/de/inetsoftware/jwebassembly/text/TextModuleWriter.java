@@ -144,9 +144,25 @@ public class TextModuleWriter extends ModuleWriter {
     protected void prepareImport( FunctionName name, String importModule, String importName ) throws IOException {
         if( importName != null ) {
             newline( methodOutput );
-            methodOutput.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( name.fullName );
+            methodOutput.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( normalizeName( name ) );
             isImport = true;
         }
+    }
+
+    /**
+     * Normalize the function name for the text format
+     * 
+     * @param name
+     *            the name
+     * @return the normalized name
+     */
+    @Nonnull
+    private String normalizeName( FunctionName name ) {
+        String fullName = name.fullName;
+        if( Boolean.getBoolean( "SpiderMonkey" ) ) {
+            fullName = fullName.replace( '/', '.' ); // TODO HACK for https://bugzilla.mozilla.org/show_bug.cgi?id=1511485
+        }
+        return fullName;
     }
 
     /**
@@ -155,7 +171,7 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeExport( FunctionName name, String exportName ) throws IOException {
         newline( output );
-        output.append( "(export \"" ).append( exportName ).append( "\" (func $" ).append( name.fullName ).append( "))" );
+        output.append( "(export \"" ).append( exportName ).append( "\" (func $" ).append( normalizeName( name ) ).append( "))" );
     }
 
     /**
@@ -165,7 +181,7 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "(func $" );
-        methodOutput.append( name.fullName );
+        methodOutput.append( normalizeName( name ) );
         inset++;
         methodParamNames.clear();
     }
@@ -245,15 +261,16 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeGlobalAccess( boolean load, FunctionName name, Member ref ) throws IOException {
-        if( !globals.contains( name.fullName ) ) {
+        String fullName = normalizeName( name );
+        if( !globals.contains( fullName ) ) {
             // declare global variable if not already declared.
             output.append( "\n  " );
             String type = ValueType.getValueType( ref.getType() ).toString();
-            output.append( "(global $" ).append( name.fullName ).append( " (mut " ).append( type ).append( ") " ).append( type ).append( ".const 0)" );
-            globals.add( name.fullName );
+            output.append( "(global $" ).append( fullName ).append( " (mut " ).append( type ).append( ") " ).append( type ).append( ".const 0)" );
+            globals.add( fullName );
         }
         newline( methodOutput );
-        methodOutput.append( load ? "global.get $" : "global.set $" ).append( name.fullName );
+        methodOutput.append( load ? "global.get $" : "global.set $" ).append( fullName );
     }
 
     /**
@@ -375,9 +392,7 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeFunctionCall( FunctionName name ) throws IOException {
         newline( methodOutput );
-        String signatureName = name.signatureName;
-        signatureName = signatureName.substring( 0, signatureName.indexOf( '(' ) );
-        methodOutput.append( "call $" ).append( signatureName );
+        methodOutput.append( "call $" ).append( normalizeName( name ) );
     }
 
     /**
