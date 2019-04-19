@@ -79,6 +79,9 @@ public class TextModuleWriter extends ModuleWriter {
         debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         output.append( "(module" );
         inset++;
+        if( spiderMonkey ) {
+            output.append( " (gc_feature_opt_in 3)" ); // enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
+        }
     }
 
     /**
@@ -100,7 +103,7 @@ public class TextModuleWriter extends ModuleWriter {
         int oldInset = inset;
         inset = 1;
         newline( output );
-        output.append( "(type $" ).append( typeName ).append( " (struct" );
+        output.append( "(type $" ).append( normalizeName( typeName ) ).append( " (struct" );
         inset++;
         for( NamedStorageType field : fields ) {
             newline( output );
@@ -113,7 +116,7 @@ public class TextModuleWriter extends ModuleWriter {
             if( type.getCode() < 0 ) {
                 output.append( type.toString() );
             } else {
-                output.append( "(ref " ).append( type.toString() ).append( ')' );
+                output.append( "(ref " ).append( normalizeName( type.toString() ) ).append( ')' );
             }
             output.append( "))" );
         }
@@ -160,11 +163,22 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Nonnull
     private String normalizeName( FunctionName name ) {
-        String fullName = name.fullName;
+        return normalizeName( name.fullName );
+    }
+
+    /**
+     * Normalize the function name for the text format
+     * 
+     * @param name
+     *            the name
+     * @return the normalized name
+     */
+    @Nonnull
+    private String normalizeName( String name ) {
         if( spiderMonkey ) {
-            fullName = fullName.replace( '/', '.' ); // TODO HACK for https://bugzilla.mozilla.org/show_bug.cgi?id=1511485
+            name = name.replace( '/', '.' ).replace( '<', '_' ).replace( '>', '_' ); // TODO HACK for https://bugzilla.mozilla.org/show_bug.cgi?id=1511485
         }
-        return fullName;
+        return name;
     }
 
     /**
@@ -202,7 +216,7 @@ public class TextModuleWriter extends ModuleWriter {
                 methodParamNames.add( name );
             }
         }
-        methodOutput.append( ' ' ).append( valueType.toString() ).append( ')' );
+        methodOutput.append( ' ' ).append( normalizeName( valueType.toString() ) ).append( ')' );
     }
 
     /**
@@ -306,11 +320,11 @@ public class TextModuleWriter extends ModuleWriter {
                         op += "_s";
                         break;
                     case ifnonnull:
-                        methodOutput.append( "ref.isnull" );
+                        methodOutput.append( "ref.is_null" );
                         writeNumericOperator( NumericOperator.eqz, ValueType.i32 );
                         return;
                     case ifnull:
-                        methodOutput.append( "ref.isnull" );
+                        methodOutput.append( "ref.is_null" );
                         return;
                     case ref_ne:
                         methodOutput.append( "ref.eq" );
@@ -550,7 +564,7 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         methodOutput.append( operation );
         if( type != null ) {
-            methodOutput.append( ' ' ).append( type );
+            methodOutput.append( ' ' ).append( normalizeName( type.toString() ) );
         }
         if( fieldName != null ) {
             methodOutput.append( " $" ).append( fieldName );
