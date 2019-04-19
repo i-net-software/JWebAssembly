@@ -261,6 +261,17 @@ class LocaleVariableManager {
      * @return the slot
      */
     int getTempVariable( AnyType valueType, int startCodePosition, int endCodePosition ) {
+        // can we reuse some other temporary local variables?
+        for( int i = size-1; i >= 0 ; i-- ) {
+            Variable var = variables[i];
+            if( var.valueType != valueType ) {
+                continue;
+            }
+            if( var.endPos < startCodePosition ) {
+                var.endPos = endCodePosition;
+                return var.idx;
+            }
+        }
         ensureCapacity( size + 1 );
         Variable var = variables[size];
         var.valueType = valueType;
@@ -268,7 +279,8 @@ class LocaleVariableManager {
         var.idx = size;
         var.startPos = startCodePosition;
         var.endPos = endCodePosition;
-        return size++;
+        size++;
+        return var.idx;
     }
 
     /**
