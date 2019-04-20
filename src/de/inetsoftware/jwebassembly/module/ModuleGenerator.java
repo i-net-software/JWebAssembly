@@ -42,6 +42,7 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
@@ -239,7 +240,7 @@ public class ModuleGenerator {
             list.add( new NamedStorageType( fieldtype, field.getName() ) );
         }
         int id = writer.writeStruct( className, list );
-        types.useType( type, id );
+        types.useType( type, id, list );
         for( NamedStorageType namedType : list ) {
             if( namedType.type.getCode() == Integer.MAX_VALUE ) {
                 writeStructType( (StructType)namedType.type );
@@ -365,6 +366,13 @@ public class ModuleGenerator {
         int lastJavaSourceLine = -1;
         for( WasmInstruction instruction : instructions ) {
             try {
+                // add source-map information
+                int javaSourceLine = instruction.getLineNumber();
+                if( javaSourceLine >= 0 && javaSourceLine != lastJavaSourceLine ) {
+                    writer.markSourceLine( javaSourceLine );
+                    lastJavaSourceLine = javaSourceLine;
+                }
+
                 switch( instruction.getType() ) {
                     case Block:
                         switch( ((WasmBlockInstruction)instruction).getOperation() ) {
@@ -379,15 +387,36 @@ public class ModuleGenerator {
                         functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
                         break;
                     case Struct:
-                        setStructType( (WasmStructInstruction)instruction );
+                        WasmStructInstruction instr = (WasmStructInstruction)instruction;
+                        setStructType( instr );
+                        if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
+                            List<NamedStorageType> list = instr.getStructType().getFields();
+                            for( NamedStorageType storageType : list ) {
+                                if( storageType.type.getCode() < 0 ) {
+                                    ValueType type = (ValueType)storageType.type;
+                                    switch( type ) {
+                                        case i32:
+                                        case i64:
+                                        case f32:
+                                        case f64:
+                                            writer.writeConst( 0, type );
+                                            break;
+                                        case i8:
+                                        case i16:
+                                            writer.writeConst( 0, ValueType.i32 );
+                                            break;
+                                        default:
+                                            throw new WasmException( "Not supported storage type: " + type, instruction.getLineNumber() );
+                                    }
+                                } else {
+                                    writer.writeStructOperator( StructOperator.NULL, null, null );
+                                }
+                            }
+                        }
                         break;
                     default:
                 }
-                int javaSourceLine = instruction.getLineNumber();
-                if( javaSourceLine >= 0 && javaSourceLine != lastJavaSourceLine ) {
-                    writer.markSourceLine( javaSourceLine );
-                    lastJavaSourceLine = javaSourceLine;
-                }
+
                 instruction.writeTo( writer );
             } catch( Throwable th ) {
                 throw WasmException.create( th, instruction.getLineNumber() );

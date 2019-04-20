@@ -63,6 +63,15 @@ class WasmStructInstruction extends WasmInstruction {
     }
 
     /**
+     * Get the StructOperator
+     * 
+     * @return the operator
+     */
+    StructOperator getOperator() {
+        return op;
+    }
+
+    /**
      * Get the struct type of this instruction.
      * 
      * @return the type

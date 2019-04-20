@@ -18,11 +18,13 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 
 /**
  * Manage the written and to write types (classes)
@@ -40,9 +42,12 @@ public class TypeManager {
      *            the reference to a type
      * @param id
      *            the id in the type section of the wasm
+     * @param fields
+     *            the fields of the type
      */
-    void useType( StructType type, int id ) {
+    void useType( StructType type, int id, List<NamedStorageType> fields ) {
         type.code = id;
+        type.fields = fields;
     }
 
     /**
@@ -78,9 +83,11 @@ public class TypeManager {
      */
     static class StructType implements AnyType {
 
-        private final String name;
+        private final String           name;
 
-        private int          code = Integer.MAX_VALUE;
+        private int                    code = Integer.MAX_VALUE;
+
+        private List<NamedStorageType> fields;
 
         /**
          * Create a reference to type
@@ -106,6 +113,14 @@ public class TypeManager {
          */
         public String getName() {
             return name;
+        }
+
+        /**
+         * Get the fields of this struct
+         * @return the fields
+         */
+        public List<NamedStorageType> getFields() {
+            return fields;
         }
 
         /**
