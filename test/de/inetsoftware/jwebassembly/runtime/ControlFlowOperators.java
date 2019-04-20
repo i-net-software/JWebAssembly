@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
+import static org.junit.Assume.assumeFalse;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
@@ -55,6 +58,12 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "redifineVariable" );
         }
         return list;
+    }
+
+    @Test
+    public void test() {
+        assumeFalse( getScriptEngine() == ScriptEngine.SpiderMonkeyWat ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1545755
+        super.test();
     }
 
     static class TestClass {

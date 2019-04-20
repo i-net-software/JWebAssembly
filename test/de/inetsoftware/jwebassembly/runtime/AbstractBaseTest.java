@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,15 @@ public abstract class AbstractBaseTest {
 
     protected static void addParam( ArrayList<Object[]> list, ScriptEngine script, String method, Object ...params ) {
         list.add( new Object[]{script, method, params} );
+    }
+
+    /**
+     * Get the ScriptEngine with which the test is running.
+     * 
+     * @return the engine
+     */
+    protected ScriptEngine getScriptEngine() {
+        return script;
     }
 
     @Test
