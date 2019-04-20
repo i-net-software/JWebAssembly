@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public enum ScriptEngine {
                         { ScriptEngine.SpiderMonkey }, //
                         { ScriptEngine.NodeJS }, //
                         { ScriptEngine.NodeWat }, //
-//                        { ScriptEngine.SpiderMonkeyWat },//
+                        { ScriptEngine.SpiderMonkeyWat },//
                         { ScriptEngine.Wat2Wasm }, //
         };
         return Arrays.asList(val);
