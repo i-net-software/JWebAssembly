@@ -16,47 +16,39 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
-import java.util.Arrays;
-import java.util.Iterator;
-
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
- * Synthetic/dynamic method.
+ * Synthetic/dynamic method based on WAT code (WASM in text form).
  * 
  * @author Volker Berlin
  */
-abstract class SyntheticFunctionName extends FunctionName {
+class WatCodeSyntheticFunctionName extends SyntheticFunctionName {
 
-    private final AnyType[] signature;
+    private final String    code;
 
     /**
      * Create a new instance.
      * 
      * @param name
      *            the function name
+     * @param code
+     *            the WAT code (WASM in text form)
      * @param signature
      *            the method signature, first the parameters, then null and the the return types
      */
-    public SyntheticFunctionName( String name, AnyType... signature ) {
-        super( "", name, "()V" ); //TODO better signature name
-        this.signature = signature;
+    public WatCodeSyntheticFunctionName( String name, String code, AnyType... signature ) {
+        super( name, signature );
+        this.code = code;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Iterator<AnyType> getSignature() {
-        return Arrays.asList( signature ).iterator();
+    public WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
+        watParser.parse( code, -1 );
+        return watParser;
     }
-
-    /**
-     * Get the WasmCodeBuilder.
-     * 
-     * @param watParser a helping WatParser
-     * @return the code
-     */
-    abstract WasmCodeBuilder getCodeBuilder( WatParser watParser );
 }

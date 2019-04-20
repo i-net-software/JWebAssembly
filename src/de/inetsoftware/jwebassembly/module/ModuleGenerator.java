@@ -164,8 +164,7 @@ public class ModuleGenerator {
             InputStream stream = libraries.getResourceAsStream( next.className + ".class" );
             if( stream == null ) {
                 if( next instanceof SyntheticFunctionName ) {
-                    watParser.parse( ((SyntheticFunctionName)next).getCode(), -1 );
-                    writeMethodImpl( next, true, watParser );
+                    writeMethodImpl( next, true, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
                 } else {
                     throw new WasmException( "Missing function: " + next.signatureName, -1 );
                 }
