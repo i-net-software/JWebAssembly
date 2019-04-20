@@ -216,7 +216,13 @@ public class TextModuleWriter extends ModuleWriter {
                 methodParamNames.add( name );
             }
         }
-        methodOutput.append( ' ' ).append( normalizeName( valueType.toString() ) ).append( ')' );
+        methodOutput.append( ' ' );
+        if( valueType.getCode() < 0 ) {
+            methodOutput.append( valueType );
+        } else {
+            methodOutput.append( "(ref " ).append( normalizeName( valueType.toString() ) ).append( ')' );
+        }
+        methodOutput.append( ')' );
     }
 
     /**
