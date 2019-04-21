@@ -22,14 +22,14 @@ The project is currently not production ready but you can run already some tests
 * [Gradle Plugin](https://github.com/i-net-software/JWebAssembly-Gradle)
 
 ### Partially Finished
-* Binary format file writer and Text format file writer (191 of 201 Java byte code instructions)
+* Binary format file writer and Text format file writer (195 of 201 Java byte code instructions)
 * Support for native methods [#2](https://github.com/i-net-software/JWebAssembly/issues/2)
 * Exception handling - required the next version of WebAssembly
 * Multiple threads - required the next version of WebAssembly
 * Memory Management - required the next version of WebAssembly with GC
+* Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 
 ### Open Features
-* Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * Library for accessing the DOM
 
 ### Status of Required WebAssembly Features
@@ -39,9 +39,9 @@ The following table shows the status of future WebAssembly features required by 
 | ----------------------- | ------ | ------------ | ------ |
 | [float-to-int][1]       | yes    | yes          | yes    |
 | [Sign-extension][2]     | yes    | yes          | yes    |
-| [Multi-value][3]        | yes    | -            | yes    |
-| [Reference Types][4]    | yes    | yes          | -      |
-| [Garbage collection][5] | -      | partly       | -      |
+| ~~[Multi-value][3]~~    | yes    | -            | yes    |
+| [Reference Types][4]    | yes    | yes          | yes    |
+| [Garbage collection][5] | -      | [partly][7]  | -      |
 | [Exceptions][6]         | partly | -            | partly |
 
 - For V8 it based on the [V8 - node.js integrations builds](https://ci.chromium.org/p/v8/builders/luci.v8.ci/V8%20Linux64%20-%20node.js%20integration).
@@ -104,3 +104,4 @@ If you want to develop some tools like plugins for a build system or an IDE, the
 [4]: https://github.com/WebAssembly/reference-types
 [5]: https://github.com/webassembly/gc
 [6]: https://github.com/WebAssembly/exception-handling
+[7]: https://github.com/lars-t-hansen/moz-gc-experiments
