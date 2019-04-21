@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -35,11 +36,11 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmStructInstruction extends WasmInstruction {
 
-    private final StructOperator op;
+    private final StructOperator   op;
 
-    private final StructType     type;
+    private final StructType       type;
 
-    private final String         fieldName;
+    private final NamedStorageType fieldName;
 
     /**
      * Create an instance of numeric operation.
@@ -55,7 +56,7 @@ class WasmStructInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nullable StructType type, @Nullable String fieldName, int javaCodePos, int lineNumber ) {
+    WasmStructInstruction( @Nullable StructOperator op, @Nullable StructType type, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.op = op;
         this.type = type;

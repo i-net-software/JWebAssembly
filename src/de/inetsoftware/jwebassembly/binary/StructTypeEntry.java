@@ -59,10 +59,10 @@ class StructTypeEntry extends TypeEntry {
         stream.writeVaruint32( this.fields.size() );
         for( NamedStorageType field : this.fields ) {
             stream.writeVarint( 1 ); // 0 - immutable; 1 - mutable 
-            if( field.type.getCode() > 0  ) {
+            if( field.getType().getCode() > 0  ) {
                 stream.writeValueType( ValueType.ref_type );
             }
-            stream.writeValueType( field.type );
+            stream.writeValueType( field.getType() );
         }
     }
 
@@ -73,13 +73,11 @@ class StructTypeEntry extends TypeEntry {
      *            the name of the field
      * @return the index
      */
-    int getFieldIdx( @Nonnull String fieldName ) {
-        for( int i = 0; i < fields.size(); i++ ) {
-            NamedStorageType field = fields.get( i );
-            if( field.name.equals( fieldName ) ) {
-                return i;
-            }
-        }
+    int getFieldIdx( @Nonnull NamedStorageType fieldName ) {
+        int idx = fields.indexOf( fieldName );
+        if( idx >= 0 ) {
+            return idx;
+        } 
         throw new WasmException( fieldName + " not found", -1 );
     }
 

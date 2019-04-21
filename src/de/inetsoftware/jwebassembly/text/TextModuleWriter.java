@@ -29,10 +29,10 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
@@ -108,11 +108,11 @@ public class TextModuleWriter extends ModuleWriter {
         for( NamedStorageType field : fields ) {
             newline( output );
             output.append( "(field" );
-            if( debugNames && field.name != null ) {
-                output.append( " $" ).append( field.name );
+            if( debugNames && field.getUniqueName() != null ) {
+                output.append( " $" ).append( normalizeName( field.getUniqueName() ) );
             }
             output.append( " (mut " );
-            AnyType type = field.type;
+            AnyType type = field.getType();
             if( type.getCode() < 0 ) {
                 output.append( type.toString() );
             } else {
@@ -545,7 +545,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeStructOperator( StructOperator op, AnyType type, String fieldName ) throws IOException {
+    protected void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName ) throws IOException {
         String operation;
         switch( op ) {
             case NEW:
@@ -571,7 +571,7 @@ public class TextModuleWriter extends ModuleWriter {
             methodOutput.append( ' ' ).append( normalizeName( type.toString() ) );
         }
         if( fieldName != null ) {
-            methodOutput.append( " $" ).append( fieldName );
+            methodOutput.append( " $" ).append( normalizeName( fieldName.getUniqueName() ) );
         }
     }
 }

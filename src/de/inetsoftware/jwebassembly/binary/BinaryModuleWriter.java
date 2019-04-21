@@ -1018,7 +1018,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeStructOperator( StructOperator op, AnyType type, String fieldName ) throws IOException {
+    protected void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName ) throws IOException {
         int opCode;
         switch(op) {
             case NEW:

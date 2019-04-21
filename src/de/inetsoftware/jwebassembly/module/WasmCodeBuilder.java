@@ -27,6 +27,7 @@ import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -318,7 +319,7 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addStructInstruction( StructOperator op, @Nullable String typeName, @Nullable String fieldName, int javaCodePos, int lineNumber ) {
+    protected void addStructInstruction( StructOperator op, @Nullable String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
         instructions.add( new WasmStructInstruction( op, typeName == null ? null : types.valueOf( typeName ), fieldName, javaCodePos, lineNumber ) );
     }
 }

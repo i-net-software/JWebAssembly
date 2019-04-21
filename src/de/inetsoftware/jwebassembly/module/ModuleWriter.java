@@ -23,10 +23,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
@@ -251,5 +251,5 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeStructOperator( StructOperator op, AnyType type, String fieldName ) throws IOException;
+    protected abstract void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName ) throws IOException;
 }

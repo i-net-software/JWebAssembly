@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
+import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
@@ -44,7 +45,6 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
-import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
@@ -225,26 +225,47 @@ public class ModuleGenerator {
      */
     private void writeStructType( StructType type ) throws IOException {
         String className = type.getName();
+        List<NamedStorageType> list = new ArrayList<>();
+        listStructFields( className, list );
+
+        int id = writer.writeStruct( className, list );
+        types.useType( type, id, list );
+        for( NamedStorageType namedType : list ) {
+            if( namedType.getType().getCode() == Integer.MAX_VALUE ) {
+                writeStructType( (StructType)namedType.getType() );
+            }
+        }
+    }
+
+    /**
+     * List the non static fields of the class and its superclasses.
+     * 
+     * @param className
+     *            the className
+     * @param list
+     *            the container for the fields
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void listStructFields( String className, List<NamedStorageType> list ) throws IOException {
         InputStream stream = libraries.getResourceAsStream( className + ".class" );
         if( stream == null ) {
             throw new WasmException( "Missing class: " + className, -1 );
         }
         ClassFile classFile = new ClassFile( stream );
-        List<NamedStorageType> list = new ArrayList<>();
+
+        ConstantClass superClass = classFile.getSuperClass();
+        if( superClass != null ) {
+            String superClassName = superClass.getName();
+            listStructFields( superClassName, list );
+        }
+
         FieldInfo[] fields = classFile.getFields();
         for( FieldInfo field : fields ) {
             if( field.isStatic() ) {
                 continue;
             }
-            AnyType fieldtype = new ValueTypeParser( field.getType(), types ).next();
-            list.add( new NamedStorageType( fieldtype, field.getName() ) );
-        }
-        int id = writer.writeStruct( className, list );
-        types.useType( type, id, list );
-        for( NamedStorageType namedType : list ) {
-            if( namedType.type.getCode() == Integer.MAX_VALUE ) {
-                writeStructType( (StructType)namedType.type );
-            }
+            list.add( new NamedStorageType( className, field ) );
         }
     }
 
@@ -392,8 +413,8 @@ public class ModuleGenerator {
                         if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
                             List<NamedStorageType> list = instr.getStructType().getFields();
                             for( NamedStorageType storageType : list ) {
-                                if( storageType.type.getCode() < 0 ) {
-                                    ValueType type = (ValueType)storageType.type;
+                                if( storageType.getType().getCode() < 0 ) {
+                                    ValueType type = (ValueType)storageType.getType();
                                     switch( type ) {
                                         case i32:
                                         case i64:
@@ -404,6 +425,9 @@ public class ModuleGenerator {
                                         case i8:
                                         case i16:
                                             writer.writeConst( 0, ValueType.i32 );
+                                            break;
+                                        case anyref:
+                                            writer.writeStructOperator( StructOperator.NULL, null, null );
                                             break;
                                         default:
                                             throw new WasmException( "Not supported storage type: " + type, instruction.getLineNumber() );

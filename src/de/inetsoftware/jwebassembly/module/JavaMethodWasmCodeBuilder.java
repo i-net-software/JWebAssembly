@@ -28,6 +28,7 @@ import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -567,11 +568,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 180: // getfield
                         ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
-                        addStructInstruction( StructOperator.GET, ref.getClassName(), ref.getName(), codePos, lineNumber );
+                        addStructInstruction( StructOperator.GET, ref.getClassName(), new NamedStorageType( ref ), codePos, lineNumber );
                         break;
                     case 181: // putfield
                         ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
-                        addStructInstruction( StructOperator.SET, ref.getClassName(), ref.getName(), codePos, lineNumber );
+                        addStructInstruction( StructOperator.SET, ref.getClassName(), new NamedStorageType( ref ), codePos, lineNumber );
                         break;
                     case 182: // invokevirtual
                     case 183: // invokespecial, invoke a constructor
