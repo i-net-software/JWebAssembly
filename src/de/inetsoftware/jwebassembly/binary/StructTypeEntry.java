@@ -60,7 +60,7 @@ class StructTypeEntry extends TypeEntry {
         for( NamedStorageType field : this.fields ) {
             stream.writeVarint( 1 ); // 0 - immutable; 1 - mutable 
             if( field.type.getCode() > 0  ) {
-                stream.writeVaruint32( 0x6E );
+                stream.writeValueType( ValueType.ref_type );
             }
             stream.writeValueType( field.type );
         }
