@@ -15,11 +15,12 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
+import static org.junit.Assume.assumeTrue;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
@@ -50,9 +51,9 @@ public class Structs extends AbstractBaseTest {
         return list;
     }
 
-    @Ignore
     @Test
     public void test() {
+        assumeTrue( getScriptEngine() == ScriptEngine.SpiderMonkey || getScriptEngine() == ScriptEngine.SpiderMonkeyWat );
         super.test();
     }
 
