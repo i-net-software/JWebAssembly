@@ -27,6 +27,8 @@ public class NamedStorageType {
 
     private final AnyType type;
 
+    private final String  className;
+
     private final String  name;
 
     /**
@@ -38,7 +40,7 @@ public class NamedStorageType {
      *            the FieldInfo
      */
     public NamedStorageType( String className, FieldInfo field ) {
-        this( field.getType(), className + '.' + field.getName() );
+        this( field.getType(), className, field.getName() );
     }
 
     /**
@@ -48,7 +50,7 @@ public class NamedStorageType {
      *            the reference
      */
     public NamedStorageType( ConstantRef ref ) {
-        this( ref.getType(), ref.getClassName() + '.' + ref.getName() );
+        this( ref.getType(), ref.getClassName(), ref.getName() );
     }
 
     /**
@@ -56,11 +58,14 @@ public class NamedStorageType {
      * 
      * @param type
      *            the type
+     * @param className
+     *            the class name
      * @param name
      *            the name
      */
-    private NamedStorageType( String type, String name ) {
+    private NamedStorageType( String type, String className, String name ) {
         this.type = new ValueTypeParser( type ).next();
+        this.className = className;
         this.name = name;
     }
 
@@ -79,7 +84,7 @@ public class NamedStorageType {
      * 
      * @return the name
      */
-    public String getUniqueName() {
+    public String getName() {
         return name;
     }
 
@@ -106,6 +111,6 @@ public class NamedStorageType {
             return false;
         }
         NamedStorageType other = (NamedStorageType)obj;
-        return name.equals( other.name );
+        return name.equals( other.name ) && className.equals( other.className );
     }
 }

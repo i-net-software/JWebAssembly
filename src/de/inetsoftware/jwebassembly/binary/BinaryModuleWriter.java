@@ -1018,7 +1018,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName ) throws IOException {
+    protected void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName, int idx ) throws IOException {
         int opCode;
         switch(op) {
             case NEW:
@@ -1043,8 +1043,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             codeStream.writeValueType( type );
         }
         if( fieldName != null ) {
-            StructTypeEntry entry = (StructTypeEntry)functionTypes.get( type.getCode() );
-            codeStream.writeVaruint32( entry.getFieldIdx( fieldName ) );
+            codeStream.writeVaruint32( idx );
         }
     }
 }

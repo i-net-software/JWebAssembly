@@ -427,13 +427,13 @@ public class ModuleGenerator {
                                             writer.writeConst( 0, ValueType.i32 );
                                             break;
                                         case anyref:
-                                            writer.writeStructOperator( StructOperator.NULL, null, null );
+                                            writer.writeStructOperator( StructOperator.NULL, null, null, -1 );
                                             break;
                                         default:
                                             throw new WasmException( "Not supported storage type: " + type, instruction.getLineNumber() );
                                     }
                                 } else {
-                                    writer.writeStructOperator( StructOperator.NULL, null, null );
+                                    writer.writeStructOperator( StructOperator.NULL, null, null, -1 );
                                 }
                             }
                         }

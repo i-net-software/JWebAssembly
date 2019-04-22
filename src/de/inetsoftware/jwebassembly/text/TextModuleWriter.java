@@ -103,13 +103,14 @@ public class TextModuleWriter extends ModuleWriter {
         int oldInset = inset;
         inset = 1;
         newline( output );
-        output.append( "(type $" ).append( normalizeName( typeName ) ).append( " (struct" );
+        typeName = normalizeName( typeName );
+        output.append( "(type $" ).append( typeName ).append( " (struct" );
         inset++;
         for( NamedStorageType field : fields ) {
             newline( output );
             output.append( "(field" );
-            if( debugNames && field.getUniqueName() != null ) {
-                output.append( " $" ).append( normalizeName( field.getUniqueName() ) );
+            if( debugNames && field.getName() != null ) {
+                output.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
             }
             output.append( " (mut " );
             AnyType type = field.getType();
@@ -545,7 +546,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName ) throws IOException {
+    protected void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName, int idx ) throws IOException {
         String operation;
         switch( op ) {
             case NEW:
@@ -571,7 +572,7 @@ public class TextModuleWriter extends ModuleWriter {
             methodOutput.append( ' ' ).append( normalizeName( type.toString() ) );
         }
         if( fieldName != null ) {
-            methodOutput.append( " $" ).append( normalizeName( fieldName.getUniqueName() ) );
+            methodOutput.append(  ' ' ).append( idx ).append( " ;; $" ).append( normalizeName( fieldName.getName() ) );
         }
     }
 }

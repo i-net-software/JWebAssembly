@@ -93,7 +93,8 @@ class WasmStructInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeStructOperator( op, type, fieldName );
+        int idx = type != null && fieldName != null ? type.getFields().indexOf( fieldName ) : -1;
+        writer.writeStructOperator( op, type, fieldName, idx );
     }
 
     /**

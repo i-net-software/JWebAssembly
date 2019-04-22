@@ -18,9 +18,6 @@ package de.inetsoftware.jwebassembly.binary;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
-import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -64,21 +61,6 @@ class StructTypeEntry extends TypeEntry {
             }
             stream.writeValueType( field.getType() );
         }
-    }
-
-    /**
-     * Get the index of the field in this structure
-     * 
-     * @param fieldName
-     *            the name of the field
-     * @return the index
-     */
-    int getFieldIdx( @Nonnull NamedStorageType fieldName ) {
-        int idx = fields.indexOf( fieldName );
-        if( idx >= 0 ) {
-            return idx;
-        } 
-        throw new WasmException( fieldName + " not found", -1 );
     }
 
     /**
