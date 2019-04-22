@@ -60,12 +60,6 @@ public class ControlFlowOperators extends AbstractBaseTest {
         return list;
     }
 
-    @Test
-    public void test() {
-        assumeFalse( getScriptEngine() == ScriptEngine.SpiderMonkeyWat ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1545755
-        super.test();
-    }
-
     static class TestClass {
 
         @Export
