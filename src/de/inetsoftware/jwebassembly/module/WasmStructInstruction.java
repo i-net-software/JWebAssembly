@@ -17,6 +17,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -93,7 +94,22 @@ class WasmStructInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        int idx = type != null && fieldName != null ? type.getFields().indexOf( fieldName ) : -1;
+        int idx = -1;
+        if( type != null && fieldName != null ) {
+            // The fieldName of the struct operation does not contain the class name in which the field was declared. It contains the class name of the variable. This can be the class or a subclass.
+            List<NamedStorageType> fields = type.getFields();
+            boolean classNameMatched = false;
+            for( int i = fields.size()-1; i >= 0; i-- ) {
+                NamedStorageType field = fields.get( i );
+                if( !classNameMatched && field.geClassName().equals( fieldName.geClassName() ) ) {
+                    classNameMatched = true;
+                }
+                if( classNameMatched && field.getName().equals( fieldName.getName() ) ) {
+                    idx = i;
+                    break;
+                }
+            }
+        }
         writer.writeStructOperator( op, type, fieldName, idx );
     }
 

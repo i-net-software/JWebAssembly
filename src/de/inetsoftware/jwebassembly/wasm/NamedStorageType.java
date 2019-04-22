@@ -79,6 +79,15 @@ public class NamedStorageType {
     }
 
     /**
+     * Get the class name in which the filed is define.
+     * 
+     * @return the field
+     */
+    public String geClassName() {
+        return className;
+    }
+
+    /**
      * Get the global unique name of the field. See
      * https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md#struct-and-ref-types
      * 
