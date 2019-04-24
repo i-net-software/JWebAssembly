@@ -210,9 +210,7 @@ public class ModuleGenerator {
      */
     private void setStructType( WasmStructInstruction instruction ) throws IOException {
         StructType type = instruction.getStructType();
-        if( type != null && type.getCode() == Integer.MAX_VALUE ) {
-            writeStructType( type );
-        }
+        writeStructType( type );
     }
 
     /**
@@ -224,6 +222,9 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     private void writeStructType( StructType type ) throws IOException {
+        if( type == null || type.getCode() != Integer.MAX_VALUE ) {
+            return;
+        }
         String className = type.getName();
         List<NamedStorageType> list = new ArrayList<>();
         listStructFields( className, list );
@@ -231,14 +232,15 @@ public class ModuleGenerator {
         int id = writer.writeStruct( className, list );
         types.useType( type, id, list );
         for( NamedStorageType namedType : list ) {
-            if( namedType.getType().getCode() == Integer.MAX_VALUE ) {
-                writeStructType( (StructType)namedType.getType() );
+            AnyType fieldType = namedType.getType();
+            if( fieldType.getCode() == Integer.MAX_VALUE ) {
+                writeStructType( (StructType)fieldType );
             }
         }
     }
 
     /**
-     * List the non static fields of the class and its superclasses.
+     * List the non static fields of the class and its super classes.
      * 
      * @param className
      *            the className
@@ -488,7 +490,9 @@ public class ModuleGenerator {
     private void writeMethodSignature( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
         int paramCount = 0;
         if( !isStatic ) {
-            writer.writeMethodParam( "param", ValueType.anyref, "this" );
+            StructType instanceType = types.valueOf( name.className );
+            writeStructType( instanceType );
+            writer.writeMethodParam( "param", instanceType, "this" );
         }
         Iterator<AnyType> parser = name.getSignature();
         AnyType type;

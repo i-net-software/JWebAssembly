@@ -48,11 +48,11 @@ class FunctionTypeEntry extends TypeEntry {
     void writeSectionEntryDetails( WasmOutputStream stream ) throws IOException {
         stream.writeVaruint32( this.params.size() );
         for( AnyType valueType : this.params ) {
-            stream.writeValueType( valueType );
+            stream.writeRefValueType( valueType );
         }
         stream.writeVaruint32( this.results.size() );
         for( AnyType valueType : this.results ) {
-            stream.writeValueType( valueType );
+            stream.writeRefValueType( valueType );
         }
     }
 

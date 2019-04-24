@@ -97,6 +97,21 @@ class WasmOutputStream extends FilterOutputStream {
     }
 
     /**
+     * Write the value type. If it is a struct type then as reference type.
+     * 
+     * @param type
+     *            a type constant
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    public void writeRefValueType( AnyType type ) throws IOException {
+        if( type.getCode() >= 0 ) {
+            writeValueType( ValueType.ref_type );
+        }
+        writeValueType( type );
+    }
+
+    /**
      * Write a integer little endian (ever 4 bytes)
      * 
      * @param value

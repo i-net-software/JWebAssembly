@@ -467,10 +467,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         localsStream.writeVaruint32( locals.size() );
         for( AnyType valueType : locals ) {
             localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
-            if( valueType.getCode() >= 0 ) {
-                localsStream.writeValueType( ValueType.ref_type );
-            }
-            localsStream.writeValueType( valueType );
+            localsStream.writeRefValueType( valueType );
         }
         WasmOutputStream functionsStream = function.functionsStream = new WasmOutputStream();
         functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
