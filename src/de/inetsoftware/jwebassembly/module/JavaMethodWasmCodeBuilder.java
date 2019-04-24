@@ -26,6 +26,7 @@ import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -92,7 +93,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 0: // nop
                         break;
                     case 1: // aconst_null
-                        addStructInstruction( StructOperator.NULL, null, null, codePos, lineNumber );
+                        addStructInstruction( StructOperator.NULL, (StructType)null, null, codePos, lineNumber );
                         break;
                     case 2: // iconst_m1
                     case 3: // iconst_0

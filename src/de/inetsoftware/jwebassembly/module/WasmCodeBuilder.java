@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -319,7 +320,25 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addStructInstruction( StructOperator op, @Nullable String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmStructInstruction( op, typeName == null ? null : types.valueOf( typeName ), fieldName, javaCodePos, lineNumber ) );
+    protected void addStructInstruction( StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
+        addStructInstruction( op, types.valueOf( typeName ), fieldName, javaCodePos, lineNumber );
+    }
+
+    /**
+     * Add an array operation to the instruction list as marker on the code position.
+     * 
+     * @param op
+     *            the operation
+     * @param structType
+     *            the type
+     * @param fieldName
+     *            the name of field if needed for the operation
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addStructInstruction( StructOperator op, @Nullable StructType structType, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
+        instructions.add( new WasmStructInstruction( op, structType, fieldName, javaCodePos, lineNumber ) );
     }
 }
