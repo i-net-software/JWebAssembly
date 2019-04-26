@@ -569,11 +569,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 180: // getfield
                         ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
-                        addStructInstruction( StructOperator.GET, ref.getClassName(), new NamedStorageType( ref ), codePos, lineNumber );
+                        addStructInstruction( StructOperator.GET, ref.getClassName(), new NamedStorageType( ref, getTypeManager() ), codePos, lineNumber );
                         break;
                     case 181: // putfield
                         ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
-                        addStructInstruction( StructOperator.SET, ref.getClassName(), new NamedStorageType( ref ), codePos, lineNumber );
+                        addStructInstruction( StructOperator.SET, ref.getClassName(), new NamedStorageType( ref, getTypeManager() ), codePos, lineNumber );
                         break;
                     case 182: // invokevirtual
                     case 183: // invokespecial, invoke a constructor

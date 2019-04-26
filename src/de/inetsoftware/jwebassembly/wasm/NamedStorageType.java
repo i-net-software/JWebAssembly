@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.wasm;
 
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.classparser.FieldInfo;
+import de.inetsoftware.jwebassembly.module.TypeManager;
 
 /**
  * A ValueType with a name for debug information.
@@ -38,9 +39,11 @@ public class NamedStorageType {
      *            the parent className of the field
      * @param field
      *            the FieldInfo
+     * @param types
+     *            the type manager
      */
-    public NamedStorageType( String className, FieldInfo field ) {
-        this( field.getType(), className, field.getName() );
+    public NamedStorageType( String className, FieldInfo field, TypeManager types ) {
+        this( field.getType(), className, field.getName(), types );
     }
 
     /**
@@ -48,9 +51,11 @@ public class NamedStorageType {
      * 
      * @param ref
      *            the reference
+     * @param types
+     *            the type manager
      */
-    public NamedStorageType( ConstantRef ref ) {
-        this( ref.getType(), ref.getClassName(), ref.getName() );
+    public NamedStorageType( ConstantRef ref, TypeManager types ) {
+        this( ref.getType(), ref.getClassName(), ref.getName(), types );
     }
 
     /**
@@ -62,9 +67,11 @@ public class NamedStorageType {
      *            the class name
      * @param name
      *            the name
+     * @param types
+     *            the type manager
      */
-    private NamedStorageType( String type, String className, String name ) {
-        this.type = new ValueTypeParser( type ).next();
+    private NamedStorageType( String type, String className, String name, TypeManager types ) {
+        this.type = new ValueTypeParser( type, types ).next();
         this.className = className;
         this.name = name;
     }

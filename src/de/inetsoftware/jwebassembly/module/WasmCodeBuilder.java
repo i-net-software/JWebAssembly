@@ -117,6 +117,15 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Get the type manager.
+     * 
+     * @return the type manager
+     */
+    protected TypeManager getTypeManager() {
+        return types;
+    }
+
+    /**
      * Reset the code builder.
      * 
      * @param variableTable

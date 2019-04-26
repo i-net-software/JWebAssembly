@@ -267,7 +267,7 @@ public class ModuleGenerator {
             if( field.isStatic() ) {
                 continue;
             }
-            list.add( new NamedStorageType( className, field ) );
+            list.add( new NamedStorageType( className, field, types ) );
         }
     }
 
