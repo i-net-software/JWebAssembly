@@ -22,7 +22,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -174,14 +173,23 @@ public abstract class ModuleWriter implements Closeable {
      *            true: if load or GET
      * @param name
      *            the variable name
-     * @param ref
-     *            the definition of the variable
+     * @param type
+     *            the type of the variable
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeGlobalAccess( boolean load, FunctionName name, Member ref ) throws IOException;
+    protected abstract void writeGlobalAccess( boolean load, FunctionName name, AnyType type ) throws IOException;
 
+    /**
+     * Write the default/initial value for a type.
+     * 
+     * @param type
+     *            the type
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    protected abstract void writeDefaultValue( AnyType type ) throws IOException;
 
     /**
      * Write a add operator

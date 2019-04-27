@@ -34,24 +34,29 @@ class WasmGlobalInstruction extends WasmInstruction {
 
     private boolean load;
 
-    private Member  ref;
+    private FunctionName name;
+
+    private AnyType type;
 
     /**
      * Create an instance of a load/store instruction
      * 
      * @param load
      *            true: if load or GET
-     * @param ref
-     *            reference to a static field
+     * @param name
+     *            the name of the static field
+     * @param type
+     *            the type of the static field
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmGlobalInstruction( boolean load, Member ref, int javaCodePos, int lineNumber ) {
+    WasmGlobalInstruction( boolean load, FunctionName name, AnyType type, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.load = load;
-        this.ref = ref;
+        this.name = name;
+        this.type = type;
     }
 
     /**
@@ -66,15 +71,14 @@ class WasmGlobalInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        FunctionName name = new FunctionName( ref );
-        writer.writeGlobalAccess( load, name, ref );
+        writer.writeGlobalAccess( load, name, type );
     }
 
     /**
      * {@inheritDoc}
      */
     AnyType getPushValueType() {
-        return load ? ValueType.getValueType( ref.getType() ) : null;
+        return load ? type : null;
     }
 
     /**

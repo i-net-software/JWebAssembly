@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Volker Berlin (i-net software)
+ * Copyright 2018 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package de.inetsoftware.jwebassembly.binary;
 
 import java.io.IOException;
 
-import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 
 /**
  * An entry in the global section of the WebAssembly.
@@ -28,7 +28,7 @@ class Global extends SectionEntry {
 
     int id;
 
-    ValueType type;
+    AnyType type;
 
     boolean mutability;
 
@@ -37,9 +37,9 @@ class Global extends SectionEntry {
      */
     @Override
     void writeSectionEntry( WasmOutputStream stream ) throws IOException {
-        stream.writeValueType( this.type );
+        stream.writeRefValueType( this.type );
         stream.write( this.mutability ? 1 : 0 );
-        stream.writeConst( 0, this.type );
+        stream.writeDefaultValue( this.type );
         stream.writeOpCode( InstructionOpcodes.END );
     }
 }

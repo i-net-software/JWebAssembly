@@ -415,28 +415,7 @@ public class ModuleGenerator {
                         if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
                             List<NamedStorageType> list = instr.getStructType().getFields();
                             for( NamedStorageType storageType : list ) {
-                                if( storageType.getType().getCode() < 0 ) {
-                                    ValueType type = (ValueType)storageType.getType();
-                                    switch( type ) {
-                                        case i32:
-                                        case i64:
-                                        case f32:
-                                        case f64:
-                                            writer.writeConst( 0, type );
-                                            break;
-                                        case i8:
-                                        case i16:
-                                            writer.writeConst( 0, ValueType.i32 );
-                                            break;
-                                        case anyref:
-                                            writer.writeStructOperator( StructOperator.NULL, null, null, -1 );
-                                            break;
-                                        default:
-                                            throw new WasmException( "Not supported storage type: " + type, instruction.getLineNumber() );
-                                    }
-                                } else {
-                                    writer.writeStructOperator( StructOperator.NULL, null, null, -1 );
-                                }
+                                writer.writeDefaultValue( storageType.getType() );
                             }
                         }
                         break;

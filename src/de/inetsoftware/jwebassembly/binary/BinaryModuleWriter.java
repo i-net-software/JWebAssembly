@@ -28,7 +28,6 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
@@ -509,18 +508,26 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeGlobalAccess( boolean load, FunctionName name, Member ref ) throws IOException {
+    protected void writeGlobalAccess( boolean load, FunctionName name, AnyType type ) throws IOException {
         Global var = globals.get( name.fullName );
         if( var == null ) { // if not declared then create a definition in the global section
             var = new Global();
             var.id = globals.size();
-            var.type = ValueType.getValueType( ref.getType() );
+            var.type = type;
             var.mutability = true;
             globals.put( name.fullName, var );
         }
         int op = load ? GET_GLOBAL : SET_GLOBAL;
         codeStream.writeOpCode( op );
         codeStream.writeVaruint32( var.id );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeDefaultValue( AnyType type ) throws IOException {
+        codeStream.writeDefaultValue( type );
     }
 
     /**

@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -109,6 +110,39 @@ class WasmOutputStream extends FilterOutputStream {
             writeValueType( ValueType.ref_type );
         }
         writeValueType( type );
+    }
+
+    /**
+     * Write the default/initial value for a type.
+     * 
+     * @param type
+     *            the type
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    public void writeDefaultValue( AnyType type ) throws IOException {
+        if( type.getCode() < 0 ) {
+            ValueType valueType = (ValueType)type;
+            switch( valueType ) {
+                case i32:
+                case i64:
+                case f32:
+                case f64:
+                    writeConst( 0, valueType );
+                    break;
+                case i8:
+                case i16:
+                    writeConst( 0, ValueType.i32 );
+                    break;
+                case anyref:
+                    writeOpCode( InstructionOpcodes.REF_NULL );
+                    break;
+                default:
+                    throw new WasmException( "Not supported storage type: " + type, -1 );
+            }
+        } else {
+            writeOpCode( InstructionOpcodes.REF_NULL );
+        }
     }
 
     /**

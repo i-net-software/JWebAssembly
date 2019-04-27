@@ -32,6 +32,7 @@ import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
@@ -193,7 +194,9 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addGlobalInstruction( boolean load, Member ref, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmGlobalInstruction( load, ref, javaCodePos, lineNumber ) );
+        FunctionName name = new FunctionName( ref );
+        AnyType type = new ValueTypeParser( ref.getType(), types ).next();
+        instructions.add( new WasmGlobalInstruction( load, name, type, javaCodePos, lineNumber ) );
     }
 
     /**

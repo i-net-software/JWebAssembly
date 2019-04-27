@@ -24,8 +24,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
@@ -113,12 +113,7 @@ public class TextModuleWriter extends ModuleWriter {
                 output.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
             }
             output.append( " (mut " );
-            AnyType type = field.getType();
-            if( type.getCode() < 0 ) {
-                output.append( type.toString() );
-            } else {
-                output.append( "(ref " ).append( normalizeName( type.toString() ) ).append( ')' );
-            }
+            writeTypeName( output, field.getType() );
             output.append( "))" );
         }
         inset--;
@@ -204,6 +199,24 @@ public class TextModuleWriter extends ModuleWriter {
     }
 
     /**
+     * Write the name of a type.
+     * 
+     * @param output
+     *            the target
+     * @param type
+     *            the type
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeTypeName( Appendable output, AnyType type ) throws IOException {
+        if( type.getCode() < 0 ) {
+            output.append( type.toString() );
+        } else {
+            output.append( "(ref " ).append( normalizeName( type.toString() ) ).append( ')' );
+        }
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -218,11 +231,7 @@ public class TextModuleWriter extends ModuleWriter {
             }
         }
         methodOutput.append( ' ' );
-        if( valueType.getCode() < 0 ) {
-            methodOutput.append( valueType );
-        } else {
-            methodOutput.append( "(ref " ).append( normalizeName( valueType.toString() ) ).append( ')' );
-        }
+        writeTypeName( methodOutput, valueType );
         methodOutput.append( ')' );
     }
 
@@ -294,17 +303,64 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeGlobalAccess( boolean load, FunctionName name, Member ref ) throws IOException {
+    protected void writeGlobalAccess( boolean load, FunctionName name, AnyType type ) throws IOException {
         String fullName = normalizeName( name );
         if( !globals.contains( fullName ) ) {
             // declare global variable if not already declared.
             output.append( "\n  " );
-            String type = ValueType.getValueType( ref.getType() ).toString();
-            output.append( "(global $" ).append( fullName ).append( " (mut " ).append( type ).append( ") (" ).append( type ).append( ".const 0))" );
+            output.append( "(global $" ).append( fullName ).append( " (mut " );
+            writeTypeName( output, type );
+            output.append( ')' );
+            writeDefaultValue( output, type );
+            output.append( ')' );
             globals.add( fullName );
         }
         newline( methodOutput );
         methodOutput.append( load ? "global.get $" : "global.set $" ).append( fullName );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeDefaultValue( AnyType type ) throws IOException {
+        newline( methodOutput );
+        writeDefaultValue( methodOutput, type );
+    }
+
+    /**
+     * Write the default/initial value for type.
+     * 
+     * @param output
+     *            the target
+     * @param type
+     *            the type
+     * @throws IOException
+     *             if an I/O error occurs.
+     */
+    private static void writeDefaultValue( Appendable output, AnyType type ) throws IOException {
+        if( type.getCode() < 0 ) {
+            ValueType valueType = (ValueType)type;
+            switch( valueType ) {
+                case i32:
+                case i64:
+                case f32:
+                case f64:
+                    output.append( " (" ).append( type.toString() ).append( ".const 0)" );
+                    break;
+                case i8:
+                case i16:
+                    writeDefaultValue( output, ValueType.i32 );
+                    break;
+                case anyref:
+                    output.append( "(ref.null)" );
+                    break;
+                default:
+                    throw new WasmException( "Not supported storage type: " + type, -1 );
+            }
+        } else {
+            output.append( "(ref.null)" );
+        }
     }
 
     /**
