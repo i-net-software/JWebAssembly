@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.text;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +52,8 @@ public class TextModuleWriter extends ModuleWriter {
     private Appendable      output;
 
     private final boolean   debugNames;
+
+    private final ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
 
     private final ArrayList<String> methodParamNames = new ArrayList<>();
 
@@ -90,6 +93,22 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     public void close() throws IOException {
         output.append( methodOutput );
+
+        int dataSize = dataStream.size();
+        if( dataSize > 0 ) {
+            int pages = (dataSize + 0xFFFF) / 0x10000;
+            newline( output );
+            String pagesStr = Integer.toString( pages );
+            output.append( "(memory " ).append( pagesStr ).append( ' ' ).append( pagesStr ).append( ')' );
+            newline( output );
+            output.append( "(data (i32.const 0) \"" );
+            byte[] data = dataStream.toByteArray();
+            for( byte b : data ) {
+                output.append( '\\' ).append( Character.forDigit( (b >> 4) & 0xF, 16 ) ).append( Character.forDigit( b & 0xF, 16 ) );
+            }
+            output.append( "\")" );
+        }
+
         inset--;
         newline( output );
         output.append( ')' );

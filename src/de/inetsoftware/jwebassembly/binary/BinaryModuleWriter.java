@@ -63,6 +63,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private final boolean               createSourceMap;
 
+    private WasmOutputStream            dataStream          = new WasmOutputStream();
+
     private WasmOutputStream            codeStream          = new WasmOutputStream();
 
     private List<TypeEntry>             functionTypes       = new ArrayList<>();
@@ -121,10 +123,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeSection( SectionType.Type, functionTypes );
         writeSection( SectionType.Import, imports.values() );
         writeSection( SectionType.Function, functions.values() );
+        writeMemorySection();
         writeSection( SectionType.Global, globals.values() );
         writeEventSection();
         writeExportSection();
         writeCodeSection();
+        writeDataSection();
         writeDebugNames();
         writeSourceMappingUrl();
         writeProducersSection();
@@ -152,6 +156,25 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             }
             wasm.writeSection( type, stream );
         }
+    }
+
+    /**
+     * Write the memory section.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeMemorySection() throws IOException {
+        WasmOutputStream stream = new WasmOutputStream();
+        int pages = (dataStream.size() + 0xFFFF) / 0x10000; // a page is defined with a size of 64KiB
+        int count = 1;
+        stream.writeVaruint32( count );
+        for( int i = 0; i < count; i++ ) {
+            stream.writeVaruint32( 1 ); // flags; 1-maximum is available, 0-no maximum value available
+            stream.writeVaruint32( pages ); // initial length
+            stream.writeVaruint32( pages ); // maximum length
+        }
+        wasm.writeSection( SectionType.Memory, stream );
     }
 
     /**
@@ -231,6 +254,31 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             }
             sourceMap.generate( target.getSourceMapOutput() );
         }
+    }
+
+    /**
+     * Write the data section
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeDataSection() throws IOException {
+        int size = dataStream.size();
+        if( size == 0 ) {
+            return;
+        }
+
+        WasmOutputStream stream = new WasmOutputStream();
+        stream.writeVaruint32( 1 ); // count, we use one large segment
+
+        // one data segment
+        stream.writeVaruint32( 0 ); // index (0 in the MVP)
+        stream.writeConst( 0, ValueType.i32 ); // the offset on which the data start
+        stream.writeOpCode( END ); // end of offset instruction
+        stream.writeVaruint32( size );
+        dataStream.writeTo( stream );
+
+        wasm.writeSection( SectionType.Data, stream );
     }
 
     /**
