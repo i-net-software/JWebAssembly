@@ -67,6 +67,12 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean         useExceptions;
 
+    private int                         importCount;
+
+    private int                         functionCount;
+
+    private boolean                     callIndirect;
+
     /**
      * Create a new instance.
      * 
@@ -93,6 +99,18 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     public void close() throws IOException {
         output.append( methodOutput );
+
+        if( callIndirect ) {
+            int count = importCount + functionCount;
+            String countStr = Integer.toString( count );
+            output.append( "(table " ).append( countStr ).append( ' ' ).append( countStr ).append( " anyfunc)" );
+            newline( output );
+            output.append( "(elem (i32.const 0) " );
+            for( int i = 0; i < count; i++ ) {
+                output.append( Integer.toString( i ) ).append( ' ' );
+            }
+            output.append( ')' );
+        }
 
         int dataSize = dataStream.size();
         if( dataSize > 0 ) {
@@ -166,6 +184,7 @@ public class TextModuleWriter extends ModuleWriter {
             newline( methodOutput );
             methodOutput.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( normalizeName( name ) );
             isImport = true;
+            importCount++;
         }
     }
 
@@ -215,6 +234,7 @@ public class TextModuleWriter extends ModuleWriter {
         methodOutput.append( normalizeName( name ) );
         inset++;
         methodParamNames.clear();
+        functionCount++;
     }
 
     /**
@@ -502,6 +522,16 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeFunctionCall( FunctionName name ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "call $" ).append( normalizeName( name ) );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeFunctionCallIndirect( FunctionName name ) throws IOException {
+        callIndirect = true;
+        newline( methodOutput );
+        methodOutput.append( "call_indirect $" ).append( normalizeName( name ) );
     }
 
     /**

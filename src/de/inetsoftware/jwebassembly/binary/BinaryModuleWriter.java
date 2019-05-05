@@ -87,6 +87,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private String                      javaSourceFile;
 
+    private boolean                     callIndirect;
+
     /**
      * Create new instance.
      * 
@@ -123,10 +125,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeSection( SectionType.Type, functionTypes );
         writeSection( SectionType.Import, imports.values() );
         writeSection( SectionType.Function, functions.values() );
+        writeTableSection();
         writeMemorySection();
         writeSection( SectionType.Global, globals.values() );
         writeEventSection();
         writeExportSection();
+        writeElementSection();
         writeCodeSection();
         writeDataSection();
         writeDebugNames();
@@ -156,6 +160,31 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             }
             wasm.writeSection( type, stream );
         }
+    }
+
+    /**
+     * Write the table section. It declare the space for the element section.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeTableSection() throws IOException {
+        if( !callIndirect ) {
+            return;
+        }
+
+        int elemCount = imports.size() + functions.size();
+        WasmOutputStream stream = new WasmOutputStream();
+        int count = 1;
+        stream.writeVaruint32( count ); // count of tables
+        for( int i = 0; i < count; i++ ) {
+            stream.writeValueType( ValueType.anyfunc ); // the type of elements
+            stream.writeVaruint32( 1 ); // flags; 1-maximum is available, 0-no maximum value available
+            stream.writeVaruint32( elemCount ); // initial length
+            stream.writeVaruint32( elemCount ); // maximum length
+        }
+
+        wasm.writeSection( SectionType.Table, stream );
     }
 
     /**
@@ -218,6 +247,33 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             }
             wasm.writeSection( SectionType.Export, stream );
         }
+    }
+
+    /**
+     * Write element section. This section create a matching between direct and indirect function call IDs.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeElementSection() throws IOException {
+        if( !callIndirect ) {
+            return;
+        }
+
+        int elemCount = imports.size() + functions.size();
+        WasmOutputStream stream = new WasmOutputStream();
+        stream.writeVaruint32( 1 ); // count of element segments to follow
+
+        // element_segment
+        stream.writeVaruint32( 0 ); // the table index (0 in the MVP)
+        stream.writeConst( 0, ValueType.i32 ); // the offset on which the elements start
+        stream.writeOpCode( END ); // end of offset instruction
+        stream.writeVaruint32( elemCount );
+        for( int i = 0; i < elemCount; i++ ) {
+            stream.writeVaruint32( i ); // we use a 1:1 matching between direct function call numbers and indrect function numbers because the most functions will be indirect 
+        }
+
+        wasm.writeSection( SectionType.Element, stream );
     }
 
     /**
@@ -939,6 +995,18 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         Function func = getFunction( name );
         codeStream.writeOpCode( CALL );
         codeStream.writeVaruint32( func.id );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeFunctionCallIndirect( FunctionName name ) throws IOException {
+        callIndirect = true;
+        Function func = getFunction( name );
+        codeStream.writeOpCode( CALL_INDIRECT );
+        codeStream.writeVaruint32( func.typeId );
+        codeStream.writeVaruint32( 0 ); // table 0
     }
 
     /**
