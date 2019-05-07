@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2018 Volker Berlin (i-net software)
+   Copyright 2011 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nullable;
+
 import de.inetsoftware.classparser.Attributes.AttributeInfo;
 
 /**
@@ -29,6 +31,8 @@ import de.inetsoftware.classparser.Attributes.AttributeInfo;
  * @author Volker Berlin
  */
 public class ClassFile {
+
+    private static final WeakValueCache<String,ClassFile> CACHE = new WeakValueCache<>(); 
 
     private final DataInputStream input;
 
@@ -55,6 +59,30 @@ public class ClassFile {
     private String                thisSignature;
 
     private String                superSignature;
+
+    /**
+     * Get the ClassFile from cache or load it.
+     * 
+     * @param className
+     *            the class name
+     * @param loader
+     *            the ClassLoader to load
+     * @return the ClassFile or null
+     * @throws IOException
+     *             If any I/O error occur
+     */
+    @Nullable
+    public static ClassFile get( String className, ClassLoader loader ) throws IOException {
+        ClassFile classFile = CACHE.get( className );
+        if( classFile != null ) {
+            return classFile;
+        }
+        InputStream stream = loader.getResourceAsStream( className + ".class" );
+        if( stream != null ) {
+            return new ClassFile( stream );
+        }
+        return null;
+    }
 
     /**
      * Load a class file and create a model of the class.
@@ -109,6 +137,7 @@ public class ClassFile {
                 }
             }
         }
+        CACHE.put( thisClass.getName(), this );
     }
 
     /**

@@ -162,15 +162,14 @@ public class ModuleGenerator {
     public void finish() throws IOException {
         FunctionName next;
         while( (next = functions.nextWriteLater()) != null ) {
-            InputStream stream = libraries.getResourceAsStream( next.className + ".class" );
-            if( stream == null ) {
+            ClassFile classFile = ClassFile.get( next.className, libraries );
+            if( classFile == null ) {
                 if( next instanceof SyntheticFunctionName ) {
                     writeMethodImpl( next, true, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
                 } else {
                     throw new WasmException( "Missing function: " + next.signatureName, -1 );
                 }
             } else {
-                ClassFile classFile = new ClassFile( stream );
                 iterateMethods( classFile, method -> {
                     try {
                         FunctionName name;
@@ -250,11 +249,10 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     private void listStructFields( String className, List<NamedStorageType> list ) throws IOException {
-        InputStream stream = libraries.getResourceAsStream( className + ".class" );
-        if( stream == null ) {
+        ClassFile classFile = ClassFile.get( className, libraries );
+        if( classFile == null ) {
             throw new WasmException( "Missing class: " + className, -1 );
         }
-        ClassFile classFile = new ClassFile( stream );
 
         ConstantClass superClass = classFile.getSuperClass();
         if( superClass != null ) {
