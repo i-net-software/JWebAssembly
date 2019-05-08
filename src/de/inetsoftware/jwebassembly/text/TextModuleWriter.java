@@ -548,7 +548,7 @@ public class TextModuleWriter extends ModuleWriter {
             case IF:
                 name = "if";
                 if( data != ValueType.empty ) {
-                    name += spiderMonkey ? " " + data : " (result " + data + ")"; // TODO HACK for https://bugzilla.mozilla.org/show_bug.cgi?id=1545755
+                    name += " (result " + data + ")";
                 }
                 insetAfter++;
                 break;
