@@ -16,7 +16,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,11 +30,23 @@ import de.inetsoftware.classparser.MethodInfo;
  */
 public class FunctionManager {
 
-    private HashSet<String>       writtenFunctions = new HashSet<>();
+    private HashMap<FunctionName, FunctionState> states           = new HashMap<>();
 
-    private HashSet<FunctionName> toWriteLater     = new HashSet<>();
-
-    private HashMap<FunctionName, MethodInfo> replacement = new HashMap<>();
+    /**
+     * Get an existing state or create one.
+     * 
+     * @param name
+     *            the FunctionName
+     * @return the state
+     */
+    @Nonnull
+    private FunctionState getOrCreate( FunctionName name ) {
+        FunctionState state = states.get( name );
+        if( state == null ) {
+            states.put( name, state = new FunctionState() );
+        }
+        return state;
+    }
 
     /**
      * Mark the a function as written to the wasm file.
@@ -43,8 +55,7 @@ public class FunctionManager {
      *            the function name
      */
     void writeFunction( FunctionName name ) {
-        toWriteLater.remove( name );
-        writtenFunctions.add( name.signatureName );
+        getOrCreate( name ).state = State.Written;
     }
 
     /**
@@ -54,8 +65,9 @@ public class FunctionManager {
      *            the function name
      */
     void functionCall( FunctionName name ) {
-        if( !writtenFunctions.contains( name.signatureName ) ) {
-            toWriteLater.add( name );
+        FunctionState state = getOrCreate( name );
+        if( state.state == State.None ) {
+            state.state = State.Need;
         }
     }
 
@@ -66,10 +78,12 @@ public class FunctionManager {
      */
     @Nullable
     FunctionName nextWriteLater() {
-        if( toWriteLater.isEmpty() ) {
-            return null;
+        for( Entry<FunctionName, FunctionState> entry : states.entrySet() ) {
+            if( entry.getValue().state == State.Need ) {
+                return entry.getKey();
+            }
         }
-        return toWriteLater.iterator().next();
+        return null;
     }
 
     /**
@@ -80,7 +94,7 @@ public class FunctionManager {
      * @return true, if the function on the to do list
      */
     boolean isToWrite( FunctionName name ) {
-        return toWriteLater.contains( name );
+        return getOrCreate( name ).state == State.Need;
     }
 
     /**
@@ -92,7 +106,7 @@ public class FunctionManager {
      *            the new implementation
      */
     void addReplacement( FunctionName name, MethodInfo method ) {
-        replacement.put( name, method );
+        getOrCreate( name ).method = method;
     }
 
     /**
@@ -106,7 +120,20 @@ public class FunctionManager {
      */
     @Nonnull
     MethodInfo replace( FunctionName name, MethodInfo method ) {
-        MethodInfo newMethod = replacement.get( name );
+        MethodInfo newMethod = getOrCreate( name ).method;
         return newMethod != null ? newMethod : method;
+    }
+
+    /**
+     * State of a function/method
+     */
+    private static class FunctionState {
+        private State    state = State.None;
+
+        private MethodInfo method;
+    }
+
+    private static enum State {
+        None, Need, Written;
     }
 }
