@@ -385,20 +385,20 @@ public class TextModuleWriter extends ModuleWriter {
                 case i64:
                 case f32:
                 case f64:
-                    output.append( " (" ).append( type.toString() ).append( ".const 0)" );
+                    output.append( type.toString() ).append( ".const 0" );
                     break;
                 case i8:
                 case i16:
                     writeDefaultValue( output, ValueType.i32 );
                     break;
                 case anyref:
-                    output.append( "(ref.null)" );
+                    output.append( "ref.null" );
                     break;
                 default:
                     throw new WasmException( "Not supported storage type: " + type, -1 );
             }
         } else {
-            output.append( "(ref.null)" );
+            output.append( "ref.null" );
         }
     }
 
