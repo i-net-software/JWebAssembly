@@ -18,7 +18,6 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -148,9 +147,26 @@ public class ModuleGenerator {
     /**
      * Finish the prepare after all classes/methods are prepare. This must be call before we can start with write the
      * first method.
+     * @throws IOException
+     *             if any I/O error occur
      */
-    public void prepareFinish() {
+    public void prepareFinish() throws IOException {
         writer.prepareFinish();
+
+        FunctionName next;
+        while( (next = functions.nextScannLater()) != null ) {
+            ClassFile classFile = ClassFile.get( next.className, libraries );
+            if( classFile == null ) {
+            } else {
+                iterateMethods( classFile, method -> {
+                    FunctionName name = new FunctionName( method );
+                    if( functions.needToScan( name ) ) {
+                        //TODO
+                    }
+                } );
+            }
+            functions.markAsScanned( next );
+        }
     }
 
     /**
@@ -184,7 +200,7 @@ public class ModuleGenerator {
                             name = new FunctionName( method );
                             method = functions.replace( name, method );
                         }
-                        if( functions.isToWrite( name ) ) {
+                        if( functions.needToWrite( name ) ) {
                             writeMethod( name, method );
                         }
                     } catch (IOException ioex){
@@ -193,7 +209,7 @@ public class ModuleGenerator {
                 } );
             }
 
-            if( functions.isToWrite( next ) ) {
+            if( functions.needToWrite( next ) ) {
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
         }
@@ -310,7 +326,7 @@ public class ModuleGenerator {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Import method must be static: " + name.fullName, -1 );
                 }
-                functions.writeFunction( name );
+                functions.markAsWritten( name );
                 String impoarModule = (String)annotationValues.get( "module" );
                 String importName = (String)annotationValues.get( "name" );
                 writer.prepareImport( name, impoarModule, importName );
@@ -321,7 +337,7 @@ public class ModuleGenerator {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Export method must be static: " + name.fullName, -1 );
                 }
-                functions.functionCall( name );
+                functions.markAsNeeded( name );
                 return;
             }
             if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
@@ -378,7 +394,7 @@ public class ModuleGenerator {
 
     private void writeMethodImpl( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
         writer.writeMethodStart( name, sourceFile );
-        functions.writeFunction( name );
+        functions.markAsWritten( name );
         writeMethodSignature( name, isStatic, codeBuilder );
 
         List<WasmInstruction> instructions = codeBuilder.getInstructions();
@@ -405,7 +421,7 @@ public class ModuleGenerator {
                         }
                         break;
                     case Call:
-                        functions.functionCall( ((WasmCallInstruction)instruction).getFunctionName() );
+                        functions.markAsNeeded( ((WasmCallInstruction)instruction).getFunctionName() );
                         break;
                     case Struct:
                         WasmStructInstruction instr = (WasmStructInstruction)instruction;

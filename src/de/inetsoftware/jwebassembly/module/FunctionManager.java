@@ -49,12 +49,22 @@ public class FunctionManager {
     }
 
     /**
+     * Mark the a function as scanned in the prepare phase. This should only occur with needed functions.
+     * 
+     * @param name
+     *            the function name
+     */
+    void markAsScanned( FunctionName name ) {
+        getOrCreate( name ).state = State.Scanned;
+    }
+
+    /**
      * Mark the a function as written to the wasm file.
      * 
      * @param name
      *            the function name
      */
-    void writeFunction( FunctionName name ) {
+    void markAsWritten( FunctionName name ) {
         getOrCreate( name ).state = State.Written;
     }
 
@@ -64,11 +74,26 @@ public class FunctionManager {
      * @param name
      *            the function name
      */
-    void functionCall( FunctionName name ) {
+    void markAsNeeded( FunctionName name ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
-            state.state = State.Need;
+            state.state = State.Needed;
         }
+    }
+
+    /**
+     * Get the first FunctionName that is required but was not scanned.
+     * 
+     * @return the FunctionName or null
+     */
+    @Nullable
+    FunctionName nextScannLater() {
+        for( Entry<FunctionName, FunctionState> entry : states.entrySet() ) {
+            if( entry.getValue().state == State.Needed ) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     /**
@@ -79,11 +104,29 @@ public class FunctionManager {
     @Nullable
     FunctionName nextWriteLater() {
         for( Entry<FunctionName, FunctionState> entry : states.entrySet() ) {
-            if( entry.getValue().state == State.Need ) {
-                return entry.getKey();
+            switch( entry.getValue().state ) {
+                case Needed:
+                case Scanned:
+                    return entry.getKey();
             }
         }
         return null;
+    }
+
+    /**
+     * if the given function is required but was not scanned.
+     * 
+     * @param name
+     *            the function name
+     * @return true, if the function on the to do list
+     */
+    boolean needToScan( FunctionName name ) {
+        switch( getOrCreate( name ).state ) {
+            case Needed:
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -93,8 +136,14 @@ public class FunctionManager {
      *            the function name
      * @return true, if the function on the to do list
      */
-    boolean isToWrite( FunctionName name ) {
-        return getOrCreate( name ).state == State.Need;
+    boolean needToWrite( FunctionName name ) {
+        switch( getOrCreate( name ).state ) {
+            case Needed:
+            case Scanned:
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -134,6 +183,6 @@ public class FunctionManager {
     }
 
     private static enum State {
-        None, Need, Written;
+        None, Needed, Scanned, Written;
     }
 }
