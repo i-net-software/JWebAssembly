@@ -15,7 +15,9 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
@@ -30,7 +32,14 @@ import de.inetsoftware.classparser.MethodInfo;
  */
 public class FunctionManager {
 
-    private HashMap<FunctionName, FunctionState> states           = new HashMap<>();
+    private Map<FunctionName, FunctionState> states = new HashMap<>();
+
+    /**
+     * Finish the prepare. Now no new function should be added. 
+     */
+    void prepareFinish() {
+        states = Collections.unmodifiableMap( states );
+    }
 
     /**
      * Get an existing state or create one.

@@ -31,6 +31,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
@@ -153,19 +154,55 @@ public class ModuleGenerator {
     public void prepareFinish() throws IOException {
         writer.prepareFinish();
 
+        // scan all methods that should be write to build optimize structures
         FunctionName next;
         while( (next = functions.nextScannLater()) != null ) {
             ClassFile classFile = ClassFile.get( next.className, libraries );
             if( classFile == null ) {
+                if( next instanceof SyntheticFunctionName ) {
+                    scanMethod( ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
+                    functions.markAsScanned( next );
+                }
             } else {
                 iterateMethods( classFile, method -> {
-                    FunctionName name = new FunctionName( method );
-                    if( functions.needToScan( name ) ) {
-                        //TODO
+                    try {
+                        FunctionName name = new FunctionName( method );
+                        if( functions.needToScan( name ) ) {
+                            scanMethod( createInstructions( method ) );
+                            functions.markAsScanned( name );
+                        }
+                    } catch (IOException ioex){
+                        throw WasmException.create( ioex, sourceFile, className, -1 );
                     }
                 } );
             }
-            functions.markAsScanned( next );
+            if( functions.needToScan( next ) ) {
+                throw new WasmException( "Missing function: " + next.signatureName, -1 );
+            }
+        }
+        functions.prepareFinish();
+    }
+
+    /**
+     * Scan the method and list all needed methods.
+     * 
+     * @param codeBuilder
+     *            the codeBuilder with instructions of the method
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void scanMethod( WasmCodeBuilder codeBuilder ) throws IOException {
+        if( codeBuilder == null ) {
+            return;
+        }
+        List<WasmInstruction> instructions = codeBuilder.getInstructions();
+        for( WasmInstruction instruction : instructions ) {
+            switch( instruction.getType() ) {
+                case Call:
+                    functions.markAsNeeded( ((WasmCallInstruction)instruction).getFunctionName() );
+                    break;
+                default:
+            }
         }
     }
 
@@ -216,20 +253,7 @@ public class ModuleGenerator {
     }
 
     /**
-     * Set the StructType into the instruction and write the types/structs if needed.
-     * 
-     * @param instruction
-     *            the struct instruction
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void setStructType( WasmStructInstruction instruction ) throws IOException {
-        StructType type = instruction.getStructType();
-        writeStructType( type );
-    }
-
-    /**
-     * Write the struct type
+     * Write the struct type if not already write.
      * 
      * @param type
      *            the type
@@ -360,38 +384,70 @@ public class ModuleGenerator {
      *            the method
      * @throws WasmException
      *             if some Java code can't converted
+     * @throws IOException
+     *             if any I/O error occur
      */
     private void writeMethod( FunctionName name, MethodInfo method ) throws WasmException, IOException {
+        WasmCodeBuilder codeBuilder = createInstructions( method );
+        if( codeBuilder == null ) {
+            return;
+        }
+        writeExport( name, method );
+        writeMethodImpl( name, method.isStatic(), codeBuilder );
+    }
+
+    /**
+     * Create the instructions in a code builder
+     * 
+     * @param method
+     *            the method to parse
+     * @return the CodeBuilder or null if it is an import function
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    @Nullable
+    private WasmCodeBuilder createInstructions( MethodInfo method ) throws IOException {
         Code code = null;
         try {
-            if( method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION  ) != null ) {
-                return;
+            if( method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION ) != null ) {
+                return null;
             }
-            WasmCodeBuilder codeBuilder;
             code = method.getCode();
-            if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  ) != null ) {
-                Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
+            if( method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION ) != null ) {
+                Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION );
                 String watCode = (String)wat.get( "value" );
                 String signature = (String)wat.get( "signature" );
                 if( signature == null ) {
                     signature = method.getType();
                 }
                 watParser.parse( watCode, code == null ? -1 : code.getFirstLineNr() );
-                codeBuilder = watParser;
+                return watParser;
             } else if( code != null ) { // abstract methods and interface methods does not have code
                 javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
-                codeBuilder = javaCodeBuilder;
+                return javaCodeBuilder;
             } else {
-                throw new WasmException( "Abstract or native method can not be used: " + name.fullName, -1 );
+                throw new WasmException( "Abstract or native method can not be used: " + new FunctionName( method ).fullName, -1 );
             }
-            writeExport( name, method );
-            writeMethodImpl( name, method.isStatic(), codeBuilder );
         } catch( Exception ioex ) {
             int lineNumber = code == null ? -1 : code.getFirstLineNr();
             throw WasmException.create( ioex, sourceFile, className, lineNumber );
         }
     }
 
+    /**
+     * Write the method instruction to the Wasm writer.
+     * 
+     * @param name
+     *            the name of the function
+     * @param isStatic
+     *            if it is static
+     * @param codeBuilder
+     *            the code builder with instructions
+     * @throws WasmException
+     *             if some Java code can't converted
+     * @throws IOException
+     *             if an i/O error occur
+     */
     private void writeMethodImpl( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
         writer.writeMethodStart( name, sourceFile );
         functions.markAsWritten( name );
@@ -425,7 +481,7 @@ public class ModuleGenerator {
                         break;
                     case Struct:
                         WasmStructInstruction instr = (WasmStructInstruction)instruction;
-                        setStructType( instr );
+                        writeStructType( instr.getStructType() );
                         if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
                             List<NamedStorageType> list = instr.getStructType().getFields();
                             for( NamedStorageType storageType : list ) {
