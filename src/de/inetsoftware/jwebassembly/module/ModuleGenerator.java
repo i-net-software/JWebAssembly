@@ -156,6 +156,7 @@ public class ModuleGenerator {
 
         // scan all methods that should be write to build optimize structures
         FunctionName next;
+        NEXT:
         while( (next = functions.nextScannLater()) != null ) {
             ClassFile classFile = ClassFile.get( next.className, libraries );
             if( classFile == null ) {
@@ -176,7 +177,20 @@ public class ModuleGenerator {
                     }
                 } );
             }
-            if( functions.needToScan( next ) ) {
+
+            if( functions.needToScan( next ) ) { // function was not found
+                ClassFile superClassFile = classFile;
+                while( superClassFile != null ) {
+                    MethodInfo method = superClassFile.getMethod( next.methodName, next.signature );
+                    if( method != null ) {
+                        FunctionName name = new FunctionName( method );
+                        functions.markAsNeeded( name );
+                        functions.setAlias( next, name );
+                        continue NEXT;
+                    }
+                    ConstantClass superClass = superClassFile.getSuperClass();
+                    superClassFile = superClass == null ? null : ClassFile.get( superClass.getName(), libraries );
+                }
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
         }
@@ -199,7 +213,7 @@ public class ModuleGenerator {
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Call:
-                    functions.markAsNeeded( ((WasmCallInstruction)instruction).getFunctionName() );
+                    ((WasmCallInstruction)instruction).markAsNeeded( functions );
                     break;
                 default:
             }
@@ -477,7 +491,7 @@ public class ModuleGenerator {
                         }
                         break;
                     case Call:
-                        functions.markAsNeeded( ((WasmCallInstruction)instruction).getFunctionName() );
+                        ((WasmCallInstruction)instruction).markAsNeeded( functions );
                         break;
                     case Struct:
                         WasmStructInstruction instr = (WasmStructInstruction)instruction;

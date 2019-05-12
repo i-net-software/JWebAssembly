@@ -39,6 +39,12 @@ public class FunctionName {
     public final String className;
 
     /**
+     * The method name.
+     */
+    @Nonnull
+    public final String methodName;
+
+    /**
      * The name in the WebAssembly.
      */
     @Nonnull
@@ -54,7 +60,7 @@ public class FunctionName {
      * The signature
      */
     @Nonnull
-    private final String signature;
+    public final String signature;
 
     /**
      * Create a new instance from the given reference in the ConstantPool or parsed method.
@@ -90,6 +96,7 @@ public class FunctionName {
      */
     FunctionName( String className, String methodName, String signature ) {
         this.className = className;
+        this.methodName = methodName;
         this.fullName = className + '.' + methodName;
         this.signatureName = fullName + signature;
         this.signature = signature;
@@ -102,11 +109,13 @@ public class FunctionName {
      *            the full Java method signature like "com/foo/Bar.method()V"
      */
     FunctionName( String signatureName ) {
-        this.className = signatureName.substring( 0, signatureName.indexOf( '.' ) );
-        int idx = signatureName.indexOf( '(' );
-        this.fullName = signatureName.substring( 0, idx );
+        int idx1 = signatureName.indexOf( '.' );
+        this.className = signatureName.substring( 0, idx1 );
+        int idx2 = signatureName.indexOf( '(', idx1 );
+        this.methodName = signatureName.substring( idx1 + 1, idx2 );
+        this.fullName = signatureName.substring( 0, idx2 );
         this.signatureName = signatureName;
-        this.signature = signatureName.substring( idx );
+        this.signature = signatureName.substring( idx2 );
     }
 
     /**

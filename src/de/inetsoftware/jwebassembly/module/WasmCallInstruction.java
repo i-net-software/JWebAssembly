@@ -31,11 +31,11 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 class WasmCallInstruction extends WasmInstruction {
 
-    private AnyType            valueType;
+    private AnyType      valueType;
 
-    private final FunctionName name;
+    private FunctionName name;
 
-    private int                paramCount = -1;
+    private int          paramCount = -1;
 
     /**
      * Create an instance of a function call instruction
@@ -61,13 +61,13 @@ class WasmCallInstruction extends WasmInstruction {
     }
 
     /**
-     * Get the function name that should be called
+     * Mark the function as needed in the functions manager and replace the function name with a possible super name.
      * 
-     * @return the name
+     * @param functions
+     *            the function manager
      */
-    @Nonnull
-    FunctionName getFunctionName() {
-        return name;
+    void markAsNeeded( @Nonnull FunctionManager functions ) {
+        name = functions.markAsNeeded( name );
     }
 
     /**

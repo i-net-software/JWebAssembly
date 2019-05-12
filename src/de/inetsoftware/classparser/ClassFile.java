@@ -171,14 +171,22 @@ public class ClassFile {
         return methods;
     }
 
-    public int getMethodCount( String name ) {
-        int count = 0;
+    /**
+     * Find a method via name and signature.
+     * 
+     * @param name
+     *            the name
+     * @param signature
+     *            the signature
+     * @return the method or null if not found
+     */
+    public MethodInfo getMethod( String name, String signature ) {
         for( MethodInfo method : methods ) {
-            if( name.equals( method.getName() ) ) {
-                count++;
+            if( name.equals( method.getName() ) && signature.equals( method.getType() ) ) {
+                return method;
             }
         }
-        return count;
+        return null;
     }
 
     public FieldInfo getField( String name ) {

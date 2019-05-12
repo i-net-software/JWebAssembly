@@ -78,16 +78,18 @@ public class FunctionManager {
     }
 
     /**
-     * Mark a function as used/called.
+     * Mark a function as used/called and return the real name if there is an alias.
      * 
      * @param name
      *            the function name
+     * @return the real function name
      */
-    void markAsNeeded( FunctionName name ) {
+    FunctionName markAsNeeded( FunctionName name ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
             state.state = State.Needed;
         }
+        return state.alias == null ? name : state.alias;
     }
 
     /**
@@ -168,6 +170,21 @@ public class FunctionManager {
     }
 
     /**
+     * Set an alias for the method. If this method should be called then the alias method should be really called. This
+     * is typical a virtual super method.
+     * 
+     * @param name
+     *            the original name
+     * @param alias
+     *            the new name.
+     */
+    void setAlias( FunctionName name, FunctionName alias ) {
+        FunctionState state = getOrCreate( name );
+        state.alias = alias;
+        state.state = State.Written;
+    }
+
+    /**
      * Check if there is a replacement method
      * 
      * @param name
@@ -189,6 +206,8 @@ public class FunctionManager {
         private State    state = State.None;
 
         private MethodInfo method;
+
+        private FunctionName alias;
     }
 
     private static enum State {
