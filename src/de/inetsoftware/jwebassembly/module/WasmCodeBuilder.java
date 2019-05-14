@@ -274,6 +274,20 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Add a virtual/method function call.
+     * 
+     * @param name
+     *            the function name that should be called
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+        instructions.add( new WasmCallIndirectInstruction( name, javaCodePos, lineNumber ) );
+    }
+
+    /**
      * Add a block operation.
      * 
      * @param op

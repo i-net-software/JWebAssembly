@@ -17,11 +17,8 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import javax.annotation.Nonnull;
-
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 
 /**
  * WasmInstruction for a function call.
@@ -29,13 +26,7 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  * @author Volker Berlin
  *
  */
-class WasmCallIndirectInstruction extends WasmInstruction {
-
-    private AnyType            valueType;
-
-    private final FunctionName name;
-
-    private int                paramCount = -1;
+class WasmCallIndirectInstruction extends WasmCallInstruction {
 
     /**
      * Create an instance of a function call instruction
@@ -48,8 +39,7 @@ class WasmCallIndirectInstruction extends WasmInstruction {
      *            the line number in the Java source code
      */
     WasmCallIndirectInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        super( javaCodePos, lineNumber );
-        this.name = name;
+        super( name, javaCodePos, lineNumber );
     }
 
     /**
@@ -61,28 +51,15 @@ class WasmCallIndirectInstruction extends WasmInstruction {
     }
 
     /**
-     * Get the function name that should be called
-     * 
-     * @return the name
-     */
-    @Nonnull
-    FunctionName getFunctionName() {
-        return name;
-    }
-
-    /**
      * {@inheritDoc}
      */
+    @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeFunctionCallIndirect( name );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    AnyType getPushValueType() {
-        countParams();
-        return valueType;
+        if( true ) { // TODO
+            super.writeTo( writer );
+        } else {
+            writer.writeFunctionCallIndirect( getFunctionName() );
+        }
     }
 
     /**
@@ -90,26 +67,6 @@ class WasmCallIndirectInstruction extends WasmInstruction {
      */
     @Override
     int getPopCount() {
-        countParams();
-        return paramCount;
-    }
-
-    /**
-     * Count the parameters in the signature
-     */
-    private void countParams() {
-        if( paramCount >= 0 ) {
-            return;
-        }
-        Iterator<AnyType> parser = name.getSignature();
-        paramCount = 1;
-        while( parser.next() != null ) {
-            paramCount++;
-        }
-        valueType = parser.next();
-        while( parser.hasNext() ) {
-            valueType = parser.next();
-            paramCount--;
-        }
+        return super.getPopCount() + 1; // this -> +1
     }
 }

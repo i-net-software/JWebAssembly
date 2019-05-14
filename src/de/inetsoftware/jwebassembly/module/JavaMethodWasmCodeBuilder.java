@@ -576,6 +576,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addStructInstruction( StructOperator.SET, ref.getClassName(), new NamedStorageType( ref, getTypeManager() ), codePos, lineNumber );
                         break;
                     case 182: // invokevirtual
+                        idx = byteCode.readUnsignedShort();
+                        ref = (ConstantRef)constantPool.get( idx );
+                        addCallVirtualInstruction( new FunctionName( ref ), codePos, lineNumber );
+                        break;
                     case 183: // invokespecial, invoke a constructor
                     case 184: // invokestatic
                         idx = byteCode.readUnsignedShort();

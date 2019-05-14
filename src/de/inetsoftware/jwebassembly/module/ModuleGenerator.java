@@ -23,6 +23,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -213,6 +214,7 @@ public class ModuleGenerator {
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Call:
+                case CallIndirect:
                     ((WasmCallInstruction)instruction).markAsNeeded( functions );
                     break;
                 default:
@@ -314,13 +316,23 @@ public class ModuleGenerator {
             listStructFields( superClassName, list );
         }
 
-        FieldInfo[] fields = classFile.getFields();
-        for( FieldInfo field : fields ) {
+        for( FieldInfo field : classFile.getFields() ) {
             if( field.isStatic() ) {
                 continue;
             }
             list.add( new NamedStorageType( className, field, types ) );
         }
+
+        HashMap<String,Boolean> virtualFunctions = new HashMap<>();
+        functions.getNamesOfClass( className ).forEach( (name) -> {
+            String methodName = name.methodName;
+            Boolean virtual = virtualFunctions.get( methodName );
+            if( virtual == null ) {
+                virtualFunctions.put( methodName, Boolean.FALSE );
+            } else {
+                virtualFunctions.put( methodName, Boolean.TRUE );
+            }
+        } );
     }
 
     /**
@@ -491,6 +503,7 @@ public class ModuleGenerator {
                         }
                         break;
                     case Call:
+                    case CallIndirect:
                         ((WasmCallInstruction)instruction).markAsNeeded( functions );
                         break;
                     case Struct:

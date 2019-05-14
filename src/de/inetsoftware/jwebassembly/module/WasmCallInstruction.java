@@ -61,6 +61,16 @@ class WasmCallInstruction extends WasmInstruction {
     }
 
     /**
+     * Get the function name that should be called
+     * 
+     * @return the name
+     */
+    @Nonnull
+    FunctionName getFunctionName() {
+        return name;
+    }
+
+    /**
      * Mark the function as needed in the functions manager and replace the function name with a possible super name.
      * 
      * @param functions

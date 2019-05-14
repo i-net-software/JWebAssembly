@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -197,6 +198,18 @@ public class FunctionManager {
     MethodInfo replace( FunctionName name, MethodInfo method ) {
         MethodInfo newMethod = getOrCreate( name ).method;
         return newMethod != null ? newMethod : method;
+    }
+
+
+    /**
+     * Get all function names for the class.
+     * 
+     * @param className
+     *            the className
+     * @return a stream with the names
+     */
+    Stream<FunctionName> getNamesOfClass( String className ) {
+        return states.keySet().stream().filter( ( name ) -> name.className.equals( className ) );
     }
 
     /**
