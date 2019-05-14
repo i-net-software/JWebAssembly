@@ -103,6 +103,7 @@ public class TextModuleWriter extends ModuleWriter {
         if( callIndirect ) {
             int count = importCount + functionCount;
             String countStr = Integer.toString( count );
+            newline( output );
             output.append( "(table " ).append( countStr ).append( ' ' ).append( countStr ).append( " anyfunc)" );
             newline( output );
             output.append( "(elem (i32.const 0) " );
