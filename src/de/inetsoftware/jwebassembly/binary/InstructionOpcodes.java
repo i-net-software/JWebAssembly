@@ -104,6 +104,60 @@ interface InstructionOpcodes {
 
     static final int SET_GLOBAL        = 0x24;
 
+    // === memory operations ===========
+
+    static final int I32_LOAD          = 0x28;
+
+    static final int I64_LOAD          = 0x29;
+
+    static final int F32_LOAD          = 0x2A;
+
+    static final int F64_LOAD          = 0x2B;
+
+    static final int I32_LOAD8_S       = 0x2C;
+
+    static final int I32_LOAD8_U       = 0x2D;
+
+    static final int I32_LOAD16_S      = 0x2E;
+
+    static final int I32_LOAD16_U      = 0x2F;
+
+    static final int I64_LOAD8_S       = 0x30;
+
+    static final int I64_LOAD8_U       = 0x31;
+
+    static final int I64_LOAD16_S      = 0x32;
+
+    static final int I64_LOAD16_U      = 0x33;
+
+    static final int I64_LOAD32_S      = 0x34;
+
+    static final int I64_LOAD32_U      = 0x35;
+
+    static final int I32_STORE         = 0x36;
+
+    static final int I64_STORE         = 0x37;
+
+    static final int F32_STORE         = 0x38;
+
+    static final int F64_STORE         = 0x39;
+
+    static final int I32_STORE8        = 0x3A;
+
+    static final int I32_STORE16       = 0x3B;
+
+    static final int I54_STORE8        = 0x3C;
+
+    static final int I54_STORE16       = 0x3D;
+
+    static final int I54_STORE32       = 0x3E;
+
+    static final int MEMORY_SIZE       = 0x3F;
+
+    static final int MEMORY_GROW       = 0x40;
+
+    // === constant operations ===========
+
     static final int I32_CONST         = 0x41;
 
     static final int I64_CONST         = 0x42;
