@@ -100,9 +100,9 @@ interface InstructionOpcodes {
 
     static final int LOCAL_TEE         = 0x22;
 
-    static final int GET_GLOBAL        = 0x23;
+    static final int GLOBAL_GET        = 0x23;
 
-    static final int SET_GLOBAL        = 0x24;
+    static final int GLOBAL_SET        = 0x24;
 
     // === memory operations ===========
 

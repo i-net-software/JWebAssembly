@@ -621,7 +621,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             var.mutability = true;
             globals.put( name.fullName, var );
         }
-        int op = load ? GET_GLOBAL : SET_GLOBAL;
+        int op = load ? GLOBAL_GET : GLOBAL_SET;
         codeStream.writeOpCode( op );
         codeStream.writeVaruint32( var.id );
     }
