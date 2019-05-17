@@ -71,7 +71,21 @@ public class NamedStorageType {
      *            the type manager
      */
     private NamedStorageType( String type, String className, String name, TypeManager types ) {
-        this.type = new ValueTypeParser( type, types ).next();
+        this( new ValueTypeParser( type, types ).next(), className, name );
+    }
+
+    /**
+     * Create a new instance
+     * 
+     * @param type
+     *            the type
+     * @param className
+     *            the class name
+     * @param name
+     *            the name
+     */
+    public NamedStorageType( AnyType type, String className, String name ) {
+        this.type = type;
         this.className = className;
         this.name = name;
     }

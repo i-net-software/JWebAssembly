@@ -314,6 +314,8 @@ public class ModuleGenerator {
         if( superClass != null ) {
             String superClassName = superClass.getName();
             listStructFields( superClassName, list );
+        } else {
+            list.add( new NamedStorageType( ValueType.i32, className, ".vtable" ) );
         }
 
         for( FieldInfo field : classFile.getFields() ) {
