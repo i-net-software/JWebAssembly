@@ -225,14 +225,16 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeFunctionCall( FunctionName name ) throws IOException;
 
     /**
-     * Write a call indirect to a function.
+     * Write a function call to an instance function. On the stack there must be the object.
      * 
      * @param name
      *            the function name
+     * @param virtualFunctionIdx
+     *            the index of the virtual method in the object. If the value < 0 a direct call should be used. 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeFunctionCallIndirect( FunctionName name ) throws IOException;
+    protected abstract void writeVirtualFunctionCall( FunctionName name, int virtualFunctionIdx ) throws IOException;
 
     /**
      * Write a block/branch code

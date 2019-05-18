@@ -529,10 +529,14 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeFunctionCallIndirect( FunctionName name ) throws IOException {
+    protected void writeVirtualFunctionCall( FunctionName name, int virtualFunctionIdx ) throws IOException {
         callIndirect = true;
         newline( methodOutput );
-        methodOutput.append( "call_indirect $" ).append( normalizeName( name ) );
+        methodOutput.append( "struct.get i32 0 ;;vtable" ); // vtable is ever on position 0
+        newline( methodOutput );
+        methodOutput.append( "i32.load offset=" ).append( virtualFunctionIdx * 4 ); // use default alignment
+        newline( methodOutput );
+        methodOutput.append( "call_indirect (type $" ).append( normalizeName( name ) ).append( ')' );
     }
 
     /**

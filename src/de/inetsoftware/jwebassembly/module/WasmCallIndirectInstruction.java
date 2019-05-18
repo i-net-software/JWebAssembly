@@ -28,6 +28,8 @@ import javax.annotation.Nonnull;
  */
 class WasmCallIndirectInstruction extends WasmCallInstruction {
 
+    private int virtualFunctionIdx = -1;
+
     /**
      * Create an instance of a function call instruction
      * 
@@ -55,10 +57,10 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        if( true ) { // TODO
+        if( virtualFunctionIdx < 0 ) {
             super.writeTo( writer );
         } else {
-            writer.writeFunctionCallIndirect( getFunctionName() );
+            writer.writeVirtualFunctionCall( getFunctionName(), virtualFunctionIdx );
         }
     }
 
