@@ -56,6 +56,15 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      * {@inheritDoc}
      */
     @Override
+    void markAsNeeded( FunctionManager functions ) {
+        super.markAsNeeded( functions );
+        virtualFunctionIdx = functions.getFunctionIndex( getFunctionName() );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         if( virtualFunctionIdx < 0 ) {
             super.writeTo( writer );

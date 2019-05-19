@@ -22,8 +22,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +35,6 @@ import javax.annotation.Nullable;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.ConstantClass;
-import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
@@ -198,7 +195,7 @@ public class ModuleGenerator {
         }
         functions.prepareFinish();
 
-        types.prepareFinish();
+        types.prepareFinish( writer, functions, libraries );
     }
 
     /**
@@ -269,75 +266,6 @@ public class ModuleGenerator {
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
         }
-    }
-
-    /**
-     * Write the struct type if not already write.
-     * 
-     * @param type
-     *            the type
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void writeStructType( StructType type ) throws IOException {
-        if( type == null || type.getCode() != Integer.MAX_VALUE ) {
-            return;
-        }
-        String className = type.getName();
-        List<NamedStorageType> list = new ArrayList<>();
-        listStructFields( className, list );
-
-        int id = writer.writeStruct( className, list );
-        types.useType( type, id, list );
-        for( NamedStorageType namedType : list ) {
-            AnyType fieldType = namedType.getType();
-            if( fieldType.getCode() == Integer.MAX_VALUE ) {
-                writeStructType( (StructType)fieldType );
-            }
-        }
-    }
-
-    /**
-     * List the non static fields of the class and its super classes.
-     * 
-     * @param className
-     *            the className
-     * @param list
-     *            the container for the fields
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void listStructFields( String className, List<NamedStorageType> list ) throws IOException {
-        ClassFile classFile = ClassFile.get( className, libraries );
-        if( classFile == null ) {
-            throw new WasmException( "Missing class: " + className, -1 );
-        }
-
-        ConstantClass superClass = classFile.getSuperClass();
-        if( superClass != null ) {
-            String superClassName = superClass.getName();
-            listStructFields( superClassName, list );
-        } else {
-            list.add( new NamedStorageType( ValueType.i32, className, ".vtable" ) );
-        }
-
-        for( FieldInfo field : classFile.getFields() ) {
-            if( field.isStatic() ) {
-                continue;
-            }
-            list.add( new NamedStorageType( className, field, types ) );
-        }
-
-        HashMap<String,Boolean> virtualFunctions = new HashMap<>();
-        functions.getNamesOfClass( className ).forEach( (name) -> {
-            String methodName = name.methodName;
-            Boolean virtual = virtualFunctions.get( methodName );
-            if( virtual == null ) {
-                virtualFunctions.put( methodName, Boolean.FALSE );
-            } else {
-                virtualFunctions.put( methodName, Boolean.TRUE );
-            }
-        } );
     }
 
     /**
@@ -513,7 +441,6 @@ public class ModuleGenerator {
                         break;
                     case Struct:
                         WasmStructInstruction instr = (WasmStructInstruction)instruction;
-                        writeStructType( instr.getStructType() );
                         if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
                             List<NamedStorageType> list = instr.getStructType().getFields();
                             for( NamedStorageType storageType : list ) {
@@ -572,7 +499,6 @@ public class ModuleGenerator {
         int paramCount = 0;
         if( !isStatic ) {
             StructType instanceType = types.valueOf( name.className );
-            writeStructType( instanceType );
             writer.writeMethodParam( "param", instanceType, "this" );
         }
         Iterator<AnyType> parser = name.getSignature();

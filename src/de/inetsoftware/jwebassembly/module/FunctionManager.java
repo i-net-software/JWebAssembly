@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -120,6 +119,7 @@ public class FunctionManager {
                 case Needed:
                 case Scanned:
                     return entry.getKey();
+                default:
             }
         }
         return null;
@@ -200,27 +200,40 @@ public class FunctionManager {
         return newMethod != null ? newMethod : method;
     }
 
+    /**
+     * Set the index of a virtual function in a a type
+     * 
+     * @param name
+     *            the name
+     * @param functionIdx
+     *            the index
+     */
+    void setFunctionIndex( FunctionName name, int functionIdx ) {
+        getOrCreate( name ).functionIdx = functionIdx;
+    }
 
     /**
-     * Get all function names for the class.
+     * Get the index of a virtual function in a a type
      * 
-     * @param className
-     *            the className
-     * @return a stream with the names
+     * @param name
+     *            the name
+     * @return the index
      */
-    Stream<FunctionName> getNamesOfClass( String className ) {
-        return states.keySet().stream().filter( ( name ) -> name.className.equals( className ) );
+    int getFunctionIndex( FunctionName name ) {
+        return getOrCreate( name ).functionIdx;
     }
 
     /**
      * State of a function/method
      */
     private static class FunctionState {
-        private State    state = State.None;
+        private State        state = State.None;
 
-        private MethodInfo method;
+        private MethodInfo   method;
 
         private FunctionName alias;
+
+        private int          functionIdx = -1;
     }
 
     private static enum State {
