@@ -17,6 +17,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,15 @@ import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
  */
 public class TypeManager {
 
-    private final Map<String, StructType> map = new LinkedHashMap<>();
+    private Map<String, StructType> map = new LinkedHashMap<>();
+
+
+    /**
+     * Finish the prepare. Now no new function should be added. 
+     */
+    public void prepareFinish() {
+        map = Collections.unmodifiableMap( map );
+    }
 
     /**
      * Use the type in the output.

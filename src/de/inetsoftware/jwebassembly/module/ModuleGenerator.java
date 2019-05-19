@@ -180,6 +180,7 @@ public class ModuleGenerator {
             }
 
             if( functions.needToScan( next ) ) { // function was not found
+                // search if there is a super class with the same signature
                 ClassFile superClassFile = classFile;
                 while( superClassFile != null ) {
                     MethodInfo method = superClassFile.getMethod( next.methodName, next.signature );
@@ -187,7 +188,7 @@ public class ModuleGenerator {
                         FunctionName name = new FunctionName( method );
                         functions.markAsNeeded( name );
                         functions.setAlias( next, name );
-                        continue NEXT;
+                        continue NEXT; // we have found a super method
                     }
                     ConstantClass superClass = superClassFile.getSuperClass();
                     superClassFile = superClass == null ? null : ClassFile.get( superClass.getName(), libraries );
@@ -196,6 +197,8 @@ public class ModuleGenerator {
             }
         }
         functions.prepareFinish();
+
+        types.prepareFinish();
     }
 
     /**
