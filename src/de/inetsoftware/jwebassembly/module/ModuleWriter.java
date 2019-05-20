@@ -232,7 +232,7 @@ public abstract class ModuleWriter implements Closeable {
      * @param type
      *            the base type that should be called
      * @param virtualFunctionIdx
-     *            the index of the virtual method in the object. If the value < 0 a direct call should be used.
+     *            the index of the virtual method in the object. If the value &lt; 0 a direct call should be used.
      * @throws IOException
      *             if any I/O error occur
      */
