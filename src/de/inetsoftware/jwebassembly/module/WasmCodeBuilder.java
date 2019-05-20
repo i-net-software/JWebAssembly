@@ -284,7 +284,8 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmCallIndirectInstruction( name, javaCodePos, lineNumber ) );
+        StructType type = types.valueOf( name.className );
+        instructions.add( new WasmCallIndirectInstruction( name, type, javaCodePos, lineNumber ) );
     }
 
     /**

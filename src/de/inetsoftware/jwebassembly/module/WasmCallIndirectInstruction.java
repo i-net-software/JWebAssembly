@@ -20,6 +20,8 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+
 /**
  * WasmInstruction for a function call.
  * 
@@ -29,6 +31,8 @@ import javax.annotation.Nonnull;
 class WasmCallIndirectInstruction extends WasmCallInstruction {
 
     private int virtualFunctionIdx = -1;
+
+    private StructType type;
 
     /**
      * Create an instance of a function call instruction
@@ -40,8 +44,9 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmCallIndirectInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+    WasmCallIndirectInstruction( FunctionName name, @Nonnull StructType type, int javaCodePos, int lineNumber ) {
         super( name, javaCodePos, lineNumber );
+        this.type = type;
     }
 
     /**
@@ -66,10 +71,10 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        if( virtualFunctionIdx < 0 ) {
+        if( virtualFunctionIdx < 0 || true ) {
             super.writeTo( writer );
         } else {
-            writer.writeVirtualFunctionCall( getFunctionName(), virtualFunctionIdx );
+            writer.writeVirtualFunctionCall( getFunctionName(), type, virtualFunctionIdx );
         }
     }
 
