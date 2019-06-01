@@ -57,6 +57,10 @@ public class TextModuleWriter extends ModuleWriter {
 
     private final ArrayList<String> methodParamNames = new ArrayList<>();
 
+    private StringBuilder     typeOutput = new StringBuilder();
+
+    private ArrayList<String> types = new ArrayList<>();
+
     private StringBuilder   methodOutput = new StringBuilder();
 
     private int             inset;
@@ -98,6 +102,11 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     public void close() throws IOException {
+        for( int i = 0; i < types.size(); i++ ) {
+            newline( output );
+            output.append( "(type $t" ).append( Integer.toString( i ) ).append( " (func" ).append( types.get( i ) ).append( "))" );
+        }
+
         output.append( methodOutput );
 
         if( callIndirect ) {
@@ -230,6 +239,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
+        typeOutput.setLength( 0 );
         newline( methodOutput );
         methodOutput.append( "(func $" );
         methodOutput.append( normalizeName( name ) );
@@ -261,7 +271,12 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodParam( String kind, AnyType valueType, @Nullable String name ) throws IOException {
-        methodOutput.append( " (" ).append( kind );
+        if( kind != "local" ) {
+            typeOutput.append( '(' ).append( kind ).append( ' ' );
+            writeTypeName( typeOutput, valueType );
+            typeOutput.append( ')' );
+        }
+        methodOutput.append( '(' ).append( kind );
         if( debugNames ) { 
             if( name != null ) {
                 methodOutput.append( " $" ).append( name );
@@ -280,6 +295,12 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodParamFinish( ) throws IOException {
+        String typeStr = typeOutput.toString();
+        int idx = types.indexOf( typeStr );
+        if( idx < 0 ) {
+            idx = types.size();
+            types.add( typeStr );
+        }
         if( isImport ) {
             isImport = false;
             methodOutput.append( "))" );
