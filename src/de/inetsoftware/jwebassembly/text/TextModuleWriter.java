@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,29 +49,33 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public class TextModuleWriter extends ModuleWriter {
 
-    private final boolean   spiderMonkey = Boolean.getBoolean( "SpiderMonkey" );
+    private final boolean               spiderMonkey     = Boolean.getBoolean( "SpiderMonkey" );
 
-    private Appendable      output;
+    private Appendable                  output;
 
-    private final boolean   debugNames;
+    private final boolean               debugNames;
 
-    private final ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream dataStream       = new ByteArrayOutputStream();
 
-    private final ArrayList<String> methodParamNames = new ArrayList<>();
+    private final ArrayList<String>     methodParamNames = new ArrayList<>();
 
-    private StringBuilder     typeOutput = new StringBuilder();
+    private StringBuilder               typeOutput       = new StringBuilder();
 
-    private ArrayList<String> types = new ArrayList<>();
+    private ArrayList<String>           types            = new ArrayList<>();
 
-    private StringBuilder   methodOutput = new StringBuilder();
+    private StringBuilder               methodOutput     = new StringBuilder();
 
-    private int             inset;
+    private FunctionName                function;
 
-    private boolean         isImport;
+    private Map<String, Integer>        functions        = new LinkedHashMap<>();
 
-    private HashSet<String> globals      = new HashSet<>();
+    private int                         inset;
 
-    private boolean         useExceptions;
+    private boolean                     isImport;
+
+    private HashSet<String>             globals          = new HashSet<>();
+
+    private boolean                     useExceptions;
 
     private int                         importCount;
 
@@ -239,6 +245,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
+        function = name;
         typeOutput.setLength( 0 );
         newline( methodOutput );
         methodOutput.append( "(func $" );
@@ -301,6 +308,8 @@ public class TextModuleWriter extends ModuleWriter {
             idx = types.size();
             types.add( typeStr );
         }
+        functions.put( function.signatureName, idx );
+
         if( isImport ) {
             isImport = false;
             methodOutput.append( "))" );
@@ -557,7 +566,7 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         methodOutput.append( "i32.load offset=" ).append( virtualFunctionIdx * 4 ); // use default alignment
         newline( methodOutput );
-        methodOutput.append( "call_indirect (type $" ).append( normalizeName( name ) ).append( ')' );
+        methodOutput.append( "call_indirect (type $t" ).append( functions.get( name.signatureName ) ).append( ')' );
     }
 
     /**
