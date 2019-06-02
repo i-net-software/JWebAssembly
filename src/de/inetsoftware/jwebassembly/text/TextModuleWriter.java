@@ -201,6 +201,7 @@ public class TextModuleWriter extends ModuleWriter {
             methodOutput.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( normalizeName( name ) );
             isImport = true;
             importCount++;
+            function = name;
         }
     }
 
@@ -332,6 +333,7 @@ public class TextModuleWriter extends ModuleWriter {
         inset--;
         newline( methodOutput );
         methodOutput.append( ')' );
+        function = null;
     }
 
     /**
