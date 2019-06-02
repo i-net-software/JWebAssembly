@@ -95,15 +95,14 @@ public abstract class ModuleWriter implements Closeable {
 
     /**
      * Write the method header.
+     * 
      * @param name
      *            the function name
-     * @param sourceFile
-     *            the name of the source file
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodStart( FunctionName name, String sourceFile ) throws IOException;
+    protected abstract void writeMethodParamStart( @Nonnull FunctionName name ) throws IOException;
 
     /**
      * Write a method parameter.
@@ -122,10 +121,26 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Finish the function parameter.
      * 
+     * @param name
+     *            the function name
+     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodParamFinish() throws IOException;
+    protected abstract void writeMethodParamFinish( @Nonnull FunctionName name ) throws IOException;
+
+    /**
+     * Write the method header.
+     * 
+     * @param name
+     *            the function name
+     * @param sourceFile
+     *            the name of the source file
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeMethodStart( FunctionName name, String sourceFile ) throws IOException;
 
     /**
      * Mark the current output position with Java code position for crating of a source map.

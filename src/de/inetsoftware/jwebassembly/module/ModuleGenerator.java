@@ -496,6 +496,7 @@ public class ModuleGenerator {
      *             if some Java code can't converted
      */
     private void writeMethodSignature( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+        writer.writeMethodParamStart( name );
         int paramCount = 0;
         if( !isStatic ) {
             StructType instanceType = types.valueOf( name.className );
@@ -529,7 +530,7 @@ public class ModuleGenerator {
                 writer.writeMethodParam( "local", type, paramName );
             }
         }
-        writer.writeMethodParamFinish( );
+        writer.writeMethodParamFinish( name );
     }
 
 }

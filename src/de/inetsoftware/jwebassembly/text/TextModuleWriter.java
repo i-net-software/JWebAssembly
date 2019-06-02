@@ -65,8 +65,6 @@ public class TextModuleWriter extends ModuleWriter {
 
     private StringBuilder               methodOutput     = new StringBuilder();
 
-    private FunctionName                function;
-
     private Map<String, Integer>        functions        = new LinkedHashMap<>();
 
     private int                         inset;
@@ -76,8 +74,6 @@ public class TextModuleWriter extends ModuleWriter {
     private HashSet<String>             globals          = new HashSet<>();
 
     private boolean                     useExceptions;
-
-    private int                         importCount;
 
     private int                         functionCount;
 
@@ -116,7 +112,7 @@ public class TextModuleWriter extends ModuleWriter {
         output.append( methodOutput );
 
         if( callIndirect ) {
-            int count = importCount + functionCount;
+            int count = functionCount;
             String countStr = Integer.toString( count );
             newline( output );
             output.append( "(table " ).append( countStr ).append( ' ' ).append( countStr ).append( " anyfunc)" );
@@ -200,8 +196,6 @@ public class TextModuleWriter extends ModuleWriter {
             newline( methodOutput );
             methodOutput.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( normalizeName( name ) );
             isImport = true;
-            importCount++;
-            function = name;
         }
     }
 
@@ -242,21 +236,6 @@ public class TextModuleWriter extends ModuleWriter {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
-        function = name;
-        typeOutput.setLength( 0 );
-        newline( methodOutput );
-        methodOutput.append( "(func $" );
-        methodOutput.append( normalizeName( name ) );
-        inset++;
-        methodParamNames.clear();
-        functionCount++;
-    }
-
-    /**
      * Write the name of a type.
      * 
      * @param output
@@ -272,6 +251,16 @@ public class TextModuleWriter extends ModuleWriter {
         } else {
             output.append( "(ref " ).append( normalizeName( type.toString() ) ).append( ')' );
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeMethodParamStart( @Nonnull FunctionName name ) throws IOException {
+        typeOutput.setLength( 0 );
+        methodParamNames.clear();
+        functionCount++;
     }
 
     /**
@@ -302,19 +291,30 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamFinish( ) throws IOException {
+    protected void writeMethodParamFinish( @Nonnull FunctionName name ) throws IOException {
         String typeStr = typeOutput.toString();
         int idx = types.indexOf( typeStr );
         if( idx < 0 ) {
             idx = types.size();
             types.add( typeStr );
         }
-        functions.put( function.signatureName, idx );
+        functions.put( name.signatureName, idx );
 
         if( isImport ) {
             isImport = false;
             methodOutput.append( "))" );
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
+        newline( methodOutput );
+        methodOutput.append( "(func $" );
+        methodOutput.append( normalizeName( name ) );
+        inset++;
     }
 
     /**
@@ -333,7 +333,6 @@ public class TextModuleWriter extends ModuleWriter {
         inset--;
         newline( methodOutput );
         methodOutput.append( ')' );
-        function = null;
     }
 
     /**

@@ -472,7 +472,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         ImportFunction importFunction;
         function = importFunction = new ImportFunction(importModule, importName);
         imports.put( name.signatureName, importFunction );
-        functionType = new FunctionTypeEntry();
     }
 
     /**
@@ -503,14 +502,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
+    protected void writeMethodParamStart( FunctionName name ) throws IOException {
         function = getFunction( name );
-        if( createSourceMap ) {
-            int idx = name.className.lastIndexOf( '/' );
-            this.javaSourceFile = name.className.substring( 0, idx + 1 ) + sourceFile;
-        }
         functionType = new FunctionTypeEntry();
-        codeStream.reset();
         locals.clear();
     }
 
@@ -542,13 +536,25 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamFinish() throws IOException {
+    protected void writeMethodParamFinish(FunctionName name) throws IOException {
         int typeId = functionTypes.indexOf( functionType );
         if( typeId < 0 ) {
             typeId = functionTypes.size();
             functionTypes.add( functionType );
         }
         function.typeId = typeId;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
+        if( createSourceMap ) {
+            int idx = name.className.lastIndexOf( '/' );
+            this.javaSourceFile = name.className.substring( 0, idx + 1 ) + sourceFile;
+        }
+        codeStream.reset();
     }
 
     /**
