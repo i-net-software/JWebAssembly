@@ -71,6 +71,8 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean                     isImport;
 
+    private boolean                     isPrepared;
+
     private HashSet<String>             globals          = new HashSet<>();
 
     private boolean                     useExceptions;
@@ -191,6 +193,14 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
+    protected void prepareFinish() {
+        isPrepared = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void prepareImport( FunctionName name, String importModule, String importName ) throws IOException {
         if( importName != null ) {
             newline( methodOutput );
@@ -272,6 +282,9 @@ public class TextModuleWriter extends ModuleWriter {
             typeOutput.append( '(' ).append( kind ).append( ' ' );
             writeTypeName( typeOutput, valueType );
             typeOutput.append( ')' );
+        }
+        if( !isPrepared ) {
+            return;
         }
         methodOutput.append( '(' ).append( kind );
         if( debugNames ) { 
@@ -563,10 +576,13 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeVirtualFunctionCall( FunctionName name, AnyType type, int virtualFunctionIdx ) throws IOException {
         callIndirect = true;
         newline( methodOutput );
-        methodOutput.append( "struct.get $" ).append( normalizeName( type.toString() ) ).append( " 0 ;;vtable" ); // vtable is ever on position 0
+        methodOutput.append( "struct.get " ).append( normalizeName( type.toString() ) ).append( " 0 ;;vtable" ); // vtable is ever on position 0
         newline( methodOutput );
         methodOutput.append( "i32.load offset=" ).append( virtualFunctionIdx * 4 ); // use default alignment
         newline( methodOutput );
+        if(spiderMonkey)
+            methodOutput.append( "call_indirect $t" ).append( functions.get( name.signatureName ) ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
+        else
         methodOutput.append( "call_indirect (type $t" ).append( functions.get( name.signatureName ) ).append( ')' );
     }
 

@@ -42,9 +42,7 @@ public abstract class ModuleWriter implements Closeable {
      * Finish the prepare after all classes/methods are prepare. This must be call before we can start with write the
      * first method.
      */
-    public void prepareFinish() {
-
-    }
+    protected abstract void prepareFinish();
 
     /**
      * Write a type/struct.

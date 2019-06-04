@@ -150,8 +150,6 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     public void prepareFinish() throws IOException {
-        writer.prepareFinish();
-
         // scan all methods that should be write to build optimize structures
         FunctionName next;
         NEXT:
@@ -159,6 +157,7 @@ public class ModuleGenerator {
             ClassFile classFile = ClassFile.get( next.className, libraries );
             if( classFile == null ) {
                 if( next instanceof SyntheticFunctionName ) {
+                    writeMethodSignature( next, true, null );
                     scanMethod( ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
                     functions.markAsScanned( next );
                 }
@@ -167,6 +166,7 @@ public class ModuleGenerator {
                     try {
                         FunctionName name = new FunctionName( method );
                         if( functions.needToScan( name ) ) {
+                            writeMethodSignature( name, method.isStatic(), null );
                             scanMethod( createInstructions( method ) );
                             functions.markAsScanned( name );
                         }
@@ -196,6 +196,7 @@ public class ModuleGenerator {
         functions.prepareFinish();
 
         types.prepareFinish( writer, functions, libraries );
+        writer.prepareFinish();
     }
 
     /**

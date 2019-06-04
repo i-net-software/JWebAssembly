@@ -478,7 +478,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    public void prepareFinish() {
+    protected void prepareFinish() {
         // initialize the function index IDs
         // https://github.com/WebAssembly/design/blob/master/Modules.md#function-index-space
         int id = 0;
