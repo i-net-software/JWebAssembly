@@ -77,8 +77,6 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean                     useExceptions;
 
-    private int                         functionCount;
-
     private boolean                     callIndirect;
 
     /**
@@ -114,7 +112,7 @@ public class TextModuleWriter extends ModuleWriter {
         output.append( methodOutput );
 
         if( callIndirect ) {
-            int count = functionCount;
+            int count = functions.size();
             String countStr = Integer.toString( count );
             newline( output );
             output.append( "(table " ).append( countStr ).append( ' ' ).append( countStr ).append( " anyfunc)" );
@@ -270,7 +268,6 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeMethodParamStart( @Nonnull FunctionName name ) throws IOException {
         typeOutput.setLength( 0 );
         methodParamNames.clear();
-        functionCount++;
     }
 
     /**
