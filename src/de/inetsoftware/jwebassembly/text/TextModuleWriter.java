@@ -63,9 +63,11 @@ public class TextModuleWriter extends ModuleWriter {
 
     private ArrayList<String>           types            = new ArrayList<>();
 
-    private StringBuilder               methodOutput     = new StringBuilder();
+    private StringBuilder               methodOutput;
 
-    private Map<String, Integer>        functions        = new LinkedHashMap<>();
+    private StringBuilder               imports          = new StringBuilder();
+
+    private Map<String, Function>       functions        = new LinkedHashMap<>();
 
     private int                         inset;
 
@@ -109,7 +111,11 @@ public class TextModuleWriter extends ModuleWriter {
             output.append( "(type $t" ).append( Integer.toString( i ) ).append( " (func" ).append( types.get( i ) ).append( "))" );
         }
 
-        output.append( methodOutput );
+        output.append( imports );
+
+        for( Function func : functions.values() ) {
+            output.append( func.output );
+        }
 
         if( callIndirect ) {
             int count = functions.size();
@@ -151,7 +157,7 @@ public class TextModuleWriter extends ModuleWriter {
     protected int writeStructType( StructType type ) throws IOException {
         type.setVTable( dataStream.size() );
         for( FunctionName funcName : type.getMethods() ) {
-            int functIdx = functions.get( funcName.signatureName );
+            int functIdx = functions.get( funcName.signatureName ).id;
             // little-endian byte order
             dataStream.write( functIdx >>> 0 );
             dataStream.write( functIdx >>> 8 );
@@ -211,6 +217,7 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void prepareImport( FunctionName name, String importModule, String importName ) throws IOException {
         if( importName != null ) {
+            methodOutput = imports;
             newline( methodOutput );
             methodOutput.append( "(import \"" ).append( importModule ).append( "\" \"" ).append( importName ).append( "\" (func $" ).append( normalizeName( name ) );
             isImport = true;
@@ -318,12 +325,23 @@ public class TextModuleWriter extends ModuleWriter {
             idx = types.size();
             types.add( typeStr );
         }
-        functions.put( name.signatureName, idx );
+        getFunction( name ).typeId = idx;
 
         if( isImport ) {
             isImport = false;
             methodOutput.append( "))" );
+            methodOutput = null;
         }
+    }
+
+    private Function getFunction( FunctionName name ) {
+        Function func = functions.get( name.signatureName );
+        if( func == null ) {
+            func = new Function();
+            func.id = functions.size();
+            functions.put( name.signatureName, func );
+        }
+        return func;
     }
 
     /**
@@ -331,6 +349,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
+        methodOutput = getFunction( name ).output;
+
         newline( methodOutput );
         methodOutput.append( "(func $" );
         methodOutput.append( normalizeName( name ) );
@@ -353,6 +373,7 @@ public class TextModuleWriter extends ModuleWriter {
         inset--;
         newline( methodOutput );
         methodOutput.append( ')' );
+        methodOutput = null;
     }
 
     /**
@@ -593,9 +614,9 @@ public class TextModuleWriter extends ModuleWriter {
         methodOutput.append( "i32.load offset=" ).append( virtualFunctionIdx * 4 ); // use default alignment
         newline( methodOutput );
         if(spiderMonkey)
-            methodOutput.append( "call_indirect $t" ).append( functions.get( name.signatureName ) ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
+            methodOutput.append( "call_indirect $t" ).append( functions.get( name.signatureName ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
         else
-        methodOutput.append( "call_indirect (type $t" ).append( functions.get( name.signatureName ) ).append( ')' );
+        methodOutput.append( "call_indirect (type $t" ).append( functions.get( name.signatureName ).typeId ).append( ')' );
     }
 
     /**
