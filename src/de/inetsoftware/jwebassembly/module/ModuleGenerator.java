@@ -443,9 +443,14 @@ public class ModuleGenerator {
                     case Struct:
                         WasmStructInstruction instr = (WasmStructInstruction)instruction;
                         if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
-                            List<NamedStorageType> list = instr.getStructType().getFields();
+                            StructType structType = instr.getStructType();
+                            List<NamedStorageType> list = structType.getFields();
                             for( NamedStorageType storageType : list ) {
-                                writer.writeDefaultValue( storageType.getType() );
+                                if( TypeManager.VTABLE == storageType.getName() ) {
+                                    writer.writeConst( structType.getVTable(), ValueType.i32 );
+                                } else {
+                                    writer.writeDefaultValue( storageType.getType() );
+                                }
                             }
                         }
                         break;

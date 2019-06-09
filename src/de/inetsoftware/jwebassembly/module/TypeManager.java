@@ -42,8 +42,9 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 public class TypeManager {
 
-    private Map<String, StructType> map = new LinkedHashMap<>();
+    static final String             VTABLE = ".vtable";
 
+    private Map<String, StructType> map    = new LinkedHashMap<>();
 
     /**
      * Finish the prepare and write the types. Now no new types and functions should be added.
@@ -110,7 +111,7 @@ public class TypeManager {
      * 
      * @author Volker Berlin
      */
-    static class StructType implements AnyType {
+    public static class StructType implements AnyType {
 
         private final String           name;
 
@@ -118,7 +119,12 @@ public class TypeManager {
 
         private List<NamedStorageType> fields;
 
-        private List<String>           methods;
+        private List<FunctionName>     methods;
+
+        /**
+         * The offset to the vtable in the data section.
+         */
+        private int                    vtableOffset;
 
         /**
          * Create a reference to type
@@ -148,7 +154,7 @@ public class TypeManager {
             fields = new ArrayList<>();
             methods = new ArrayList<>();
             listStructFields( name, functions, types, libraries );
-            code = writer.writeStruct( name, fields );
+            code = writer.writeStructType( this );
         }
 
         /**
@@ -176,7 +182,7 @@ public class TypeManager {
                 String superClassName = superClass.getName();
                 listStructFields( superClassName, functions, types, libraries );
             } else {
-                fields.add( new NamedStorageType( ValueType.i32, className, ".vtable" ) );
+                fields.add( new NamedStorageType( ValueType.i32, className, VTABLE ) );
             }
 
             for( FieldInfo field : classFile.getFields() ) {
@@ -187,16 +193,23 @@ public class TypeManager {
             }
 
             for( MethodInfo method : classFile.getMethods() ) {
-                if( method.isStatic() ) {
+                if( method.isStatic() || "<init>".equals( method.getName() ) ) {
                     continue;
                 }
                 FunctionName funcName = new FunctionName( method );
                 if( functions.needToWrite( funcName ) ) {
-                    String signature = funcName.methodName + funcName.signature;
-                    int idx = methods.indexOf( signature );
-                    if( idx < 0 ) {
-                        idx = methods.size();
-                        methods.add( signature );
+                    int idx = 0;
+                    // search if the method is already in our list
+                    for( ; idx < methods.size(); idx++ ) {
+                        FunctionName func = methods.get( idx );
+                        if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
+                            methods.set( idx, funcName ); // use the override method
+                            break;
+                        }
+                    }
+                    if( idx == methods.size() ) {
+                        // if a new method
+                        methods.add( funcName );
                     }
                     functions.setFunctionIndex( funcName, idx );
                 }
@@ -225,6 +238,34 @@ public class TypeManager {
          */
         public List<NamedStorageType> getFields() {
             return fields;
+        }
+
+        /**
+         * Get the virtual function/methods
+         * 
+         * @return the methods
+         */
+        public List<FunctionName> getMethods() {
+            return methods;
+        }
+
+        /**
+         * Set the offset of the vtable in the data section
+         * 
+         * @param vtableOffset
+         *            the offset
+         */
+        public void setVTable( int vtableOffset ) {
+            this.vtableOffset = vtableOffset;
+        }
+
+        /**
+         * Get the vtable offset.
+         * 
+         * @return the offset
+         */
+        public int getVTable() {
+            return this.vtableOffset;
         }
 
         /**

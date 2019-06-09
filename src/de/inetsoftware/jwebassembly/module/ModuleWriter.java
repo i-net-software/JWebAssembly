@@ -17,11 +17,11 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -47,15 +47,13 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * Write a type/struct.
      * 
-     * @param typeName
-     *            the name
-     * @param fields
-     *            the fields
+     * @param type
+     *            the type to declare/write
      * @return type ID
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract int writeStruct( String typeName, List<NamedStorageType> fields ) throws IOException;
+    protected abstract int writeStructType( StructType type ) throws IOException;
 
     /**
      * Mark to write exceptions

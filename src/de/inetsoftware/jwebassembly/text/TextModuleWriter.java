@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -31,6 +30,7 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -148,14 +148,24 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected int writeStruct( String typeName, List<NamedStorageType> fields ) throws IOException {
+    protected int writeStructType( StructType type ) throws IOException {
+        type.setVTable( dataStream.size() );
+        for( FunctionName funcName : type.getMethods() ) {
+            int functIdx = functions.get( funcName.signatureName );
+            // little-endian byte order
+            dataStream.write( functIdx >>> 0 );
+            dataStream.write( functIdx >>> 8 );
+            dataStream.write( functIdx >>> 16 );
+            dataStream.write( functIdx >>> 24 );
+        }
+
         int oldInset = inset;
         inset = 1;
         newline( output );
-        typeName = normalizeName( typeName );
+        String typeName = normalizeName( type.getName() );
         output.append( "(type $" ).append( typeName ).append( " (struct" );
         inset++;
-        for( NamedStorageType field : fields ) {
+        for( NamedStorageType field : type.getFields() ) {
             newline( output );
             output.append( "(field" );
             if( debugNames && field.getName() != null ) {
