@@ -285,7 +285,8 @@ public abstract class WasmCodeBuilder {
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
         StructType type = types.valueOf( name.className );
-        instructions.add( new WasmCallIndirectInstruction( name, type, javaCodePos, lineNumber ) );
+        int tempVar = localVariables.getTempVariable( type, javaCodePos, javaCodePos + 1 );
+        instructions.add( new WasmCallIndirectInstruction( name, type, tempVar, localVariables, javaCodePos, lineNumber ) );
     }
 
     /**

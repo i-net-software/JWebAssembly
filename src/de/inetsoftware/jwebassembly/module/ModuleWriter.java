@@ -244,10 +244,12 @@ public abstract class ModuleWriter implements Closeable {
      *            the base type that should be called
      * @param virtualFunctionIdx
      *            the index of the virtual method in the object. If the value &lt; 0 a direct call should be used.
+     * @param tempVarIdx
+     *            the index of a temporary variable of type "type" to duplicate "this"
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeVirtualFunctionCall( FunctionName name, AnyType type, int virtualFunctionIdx ) throws IOException;
+    protected abstract void writeVirtualFunctionCall( FunctionName name, AnyType type, int virtualFunctionIdx, int tempVarIdx ) throws IOException;
 
     /**
      * Write a block/branch code

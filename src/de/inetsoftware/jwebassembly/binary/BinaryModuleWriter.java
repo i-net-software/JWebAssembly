@@ -1018,8 +1018,13 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeVirtualFunctionCall( FunctionName name, AnyType type, int virtualFunctionIdx ) throws IOException {
+    protected void writeVirtualFunctionCall( FunctionName name, AnyType type, int virtualFunctionIdx, int tempVarIdx ) throws IOException {
         callIndirect = true;
+
+        // duplicate this on the stack
+        writeLocal( VariableOperator.tee, tempVarIdx );
+        writeLocal( VariableOperator.get, tempVarIdx );
+
         codeStream.writeOpCode( STRUCT_GET );
         codeStream.writeValueType( type );
         codeStream.writeVaruint32( 0 ); // vtable is ever on position 0

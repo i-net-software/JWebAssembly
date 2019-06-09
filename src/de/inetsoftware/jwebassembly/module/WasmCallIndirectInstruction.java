@@ -30,23 +30,36 @@ import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
  */
 class WasmCallIndirectInstruction extends WasmCallInstruction {
 
-    private int virtualFunctionIdx = -1;
+    private int                         virtualFunctionIdx = -1;
 
-    private StructType type;
+    private final StructType            type;
+
+    private final int                   tempVar;
+
+    private final LocaleVariableManager localVariables;
 
     /**
      * Create an instance of a function call instruction
      * 
      * @param name
      *            the function name that should be called
+     * @param type
+     *            the type with the virtual method/function
+     * @param tempVar
+     *            the slot of a temporary variable of type "type" to duplicate "this"
+     * @param localVariables
+     *            the manager for local variables to translate the Java slot of the temporary variable into wasm local
+     *            position
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmCallIndirectInstruction( FunctionName name, @Nonnull StructType type, int javaCodePos, int lineNumber ) {
+    WasmCallIndirectInstruction( FunctionName name, @Nonnull StructType type, int tempVar, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
         super( name, javaCodePos, lineNumber );
         this.type = type;
+        this.tempVar = tempVar;
+        this.localVariables = localVariables;
     }
 
     /**
@@ -74,7 +87,8 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
         if( virtualFunctionIdx < 0 || true ) {
             super.writeTo( writer );
         } else {
-            writer.writeVirtualFunctionCall( getFunctionName(), type, virtualFunctionIdx );
+            int tempVarIdx = localVariables.get( tempVar, getCodePosition() );
+            writer.writeVirtualFunctionCall( getFunctionName(), type, virtualFunctionIdx, tempVarIdx );
         }
     }
 
