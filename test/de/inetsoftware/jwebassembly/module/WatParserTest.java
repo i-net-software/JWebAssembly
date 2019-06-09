@@ -40,12 +40,13 @@ public class WatParserTest {
         WasmCodeBuilder codeBuilder = parser;
         StringBuilder builder = new StringBuilder();
         ModuleWriter writer = new TextModuleWriter( builder, new HashMap<>() );
+        writer.writeMethodStart( new FunctionName( "A.a()V" ), null );
         for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
             instruction.writeTo( writer );
         }
         writer.writeMethodFinish();
         writer.close();
-        String expected = normalize( "(module " + wat + " ) )" );
+        String expected = normalize( "(module (func $A.a " + wat + " ) )" );
         String actual = normalize( builder );
         assertEquals( expected, actual );
     }
