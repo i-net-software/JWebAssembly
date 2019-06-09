@@ -84,7 +84,7 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        if( virtualFunctionIdx < 0 || true ) {
+        if( virtualFunctionIdx < 0 ) {
             super.writeTo( writer );
         } else {
             int tempVarIdx = localVariables.get( tempVar, getCodePosition() );
