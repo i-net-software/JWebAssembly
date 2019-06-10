@@ -197,22 +197,22 @@ public class TypeManager {
                     continue;
                 }
                 FunctionName funcName = new FunctionName( method );
-                if( functions.needToWrite( funcName ) ) {
-                    int idx = 0;
-                    // search if the method is already in our list
-                    for( ; idx < methods.size(); idx++ ) {
-                        FunctionName func = methods.get( idx );
-                        if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
-                            methods.set( idx, funcName ); // use the override method
-                            break;
-                        }
+
+                int idx = 0;
+                // search if the method is already in our list
+                for( ; idx < methods.size(); idx++ ) {
+                    FunctionName func = methods.get( idx );
+                    if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
+                        methods.set( idx, funcName ); // use the override method
+                        functions.markAsNeeded( funcName ); // mark all overridden methods also as needed if the super method is used
+                        break;
                     }
-                    if( idx == methods.size() ) {
-                        // if a new method
-                        methods.add( funcName );
-                    }
-                    functions.setFunctionIndex( funcName, idx );
                 }
+                if( idx == methods.size() && functions.needToWrite( funcName ) ) {
+                    // if a new needed method then add it
+                    methods.add( funcName );
+                }
+                functions.setFunctionIndex( funcName, idx );
             }
         }
 

@@ -157,7 +157,7 @@ public class TextModuleWriter extends ModuleWriter {
     protected int writeStructType( StructType type ) throws IOException {
         type.setVTable( dataStream.size() );
         for( FunctionName funcName : type.getMethods() ) {
-            int functIdx = functions.get( funcName.signatureName ).id;
+            int functIdx = getFunction( funcName ).id;
             // little-endian byte order
             dataStream.write( functIdx >>> 0 );
             dataStream.write( functIdx >>> 8 );

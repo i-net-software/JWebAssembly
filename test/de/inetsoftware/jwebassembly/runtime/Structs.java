@@ -47,6 +47,10 @@ public class Structs extends AbstractBaseTest {
             addParam( list, script, "isSame" );
             addParam( list, script, "isNotSame" );
             addParam( list, script, "simple" );
+            addParam( list, script, "callSuperMethod" );
+            //TODO addParam( list, script, "callVirtualMethod" );
+            addParam( list, script, "useGlobalObject" );
+            addParam( list, script, "multipleAssign" );
         }
         return list;
     }
@@ -92,15 +96,71 @@ public class Structs extends AbstractBaseTest {
             return val.a;
         }
 
+        /**
+         * Call a method that is declared in the super class of the instance 
+         */
+        @Export
+        static int callSuperMethod() {
+            Abc2 val = new Abc2();
+            val.foo();
+            return val.a;
+        }
+
+        /**
+         * Call an overridden method
+         */
+        @Export
+        static int callVirtualMethod() {
+            Abc val = new Abc2();
+            val.bar();
+            return val.a;
+        }
+
+        /**
+         * Access a object in a global/static variable.
+         */
+        static Abc2 valGlobal;
+        @Export
+        static int useGlobalObject() {
+            valGlobal = new Abc2();
+            valGlobal.foo();
+            return valGlobal.a;
+        }
+
+        /**
+         * Assign multiple with a field. There are complex stack operation
+         */
+        @Export
+        static int multipleAssign() {
+            Abc2 val = new Abc2();
+            for( int i = 0; i < 1_000; i++ ) {
+                val.a = 42;
+                // TODO
+                //val = val.abc = new Abc2();
+            }
+            return val.a;
+        }
     }
 
     static class Abc {
         int  a;
 
         long b;
+        
+        final void foo() {
+            a = 1;
+        }
+
+        void bar() {
+            a = 2;
+        }
     }
 
     static class Abc2 extends Abc {
-        Abc  abc;
+        Abc2  abc;
+
+        void bar() {
+            a = 3;
+        }
     }
 }

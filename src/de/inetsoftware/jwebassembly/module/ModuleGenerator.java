@@ -144,13 +144,12 @@ public class ModuleGenerator {
     }
 
     /**
-     * Finish the prepare after all classes/methods are prepare. This must be call before we can start with write the
-     * first method.
+     * Prepare all needed methods/functions and scan the content for more needed stuff.
+     * 
      * @throws IOException
      *             if any I/O error occur
      */
-    public void prepareFinish() throws IOException {
-        // scan all methods that should be write to build optimize structures
+    private void prepareFunctions() throws IOException {
         FunctionName next;
         NEXT:
         while( (next = functions.nextScannLater()) != null ) {
@@ -193,9 +192,19 @@ public class ModuleGenerator {
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
         }
-        functions.prepareFinish();
+    }
 
+    /**
+     * Finish the prepare after all classes/methods are prepare. This must be call before we can start with write the
+     * first method.
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    public void prepareFinish() throws IOException {
+        prepareFunctions();
         types.prepareFinish( writer, functions, libraries );
+        prepareFunctions(); // prepare of types can add some override methods as needed
+        functions.prepareFinish();
         writer.prepareFinish();
     }
 
