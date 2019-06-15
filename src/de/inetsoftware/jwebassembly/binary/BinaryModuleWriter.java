@@ -583,15 +583,30 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeMethodFinish() throws IOException {
-        WasmOutputStream localsStream = new WasmOutputStream();
-        localsStream.writeVaruint32( locals.size() );
-        for( AnyType valueType : locals ) {
-            localsStream.writeVaruint32( 1 ); // TODO optimize, write the count of same types.
-            localsStream.writeRefValueType( valueType );
+        @SuppressWarnings( "resource" )
+        WasmOutputStream localsTypeStream = new WasmOutputStream();
+        int localEntryCount = 0;      // number of local entries in output
+        int varCount = locals.size();
+        for( int i = 0; i < varCount; ) {
+            AnyType valueType = locals.get( i++ );
+            int count = 1; // number of local variables of the same type
+            while( i < varCount && locals.get( i ) == valueType ) {
+                count++;
+                i++;
+            }
+            localsTypeStream.writeVaruint32( count );
+            localsTypeStream.writeRefValueType( valueType );
+            localEntryCount++;
         }
+
+        @SuppressWarnings( "resource" )
+        WasmOutputStream localsStream = new WasmOutputStream();
+        localsStream.writeVaruint32( localEntryCount );
+
         WasmOutputStream functionsStream = function.functionsStream = new WasmOutputStream();
-        functionsStream.writeVaruint32( localsStream.size() + codeStream.size() + 1 );
+        functionsStream.writeVaruint32( localsStream.size() + localsTypeStream.size() + codeStream.size() + 1 );
         localsStream.writeTo( functionsStream );
+        localsTypeStream.writeTo( functionsStream );
         function.addCodeOffset( functionsStream.size() );
         codeStream.writeTo( functionsStream );
         functionsStream.write( END );
