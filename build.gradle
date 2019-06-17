@@ -23,6 +23,7 @@ dependencies {
     testCompile 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
     testCompile 'junit:junit:+'
     testCompile 'org.apache.commons:commons-compress:1.2'
+    testCompile 'com.google.code.gson:gson:+'
 }
 
 sourceSets {
