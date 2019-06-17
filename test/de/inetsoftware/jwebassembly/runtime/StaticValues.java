@@ -41,6 +41,7 @@ public class StaticValues extends AbstractBaseTest {
             ScriptEngine script = val[0];
             addParam( list, script, "abc" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

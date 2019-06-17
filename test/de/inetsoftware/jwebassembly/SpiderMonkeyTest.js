@@ -1,12 +1,7 @@
 #!/usr/bin/env node
 
-var filename = '{test.wasm}';
-var ret = read(filename, "binary");
-
-function instantiate(bytes, imports) {
-  return WebAssembly.compile(bytes).then(
-    m => new WebAssembly.Instance(m, imports), reason => console.log(reason) );
-}
+var wasm = read( "spiderMonkey.wasm", "binary" ); // https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Shell_global_objects
+var testData = JSON.parse( read( "testdata.json" ) );
 
 var dependencies = {
     "global": {},
@@ -15,14 +10,21 @@ var dependencies = {
 dependencies["global.Math"] = Math;
 
 function callExport(instance) {
-    try{
-        console.log( instance.exports[scriptArgs[0]]( ...scriptArgs.slice(1) ) );
-    }catch(err){
-        console.log(err)
+    var result = {};
+    for (var method in testData) {
+        try{
+            result[method] = instance.exports[method]( ...testData[method] ).toString();
+        }catch(err){
+            result[method] = err.toString();
+        }
     }
+    // save the test result
+    const original = redirect( "testresult.json" );
+    putstr( JSON.stringify(result) );
+    redirect( original );
 }
 
-instantiate( ret, dependencies ).then( 
-  instance => callExport(instance),
+WebAssembly.instantiate( wasm, dependencies ).then( 
+  obj => callExport(obj.instance),
   reason => console.log(reason)
 );

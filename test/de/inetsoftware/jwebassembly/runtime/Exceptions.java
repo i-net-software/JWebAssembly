@@ -47,6 +47,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "tryFinally" );
             addParam( list, script, "complex" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

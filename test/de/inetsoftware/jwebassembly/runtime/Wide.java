@@ -42,6 +42,7 @@ public class Wide extends AbstractBaseTest {
             addParam( list, script, "thenBranch" );
             addParam( list, script, "elseBranch" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

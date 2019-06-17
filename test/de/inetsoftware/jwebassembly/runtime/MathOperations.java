@@ -65,6 +65,7 @@ public class MathOperations extends AbstractBaseTest {
             addParam( list, script, "charOp", (char)0xFFFF );
             addParam( list, script, "castNumberOverflow" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

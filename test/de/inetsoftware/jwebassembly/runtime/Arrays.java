@@ -51,6 +51,7 @@ public class Arrays extends AbstractBaseTest {
             addParam( list, script, "loopDouble" );
             addParam( list, script, "loopObject" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

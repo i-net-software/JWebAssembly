@@ -19,19 +19,29 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 
 import javax.annotation.Nonnull;
 
 import org.junit.rules.TemporaryFolder;
+
+import com.google.gson.Gson;
 
 /**
  * A Junit Rule that compile the given classes and compare the results from node and Java.
@@ -68,6 +78,10 @@ public class WasmRule extends TemporaryFolder {
 
     private String                    textCompiled;
 
+    private Map<String, Object[]>                  testData;
+
+    private Map<ScriptEngine, Map<String, String>> testResults;
+
     /**
      * Compile the given classes to a Wasm and save it to a file.
      * 
@@ -82,11 +96,54 @@ public class WasmRule extends TemporaryFolder {
     }
 
     /**
+     * Set the parameter of a test.
+     * 
+     * @param params
+     *            the parameters with [ScriptEngine,method name,method parameters]
+     */
+    public void setTestParameters( Collection<Object[]> params ) {
+        testData = new HashMap<>();
+        for( Object[] param : params ) {
+            testData.put( (String)param[1], (Object[])param[2] );
+        }
+        testResults = new HashMap<>();
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     protected void before() throws Throwable {
         compile();
+        if( testData != null ) {
+            writeJsonTestData( testData );
+        }
+    }
+
+    /**
+     * Write the test data as JSON file.
+     * 
+     * @param data
+     *            the data
+     * @throws IOException
+     *             if any IO error occur
+     */
+    private void writeJsonTestData( Map<String, Object[]> data ) throws IOException {
+        // a character we need to convert an integer
+        HashMap<String, Object[]> copy = new HashMap( data );
+        for( Entry<String, Object[]> entry : copy.entrySet() ) {
+            Object[] params = entry.getValue();
+            for( int i = 0; i < params.length; i++ ) {
+                if( params[i] instanceof Character ) {
+                    params = Arrays.copyOf( params, params.length );
+                    params[i] = new Integer( ((Character)params[i]).charValue() );
+                    entry.setValue( params );
+                }
+            }
+        }
+        try (OutputStreamWriter jsonData = new OutputStreamWriter( new FileOutputStream( new File( getRoot(), "testdata.json" ) ), StandardCharsets.UTF_8 )) {
+            new Gson().toJson( copy, jsonData );
+        }
     }
 
     /**
@@ -296,11 +353,6 @@ public class WasmRule extends TemporaryFolder {
                 expected = new Integer( ((Boolean)expected) ? 1 : 0 );
             }
 
-            for( int i = 0; i < params.length; i++ ) {
-                if( params[i] instanceof Character ) {
-                    params[i] = new Integer( ((Character)params[i]).charValue() );
-                }
-            }
             String actual = evalWasm( script, methodName, params );
             assertEquals( String.valueOf( expected ), actual );
         } catch( Throwable ex ) {
@@ -324,6 +376,17 @@ public class WasmRule extends TemporaryFolder {
     public String evalWasm( ScriptEngine script, String methodName, Object... params ) {
         ProcessBuilder processBuilder = null;
         try {
+            if( testData != null ) {
+                // data are available as block data
+                Map<String, String> resultMap = testResults.get( script );
+                if( resultMap != null ) {
+                    return resultMap.get( methodName );
+                }
+            } else {
+                // block data then write single test data
+                writeJsonTestData( Collections.singletonMap( methodName, params ) );
+            }
+
             switch( script ) {
                 case SpiderMonkey:
                     processBuilder = spiderMonkeyCommand( true );
@@ -345,19 +408,23 @@ public class WasmRule extends TemporaryFolder {
                 default:
                     throw new IllegalStateException( script.toString() );
             }
-            processBuilder.command().add( methodName );
-            for( int i = 0; i < params.length; i++ ) {
-                processBuilder.command().add( String.valueOf( params[i] ) );
-            }
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
             String result = readStream( process.getInputStream() ).trim();
-            if( exitCode != 0 ) {
+            if( exitCode != 0 || !result.isEmpty() ) {
                 String errorMessage = readStream( process.getErrorStream() );
-                assertEquals( result + '\n' + errorMessage + "\nExit code:", 0, exitCode );
+                fail( result + '\n' + errorMessage + "\nExit code: " + exitCode );
             }
-            return result;
+
+            // read the result from file
+            try( InputStreamReader jsonData = new InputStreamReader( new FileInputStream( new File( getRoot(), "testresult.json" ) ), StandardCharsets.UTF_8 ) ) {
+                Map<String, String> map = new Gson().fromJson( jsonData, Map.class );
+                if( testData != null ) {
+                    testResults.put( script, map );
+                }
+                return map.get( methodName );
+            }
         } catch( Throwable ex ) {
             failed = true;
             ex.printStackTrace();

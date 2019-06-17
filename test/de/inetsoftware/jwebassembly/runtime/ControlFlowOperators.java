@@ -57,6 +57,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "conditionalOperator" );
             addParam( list, script, "redifineVariable" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

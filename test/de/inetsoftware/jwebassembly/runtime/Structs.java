@@ -52,6 +52,7 @@ public class Structs extends AbstractBaseTest {
             addParam( list, script, "useGlobalObject" );
             addParam( list, script, "multipleAssign" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

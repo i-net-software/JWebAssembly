@@ -44,6 +44,7 @@ public class Stacks extends AbstractBaseTest {
             addParam( list, script, "dupDouble" );
             addParam( list, script, "dupLong" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 

@@ -47,6 +47,7 @@ public class CallFunctions extends AbstractBaseTest {
             addParam( list, script, "intCall" );
             addParam( list, script, "nativeCall" );
         }
+        rule.setTestParameters( list );
         return list;
     }
 
