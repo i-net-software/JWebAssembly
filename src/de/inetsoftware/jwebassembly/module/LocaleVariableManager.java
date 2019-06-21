@@ -200,7 +200,7 @@ class LocaleVariableManager {
                 // set the more specific type
             } else {
                 throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot "
-                                + slot, null, null, -1 );
+                                + slot + ". Compile the Java code with debug information to correct this problem.", null, null, -1 );
             }
         }
         var.valueType = valueType;
