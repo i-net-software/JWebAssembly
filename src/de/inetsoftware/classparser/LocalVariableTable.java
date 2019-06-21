@@ -24,8 +24,6 @@ import java.io.IOException;
  */
 public class LocalVariableTable {
 
-    private final ConstantPool constantPool;
-
     private final int          maxLocals;
 
     private LocalVariable[]    table;
@@ -33,31 +31,38 @@ public class LocalVariableTable {
     /**
      * Create a new instance of the code attribute "LocalVariableTable".
      * 
+     * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.13
+     * http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#5956
+
      * @param maxLocals
      *            the count of local variables in the memory
      * @param constantPool
      *            Reference to the current ConstantPool
-     */
-    LocalVariableTable( int maxLocals, ConstantPool constantPool ) {
-        this.maxLocals = maxLocals;
-        this.constantPool = constantPool;
-    }
-
-    /**
-     * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.13
-     * http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#5956
-     *
      * @param input
      *            the stream of the class
      * @throws IOException
      *             if any I/O error occurs.
      */
-    void read( DataInputStream input ) throws IOException {
+    LocalVariableTable( int maxLocals, ConstantPool constantPool, DataInputStream input ) throws IOException {
+        this.maxLocals = maxLocals;
+
         int count = input.readUnsignedShort();
         table = new LocalVariable[count];
         for( int i = 0; i < count; i++ ) {
             table[i] = new LocalVariable( input, constantPool );
         }
+    }
+
+    /**
+     * Create an instance without any debug details.
+     * 
+     * @param maxLocals
+     *            the count of local variables in the memory
+     */
+    LocalVariableTable( int maxLocals ) {
+        this.maxLocals = maxLocals;
+
+        table = new LocalVariable[0];
     }
 
     /**
