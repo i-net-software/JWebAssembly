@@ -166,7 +166,7 @@ public class ModuleGenerator {
                         FunctionName name = new FunctionName( method );
                         if( functions.needToScan( name ) ) {
                             writeMethodSignature( name, method.isStatic(), null );
-                            scanMethod( createInstructions( method ) );
+                            scanMethod( createInstructions( functions.replace( name, method ) ) );
                             functions.markAsScanned( name );
                         }
                     } catch (IOException ioex){
