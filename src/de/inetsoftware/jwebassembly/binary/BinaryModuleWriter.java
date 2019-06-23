@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
@@ -292,9 +293,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         int start = wasm.size();
         WasmOutputStream stream = new WasmOutputStream();
         stream.writeVaruint32( size );
-        for( Function func : functions.values() ) {
-            func.addCodeOffset( start + stream.size() );
-            func.functionsStream.writeTo( stream );
+        for( Entry<String, Function> entry : functions.entrySet() ) {
+            try {
+                Function func = entry.getValue();
+                func.addCodeOffset( start + stream.size() );
+                func.functionsStream.writeTo( stream );
+            } catch( RuntimeException ex ) {
+                throw WasmException.create( entry.getKey(), ex );
+            }
         }
         wasm.writeSection( SectionType.Code, stream );
 

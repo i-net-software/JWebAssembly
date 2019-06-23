@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,19 @@ public class WasmException extends RuntimeException {
     }
 
     /**
+     * Create a new instance with a cause.
+     * 
+     * @param message
+     *            the detail message
+     * @param cause
+     *            the cause
+     */
+    private WasmException( String message, Throwable cause ) {
+        super( message, cause );
+        lineNumber = -1;
+    }
+
+    /**
      * Create a wrapped exception needed.
      * 
      * @param cause
@@ -123,6 +136,22 @@ public class WasmException extends RuntimeException {
             return (WasmException)cause;
         }
         return new WasmException( cause );
+    }
+
+    /**
+     * Create a wrapped exception needed with an additional message.
+     * 
+     * @param cause
+     *            the wrapped cause
+     * @param message
+     *            the message
+     * @return a new instance
+     */
+    public static WasmException create( String message, Throwable cause ) {
+        if( cause instanceof WasmException ) {
+            return (WasmException)cause;
+        }
+        return new WasmException( message, cause );
     }
 
     /**
