@@ -74,8 +74,8 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      * {@inheritDoc}
      */
     @Override
-    void markAsNeeded( FunctionManager functions ) {
-        super.markAsNeeded( functions );
+    void markAsNeeded( FunctionManager functions, boolean isStatic ) {
+        super.markAsNeeded( functions, isStatic );
         virtualFunctionIdx = functions.getFunctionIndex( getFunctionName() );
     }
 

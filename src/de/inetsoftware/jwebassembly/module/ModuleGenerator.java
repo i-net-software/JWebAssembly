@@ -156,7 +156,6 @@ public class ModuleGenerator {
             ClassFile classFile = ClassFile.get( next.className, libraries );
             if( classFile == null ) {
                 if( next instanceof SyntheticFunctionName ) {
-                    writeMethodSignature( next, true, null );
                     scanMethod( ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
                     functions.markAsScanned( next );
                 }
@@ -165,7 +164,6 @@ public class ModuleGenerator {
                     try {
                         FunctionName name = new FunctionName( method );
                         if( functions.needToScan( name ) ) {
-                            writeMethodSignature( name, method.isStatic(), null );
                             scanMethod( createInstructions( functions.replace( name, method ) ) );
                             functions.markAsScanned( name );
                         }
@@ -182,7 +180,7 @@ public class ModuleGenerator {
                     MethodInfo method = superClassFile.getMethod( next.methodName, next.signature );
                     if( method != null ) {
                         FunctionName name = new FunctionName( method );
-                        functions.markAsNeeded( name );
+                        functions.markAsNeeded( name, method.isStatic() );
                         functions.setAlias( next, name );
                         continue NEXT; // we have found a super method
                     }
@@ -202,6 +200,25 @@ public class ModuleGenerator {
      */
     public void prepareFinish() throws IOException {
         prepareFunctions();
+
+        // write only the needed imports to the output
+        for( Iterator<FunctionName> iterator = functions.getNeededImports(); iterator.hasNext(); ) {
+            FunctionName name = iterator.next();
+
+            functions.markAsWritten( name );
+            Map<String, Object> importAnannotation = functions.getImportAnannotation( name );
+            String impoarModule = (String)importAnannotation.get( "module" );
+            String importName = (String)importAnannotation.get( "name" );
+            writer.prepareImport( name, impoarModule, importName );
+            writeMethodSignature( name, true, null );
+        }
+
+        // init/write the function types
+        for( Iterator<FunctionName> iterator = functions.getNeededFunctions(); iterator.hasNext(); ) {
+            FunctionName name = iterator.next();
+            writeMethodSignature( name, functions.isStatic( name ), null );
+        }
+
         types.prepareFinish( writer, functions, libraries );
         prepareFunctions(); // prepare of types can add some override methods as needed
         functions.prepareFinish();
@@ -224,8 +241,10 @@ public class ModuleGenerator {
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Call:
+                    ((WasmCallInstruction)instruction).markAsNeeded( functions, true );
+                    break;
                 case CallIndirect:
-                    ((WasmCallInstruction)instruction).markAsNeeded( functions );
+                    ((WasmCallInstruction)instruction).markAsNeeded( functions, false );
                     break;
                 default:
             }
@@ -315,28 +334,23 @@ public class ModuleGenerator {
         try {
             FunctionName name = new FunctionName( method );
             Map<String,Object> annotationValues;
+            if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
+                String signatureName = (String)annotationValues.get( "value" );
+                name = new FunctionName( signatureName );
+                functions.addReplacement( name, method );
+            }
             if( (annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION )) != null ) {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Import method must be static: " + name.fullName, -1 );
                 }
-                functions.markAsWritten( name );
-                String impoarModule = (String)annotationValues.get( "module" );
-                String importName = (String)annotationValues.get( "name" );
-                writer.prepareImport( name, impoarModule, importName );
-                writeMethodSignature( name, true, null );
+                functions.markAsImport( name, annotationValues );
                 return;
             }
             if( (annotationValues = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION )) != null ) {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Export method must be static: " + name.fullName, -1 );
                 }
-                functions.markAsNeeded( name );
-                return;
-            }
-            if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
-                String signatureName = (String)annotationValues.get( "value" );
-                name = new FunctionName( signatureName );
-                functions.addReplacement( name, method );
+                functions.markAsNeeded( name, true );
                 return;
             }
         } catch( Exception ioex ) {
@@ -446,8 +460,10 @@ public class ModuleGenerator {
                         }
                         break;
                     case Call:
+                        ((WasmCallInstruction)instruction).markAsNeeded( functions, true );
+                        break;
                     case CallIndirect:
-                        ((WasmCallInstruction)instruction).markAsNeeded( functions );
+                        ((WasmCallInstruction)instruction).markAsNeeded( functions, false );
                         break;
                     case Struct:
                         WasmStructInstruction instr = (WasmStructInstruction)instruction;

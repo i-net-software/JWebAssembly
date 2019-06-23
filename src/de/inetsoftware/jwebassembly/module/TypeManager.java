@@ -42,6 +42,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 public class TypeManager {
 
+    /** name of virtual function table, start with a point for an invalid Java identifier  */
     static final String             VTABLE = ".vtable";
 
     private Map<String, StructType> map    = new LinkedHashMap<>();
@@ -204,7 +205,7 @@ public class TypeManager {
                     FunctionName func = methods.get( idx );
                     if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
                         methods.set( idx, funcName ); // use the override method
-                        functions.markAsNeeded( funcName ); // mark all overridden methods also as needed if the super method is used
+                        functions.markAsNeeded( funcName, false ); // mark all overridden methods also as needed if the super method is used
                         break;
                     }
                 }

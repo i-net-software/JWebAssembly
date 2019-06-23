@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -58,6 +59,19 @@ public class FunctionManager {
     }
 
     /**
+     * Mark the a function as a import function. Only if the function is also needed then it will imported from
+     * compiler.
+     * 
+     * @param name
+     *            the function name
+     * @param importAnannotation
+     *            the annotation of the import
+     */
+    void markAsImport( FunctionName name, Map<String,Object> importAnannotation ) {
+        getOrCreate( name ).importAnannotation = importAnannotation;
+    }
+
+    /**
      * Mark the a function as scanned in the prepare phase. This should only occur with needed functions.
      * 
      * @param name
@@ -82,14 +96,46 @@ public class FunctionManager {
      * 
      * @param name
      *            the function name
+     * @param isStatic
+     *            true, if the method is static
      * @return the real function name
      */
-    FunctionName markAsNeeded( FunctionName name ) {
+    FunctionName markAsNeeded( FunctionName name, boolean isStatic ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
             state.state = State.Needed;
         }
+        state.isStatic = isStatic;
         return state.alias == null ? name : state.alias;
+    }
+
+    /**
+     * Get all FunctionNames that need imported
+     * 
+     * @return an iterator
+     */
+    Iterator<FunctionName> getNeededImports() {
+        return states.entrySet().stream().filter( entry -> {
+            FunctionState state = entry.getValue();
+            switch( state.state ) {
+                case Needed:
+                case Scanned:
+                    return state.importAnannotation != null;
+                default:
+            }
+            return false;
+        } ).map( entry -> entry.getKey() ).iterator();
+    }
+
+    /**
+     * Get the annotation of an import function
+     * 
+     * @param name
+     *            the function name
+     * @return the annotation or null
+     */
+    Map<String, Object> getImportAnannotation( FunctionName name ) {
+        return getOrCreate( name ).importAnannotation;
     }
 
     /**
@@ -126,6 +172,24 @@ public class FunctionManager {
     }
 
     /**
+     * Get all FunctionNames that need imported
+     * 
+     * @return an iterator
+     */
+    Iterator<FunctionName> getNeededFunctions() {
+        return states.entrySet().stream().filter( entry -> {
+            FunctionState state = entry.getValue();
+            switch( state.state ) {
+                case Needed:
+                case Scanned:
+                    return true;
+                default:
+            }
+            return false;
+        } ).map( entry -> entry.getKey() ).iterator();
+    }
+
+    /**
      * if the given function is required but was not scanned.
      * 
      * @param name
@@ -156,6 +220,17 @@ public class FunctionManager {
             default:
                 return false;
         }
+    }
+
+    /**
+     * if the given function is static.
+     * 
+     * @param name
+     *            the function name
+     * @return true, if the function is static
+     */
+    boolean isStatic( FunctionName name ) {
+        return getOrCreate( name ).isStatic;
     }
 
     /**
@@ -227,13 +302,17 @@ public class FunctionManager {
      * State of a function/method
      */
     private static class FunctionState {
-        private State        state = State.None;
+        private State               state       = State.None;
 
-        private MethodInfo   method;
+        private MethodInfo          method;
 
-        private FunctionName alias;
+        private FunctionName        alias;
 
-        private int          functionIdx = -1;
+        private Map<String, Object> importAnannotation;
+
+        private int                 functionIdx = -1;
+
+        private boolean             isStatic;
     }
 
     private static enum State {
