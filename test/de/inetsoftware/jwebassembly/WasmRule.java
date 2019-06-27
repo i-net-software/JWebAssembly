@@ -354,7 +354,11 @@ public class WasmRule extends TemporaryFolder {
             }
 
             String actual = evalWasm( script, methodName, params );
-            assertEquals( String.valueOf( expected ), actual );
+            if( expected instanceof Double ) { // handle different string formating of double values
+                assertEquals( actual, expected, Double.valueOf( actual ) );
+            } else {
+                assertEquals( String.valueOf( expected ), actual );
+            }
         } catch( Throwable ex ) {
             failed = true;
             throwException( ex );
