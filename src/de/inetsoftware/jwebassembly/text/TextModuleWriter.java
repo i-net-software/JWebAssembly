@@ -297,7 +297,7 @@ public class TextModuleWriter extends ModuleWriter {
             writeTypeName( typeOutput, valueType );
             typeOutput.append( ')' );
         }
-        if( !isPrepared ) {
+        if( methodOutput == null ) {
             return;
         }
         methodOutput.append( '(' ).append( kind );
