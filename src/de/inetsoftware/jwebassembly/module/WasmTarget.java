@@ -36,7 +36,12 @@ public class WasmTarget implements Closeable {
 
     private OutputStream output;
 
+    private Appendable   textOutput;
+
     private Writer       sourceMap;
+
+    private Writer       javaScript;
+
 
     /**
      * Create a target with a file.
@@ -59,6 +64,16 @@ public class WasmTarget implements Closeable {
     }
 
     /**
+     * Create a target with an Appendable for text export
+     * 
+     * @param output
+     *            the stream for the wasm file
+     */
+    public WasmTarget( Appendable output ) {
+        this.textOutput = output;
+    }
+
+    /**
      * Get the wasm OutputStream
      * 
      * @return the stream
@@ -71,6 +86,20 @@ public class WasmTarget implements Closeable {
             output = new BufferedOutputStream( new FileOutputStream( file ) );
         }
         return output;
+    }
+
+    /**
+     * Get the output for the text format.
+     * 
+     * @return the target
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    public Appendable getTextOutput() throws IOException {
+        if( textOutput == null ) {
+            textOutput = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( file ) ), StandardCharsets.UTF_8 );
+        }
+        return textOutput;
     }
 
     /**
@@ -102,6 +131,20 @@ public class WasmTarget implements Closeable {
     }
 
     /**
+     * Get the output for the JavaScript glue code.
+     * 
+     * @return the script output.
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    public Writer getJavaScriptOutput() throws IOException {
+        if( javaScript == null && file != null ) {
+            javaScript = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( file + ".js" ) ), StandardCharsets.UTF_8 );
+        }
+        return javaScript;
+    }
+
+    /**
      * Close all streams
      * 
      * @throws IOException
@@ -112,8 +155,14 @@ public class WasmTarget implements Closeable {
         if( output != null ) {
             output.close();
         }
+        if( textOutput instanceof Closeable ) {
+            ((Closeable)textOutput).close();
+        }
         if( sourceMap != null ) {
             sourceMap.close();
+        }
+        if( javaScript != null ) {
+            javaScript.close();
         }
     }
 }

@@ -32,6 +32,7 @@ import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
+import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -91,8 +92,8 @@ public class TextModuleWriter extends ModuleWriter {
      * @throws IOException
      *             if any I/O error occur
      */
-    public TextModuleWriter( Appendable output, HashMap<String, String> properties ) throws IOException {
-        this.output = output;
+    public TextModuleWriter( WasmTarget target, HashMap<String, String> properties ) throws IOException {
+        this.output = target.getTextOutput();
         debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         output.append( "(module" );
         inset++;
