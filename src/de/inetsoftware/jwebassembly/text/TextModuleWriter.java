@@ -85,7 +85,7 @@ public class TextModuleWriter extends ModuleWriter {
     /**
      * Create a new instance.
      * 
-     * @param output
+     * @param target
      *            target for the result
      * @param properties
      *            compiler properties
