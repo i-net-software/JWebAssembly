@@ -1,13 +1,6 @@
-#!/usr/bin/env node
-
+load( "spiderMonkey.wasm.js" );
 var wasm = wasmTextToBinary( read( "spiderMonkey.wat" ) );
 var testData = JSON.parse( read( "testdata.json" ) );
-
-var dependencies = {
-    "global": {},
-    "env": {}
-};
-dependencies["global.Math"] = Math;
 
 function callExport(instance) {
     var result = {};
@@ -24,7 +17,7 @@ function callExport(instance) {
     redirect( original );
 }
 
-WebAssembly.instantiate( wasm, dependencies ).then(
+WebAssembly.instantiate( wasm, wasmImports ).then(
   obj => callExport(obj.instance),
   reason => console.log(reason)
 );

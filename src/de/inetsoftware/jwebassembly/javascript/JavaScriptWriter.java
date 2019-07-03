@@ -129,6 +129,6 @@ public class JavaScriptWriter {
             }
             isFirst = false;
         }
-        out.append( "\n}\n" );
+        out.append( "\n};\nif (typeof module !== \"undefined\") module.exports = wasmImports;" );
     }
 }

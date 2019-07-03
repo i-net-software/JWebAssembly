@@ -38,6 +38,7 @@ import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.javascript.JavaScriptWriter;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -53,6 +54,8 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
 public class ModuleGenerator {
 
     private final ModuleWriter              writer;
+
+    private final JavaScriptWriter          javaScript;
 
     private final URLClassLoader            libraries;
 
@@ -75,11 +78,14 @@ public class ModuleGenerator {
      * 
      * @param writer
      *            the target writer
+     * @param target
+     *            the target for the module data
      * @param libraries
      *            libraries 
      */
-    public ModuleGenerator( @Nonnull ModuleWriter writer, @Nonnull List<URL> libraries ) {
+    public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries ) {
         this.writer = writer;
+        this.javaScript = new JavaScriptWriter( target );
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
         javaCodeBuilder.init( types );
         ((WasmCodeBuilder)watParser).init( types );
@@ -211,6 +217,7 @@ public class ModuleGenerator {
             String importName = (String)importAnannotation.get( "name" );
             writer.prepareImport( name, impoarModule, importName );
             writeMethodSignature( name, true, null );
+            javaScript.addImport( impoarModule, importName, importAnannotation );
         }
 
         // init/write the function types
@@ -295,6 +302,7 @@ public class ModuleGenerator {
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
         }
+        javaScript.finish();
     }
 
     /**

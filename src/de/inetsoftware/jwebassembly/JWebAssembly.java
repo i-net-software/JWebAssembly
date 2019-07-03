@@ -203,14 +203,14 @@ public class JWebAssembly {
     /**
      * Convert the added files to a WebAssembly module in text representation.
      * 
-     * @param output
+     * @param target
      *            the target for the module data
      * @throws WasmException
      *             if any conversion error occurs
      */
     private void compileToText( WasmTarget target ) throws WasmException {
         try (TextModuleWriter writer = new TextModuleWriter( target, properties )) {
-            compile( writer );
+            compile( writer, target );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
         }
@@ -271,7 +271,7 @@ public class JWebAssembly {
      */
     private void compileToBinary( WasmTarget target ) throws WasmException {
         try (BinaryModuleWriter writer = new BinaryModuleWriter( target, properties )) {
-            compile( writer );
+            compile( writer, target );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
         }
@@ -282,13 +282,15 @@ public class JWebAssembly {
      * 
      * @param writer
      *            the formatter
+     * @param target
+     *            the target for the module data
      * @throws IOException
      *             if any I/O error occur
      * @throws WasmException
      *             if any conversion error occurs
      */
-    private void compile( ModuleWriter writer ) throws IOException, WasmException {
-        ModuleGenerator generator = new ModuleGenerator( writer, libraries );
+    private void compile( ModuleWriter writer, WasmTarget target ) throws IOException, WasmException {
+        ModuleGenerator generator = new ModuleGenerator( writer, target, libraries );
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             generator.prepare( classFile );

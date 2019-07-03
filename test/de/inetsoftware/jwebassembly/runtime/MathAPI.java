@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,16 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
-import de.inetsoftware.jwebassembly.api.annotation.Import;
-import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 
 /**
  * @author Volker Berlin
  */
-public class CallFunctions extends AbstractBaseTest {
-    
+public class MathAPI extends AbstractBaseTest {
+
     @ClassRule
     public static WasmRule rule = new WasmRule( TestClass.class ); 
 
-    public CallFunctions( ScriptEngine script, String method, Object[] params ) {
+    public MathAPI( ScriptEngine script, String method, Object[] params ) {
         super( rule, script, method, params );
     }
 
@@ -44,8 +42,10 @@ public class CallFunctions extends AbstractBaseTest {
         ArrayList<Object[]> list = new ArrayList<>();
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
-            addParam( list, script, "intCall" );
-            addParam( list, script, "nativeCall" );
+            addParam( list, script, "sin0" );
+            addParam( list, script, "sinPI" );
+            addParam( list, script, "cos0" );
+            addParam( list, script, "tan0" );
         }
         rule.setTestParameters( list );
         return list;
@@ -54,41 +54,23 @@ public class CallFunctions extends AbstractBaseTest {
     static class TestClass {
 
         @Export
-        static int intCall() {
-            intConst();
-            doubleConst();
-            emptyMethod();
-            return abc( 4,5) + intConst() * 100;
-        }
-
-        static int intConst() {
-            return -42;
-        }
-
-        static double doubleConst() {
-            return 3.5;
-        }
-
-        static void emptyMethod() {
-
-        }
-
-        @Import( module = "Math", name = "max" )
-        static int abc( int a, int b) {
-            return Math.max( a, b );
+        static double sin0() {
+            return Math.sin( 0 );
         }
 
         @Export
-        static float nativeCall() {
-            return nativeMax( 4.5F,5.5F);
+        static double sinPI() {
+            return Math.sin( Math.PI / 2 );
         }
 
-        @WasmTextCode( "local.get 0 " //
-                        + "local.get 1 " //
-                        + "f32.max " //
-                        + "return" )
-        private static float nativeMax( float a, float b) {
-            return Math.max( a, b );
+        @Export
+        static double cos0() {
+            return Math.cos( 0 );
+        }
+
+        @Export
+        static double tan0() {
+            return Math.tan( 0 );
         }
     }
 }

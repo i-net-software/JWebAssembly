@@ -26,8 +26,8 @@ public class JavaScriptWriterTest {
                         "Foo:{\n" + 
                         "bar:1 + 1\n" + 
                         "}\n" + 
-                        "}\n" + 
-                        "", builder.toString() );
+                        "};\n" + 
+                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
     }
 
     @Test
@@ -42,8 +42,8 @@ public class JavaScriptWriterTest {
                         "bar:1 + 1,\n" + 
                         "xyz:3\n" + 
                         "}\n" + 
-                        "}\n" + 
-                        "", builder.toString() );
+                        "};\n" + 
+                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
     }
 
     @Test
@@ -60,8 +60,8 @@ public class JavaScriptWriterTest {
                         "Foo:{\n" + 
                         "foo:1 + 1\n" + 
                         "}\n" + 
-                        "}\n" + 
-                        "", builder.toString() );
+                        "};\n" + 
+                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
     }
 
     @Test
@@ -73,7 +73,7 @@ public class JavaScriptWriterTest {
         writer.finish( builder );
         assertEquals( "var wasmImports = {\n" + 
                         "Foo:Foo\n" + 
-                        "}\n" + 
-                        "", builder.toString() );
+                        "};\n" + 
+                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
     }
 }
