@@ -758,6 +758,17 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     default:
                 }
                 break;
+            case sqrt:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_SQRT;
+                        break;
+                    case f64:
+                        op = F64_SQRT;
+                        break;
+                    default:
+                }
+                break;
             case rem:
                 switch( valueType ) {
                     case i32:

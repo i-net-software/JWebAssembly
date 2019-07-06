@@ -90,6 +90,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "f32.mul":
                         addNumericInstruction( NumericOperator.mul, ValueType.f32, javaCodePos, lineNumber );
                         break;
+                    case "f32.sqrt":
+                        addNumericInstruction( NumericOperator.sqrt, ValueType.f32, javaCodePos, lineNumber );
+                        break;
                     case "f32.sub":
                         addNumericInstruction( NumericOperator.sub, ValueType.f32, javaCodePos, lineNumber );
                         break;
@@ -104,6 +107,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "f64.mul":
                         addNumericInstruction( NumericOperator.mul, ValueType.f64, javaCodePos, lineNumber );
+                        break;
+                    case "f64.sqrt":
+                        addNumericInstruction( NumericOperator.sqrt, ValueType.f64, javaCodePos, lineNumber );
                         break;
                     case "f64.sub":
                         addNumericInstruction( NumericOperator.sub, ValueType.f64, javaCodePos, lineNumber );

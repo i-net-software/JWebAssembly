@@ -24,6 +24,7 @@ public enum NumericOperator {
     neg,
     mul,
     div,
+    sqrt,
     rem,
     and,
     or,
