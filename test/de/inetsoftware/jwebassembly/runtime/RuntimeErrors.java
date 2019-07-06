@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.runtime;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -56,12 +57,13 @@ public class RuntimeErrors {
 
     @Test
     public void longReturn() {
+        assumeTrue( script == ScriptEngine.SpiderMonkey || script == ScriptEngine.SpiderMonkeyWat );
         String error = rule.evalWasm( script, "longReturn" );
         int newlineIdx = error.indexOf( '\n' );
         if( newlineIdx > 0 ) {
             error = error.substring( 0, newlineIdx );
         }
-        String expected = script == ScriptEngine.SpiderMonkey || script == ScriptEngine.SpiderMonkeyWat ? "TypeError: cannot pass i64 to or from JS" : "TypeError: wasm function signature contains illegal type";
+        String expected = "TypeError: cannot pass i64 to or from JS";
         assertEquals( expected, error );
     }
 
