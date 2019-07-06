@@ -46,6 +46,14 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "sinPI" );
             addParam( list, script, "cos0" );
             addParam( list, script, "tan0" );
+            addParam( list, script, "asin1" );
+            addParam( list, script, "acos1" );
+            addParam( list, script, "atan1" );
+            addParam( list, script, "toRadians90" );
+            addParam( list, script, "toDegrees1" );
+            addParam( list, script, "exp1" );
+            addParam( list, script, "log1" );
+            addParam( list, script, "log10" );
         }
         rule.setTestParameters( list );
         return list;
@@ -71,6 +79,51 @@ public class MathAPI extends AbstractBaseTest {
         @Export
         static double tan0() {
             return Math.tan( 0 );
+        }
+
+        @Export
+        static double asin1() {
+            return Math.asin( 1 );
+        }
+
+        @Export
+        static double acos1() {
+            return Math.acos( 1 );
+        }
+
+        @Export
+        static double atan1() {
+            return Math.atan( 1 );
+        }
+
+        @Export
+        static double toRadians90() {
+            return Math.toRadians( 90 );
+        }
+
+        @Export
+        static double toDegrees1() {
+            return Math.toDegrees( 1 );
+        }
+
+        @Export
+        static double exp1() {
+            return Math.exp( 1 );
+        }
+
+        @Export
+        static double log1() {
+            return Math.log( 1 );
+        }
+
+        @Export
+        static double log10() {
+            return Math.log10( 1 );
+        }
+
+        @Export
+        static double sqrt() {
+            return Math.sqrt( 6.25 );
         }
     }
 }
