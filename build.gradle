@@ -74,7 +74,7 @@ artifacts {
 }
 
 node {
-    version = '11.10.1'
+    version = '12.4.0'
 //    version = '+'
     download = true
 }
