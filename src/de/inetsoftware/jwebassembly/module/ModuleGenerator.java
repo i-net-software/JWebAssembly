@@ -417,7 +417,7 @@ public class ModuleGenerator {
                 javaCodeBuilder.buildCode( code, !method.getType().endsWith( ")V" ) );
                 return javaCodeBuilder;
             } else {
-                throw new WasmException( "Abstract or native method can not be used: " + new FunctionName( method ).fullName, -1 );
+                throw new WasmException( "Abstract or native method can not be used: " + new FunctionName( method ).signatureName, -1 );
             }
         } catch( Exception ioex ) {
             int lineNumber = code == null ? -1 : code.getFirstLineNr();
