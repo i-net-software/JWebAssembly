@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2019 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -356,6 +356,8 @@ public class WasmRule extends TemporaryFolder {
             String actual = evalWasm( script, methodName, params );
             if( expected instanceof Double ) { // handle different string formating of double values
                 assertEquals( actual, expected, Double.valueOf( actual ) );
+            } else if( expected instanceof Float ) { // handle different string formating of float values
+                assertEquals( actual, expected, Float.valueOf( actual ) );
             } else {
                 assertEquals( String.valueOf( expected ), actual );
             }
