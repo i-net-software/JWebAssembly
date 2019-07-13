@@ -758,17 +758,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     default:
                 }
                 break;
-            case sqrt:
-                switch( valueType ) {
-                    case f32:
-                        op = F32_SQRT;
-                        break;
-                    case f64:
-                        op = F64_SQRT;
-                        break;
-                    default:
-                }
-                break;
             case rem:
                 switch( valueType ) {
                     case i32:
@@ -973,6 +962,62 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.writeOpCode( REF_EQ );
                 op = I32_EQZ;
                 break;
+            case sqrt:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_SQRT;
+                        break;
+                    case f64:
+                        op = F64_SQRT;
+                        break;
+                    default:
+                }
+                break;
+            case ceil:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_CEIL;
+                        break;
+                    case f64:
+                        op = F64_CEIL;
+                        break;
+                    default:
+                }
+                break;
+            case floor:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_FLOOR;
+                        break;
+                    case f64:
+                        op = F64_FLOOR;
+                        break;
+                    default:
+                }
+                break;
+            case trunc:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_TRUNC;
+                        break;
+                    case f64:
+                        op = F64_TRUNC;
+                        break;
+                    default:
+                }
+                break;
+            case nearest:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_NEAREST;
+                        break;
+                    case f64:
+                        op = F64_NEAREST;
+                        break;
+                    default:
+                }
+                break;
+
             default:
         }
         if( op == 0 ) {

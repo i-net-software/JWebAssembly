@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import org.junit.Test;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.binary.BinaryModuleWriter;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
@@ -49,6 +50,13 @@ public class WatParserTest {
         String expected = normalize( "(module (func $A.a " + wat + " ) )" );
         String actual = normalize( builder );
         assertEquals( expected, actual );
+
+        // smoke test of the binary writer
+        writer = new BinaryModuleWriter( new WasmTarget( builder ), new HashMap<>() );
+        writer.writeMethodStart( new FunctionName( "A.a()V" ), null );
+        for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
+            instruction.writeTo( writer );
+        }
     }
 
     private String normalize( @Nullable CharSequence str ) {
@@ -124,6 +132,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void f32_ceil() throws IOException {
+        test( "f32.ceil" );
+    }
+
+    @Test
     public void f32_convert_i32_s() throws IOException {
         test( "f32.convert_i32_s" );
     }
@@ -131,6 +144,11 @@ public class WatParserTest {
     @Test
     public void f32_div() throws IOException {
         test( "f32.div" );
+    }
+
+    @Test
+    public void f32_floor() throws IOException {
+        test( "f32.floor" );
     }
 
     @Test
@@ -144,8 +162,28 @@ public class WatParserTest {
     }
 
     @Test
+    public void f32_nearest() throws IOException {
+        test( "f32.nearest" );
+    }
+
+    @Test
+    public void f32_sqrt() throws IOException {
+        test( "f32.sqrt" );
+    }
+
+    @Test
     public void f32_sub() throws IOException {
         test( "f32.sub" );
+    }
+
+    @Test
+    public void f32_trunc() throws IOException {
+        test( "f32.trunc" );
+    }
+
+    @Test
+    public void f64_ceil() throws IOException {
+        test( "f64.ceil" );
     }
 
     @Test
@@ -159,6 +197,16 @@ public class WatParserTest {
     }
 
     @Test
+    public void f64_floor() throws IOException {
+        test( "f64.floor" );
+    }
+
+    @Test
+    public void f64_nearest() throws IOException {
+        test( "f64.nearest" );
+    }
+
+    @Test
     public void f64_max() throws IOException {
         test( "f64.max" );
     }
@@ -169,8 +217,18 @@ public class WatParserTest {
     }
 
     @Test
+    public void f64_sqrt() throws IOException {
+        test( "f64.sqrt" );
+    }
+
+    @Test
     public void f64_sub() throws IOException {
         test( "f64.sub" );
+    }
+
+    @Test
+    public void f64_trunc() throws IOException {
+        test( "f64.trunc" );
     }
 
     @Test

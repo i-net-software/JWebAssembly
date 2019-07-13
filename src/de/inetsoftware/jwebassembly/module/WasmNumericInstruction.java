@@ -81,7 +81,7 @@ class WasmNumericInstruction extends WasmInstruction {
             case lt:
             case le:
             case ge:
-                return null;
+                return null; //TODO should this Valuetype.i32? But then tests failed. can be related to the getPopCount() of the block BlockInstaction IF
             default:
                 return valueType;
         }
@@ -94,6 +94,11 @@ class WasmNumericInstruction extends WasmInstruction {
     int getPopCount() {
         switch( numOp ) {
             case neg:
+            case sqrt:
+            case ceil:
+            case floor:
+            case trunc:
+            case nearest:
                 return 1;
             default:
                 return 2;
