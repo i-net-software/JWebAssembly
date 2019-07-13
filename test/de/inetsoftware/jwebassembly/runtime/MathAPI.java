@@ -54,6 +54,11 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "exp1" );
             addParam( list, script, "log1" );
             addParam( list, script, "log10" );
+            addParam( list, script, "cbrt8" );
+            addParam( list, script, "IEEEremainder" );
+            addParam( list, script, "ceil8_5" );
+            addParam( list, script, "floor8_5" );
+            addParam( list, script, "rint8_5" );
         }
         rule.setTestParameters( list );
         return list;
@@ -124,6 +129,31 @@ public class MathAPI extends AbstractBaseTest {
         @Export
         static double sqrt() {
             return Math.sqrt( 6.25 );
+        }
+
+        @Export
+        static double cbrt8() {
+            return Math.cbrt( 8 );
+        }
+
+        @Export
+        static double IEEEremainder() {
+            return Math.IEEEremainder( 11, 3 );
+        }
+
+        @Export
+        static double ceil8_5() {
+            return Math.ceil( 8.5 );
+        }
+
+        @Export
+        static double floor8_5() {
+            return Math.floor( 8.5 );
+        }
+
+        @Export
+        static double rint8_5() {
+            return Math.rint( 8.5 );
         }
     }
 }
