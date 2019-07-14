@@ -1075,8 +1075,20 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case i2s:
                 op = I32_EXTEND16_S;
                 break;
+            case f2i_re:
+                op = I32_REINTERPRET_F32;
+                break;
+            case i2f_re:
+                op = F32_REINTERPRET_I32;
+                break;
+            case d2l_re:
+                op = I64_REINTERPRET_F64;
+                break;
+            case l2d_re:
+                op = F64_REINTERPRET_I64;
+                break;
             default:
-                throw new Error( "Unknown cast: " + cast );
+                throw new Error( "Unknown cast/type conversion: " + cast );
         }
         codeStream.writeOpCode( op );
     }

@@ -566,8 +566,20 @@ public class TextModuleWriter extends ModuleWriter {
             case i2s:
                 op = "i32.extend16_s";
                 break;
+            case f2i_re:
+                op = "i32.reinterpret_f32";
+                break;
+            case i2f_re:
+                op = "f32.reinterpret_i32";
+                break;
+            case d2l_re:
+                op = "i64.reinterpret_f64";
+                break;
+            case l2d_re:
+                op = "f64.reinterpret_i64";
+                break;
             default:
-                throw new Error( "Unknown cast: " + cast );
+                throw new Error( "Unknown cast/type conversion: " + cast );
         }
         newline( methodOutput );
         methodOutput.append( op );

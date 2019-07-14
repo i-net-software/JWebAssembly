@@ -69,11 +69,17 @@ public class WatParser extends WasmCodeBuilder {
                     case "i32.add":
                         addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos, lineNumber );
                         break;
+                    case "i32.reinterpret_f32":
+                        addConvertInstruction( ValueTypeConvertion.f2i_re, javaCodePos, lineNumber );
+                        break;
                     case "i32.trunc_sat_f32_s":
                         addConvertInstruction( ValueTypeConvertion.f2i, javaCodePos, lineNumber );
                         break;
                     case "i64.extend_i32_s":
                         addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos, lineNumber );
+                        break;
+                    case "i64.reinterpret_f64":
+                        addConvertInstruction( ValueTypeConvertion.d2l_re, javaCodePos, lineNumber );
                         break;
                     case "i64.trunc_sat_f64_s":
                         addConvertInstruction( ValueTypeConvertion.d2l, javaCodePos, lineNumber );
@@ -98,6 +104,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "f32.nearest":
                         addNumericInstruction( NumericOperator.nearest, ValueType.f32, javaCodePos, lineNumber );
+                        break;
+                    case "f32.reinterpret_i32":
+                        addConvertInstruction( ValueTypeConvertion.i2f_re, javaCodePos, lineNumber );
                         break;
                     case "f32.sqrt":
                         addNumericInstruction( NumericOperator.sqrt, ValueType.f32, javaCodePos, lineNumber );
@@ -128,6 +137,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "f64.nearest":
                         addNumericInstruction( NumericOperator.nearest, ValueType.f64, javaCodePos, lineNumber );
+                        break;
+                    case "f64.reinterpret_i64":
+                        addConvertInstruction( ValueTypeConvertion.l2d_re, javaCodePos, lineNumber );
                         break;
                     case "f64.sqrt":
                         addNumericInstruction( NumericOperator.sqrt, ValueType.f64, javaCodePos, lineNumber );

@@ -117,6 +117,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void i32_reinterpret_f32() throws IOException {
+        test( "i32.reinterpret_f32" );
+    }
+
+    @Test
     public void i32_trunc_sat_f32_s() throws IOException {
         test( "i32.trunc_sat_f32_s" );
     }
@@ -124,6 +129,11 @@ public class WatParserTest {
     @Test
     public void i64_extend_i32_s() throws IOException {
         test( "i64.extend_i32_s" );
+    }
+
+    @Test
+    public void i64_reinterpret_f64() throws IOException {
+        test( "i64.reinterpret_f64" );
     }
 
     @Test
@@ -164,6 +174,11 @@ public class WatParserTest {
     @Test
     public void f32_nearest() throws IOException {
         test( "f32.nearest" );
+    }
+
+    @Test
+    public void f32_reinterpret_i32() throws IOException {
+        test( "f32.reinterpret_i32" );
     }
 
     @Test
@@ -214,6 +229,11 @@ public class WatParserTest {
     @Test
     public void f64_mul() throws IOException {
         test( "f64.mul" );
+    }
+
+    @Test
+    public void f64_reinterpret_i64() throws IOException {
+        test( "f64.reinterpret_i64" );
     }
 
     @Test

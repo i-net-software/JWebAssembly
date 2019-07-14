@@ -42,6 +42,10 @@ public class MathAPI extends AbstractBaseTest {
         ArrayList<Object[]> list = new ArrayList<>();
         for( ScriptEngine[] val : ScriptEngine.testParams() ) {
             ScriptEngine script = val[0];
+            addParam( list, script, "floatToIntBits" );
+            addParam( list, script, "intBitsToFloat" );
+            addParam( list, script, "doubleToLongBits" );
+            addParam( list, script, "longBitsToDouble" );
             addParam( list, script, "sin0" );
             addParam( list, script, "sinPI" );
             addParam( list, script, "cos0" );
@@ -59,12 +63,36 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "ceil8_5" );
             addParam( list, script, "floor8_5" );
             addParam( list, script, "rint8_5" );
+            addParam( list, script, "atan2_5_5" );
+            addParam( list, script, "pow3_4" );
+            addParam( list, script, "round3_5" );
+            addParam( list, script, "round_3_5" );
         }
         rule.setTestParameters( list );
         return list;
     }
 
     static class TestClass {
+
+        @Export
+        static int floatToIntBits() {
+            return Float.floatToIntBits( 7 );
+        }
+
+        @Export
+        static float intBitsToFloat() {
+            return Float.intBitsToFloat( 0x41f8_0000 ); // 31.0
+        }
+
+        @Export
+        static int doubleToLongBits() {
+            return (int)Double.doubleToLongBits( 7 );
+        }
+
+        @Export
+        static double longBitsToDouble() {
+            return Double.longBitsToDouble( 0x41f8_0000 ); // 31.0
+        }
 
         @Export
         static double sin0() {
@@ -154,6 +182,26 @@ public class MathAPI extends AbstractBaseTest {
         @Export
         static double rint8_5() {
             return Math.rint( 8.5 );
+        }
+
+        @Export
+        static double atan2_5_5() {
+            return Math.atan2( 5, 5 );
+        }
+
+        @Export
+        static double pow3_4() {
+            return Math.pow( 3, 4 );
+        }
+
+        @Export
+        static int round3_5() {
+            return Math.round( 3.5F );
+        }
+
+        @Export
+        static double round_3_5() {
+            return Math.round( -3.5F );
         }
     }
 }
