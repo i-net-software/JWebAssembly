@@ -386,10 +386,10 @@ public class TextModuleWriter extends ModuleWriter {
         methodOutput.append( valueType ).append( ".const " );
         switch( valueType ) {
             case f32:
-                methodOutput.append( Float.toHexString( value.floatValue() ) ).append( " ;;" ).append( value );
+                methodOutput.append( Float.toHexString( value.floatValue() ).toLowerCase() ).append( " ;;" ).append( value );
                 break;
             case f64:
-                methodOutput.append( Double.toHexString( value.doubleValue() ) ).append( " ;;" ).append( value );
+                methodOutput.append( Double.toHexString( value.doubleValue() ).toLowerCase() ).append( " ;;" ).append( value );
                 break;
             default:
                 methodOutput.append( value );

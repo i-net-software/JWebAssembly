@@ -64,6 +64,8 @@ public class MathOperations extends AbstractBaseTest {
             addParam( list, script, "shortInc", (short)-32768 );
             addParam( list, script, "charOp", (char)0xFFFF );
             addParam( list, script, "castNumberOverflow" );
+            addParam( list, script, "doubleNaN" );
+            addParam( list, script, "floatNaN" );
         }
         rule.setTestParameters( list );
         return list;
@@ -290,6 +292,16 @@ public class MathOperations extends AbstractBaseTest {
             }
 
             return result;
+        }
+
+        @Export
+        static double doubleNaN() {
+            return Double.NaN;
+        }
+
+        @Export
+        static float floatNaN() {
+            return Float.NaN;
         }
     }
 }
