@@ -65,8 +65,10 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "rint8_5" );
             addParam( list, script, "atan2_5_5" );
             addParam( list, script, "pow3_4" );
-            addParam( list, script, "round3_5" );
-            addParam( list, script, "round_3_5" );
+            addParam( list, script, "roundF3_5" );
+            addParam( list, script, "roundF_3_5" );
+            addParam( list, script, "roundD3_8" );
+            addParam( list, script, "roundD_3_8" );
         }
         rule.setTestParameters( list );
         return list;
@@ -195,13 +197,25 @@ public class MathAPI extends AbstractBaseTest {
         }
 
         @Export
-        static int round3_5() {
+        static int roundF3_5() {
             return Math.round( 3.5F );
         }
 
         @Export
-        static double round_3_5() {
+        static int roundF_3_5() {
             return Math.round( -3.5F );
+        }
+
+        @Export
+        static int roundD3_8() {
+            // SpiderMonkey does not support BigInt currently
+            return (int)Math.round( 3.8 );
+        }
+
+        @Export
+        static int roundD_3_8() {
+            // SpiderMonkey does not support BigInt currently
+            return (int)Math.round( -3.8 );
         }
     }
 }
