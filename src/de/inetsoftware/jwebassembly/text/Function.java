@@ -27,4 +27,6 @@ class Function {
     int                 typeId = -1; // -1 not init, use an invalid value to fail hard if it used without init
 
     final StringBuilder output = new StringBuilder();
+
+    String              name;
 }

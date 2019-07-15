@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -69,6 +70,8 @@ public class TextModuleWriter extends ModuleWriter {
     private StringBuilder               imports          = new StringBuilder();
 
     private Map<String, Function>       functions        = new LinkedHashMap<>();
+
+    private final Set<String>           functionNames    = new HashSet<>();
 
     private int                         inset;
 
@@ -234,7 +237,17 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Nonnull
     private String normalizeName( FunctionName name ) {
-        return normalizeName( name.fullName );
+        Function function = getFunction( name );
+        if( function.name == null ) {
+            String base;
+            String str = base = normalizeName( name.fullName );
+            for( int i = 1; functionNames.contains( str ); i++ ) {
+                str = base + '.' + i;
+            }
+            functionNames.add( str );
+            function.name = str;
+        }
+        return function.name;
     }
 
     /**
@@ -417,7 +430,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeGlobalAccess( boolean load, FunctionName name, AnyType type ) throws IOException {
-        String fullName = normalizeName( name );
+        String fullName = normalizeName( name.fullName );
         if( !globals.contains( fullName ) ) {
             // declare global variable if not already declared.
             output.append( "\n  " );
