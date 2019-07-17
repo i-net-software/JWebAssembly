@@ -69,6 +69,9 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "roundF_3_5" );
             addParam( list, script, "roundD3_8" );
             addParam( list, script, "roundD_3_8" );
+            addParam( list, script, "random" );
+            addParam( list, script, "absF" );
+            addParam( list, script, "absD" );
         }
         rule.setTestParameters( list );
         return list;
@@ -216,6 +219,29 @@ public class MathAPI extends AbstractBaseTest {
         static int roundD_3_8() {
             // SpiderMonkey does not support BigInt currently
             return (int)Math.round( -3.8 );
+        }
+
+        @Export
+        static int random() {
+            if( Math.random() < 0 ) {
+                return 1;
+            } else if( Math.random() > 1 ) {
+                return 2;
+            } else if( Math.random() == Math.random() ) {
+                return 3;
+            } else {
+                return 4;
+            }
+        }
+
+        @Export
+        static float absF() {
+            return Math.abs( -3.8F );
+        }
+
+        @Export
+        static double absD() {
+            return Math.abs( -3.8 );
         }
     }
 }

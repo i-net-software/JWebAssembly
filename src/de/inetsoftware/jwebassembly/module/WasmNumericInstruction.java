@@ -95,6 +95,7 @@ class WasmNumericInstruction extends WasmInstruction {
         switch( numOp ) {
             case neg:
             case sqrt:
+            case abs:
             case ceil:
             case floor:
             case trunc:

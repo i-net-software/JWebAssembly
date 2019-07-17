@@ -84,6 +84,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "i64.trunc_sat_f64_s":
                         addConvertInstruction( ValueTypeConvertion.d2l, javaCodePos, lineNumber );
                         break;
+                    case "f32.abs":
+                        addNumericInstruction( NumericOperator.abs, ValueType.f32, javaCodePos, lineNumber );
+                        break;
                     case "f32.ceil":
                         addNumericInstruction( NumericOperator.ceil, ValueType.f32, javaCodePos, lineNumber );
                         break;
@@ -116,6 +119,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "f32.trunc":
                         addNumericInstruction( NumericOperator.trunc, ValueType.f32, javaCodePos, lineNumber );
+                        break;
+                    case "f64.abs":
+                        addNumericInstruction( NumericOperator.abs, ValueType.f64, javaCodePos, lineNumber );
                         break;
                     case "f64.ceil":
                         addNumericInstruction( NumericOperator.ceil, ValueType.f64, javaCodePos, lineNumber );

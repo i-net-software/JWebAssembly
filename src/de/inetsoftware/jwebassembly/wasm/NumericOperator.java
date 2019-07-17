@@ -44,6 +44,7 @@ public enum NumericOperator {
     ref_eq,
     ref_ne,
     sqrt,
+    abs,
     ceil,
     floor,
     trunc,
