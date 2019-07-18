@@ -948,6 +948,17 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     default:
                 }
                 break;
+            case min:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_MIN;
+                        break;
+                    case f64:
+                        op = F64_MIN;
+                        break;
+                    default:
+                }
+                break;
             case ifnull:
                 op = REF_ISNULL;
                 break;

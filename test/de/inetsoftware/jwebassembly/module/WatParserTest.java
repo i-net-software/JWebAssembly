@@ -167,6 +167,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void f32_min() throws IOException {
+        test( "f32.min" );
+    }
+
+    @Test
     public void f32_mul() throws IOException {
         test( "f32.mul" );
     }
@@ -224,6 +229,11 @@ public class WatParserTest {
     @Test
     public void f64_max() throws IOException {
         test( "f64.max" );
+    }
+
+    @Test
+    public void f64_min() throws IOException {
+        test( "f64.min" );
     }
 
     @Test

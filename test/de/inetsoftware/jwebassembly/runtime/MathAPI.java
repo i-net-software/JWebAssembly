@@ -72,6 +72,10 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "random" );
             addParam( list, script, "absF" );
             addParam( list, script, "absD" );
+            addParam( list, script, "maxF" );
+            addParam( list, script, "maxD" );
+            addParam( list, script, "minF" );
+            addParam( list, script, "minD" );
         }
         rule.setTestParameters( list );
         return list;
@@ -242,6 +246,26 @@ public class MathAPI extends AbstractBaseTest {
         @Export
         static double absD() {
             return Math.abs( -3.8 );
+        }
+
+        @Export
+        static float maxF() {
+            return Math.max( -3.8F, 7.5F );
+        }
+
+        @Export
+        static double maxD() {
+            return Math.max( -3.8, 7.5 );
+        }
+
+        @Export
+        static float minF() {
+            return Math.min( -3.8F, 7.5F );
+        }
+
+        @Export
+        static double minD() {
+            return Math.min( -3.8, 7.5 );
         }
     }
 }

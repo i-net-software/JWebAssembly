@@ -39,6 +39,7 @@ public enum NumericOperator {
     le,
     ge,
     max,
+    min,
     ifnull,
     ifnonnull,
     ref_eq,
