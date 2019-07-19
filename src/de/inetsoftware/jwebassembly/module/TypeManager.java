@@ -30,6 +30,7 @@ import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -101,6 +102,7 @@ public class TypeManager {
     public StructType valueOf( String name ) {
         StructType type = map.get( name );
         if( type == null ) {
+            JWebAssembly.LOGGER.fine( "\t\ttype: " + name );
             type = new StructType( name );
             map.put( name, type );
         }

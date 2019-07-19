@@ -162,14 +162,17 @@ public class ModuleGenerator {
             ClassFile classFile = ClassFile.get( next.className, libraries );
             if( classFile == null ) {
                 if( next instanceof SyntheticFunctionName ) {
+                    JWebAssembly.LOGGER.info( '\t' + next.methodName + next.signature );
                     scanMethod( ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
                     functions.markAsScanned( next );
                 }
             } else {
+                JWebAssembly.LOGGER.fine( "scan class: " + next.className );
                 iterateMethods( classFile, method -> {
                     try {
                         FunctionName name = new FunctionName( method );
                         if( functions.needToScan( name ) ) {
+                            JWebAssembly.LOGGER.fine( '\t' + name.methodName + name.signature );
                             scanMethod( createInstructions( functions.replace( name, method ) ) );
                             functions.markAsScanned( name );
                         }
@@ -226,6 +229,7 @@ public class ModuleGenerator {
             writeMethodSignature( name, functions.isStatic( name ), null );
         }
 
+        JWebAssembly.LOGGER.fine( "scan finsih" );
         types.prepareFinish( writer, functions, libraries );
         prepareFunctions(); // prepare of types can add some override methods as needed
         functions.prepareFinish();

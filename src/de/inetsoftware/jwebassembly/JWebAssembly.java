@@ -25,6 +25,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.StreamHandler;
 
 import javax.annotation.Nonnull;
 
@@ -72,6 +78,26 @@ public class JWebAssembly {
      * The name of the annotation for replacing a single method of the Java runtime. 
      */
     public static final String REPLACE_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.Replace";
+
+    /**
+     * The logger instance
+     */
+    public static final Logger LOGGER = Logger.getAnonymousLogger( null );
+    static {
+        LOGGER.setUseParentHandlers( false );
+        ConsoleHandler handler = new ConsoleHandler() {{
+            setOutputStream(System.out);
+        }};
+        handler.setFormatter( new Formatter() {
+            @Override
+            public String format( LogRecord record ) {
+                return record.getMessage() + '\n';
+            }
+        });
+        handler.setLevel( Level.ALL );
+        LOGGER.addHandler( handler );
+        //LOGGER.setLevel( Level.FINE );
+    }
 
     /**
      * Create a instance.
