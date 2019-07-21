@@ -162,7 +162,7 @@ public class ModuleGenerator {
             ClassFile classFile = ClassFile.get( next.className, libraries );
             if( classFile == null ) {
                 if( next instanceof SyntheticFunctionName ) {
-                    JWebAssembly.LOGGER.info( '\t' + next.methodName + next.signature );
+                    JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
                     scanMethod( ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
                     functions.markAsScanned( next );
                 }
