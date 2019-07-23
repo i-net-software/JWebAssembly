@@ -142,6 +142,7 @@ class WasmStructInstruction extends WasmInstruction {
             case GET:
                 return 1;
             case SET:
+                return 2;
             case NULL:
                 return 0;
             default:
