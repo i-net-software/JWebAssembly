@@ -29,6 +29,7 @@ import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -327,12 +328,10 @@ class BranchManger {
                     calculate( branch, parsedOperations.subList( 0, i ) );
                     i = 0;
                 }
-                AnyType blockType = calculateBlockType( startPos, branch.endPos );
-                branch.data = blockType;
 
                 // if with block type signature must have an else block
-                int breakDeep = blockType == ValueType.empty ? calculateBreakDeep( parent, endPos ) : -1;
-                if( breakDeep >= 0 ) {
+                int breakDeep = calculateBreakDeep( parent, endPos );
+                if( breakDeep > 0 ) {
                     branch.endOp = WasmBlockOperator.END;
                     branch.add(  new BranchNode( elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
                     endPos = branch.endPos;
@@ -383,39 +382,6 @@ class BranchManger {
             parent = parent.parent;
         }
         return deep;
-    }
-
-    /**
-     * Calculate the block type. The value type that is on the stack after the block.
-     * 
-     * @param startPos
-     *            the start position of the block
-     * @param endPos
-     *            the end position of the block
-     * @return the value type
-     */
-    @Nonnull
-    private AnyType calculateBlockType( int startPos, int endPos ) {
-        ArrayDeque<AnyType> stack = new ArrayDeque<>();
-        stack.push( ValueType.empty );
-        for( WasmInstruction instr : instructions ) {
-            int codePos = instr.getCodePosition();
-            if( codePos < startPos ) {
-                continue;
-            }
-            if( codePos >= endPos ) {
-                break;
-            }
-            int popCount = instr.getPopCount();
-            for( int p = 0; p < popCount; p++ ) {
-                stack.pop();
-            }
-            AnyType pushValue = instr.getPushValueType();
-            if( pushValue != null ) {
-                stack.push( pushValue );
-            }
-        }
-        return stack.pop();
     }
 
     /**
@@ -754,6 +720,8 @@ class BranchManger {
             idx = root.handle( codePosition, instructions, idx, lineNumber );
         }
         root.handle( byteCode.getCodePosition(), instructions, instructions.size(), byteCode.getLineNumber() );
+
+        root.calculateBlockType( instructions );
     }
 
     /**
@@ -883,15 +851,19 @@ class BranchManger {
 
         private final int               startPos;
 
-        private       int               endPos;
+        private int                     endPos;
 
         private final WasmBlockOperator startOp;
 
-        private       WasmBlockOperator endOp;
+        private WasmBlockOperator       endOp;
 
-        private       Object            data;
+        private Object                  data;
 
-        private       BranchNode        parent;
+        private BranchNode              parent;
+
+        private WasmBlockInstruction    startBlock;
+
+        private int                     startIdx;
 
         /**
          * Create a new description.
@@ -953,12 +925,14 @@ class BranchManger {
          *            the line number in the Java source code
          * @return the new index in the instructions
          */
-        int handle(  int codePosition, List<WasmInstruction> instructions, int idx, int lineNumber ) {
+        int handle( int codePosition, List<WasmInstruction> instructions, int idx, int lineNumber ) {
             if( codePosition < startPos || codePosition > endPos ) {
                 return idx;
             }
             if( codePosition == startPos && startOp != null ) {
-                instructions.add( idx++, new WasmBlockInstruction( startOp, data, codePosition, lineNumber ) );
+                startBlock = new WasmBlockInstruction( startOp, data, codePosition, lineNumber );
+                instructions.add( idx++, startBlock );
+                startIdx = idx;
             }
             for( BranchNode branch : this ) {
                 idx = branch.handle( codePosition, instructions, idx, lineNumber );
@@ -967,6 +941,46 @@ class BranchManger {
                 instructions.add( idx++, new WasmBlockInstruction( endOp, null, codePosition, lineNumber ) );
             }
             return idx;
+        }
+
+        /**
+         * Calculate the block type. The value type that is on the stack after the block.
+         * 
+         * @param instructions
+         *            the instructions of the function
+         */
+        void calculateBlockType( List<WasmInstruction> instructions ) {
+            for( int i = size() - 1; i >= 0; i-- ) {
+                BranchNode branch = get( i );
+                branch.calculateBlockType( instructions );
+            }
+
+            if( startBlock != null && startBlock.getOperation() == WasmBlockOperator.IF ) {
+                ArrayDeque<AnyType> stack = new ArrayDeque<>();
+                stack.push( ValueType.empty );
+                for( int i = startIdx; i < instructions.size(); i++ ) {
+                    WasmInstruction instr = instructions.get( i );
+                    int codePos = instr.getCodePosition();
+                    if( codePos >= endPos ) {
+                        break;
+                    }
+                    if( instr.getType() == Type.Block && ((WasmBlockInstruction)instr).getOperation() == WasmBlockOperator.RETURN ) {
+                        while( stack.size() > 1 ) {
+                            stack.pop();
+                        }
+                        break;
+                    }
+                    int popCount = instr.getPopCount();
+                    for( int p = 0; p < popCount; p++ ) {
+                        stack.pop();
+                    }
+                    AnyType pushValue = instr.getPushValueType();
+                    if( pushValue != null ) {
+                        stack.push( pushValue );
+                    }
+                }
+                startBlock.setData( stack.pop() );
+            }
         }
     }
 }

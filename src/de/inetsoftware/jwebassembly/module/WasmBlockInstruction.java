@@ -35,7 +35,7 @@ class WasmBlockInstruction extends WasmInstruction {
 
     private final WasmBlockOperator op;
 
-    private final Object            data;
+    private Object                 data;
 
     /**
      * Create an instance of block operation.
@@ -72,6 +72,16 @@ class WasmBlockInstruction extends WasmInstruction {
     }
 
     /**
+     * Set a new value for the data
+     * 
+     * @param data
+     *            the new value
+     */
+    void setData( Object data ) {
+        this.data = data;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
@@ -97,6 +107,13 @@ class WasmBlockInstruction extends WasmInstruction {
      */
     @Override
     int getPopCount() {
-        return 0;
+        switch( op ) {
+            case IF:
+            case BR_IF:
+            case DROP:
+                return 1;
+            default:
+                return 0;
+        }
     }
 }
