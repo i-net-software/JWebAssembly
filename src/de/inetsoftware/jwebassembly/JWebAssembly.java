@@ -85,15 +85,13 @@ public class JWebAssembly {
     public static final Logger LOGGER = Logger.getAnonymousLogger( null );
     static {
         LOGGER.setUseParentHandlers( false );
-        ConsoleHandler handler = new ConsoleHandler() {{
-            setOutputStream(System.out);
-        }};
-        handler.setFormatter( new Formatter() {
+        Formatter formatter = new Formatter() {
             @Override
             public String format( LogRecord record ) {
                 return record.getMessage() + '\n';
             }
-        });
+        };
+        StreamHandler handler = new StreamHandler( System.out, formatter );
         handler.setLevel( Level.ALL );
         LOGGER.addHandler( handler );
         //LOGGER.setLevel( Level.FINE );
