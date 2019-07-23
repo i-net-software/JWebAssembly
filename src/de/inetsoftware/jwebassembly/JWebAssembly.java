@@ -91,7 +91,13 @@ public class JWebAssembly {
                 return record.getMessage() + '\n';
             }
         };
-        StreamHandler handler = new StreamHandler( System.out, formatter );
+        StreamHandler handler = new StreamHandler( System.out, formatter ) {
+            @Override
+            public void publish(LogRecord record) {
+                super.publish(record);
+                flush();
+            }
+        };
         handler.setLevel( Level.ALL );
         LOGGER.addHandler( handler );
         //LOGGER.setLevel( Level.FINE );
