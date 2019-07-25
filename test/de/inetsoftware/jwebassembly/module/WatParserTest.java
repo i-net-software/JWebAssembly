@@ -263,7 +263,17 @@ public class WatParserTest {
 
     @Test
     public void return_() throws IOException {
-        test( "return\n" );
+        test( "return" );
+    }
+
+    @Test
+    public void ifElseEnd() throws IOException {
+        test( "if else end" );
+    }
+
+    @Test
+    public void ifElseEndI32() throws IOException {
+        test( "if (result i32) else end" );
     }
 
     @Test

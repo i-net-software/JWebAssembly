@@ -168,6 +168,24 @@ public class WatParser extends WasmCodeBuilder {
                     case "return":
                         addBlockInstruction( WasmBlockOperator.RETURN, null, javaCodePos, lineNumber );
                         break;
+                    case "if":
+                        Object data = ValueType.empty;
+                        if( "(".equals( get( tokens, i+1 ) ) ) {
+                            i++;
+                            if( "result".equals( get( tokens, ++i ) ) && ")".equals( get( tokens, ++i + 1) ) ) {
+                                data = ValueType.valueOf( get( tokens, i++ ) );
+                            } else {
+                                throw new WasmException( "Unknown WASM token: " + get( tokens, i-1 ), lineNumber );
+                            }
+                        }
+                        addBlockInstruction( WasmBlockOperator.IF, data, javaCodePos, lineNumber );
+                        break;
+                    case "else":
+                        addBlockInstruction( WasmBlockOperator.ELSE, null, javaCodePos, lineNumber );
+                        break;
+                    case "end":
+                        addBlockInstruction( WasmBlockOperator.END, null, javaCodePos, lineNumber );
+                        break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );
                 }
@@ -227,10 +245,20 @@ public class WatParser extends WasmCodeBuilder {
                 case '\n':
                 case '\r':
                 case '\t':
+                case '(':
+                case ')':
                     if( off < i ) {
                         tokens.add( wat.substring( off, i ) );
                     }
                     off = i + 1;
+                    switch(ch) {
+                        case '(':
+                            tokens.add( "(" );
+                            break;
+                        case ')':
+                            tokens.add( ")" );
+                            break;
+                    }
                     break;
             }
         }
