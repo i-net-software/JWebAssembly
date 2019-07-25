@@ -16,8 +16,8 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,7 +33,7 @@ import de.inetsoftware.classparser.MethodInfo;
  */
 public class FunctionManager {
 
-    private Map<FunctionName, FunctionState> states = new HashMap<>();
+    private Map<FunctionName, FunctionState> states = new LinkedHashMap<>();
 
     /**
      * Finish the prepare. Now no new function should be added. 
