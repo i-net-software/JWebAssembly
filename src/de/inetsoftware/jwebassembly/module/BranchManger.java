@@ -322,6 +322,28 @@ class BranchManger {
                     }
                 }
 
+                while( i > 0 ) {
+                    // check if there is a second condition in the IF expression that is concatenated with "&&" operator
+                    parsedBlock = parsedOperations.get( 0 );
+                    if( parsedBlock.op == JavaBlockOperator.IF && parsedBlock.endPosition == elsePos ) {
+                        parent.add( new BranchNode( startPos, parsedBlock.nextPosition - 1, WasmBlockOperator.IF, null ) );
+                        parent.add( new BranchNode( parsedBlock.nextPosition - 1, parsedBlock.nextPosition, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
+                        startPos = parsedBlock.nextPosition;
+                        parsedOperations.remove( 0 );
+                        i--;
+                        ((IfParsedBlock)parsedBlock).negateCompare();
+                        for( int k = 0; k < instructions.size(); k++ ) {
+                            WasmInstruction instr = instructions.get( k );
+                            if( instr.getCodePosition() >= startPos ) {
+                                instructions.add( k, new WasmConstInstruction( 0, startPos - 1, parsedBlock.lineNumber ) );
+                                break;
+                            }
+                        }
+                        continue;
+                    }
+                    break;
+                }
+
                 branch = new BranchNode( startPos, elsePos, WasmBlockOperator.IF, null );
                 parent.add( branch );
                 if( i > 0 ) {

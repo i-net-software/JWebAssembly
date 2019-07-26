@@ -56,6 +56,11 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "forLoop" );
             addParam( list, script, "conditionalOperator" );
             addParam( list, script, "redifineVariable" );
+            addParam( list, script, "ifAnd_0" );
+            addParam( list, script, "ifAnd_3" );
+            addParam( list, script, "ifAnd_6" );
+            addParam( list, script, "if4And_6" );
+            addParam( list, script, "if4And_7" );
         }
         rule.setTestParameters( list );
         return list;
@@ -319,6 +324,51 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 int b = 3;
                 return a + b;
             }
+        }
+
+        @Export
+        static int ifAnd_0() {
+            return ifAnd( 0 );
+        }
+
+        @Export
+        static int ifAnd_3() {
+            return ifAnd( 3 );
+        }
+
+        @Export
+        static int ifAnd_6() {
+            return ifAnd( 6 );
+        }
+
+        private static int ifAnd( int condition ) {
+            int result;
+            if( condition > 0 && condition < 5 ) {
+                result = 42;
+            } else {
+                result = 76;
+            }
+            return result;
+        }
+
+        @Export
+        static int if4And_6() {
+            return if4And( 6 );
+        }
+
+        @Export
+        static int if4And_7() {
+            return if4And( 7 );
+        }
+
+        private static int if4And( int condition ) {
+            int result;
+            if( condition > 1 && condition > 3  && condition > 5  && condition > 7 ) {
+                result = 42;
+            } else {
+                result = 76;
+            }
+            return result;
         }
     }
 }
