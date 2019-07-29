@@ -76,6 +76,13 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "maxD" );
             addParam( list, script, "minF" );
             addParam( list, script, "minD" );
+            //TODO addParam( list, script, "ulpD" );
+            //TODO addParam( list, script, "ulpF" );
+            addParam( list, script, "signumD" );
+            addParam( list, script, "signumF" );
+            addParam( list, script, "sinhPI" );
+            addParam( list, script, "coshPI" );
+            addParam( list, script, "tanhPI" );
         }
         rule.setTestParameters( list );
         return list;
@@ -266,6 +273,42 @@ public class MathAPI extends AbstractBaseTest {
         @Export
         static double minD() {
             return Math.min( -3.8, 7.5 );
+        }
+
+// TODO assert expression in ulp()
+//        @Export
+//        static double ulpD() {
+//            return Math.ulp( 1.5 );
+//        }
+//
+//      @Export
+//      static float ulpF() {
+//          return Math.ulp( 1.5F );
+//      }
+
+        @Export
+        static double signumD() {
+            return Math.signum( -3.8 );
+        }
+
+        @Export
+        static double signumF() {
+            return Math.signum( -3.8F );
+        }
+
+        @Export
+        static double sinhPI() {
+            return Math.sinh( Math.PI / 2 );
+        }
+
+        @Export
+        static double coshPI() {
+            return Math.cosh( Math.PI / 2 );
+        }
+
+        @Export
+        static double tanhPI() {
+            return Math.tanh( Math.PI / 2 );
         }
     }
 }
