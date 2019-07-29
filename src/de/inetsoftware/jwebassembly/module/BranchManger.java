@@ -298,12 +298,15 @@ class BranchManger {
             parent.add( new BranchNode( startPos, startPos, WasmBlockOperator.BR_IF, null, 0 ) );
             return;
         }
+        int elsePos = searchElsePosition( startBlock, parsedOperations );
         BranchNode branch = null;
         for( ; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.nextPosition == endPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
+            if( parsedBlock.nextPosition > elsePos ) {
+                break;
+            }
+            if( parsedBlock.nextPosition == elsePos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
                 parsedOperations.remove( i );
-                int elsePos = startBlock.endPosition;
                 // end position can not be outside of the parent
                 endPos = Math.min( parsedBlock.endPosition, parent.endPos );
 
@@ -320,28 +323,6 @@ class BranchManger {
                             i = j;
                         }
                     }
-                }
-
-                while( i > 0 ) {
-                    // check if there is a second condition in the IF expression that is concatenated with "&&" operator
-                    parsedBlock = parsedOperations.get( 0 );
-                    if( parsedBlock.op == JavaBlockOperator.IF && parsedBlock.endPosition == elsePos ) {
-                        parent.add( new BranchNode( startPos, parsedBlock.nextPosition - 1, WasmBlockOperator.IF, null ) );
-                        parent.add( new BranchNode( parsedBlock.nextPosition - 1, parsedBlock.nextPosition, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
-                        startPos = parsedBlock.nextPosition;
-                        parsedOperations.remove( 0 );
-                        i--;
-                        ((IfParsedBlock)parsedBlock).negateCompare();
-                        for( int k = 0; k < instructions.size(); k++ ) {
-                            WasmInstruction instr = instructions.get( k );
-                            if( instr.getCodePosition() >= startPos ) {
-                                instructions.add( k, new WasmConstInstruction( 0, startPos - 1, parsedBlock.lineNumber ) );
-                                break;
-                            }
-                        }
-                        continue;
-                    }
-                    break;
                 }
 
                 branch = new BranchNode( startPos, elsePos, WasmBlockOperator.IF, null );
@@ -363,9 +344,30 @@ class BranchManger {
                 }
                 break;
             }
-            if( parsedBlock.nextPosition > endPos ) {
-                break;
+
+            if( i== 0 && parsedBlock.op == JavaBlockOperator.IF ) {
+                // AND concatenation (&& operator)
+                if( endPos == elsePos && parsedBlock.endPosition == elsePos ) {
+                    parent.add( new BranchNode( startPos, parsedBlock.nextPosition - 1, WasmBlockOperator.IF, null ) );
+                    parent.add( new BranchNode( parsedBlock.nextPosition - 1, parsedBlock.nextPosition, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
+                    startPos = parsedBlock.nextPosition;
+                    parsedOperations.remove( 0 );
+                    i--;
+                    ((IfParsedBlock)parsedBlock).negateCompare();
+                    insertConstBeforePosition( 0, startPos, parsedBlock.lineNumber ); // 0 --> FALSE for the next if expression
+                    continue;
+                }
+
+                // OR concatenation (|| operator)
+                if( startBlock.endPosition == parsedBlock.endPosition || startBlock.endPosition == parsedBlock.nextPosition ) {
+                    int pos = startBlock.startPosition + 1; // startBlock.startPosition is the position of the compare operation which need before this if construct
+                    parent.add( new BranchNode( pos, startPos, WasmBlockOperator.IF, null ) );
+                    parent.add( new BranchNode( startPos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
+                    insertConstBeforePosition( 1, pos+1, startBlock.lineNumber ); // 1 --> TRUE for the next if expression
+                    return;
+                }
             }
+
         }
 
         if( branch == null ) {
@@ -385,6 +387,58 @@ class BranchManger {
         }
         if( i > 0 ) {
             calculate( branch, parsedOperations.subList( 0, i ) );
+        }
+    }
+
+    /**
+     * Search the start position of an ELSE branch.
+     * 
+     * @param startBlock
+     *            the start block of the if control structure
+     * @param parsedOperations
+     *            the not consumed operations in the parent branch
+     * @return the position
+     */
+    private int searchElsePosition( IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+        int elsePos = startBlock.endPosition;
+        for( int i = 0; i < parsedOperations.size(); i++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( i );
+            if( parsedBlock.op == JavaBlockOperator.GOTO && elsePos == parsedBlock.nextPosition ) {
+                return elsePos;
+            }
+            if( parsedBlock.nextPosition > elsePos ) {
+                break;
+            }
+        }
+        for( int i = 0; i < parsedOperations.size(); i++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( i );
+            if( parsedBlock.nextPosition > elsePos ) {
+                break;
+            }
+            if( parsedBlock.op == JavaBlockOperator.IF && elsePos < parsedBlock.endPosition ) {
+                elsePos = parsedBlock.endPosition;
+            }
+        }
+        return elsePos;
+    }
+
+    /**
+     * Insert a constant i32 operation before the given code position
+     * 
+     * @param constant
+     *            the i32 value
+     * @param pos
+     *            the code position
+     * @param lineNumber
+     *            the line number for possible error messages
+     */
+    private void insertConstBeforePosition( int constant, int pos, int lineNumber ) {
+        for( int k = 0; k < instructions.size(); k++ ) {
+            WasmInstruction instr = instructions.get( k );
+            if( instr.getCodePosition() >= pos ) {
+                instructions.add( k, new WasmConstInstruction( constant, pos - 1, lineNumber ) );
+                break;
+            }
         }
     }
 
@@ -592,7 +646,6 @@ class BranchManger {
             }
         }
         throw new WasmException( "GOTO code without target loop/block", null, null, gotoBlock.lineNumber );
-
     }
 
     /**
