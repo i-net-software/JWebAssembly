@@ -290,6 +290,30 @@ class BranchManger {
      *            the not consumed operations in the parent branch
      */
     private void calculateIf( BranchNode parent, IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+        IfPositions positions = searchElsePosition( startBlock, parsedOperations );
+
+        BranchNode main = parent;
+        for( int i = 0; i < positions.ifCount; i++ ) {
+            IfParsedBlock parsedBlock = (IfParsedBlock)parsedOperations.remove( 0 );
+            if( startBlock.endPosition < positions.thenPos || startBlock.endPosition == positions.elsePos ) {
+                // AND concatenation (&& operator)
+                int pos = parsedBlock.startPosition + 1; 
+                main.add( new BranchNode( startBlock.nextPosition, pos, WasmBlockOperator.IF, null ) );
+                main.add( new BranchNode( pos, pos + 1, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
+                startBlock.negateCompare();
+                insertConstBeforePosition( 0, pos + 1, parsedBlock.lineNumber ); // 0 --> FALSE for the next if expression
+            } else {
+                // OR concatenation (|| operator)
+                int pos = startBlock.startPosition + 2; // startBlock.startPosition is the position of the compare operation which need before this if construct
+                main.add( new BranchNode( pos, startBlock.nextPosition, WasmBlockOperator.IF, null ) );
+                BranchNode node = new BranchNode( startBlock.nextPosition, positions.thenPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
+                main.add( node );
+                main = node;
+                insertConstBeforePosition( 1, pos + 1, startBlock.lineNumber ); // 1 --> TRUE for the next if expression
+            }
+            startBlock = parsedBlock;
+        }
+
         int i = 0;
         int endPos = Math.min( startBlock.endPosition, parent.endPos );
         int startPos = startBlock.nextPosition;
@@ -298,7 +322,6 @@ class BranchManger {
             parent.add( new BranchNode( startPos, startPos, WasmBlockOperator.BR_IF, null, 0 ) );
             return;
         }
-        IfPositions positions = searchElsePosition( startBlock, parsedOperations );
         BranchNode branch = null;
         for( ; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
@@ -343,29 +366,6 @@ class BranchManger {
                     parent.add( branch );
                 }
                 break;
-            }
-
-            if( i== 0 && parsedBlock.op == JavaBlockOperator.IF ) {
-                // AND concatenation (&& operator)
-                if( endPos == positions.elsePos && parsedBlock.endPosition == positions.elsePos ) {
-                    parent.add( new BranchNode( startPos, parsedBlock.nextPosition - 1, WasmBlockOperator.IF, null ) );
-                    parent.add( new BranchNode( parsedBlock.nextPosition - 1, parsedBlock.nextPosition, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
-                    startPos = parsedBlock.nextPosition;
-                    parsedOperations.remove( 0 );
-                    i--;
-                    ((IfParsedBlock)parsedBlock).negateCompare();
-                    insertConstBeforePosition( 0, startPos, parsedBlock.lineNumber ); // 0 --> FALSE for the next if expression
-                    continue;
-                }
-
-                // OR concatenation (|| operator)
-                if( startBlock.endPosition == parsedBlock.endPosition || startBlock.endPosition == parsedBlock.nextPosition ) {
-                    int pos = startBlock.startPosition + 1; // startBlock.startPosition is the position of the compare operation which need before this if construct
-                    parent.add( new BranchNode( pos, startPos, WasmBlockOperator.IF, null ) );
-                    parent.add( new BranchNode( startPos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
-                    insertConstBeforePosition( 1, pos+1, startBlock.lineNumber ); // 1 --> TRUE for the next if expression
-                    return;
-                }
             }
 
         }
@@ -800,11 +800,13 @@ class BranchManger {
             int nextCodePosition = instr.getCodePosition();
             if( nextCodePosition <= codePosition ) {
                 continue;
-            } else {
-                codePosition = nextCodePosition;
-                lineNumber = instr.getLineNumber();
             }
-            idx = root.handle( codePosition, instructions, idx, lineNumber );
+            lineNumber = instr.getLineNumber();
+            do {
+                // call it for every position for the case that a Jump is call to a intermediate position
+                codePosition++;
+                idx = root.handle( codePosition, instructions, idx, lineNumber );
+            } while( codePosition < nextCodePosition );
         }
         root.handle( byteCode.getCodePosition(), instructions, instructions.size(), byteCode.getLineNumber() );
 
