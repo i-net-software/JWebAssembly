@@ -298,14 +298,14 @@ class BranchManger {
             parent.add( new BranchNode( startPos, startPos, WasmBlockOperator.BR_IF, null, 0 ) );
             return;
         }
-        int elsePos = searchElsePosition( startBlock, parsedOperations );
+        IfPositions positions = searchElsePosition( startBlock, parsedOperations );
         BranchNode branch = null;
         for( ; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.nextPosition > elsePos ) {
+            if( parsedBlock.nextPosition > positions.elsePos ) {
                 break;
             }
-            if( parsedBlock.nextPosition == elsePos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
+            if( parsedBlock.nextPosition == positions.elsePos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
                 parsedOperations.remove( i );
                 // end position can not be outside of the parent
                 endPos = Math.min( parsedBlock.endPosition, parent.endPos );
@@ -317,7 +317,7 @@ class BranchManger {
                         ParsedBlock parsedBlock2 = parsedOperations.get( j );
                         if( parsedBlock2.nextPosition == nextPos && parsedBlock2.op == JavaBlockOperator.GOTO && parsedBlock2.startPosition < parsedBlock2.endPosition ) {
                             parsedOperations.remove( j );
-                            elsePos = nextPos;
+                            positions.elsePos = nextPos;
                             endPos = parsedBlock2.endPosition;
                             startBlock.negateCompare();
                             i = j;
@@ -325,7 +325,7 @@ class BranchManger {
                     }
                 }
 
-                branch = new BranchNode( startPos, elsePos, WasmBlockOperator.IF, null );
+                branch = new BranchNode( startPos, positions.elsePos, WasmBlockOperator.IF, null );
                 parent.add( branch );
                 if( i > 0 ) {
                     calculate( branch, parsedOperations.subList( 0, i ) );
@@ -336,10 +336,10 @@ class BranchManger {
                 int breakDeep = calculateBreakDeep( parent, endPos );
                 if( breakDeep > 0 ) {
                     branch.endOp = WasmBlockOperator.END;
-                    branch.add(  new BranchNode( elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
+                    branch.add(  new BranchNode( positions.elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
                     endPos = branch.endPos;
                 } else {
-                    branch = new BranchNode( elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
+                    branch = new BranchNode( positions.elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
                     parent.add( branch );
                 }
                 break;
@@ -347,7 +347,7 @@ class BranchManger {
 
             if( i== 0 && parsedBlock.op == JavaBlockOperator.IF ) {
                 // AND concatenation (&& operator)
-                if( endPos == elsePos && parsedBlock.endPosition == elsePos ) {
+                if( endPos == positions.elsePos && parsedBlock.endPosition == positions.elsePos ) {
                     parent.add( new BranchNode( startPos, parsedBlock.nextPosition - 1, WasmBlockOperator.IF, null ) );
                     parent.add( new BranchNode( parsedBlock.nextPosition - 1, parsedBlock.nextPosition, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
                     startPos = parsedBlock.nextPosition;
@@ -391,35 +391,47 @@ class BranchManger {
     }
 
     /**
-     * Search the start position of an ELSE branch.
+     * Search the start positions of the THEN and ELSE branch from an IF control structure.
      * 
      * @param startBlock
-     *            the start block of the if control structure
+     *            the start block of the IF control structure
      * @param parsedOperations
      *            the not consumed operations in the parent branch
-     * @return the position
+     * @return the calculated positions
      */
-    private int searchElsePosition( IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+    private IfPositions searchElsePosition( IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+        // first search for first GOTO, any IF that point after the GOTO can not be part of the primary IF condition.
+        // This occur with a second IF inside of the THEN. This can jump directly to the end of the ELSE.
+        int maxElse = Integer.MAX_VALUE;
+        for( int i = 0; i < parsedOperations.size(); i++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( i );
+            if( parsedBlock.op == JavaBlockOperator.GOTO ) {
+                maxElse = parsedBlock.nextPosition;
+                break;
+            }
+        }
+
+        int ifCount = 0;
+        int thenPos = startBlock.nextPosition;
         int elsePos = startBlock.endPosition;
-        for( int i = 0; i < parsedOperations.size(); i++ ) {
-            ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.op == JavaBlockOperator.GOTO && elsePos == parsedBlock.nextPosition ) {
-                return elsePos;
-            }
-            if( parsedBlock.nextPosition > elsePos ) {
+        for( ; ifCount < parsedOperations.size(); ifCount++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( ifCount );
+            if( parsedBlock.op != JavaBlockOperator.IF || parsedBlock.endPosition < elsePos || parsedBlock.endPosition > maxElse ) {
+                // seems a second IF inside the THEN part.
                 break;
             }
-        }
-        for( int i = 0; i < parsedOperations.size(); i++ ) {
-            ParsedBlock parsedBlock = parsedOperations.get( i );
             if( parsedBlock.nextPosition > elsePos ) {
+                // occur if there are 2 IF blocks without ELSE behind the other, this IF is the second that we can cancel the analyze at this point
                 break;
             }
-            if( parsedBlock.op == JavaBlockOperator.IF && elsePos < parsedBlock.endPosition ) {
-                elsePos = parsedBlock.endPosition;
-            }
+            thenPos = Math.max( thenPos, parsedBlock.nextPosition );
+            elsePos = Math.max( elsePos, parsedBlock.endPosition );
         }
-        return elsePos;
+        IfPositions pos = new IfPositions();
+        pos.ifCount = ifCount;
+        pos.thenPos = thenPos;
+        pos.elsePos = elsePos;
+        return pos;
     }
 
     /**
@@ -1057,5 +1069,19 @@ class BranchManger {
                 startBlock.setData( stack.pop() );
             }
         }
+    }
+
+    /**
+     * Positions inside a IF control structure.
+     */
+    private static class IfPositions {
+        /** Count of boolean operations in the IF condition  */
+        private int ifCount;
+
+        /** The position of the first instruction in the THEN part */
+        private int thenPos;
+
+        /** The position of the first instruction in the ELSE part */
+        private int elsePos;
     }
 }
