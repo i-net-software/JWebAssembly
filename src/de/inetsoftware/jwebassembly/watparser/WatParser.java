@@ -114,6 +114,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "f32.reinterpret_i32":
                         addConvertInstruction( ValueTypeConvertion.i2f_re, javaCodePos, lineNumber );
                         break;
+                    case "f32.copysign":
+                        addNumericInstruction( NumericOperator.copysign, ValueType.f32, javaCodePos, lineNumber );
+                        break;
                     case "f32.sqrt":
                         addNumericInstruction( NumericOperator.sqrt, ValueType.f32, javaCodePos, lineNumber );
                         break;
@@ -152,6 +155,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "f64.reinterpret_i64":
                         addConvertInstruction( ValueTypeConvertion.l2d_re, javaCodePos, lineNumber );
+                        break;
+                    case "f64.copysign":
+                        addNumericInstruction( NumericOperator.copysign, ValueType.f64, javaCodePos, lineNumber );
                         break;
                     case "f64.sqrt":
                         addNumericInstruction( NumericOperator.sqrt, ValueType.f64, javaCodePos, lineNumber );

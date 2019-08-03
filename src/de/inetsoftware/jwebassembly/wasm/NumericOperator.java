@@ -50,4 +50,5 @@ public enum NumericOperator {
     floor,
     trunc,
     nearest,
+    copysign,
 }

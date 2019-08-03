@@ -1039,6 +1039,17 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     default:
                 }
                 break;
+            case copysign:
+                switch( valueType ) {
+                    case f32:
+                        op = F32_COPYSIGN;
+                        break;
+                    case f64:
+                        op = F64_COPYSIGN;
+                        break;
+                    default:
+                }
+                break;
 
             default:
         }
