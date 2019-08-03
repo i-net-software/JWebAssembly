@@ -83,6 +83,17 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "sinhPI" );
             addParam( list, script, "coshPI" );
             addParam( list, script, "tanhPI" );
+            addParam( list, script, "hypot" );
+            addParam( list, script, "expm1" );
+            addParam( list, script, "log1p" );
+            addParam( list, script, "copySignD" );
+            addParam( list, script, "copySignF" );
+            addParam( list, script, "getExponentD" );
+            addParam( list, script, "getExponentF" );
+            //TODO addParam( list, script, "nextAfterD" );
+            //TODO addParam( list, script, "nextAfterF" );
+            //TODO addParam( list, script, "nextUpD" );
+            //TODO addParam( list, script, "nextUpF" );
         }
         rule.setTestParameters( list );
         return list;
@@ -310,5 +321,63 @@ public class MathAPI extends AbstractBaseTest {
         static double tanhPI() {
             return Math.tanh( Math.PI / 2 );
         }
+
+        @Export
+        static double hypot() {
+            return Math.hypot( 3, 4 );
+        }
+
+        @Export
+        static double expm1() {
+            return Math.expm1( 1.5 );
+        }
+
+        @Export
+        static double log1p() {
+            return Math.log1p( 1.5 );
+        }
+
+        @Export
+        static double copySignD() {
+            return Math.copySign( 1.25, -1 );
+        }
+
+        @Export
+        static float copySignF() {
+            return Math.copySign( -1.25F, 1F );
+        }
+
+        @Export
+        static int getExponentD() {
+            return Math.getExponent( 12345678.0 );
+        }
+
+        @Export
+        static int getExponentF() {
+            return Math.getExponent( -1.25F );
+        }
+
+// TODO assert expression in nextAfter()
+//        @Export
+//        static double nextAfterD() {
+//            return Math.nextAfter( 12345678.0, 0 );
+//        }
+//
+//        @Export
+//        static float nextAfterF() {
+//            return Math.nextAfter( -1.25F, 2 );
+//        }
+
+// TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1571230
+//        @Export
+//        static double nextUpD() {
+//            return Math.nextUp( 12345678.0 );
+//        }
+//
+//        @Export
+//        static float nextUpF() {
+//            return Math.nextUp( -1.25F );
+//        }
+
     }
 }
