@@ -399,10 +399,24 @@ public class TextModuleWriter extends ModuleWriter {
         methodOutput.append( valueType ).append( ".const " );
         switch( valueType ) {
             case f32:
-                methodOutput.append( Float.toHexString( value.floatValue() ).toLowerCase() ).append( " ;;" ).append( value );
+                float floatValue = value.floatValue();
+                if( floatValue == Double.POSITIVE_INFINITY ) {
+                    methodOutput.append( "inf" );
+                } else if( floatValue == Double.POSITIVE_INFINITY ) { 
+                    methodOutput.append( "-inf" );
+                } else {
+                    methodOutput.append( Float.toHexString( floatValue ).toLowerCase() ).append( " ;;" ).append( value );
+                }
                 break;
             case f64:
-                methodOutput.append( Double.toHexString( value.doubleValue() ).toLowerCase() ).append( " ;;" ).append( value );
+                double doubleValue = value.doubleValue();
+                if( doubleValue == Double.POSITIVE_INFINITY ) {
+                    methodOutput.append( "inf" );
+                } else if( doubleValue == Double.POSITIVE_INFINITY ) { 
+                    methodOutput.append( "-inf" );
+                } else {
+                    methodOutput.append( Double.toHexString( doubleValue ).toLowerCase() ).append( " ;;" ).append( value );
+                }
                 break;
             default:
                 methodOutput.append( value );
