@@ -1,5 +1,8 @@
 language: java
 
+jdk:
+  - openjdk8
+
 deploy:
   # deploy to Github
   provider: releases
