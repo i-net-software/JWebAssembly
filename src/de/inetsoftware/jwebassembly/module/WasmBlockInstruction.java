@@ -94,9 +94,9 @@ class WasmBlockInstruction extends WasmInstruction {
     AnyType getPushValueType() {
         switch( op ) {
             case IF:
-                return data != ValueType.empty ? (ValueType)data : null;
+                return data != ValueType.empty ? (AnyType)data : null;
             case RETURN:
-                return (ValueType)data;
+                return (AnyType)data;
             default:
                 return null;
         }
