@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.runners.Parameterized.Parameters;
 
@@ -92,11 +93,21 @@ public class MathAPI extends AbstractBaseTest {
             addParam( list, script, "getExponentF" );
             //TODO addParam( list, script, "nextAfterD" );
             //TODO addParam( list, script, "nextAfterF" );
-            //TODO addParam( list, script, "nextUpD" );
-            //TODO addParam( list, script, "nextUpF" );
+            addParam( list, script, "nextUpD" );
+            addParam( list, script, "nextUpF" );
+            addParam( list, script, "nextDownD" );
+            addParam( list, script, "nextDownF" );
+            //TODO addParam( list, script, "scalbD" );
+            //TODO addParam( list, script, "scalbF" );
         }
         rule.setTestParameters( list );
         return list;
+    }
+
+    @Override
+    public void test() {
+        Assume.assumeFalse( getScriptEngine() == ScriptEngine.SpiderMonkeyWat ); // TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1571230
+        super.test();
     }
 
     static class TestClass {
@@ -368,16 +379,35 @@ public class MathAPI extends AbstractBaseTest {
 //            return Math.nextAfter( -1.25F, 2 );
 //        }
 
-// TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1571230
+        @Export
+        static double nextUpD() {
+            return Math.nextUp( 12345678.0 );
+        }
+
+        @Export
+        static float nextUpF() {
+            return Math.nextUp( -1.25F );
+        }
+
+        @Export
+        static double nextDownD() {
+            return Math.nextDown( 12345678.0 );
+        }
+
+        @Export
+        static float nextDownF() {
+            return Math.nextDown( -1.25F );
+        }
+
+// TODO assert expression
 //        @Export
-//        static double nextUpD() {
-//            return Math.nextUp( 12345678.0 );
+//        static double scalbD() {
+//            return Math.scalb( -1.25, 3 );
 //        }
 //
 //        @Export
-//        static float nextUpF() {
-//            return Math.nextUp( -1.25F );
+//        static float scalbF() {
+//            return Math.scalb( -1.25F, 3 );
 //        }
-
     }
 }
