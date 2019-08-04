@@ -402,7 +402,7 @@ public class TextModuleWriter extends ModuleWriter {
                 float floatValue = value.floatValue();
                 if( floatValue == Double.POSITIVE_INFINITY ) {
                     methodOutput.append( "inf" );
-                } else if( floatValue == Double.POSITIVE_INFINITY ) { 
+                } else if( floatValue == Double.NEGATIVE_INFINITY ) { 
                     methodOutput.append( "-inf" );
                 } else {
                     methodOutput.append( Float.toHexString( floatValue ).toLowerCase() ).append( " ;;" ).append( value );
@@ -412,7 +412,7 @@ public class TextModuleWriter extends ModuleWriter {
                 double doubleValue = value.doubleValue();
                 if( doubleValue == Double.POSITIVE_INFINITY ) {
                     methodOutput.append( "inf" );
-                } else if( doubleValue == Double.POSITIVE_INFINITY ) { 
+                } else if( doubleValue == Double.NEGATIVE_INFINITY ) { 
                     methodOutput.append( "-inf" );
                 } else {
                     methodOutput.append( Double.toHexString( doubleValue ).toLowerCase() ).append( " ;;" ).append( value );
