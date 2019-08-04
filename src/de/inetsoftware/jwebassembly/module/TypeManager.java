@@ -19,7 +19,6 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +47,8 @@ public class TypeManager {
 
     private Map<String, StructType> map    = new LinkedHashMap<>();
 
+    private boolean                 isFinish;
+
     /**
      * Finish the prepare and write the types. Now no new types and functions should be added.
      * 
@@ -61,7 +62,7 @@ public class TypeManager {
      *             if any I/O error occur on loading or writing
      */
     void prepareFinish( ModuleWriter writer, FunctionManager functions, ClassLoader libraries ) throws IOException {
-        map = Collections.unmodifiableMap( map );
+        isFinish = true;
         for( StructType type : map.values() ) {
             type.writeStructType( writer, functions, this, libraries );
         }
@@ -103,6 +104,9 @@ public class TypeManager {
         StructType type = map.get( name );
         if( type == null ) {
             JWebAssembly.LOGGER.fine( "\t\ttype: " + name );
+            if( isFinish ) {
+                throw new WasmException( "Register needed type after scanning: " + name, -1 );
+            }
             type = new StructType( name );
             map.put( name, type );
         }
@@ -154,6 +158,7 @@ public class TypeManager {
          *             if any I/O error occur on loading or writing
          */
         private void writeStructType( ModuleWriter writer, FunctionManager functions, TypeManager types, ClassLoader libraries ) throws IOException {
+            JWebAssembly.LOGGER.fine( "write type: " + name );
             fields = new ArrayList<>();
             methods = new ArrayList<>();
             listStructFields( name, functions, types, libraries );
