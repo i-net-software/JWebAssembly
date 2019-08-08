@@ -125,7 +125,7 @@ public class WasmTarget implements Closeable {
     @Nonnull
     public Writer getSourceMapOutput() throws IOException {
         if( sourceMap == null && file != null ) {
-            sourceMap = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( file + ".map" ) ), StandardCharsets.UTF_8 );
+            sourceMap = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( getBaseWasmFile() + ".wasm.map" ) ), StandardCharsets.UTF_8 );
         }
         return sourceMap;
     }
@@ -139,9 +139,23 @@ public class WasmTarget implements Closeable {
      */
     public Writer getJavaScriptOutput() throws IOException {
         if( javaScript == null && file != null && file.isFile() ) {
-            javaScript = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( file + ".js" ) ), StandardCharsets.UTF_8 );
+            javaScript = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( getBaseWasmFile() + ".wasm.js" ) ), StandardCharsets.UTF_8 );
         }
         return javaScript;
+    }
+
+    /**
+     * Get the base name without extension.
+     * 
+     * @return the base file name
+     */
+    private String getBaseWasmFile() {
+        String name = file.toString();
+        int idx = name.lastIndexOf( '.' );
+        if( idx > 0 ) {
+            name = name.substring( 0, idx );
+        }
+        return name;
     }
 
     /**
