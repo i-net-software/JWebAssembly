@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nonnegative;
@@ -47,6 +48,15 @@ public abstract class WasmCodeBuilder {
     private final List<WasmInstruction> instructions   = new ArrayList<>();
 
     private TypeManager                 types;
+
+    /**
+     * Create a new code builder.
+     * 
+     * @param properties
+     *            compiler properties
+     */
+    public WasmCodeBuilder( HashMap<String, String> properties ) {
+    }
 
     /**
      * Get the list of instructions

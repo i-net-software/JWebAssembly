@@ -320,7 +320,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compile( ModuleWriter writer, WasmTarget target ) throws IOException, WasmException {
-        ModuleGenerator generator = new ModuleGenerator( writer, target, libraries );
+        ModuleGenerator generator = new ModuleGenerator( writer, target, libraries, properties );
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             generator.prepare( classFile );

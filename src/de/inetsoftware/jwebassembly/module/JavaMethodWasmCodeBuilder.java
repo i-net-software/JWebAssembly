@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -43,6 +44,16 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
 
     private BranchManger branchManager = new BranchManger( getInstructions() );
+
+    /**
+     * Create a new code builder.
+     * 
+     * @param properties
+     *            compiler properties
+     */
+    public JavaMethodWasmCodeBuilder( HashMap<String, String> properties ) {
+        super( properties );
+    }
 
     /**
      * Build the wasm instructions

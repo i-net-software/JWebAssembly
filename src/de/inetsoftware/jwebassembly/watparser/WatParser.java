@@ -17,6 +17,7 @@
 package de.inetsoftware.jwebassembly.watparser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nonnegative;
@@ -36,6 +37,16 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  * @author Volker Berlin
  */
 public class WatParser extends WasmCodeBuilder {
+
+    /**
+     * Create a new code builder.
+     * 
+     * @param properties
+     *            compiler properties
+     */
+    public WatParser( HashMap<String, String> properties ) {
+        super( properties );
+    }
 
     /**
      * Parse the given wasm text format and generate a list of WasmInstuctions

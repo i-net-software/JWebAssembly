@@ -22,6 +22,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -59,9 +60,9 @@ public class ModuleGenerator {
 
     private final URLClassLoader            libraries;
 
-    private final JavaMethodWasmCodeBuilder javaCodeBuilder = new JavaMethodWasmCodeBuilder();
+    private final JavaMethodWasmCodeBuilder javaCodeBuilder;
 
-    private final WatParser                 watParser = new WatParser();
+    private final WatParser                 watParser;
 
     private String                          sourceFile;
 
@@ -82,8 +83,12 @@ public class ModuleGenerator {
      *            the target for the module data
      * @param libraries
      *            libraries 
+     * @param properties
+     *            compiler properties
      */
-    public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries ) {
+    public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries, HashMap<String, String> properties ) {
+        this.javaCodeBuilder = new JavaMethodWasmCodeBuilder( properties );
+        this.watParser = new WatParser( properties );
         this.writer = writer;
         this.javaScript = new JavaScriptWriter( target );
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
