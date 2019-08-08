@@ -216,11 +216,17 @@ public class ModuleGenerator {
 
             functions.markAsWritten( name );
             Map<String, Object> importAnannotation = functions.getImportAnannotation( name );
-            String impoarModule = (String)importAnannotation.get( "module" );
+            String importModule = (String)importAnannotation.get( "module" );
+            if( importModule == null || importModule.isEmpty() ) {
+                throw new WasmException( "Module not set for import function: " + name.signatureName, -1 );
+            }
             String importName = (String)importAnannotation.get( "name" );
-            writer.prepareImport( name, impoarModule, importName );
+            if( importName == null || importName.isEmpty() ) {
+                throw new WasmException( "Name not set for import function: " + name.signatureName, -1 );
+            }
+            writer.prepareImport( name, importModule, importName );
             writeMethodSignature( name, true, null );
-            javaScript.addImport( impoarModule, importName, importAnannotation );
+            javaScript.addImport( importModule, importName, importAnannotation );
         }
 
         // init/write the function types
@@ -404,7 +410,9 @@ public class ModuleGenerator {
     private WasmCodeBuilder createInstructions( MethodInfo method ) throws IOException {
         Code code = null;
         try {
-            if( method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION ) != null ) {
+            Map<String,Object> annotationValues;
+            if( (annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION )) != null ) {
+                functions.markAsImport( new FunctionName( method ), annotationValues );
                 return null;
             }
             code = method.getCode();
