@@ -223,11 +223,13 @@ public class ModuleGenerator {
             Map<String, Object> importAnannotation = functions.getImportAnannotation( name );
             String importModule = (String)importAnannotation.get( "module" );
             if( importModule == null || importModule.isEmpty() ) {
-                throw new WasmException( "Module not set for import function: " + name.signatureName, -1 );
+                // use className if module is not set 
+                importModule = name.className.substring( name.className.lastIndexOf( '/' ) + 1 );
             }
             String importName = (String)importAnannotation.get( "name" );
             if( importName == null || importName.isEmpty() ) {
-                throw new WasmException( "Name not set for import function: " + name.signatureName, -1 );
+                // use method name as function if not set
+                importName = name.methodName;
             }
             writer.prepareImport( name, importModule, importName );
             writeMethodSignature( name, true, null );
