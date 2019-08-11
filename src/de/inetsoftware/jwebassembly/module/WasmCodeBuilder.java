@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +24,13 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -49,6 +55,8 @@ public abstract class WasmCodeBuilder {
 
     private TypeManager                 types;
 
+    private final boolean               useGC;
+
     /**
      * Create a new code builder.
      * 
@@ -56,6 +64,7 @@ public abstract class WasmCodeBuilder {
      *            compiler properties
      */
     public WasmCodeBuilder( HashMap<String, String> properties ) {
+        useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
     }
 
     /**
@@ -341,7 +350,24 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmArrayInstruction( op, type, javaCodePos, lineNumber ) );
+        if( useGC ) {
+            instructions.add( new WasmArrayInstruction( op, type, javaCodePos, lineNumber ) );
+        } else {
+            try {
+                String api = "array_" + op.toString().toLowerCase() + "_" + type;
+                ClassFile classFile = ClassFile.get( NonGC.class.getName().replace( '.', '/' ), getClass().getClassLoader() );
+                for( MethodInfo method : classFile.getMethods() ) {
+                    if( api.equals( method.getName() ) ) {
+                        FunctionName name = new FunctionName( method );
+                        addCallInstruction( name, javaCodePos, lineNumber );
+                        return;
+                    }
+                }
+            } catch( IOException ex ) {
+                throw WasmException.create( ex, lineNumber );
+            }
+            throw new WasmException( "Not implemented array op " + op + " for type " + type, lineNumber );
+        }
     }
 
     /**
