@@ -17,7 +17,11 @@ repositories {
 }
 
 dependencies {
+    // "compileOnly" will not add as dependency. this is different to "compile". 
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    //compileOnly 'de.inetsoftware:jwebassembly-api:+'
+    compileOnly 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
+
     testCompile 'com.google.code.findbugs:jsr305:3.0.1'
     //testCompile 'de.inetsoftware:jwebassembly-api:+'
     testCompile 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
