@@ -80,6 +80,11 @@ public class JWebAssembly {
     public static final String REPLACE_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.Replace";
 
     /**
+     * If the GC feature of WASM should be use or the GC of the JavaScript host. If true use the GC instructions of WASM.
+     */
+    public static final String WASM_USE_GC = "wasm.use_gc";
+
+    /**
      * The logger instance
      */
     public static final Logger LOGGER = Logger.getAnonymousLogger( null );
