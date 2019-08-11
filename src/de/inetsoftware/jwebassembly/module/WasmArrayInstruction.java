@@ -82,7 +82,7 @@ class WasmArrayInstruction extends WasmInstruction {
                 return type instanceof ValueType ? (ValueType)type : ValueType.anyref;
             case SET:
                 return null;
-            case LENGTH:
+            case LEN:
                 return ValueType.i32;
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );
@@ -98,7 +98,7 @@ class WasmArrayInstruction extends WasmInstruction {
             case NEW:
             case GET:
                 return 2;
-            case LENGTH:
+            case LEN:
                 return 1;
             case SET:
                 return 3;

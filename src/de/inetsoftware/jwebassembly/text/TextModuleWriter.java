@@ -762,7 +762,7 @@ public class TextModuleWriter extends ModuleWriter {
             case SET:
                 operation = "set";
                 break;
-            case LENGTH:
+            case LEN:
                 operation = "len";
                 break;
             default:

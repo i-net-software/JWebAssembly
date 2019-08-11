@@ -1276,7 +1276,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case SET:
                 opCode = ARRAY_SET;
                 break;
-            case LENGTH:
+            case LEN:
                 opCode = ARRAY_LEN;
                 break;
             default:

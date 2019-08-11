@@ -643,7 +643,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.NEW, type, codePos, lineNumber );
                         break;
                     case 190: // arraylength
-                        addArrayInstruction( ArrayOperator.LENGTH, ValueType.i32, codePos, lineNumber );
+                        addArrayInstruction( ArrayOperator.LEN, ValueType.i32, codePos, lineNumber );
                         break;
                     case 191: // athrow
                         addBlockInstruction( WasmBlockOperator.THROW, null, codePos, lineNumber );
