@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -55,9 +56,11 @@ public class Arrays extends AbstractBaseTest {
         return list;
     }
 
-    @Ignore
     @Test
+    @Override
     public void test() {
+        Assume.assumeFalse( (getScriptEngine() == ScriptEngine.SpiderMonkeyWat || getScriptEngine() == ScriptEngine.SpiderMonkey)
+                        && "loopLong".equals( getMethod() ) ); // TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1511958
         super.test();
     }
 

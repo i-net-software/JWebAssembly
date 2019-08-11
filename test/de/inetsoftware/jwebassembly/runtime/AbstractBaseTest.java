@@ -58,6 +58,14 @@ public abstract class AbstractBaseTest {
         return script;
     }
 
+    /**
+     * Get the name of the method that is currently tested
+     * @return the name
+     */
+    protected String getMethod() {
+        return method;
+    }
+
     @Test
     public void test() {
         wasm.test( script, method, params );
