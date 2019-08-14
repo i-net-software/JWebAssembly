@@ -48,8 +48,8 @@ class WasmStructInstruction extends WasmInstruction {
      * 
      * @param op
      *            the struct operation
-     * @param type
-     *            the type of the parameters
+     * @param typeName
+     *            the type name of the parameters
      * @param fieldName
      *            the name of field if needed for the operation
      * @param javaCodePos
@@ -57,11 +57,14 @@ class WasmStructInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nullable StructType type, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
+    WasmStructInstruction( @Nullable StructOperator op, @Nullable String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
         super( javaCodePos, lineNumber );
         this.op = op;
-        this.type = type;
+        this.type = typeName == null ? null : types.valueOf( typeName );
         this.fieldName = fieldName;
+        if( type != null && fieldName != null ) {
+            type.useFieldName( fieldName );
+        }
     }
 
     /**
@@ -98,7 +101,7 @@ class WasmStructInstruction extends WasmInstruction {
         if( type != null && fieldName != null ) {
             // The fieldName of the struct operation does not contain the class name in which the field was declared. It contains the class name of the variable. This can be the class or a subclass.
             List<NamedStorageType> fields = type.getFields();
-            boolean classNameMatched = false;
+            boolean classNameMatched = type.getName().equals( fieldName.geClassName() );
             for( int i = fields.size()-1; i >= 0; i-- ) {
                 NamedStorageType field = fields.get( i );
                 if( !classNameMatched && field.geClassName().equals( fieldName.geClassName() ) ) {
@@ -107,6 +110,16 @@ class WasmStructInstruction extends WasmInstruction {
                 if( classNameMatched && field.getName().equals( fieldName.getName() ) ) {
                     idx = i;
                     break;
+                }
+            }
+            if( !classNameMatched ) {
+                // special case, the type self does not add a needed field, that we search in all fields
+                for( int i = fields.size()-1; i >= 0; i-- ) {
+                    NamedStorageType field = fields.get( i );
+                    if( field.getName().equals( fieldName.getName() ) ) {
+                        idx = i;
+                        break;
+                    }
                 }
             }
         }

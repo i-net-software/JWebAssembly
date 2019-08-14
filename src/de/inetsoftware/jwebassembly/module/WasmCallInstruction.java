@@ -37,6 +37,8 @@ class WasmCallInstruction extends WasmInstruction {
 
     private int          paramCount = -1;
 
+    private TypeManager  types;
+
     /**
      * Create an instance of a function call instruction
      * 
@@ -46,10 +48,13 @@ class WasmCallInstruction extends WasmInstruction {
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
+     * @param types
+     *            the type manager
      */
-    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types ) {
         super( javaCodePos, lineNumber );
         this.name = name;
+        this.types = types;
     }
 
     /**
@@ -113,7 +118,7 @@ class WasmCallInstruction extends WasmInstruction {
         if( paramCount >= 0 ) {
             return;
         }
-        Iterator<AnyType> parser = name.getSignature();
+        Iterator<AnyType> parser = name.getSignature( types );
         paramCount = 0;
         while( parser.next() != null ) {
             paramCount++;

@@ -55,16 +55,4 @@ public enum ValueType implements AnyType {
     public int getCode() {
         return code;
     }
-
-    /**
-     * Get the WebAssembly value type from a Java signature.
-     * 
-     * @param javaSignature
-     *            the signature
-     * @return the value type
-     */
-    public static ValueType getValueType( String javaSignature ) {
-        return (ValueType)new ValueTypeParser( javaSignature ).next();
-    }
-
 }

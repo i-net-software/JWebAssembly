@@ -38,16 +38,6 @@ public class ValueTypeParser implements Iterator<AnyType> {
      * 
      * @param javaSignature
      *            the Java signature
-     */
-    public ValueTypeParser( String javaSignature ) {
-        this( javaSignature, null );
-    }
-
-    /**
-     * Create a new parser.
-     * 
-     * @param javaSignature
-     *            the Java signature
      * @param types
      *            the optional type manager
      */
@@ -79,13 +69,12 @@ public class ValueTypeParser implements Iterator<AnyType> {
             case ')':
                 return null;
             case '[': // array
-                next();
-                return ValueType.anyref;
+                return types.arrayType( next() );
             case 'L':
                 int idx2 = sig.indexOf( ';', idx );
                 String name = sig.substring( idx, idx2 );
                 idx = idx2 + 1;
-                return types == null ? ValueType.anyref : types.valueOf( name );
+                return "java/lang/Object".equals( name ) ? ValueType.anyref : types.valueOf( name );
             case 'Z': // boolean
             case 'B': // byte
             case 'C': // char

@@ -87,13 +87,13 @@ public class ModuleGenerator {
      *            compiler properties
      */
     public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries, HashMap<String, String> properties ) {
-        this.javaCodeBuilder = new JavaMethodWasmCodeBuilder( properties );
-        this.watParser = new WatParser( properties );
+        this.javaCodeBuilder = new JavaMethodWasmCodeBuilder();
+        this.watParser = new WatParser();
         this.writer = writer;
         this.javaScript = new JavaScriptWriter( target );
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
-        javaCodeBuilder.init( types );
-        ((WasmCodeBuilder)watParser).init( types );
+        javaCodeBuilder.init( types, properties );
+        ((WasmCodeBuilder)watParser).init( types, properties );
         scanLibraries( libraries );
     }
 
@@ -560,7 +560,7 @@ public class ModuleGenerator {
             StructType instanceType = types.valueOf( name.className );
             writer.writeMethodParam( "param", instanceType, "this" );
         }
-        Iterator<AnyType> parser = name.getSignature();
+        Iterator<AnyType> parser = name.getSignature( types );
         AnyType type;
         for( String kind : new String[] {"param","result"}) {
             while( parser.hasNext() && (type = parser.next()) != null ) {

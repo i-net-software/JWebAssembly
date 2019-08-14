@@ -48,7 +48,7 @@ abstract class SyntheticFunctionName extends FunctionName {
      * {@inheritDoc}
      */
     @Override
-    public Iterator<AnyType> getSignature() {
+    public Iterator<AnyType> getSignature( TypeManager types ) {
         return Arrays.asList( signature ).iterator();
     }
 

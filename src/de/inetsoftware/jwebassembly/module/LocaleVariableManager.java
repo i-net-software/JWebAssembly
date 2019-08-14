@@ -19,6 +19,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -29,6 +30,7 @@ import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
 /**
  * This manager monitor the locale variables of a method to create a translation from the slot based index in Java to
@@ -39,6 +41,8 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  *
  */
 class LocaleVariableManager {
+
+    private TypeManager              types;
 
     private Variable[]               variables;
 
@@ -57,6 +61,16 @@ class LocaleVariableManager {
         for( int i = 0; i < variables.length; i++ ) {
             variables[i] = new Variable();
         }
+    }
+
+    /**
+     * Initialize the variable manager;
+     * 
+     * @param types
+     *            the type manager
+     */
+    void init( TypeManager types ) {
+        this.types = types;
     }
 
     /**
@@ -85,7 +99,7 @@ class LocaleVariableManager {
         for( int i = 0; i < vars.length; i++ ) {
             LocalVariable local = vars[i];
             Variable var = variables[size];
-            var.valueType = ValueType.getValueType( local.getSignature() );
+            var.valueType = new ValueTypeParser( local.getSignature(), types ).next();
             var.name = local.getName();
             var.idx = local.getIndex();
             var.startPos = local.getStartPosition() - 2;
@@ -199,8 +213,10 @@ class LocaleVariableManager {
             if( valueType.getCode() >= 0 && var.valueType == ValueType.anyref ) {
                 // set the more specific type
             } else {
-                throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot "
-                                + slot + ". Compile the Java code with debug information to correct this problem.", null, null, -1 );
+return;// TODO we need a better check
+//                throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot "
+//                                + slot + ". Compile the Java code with debug information to correct this problem.", null, null, -1 );
+
             }
         }
         var.valueType = valueType;

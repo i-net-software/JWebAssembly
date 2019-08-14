@@ -55,17 +55,7 @@ public abstract class WasmCodeBuilder {
 
     private TypeManager                 types;
 
-    private final boolean               useGC;
-
-    /**
-     * Create a new code builder.
-     * 
-     * @param properties
-     *            compiler properties
-     */
-    public WasmCodeBuilder( HashMap<String, String> properties ) {
-        useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
-    }
+    private boolean                     useGC;
 
     /**
      * Get the list of instructions
@@ -94,9 +84,13 @@ public abstract class WasmCodeBuilder {
      * 
      * @param types
      *            the type manager
+     * @param properties
+     *            compiler properties
      */
-    void init( TypeManager types ) {
+    void init( TypeManager types, HashMap<String, String> properties ) {
+        this.localVariables.init( types );
         this.types = types;
+        this.useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
     }
 
     /**
@@ -289,7 +283,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber ) );
+        instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types ) );
     }
 
     /**
@@ -303,9 +297,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        StructType type = types.valueOf( name.className );
-        int tempVar = localVariables.getTempVariable( type, javaCodePos, javaCodePos + 1 );
-        instructions.add( new WasmCallIndirectInstruction( name, type, tempVar, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmCallIndirectInstruction( name, localVariables, javaCodePos, lineNumber, types ) );
     }
 
     /**
@@ -385,24 +377,6 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addStructInstruction( StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
-        addStructInstruction( op, types.valueOf( typeName ), fieldName, javaCodePos, lineNumber );
-    }
-
-    /**
-     * Add an array operation to the instruction list as marker on the code position.
-     * 
-     * @param op
-     *            the operation
-     * @param structType
-     *            the type
-     * @param fieldName
-     *            the name of field if needed for the operation
-     * @param javaCodePos
-     *            the code position/offset in the Java method
-     * @param lineNumber
-     *            the line number in the Java source code
-     */
-    protected void addStructInstruction( StructOperator op, @Nullable StructType structType, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmStructInstruction( op, structType, fieldName, javaCodePos, lineNumber ) );
+        instructions.add( new WasmStructInstruction( op, typeName, fieldName, javaCodePos, lineNumber, types ) );
     }
 }

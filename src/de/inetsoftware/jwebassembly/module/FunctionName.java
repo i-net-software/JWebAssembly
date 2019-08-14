@@ -147,10 +147,12 @@ public class FunctionName {
     /**
      * Get the method signature iterator for parameter and return values.
      * 
+     * @param types
+     *            the type manager
      * @return the iterator
      */
     @Nonnull
-    public Iterator<AnyType> getSignature() {
-        return new ValueTypeParser( signature );
+    public Iterator<AnyType> getSignature( TypeManager types ) {
+        return new ValueTypeParser( signature, types );
     }
 }

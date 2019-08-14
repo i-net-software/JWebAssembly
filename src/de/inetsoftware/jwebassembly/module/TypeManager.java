@@ -19,6 +19,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -45,7 +47,9 @@ public class TypeManager {
     /** name of virtual function table, start with a point for an invalid Java identifier  */
     static final String             VTABLE = ".vtable";
 
-    private Map<String, StructType> map    = new LinkedHashMap<>();
+    private Map<String, StructType> structTypes = new LinkedHashMap<>();
+
+    private Map<AnyType, ArrayType> arrayTypes  = new LinkedHashMap<>();
 
     private boolean                 isFinish;
 
@@ -63,7 +67,7 @@ public class TypeManager {
      */
     void prepareFinish( ModuleWriter writer, FunctionManager functions, ClassLoader libraries ) throws IOException {
         isFinish = true;
-        for( StructType type : map.values() ) {
+        for( StructType type : structTypes.values() ) {
             type.writeStructType( writer, functions, this, libraries );
         }
     }
@@ -90,7 +94,7 @@ public class TypeManager {
      */
     @Nonnull
     Collection<StructType> getTypes() {
-        return map.values();
+        return structTypes.values();
     }
 
     /**
@@ -101,14 +105,34 @@ public class TypeManager {
      * @return the struct type
      */
     public StructType valueOf( String name ) {
-        StructType type = map.get( name );
+        StructType type = structTypes.get( name );
         if( type == null ) {
             JWebAssembly.LOGGER.fine( "\t\ttype: " + name );
             if( isFinish ) {
                 throw new WasmException( "Register needed type after scanning: " + name, -1 );
             }
             type = new StructType( name );
-            map.put( name, type );
+            structTypes.put( name, type );
+        }
+        return type;
+    }
+
+    /**
+     * Get the array type for the given component type.
+     * 
+     * @param arrayType
+     *            the component type of the array
+     * @return the array type
+     */
+    public ArrayType arrayType( AnyType arrayType ) {
+        ArrayType type = arrayTypes.get( arrayType );
+        if( type == null ) {
+            JWebAssembly.LOGGER.fine( "\t\ttype: " + arrayType );
+            if( isFinish ) {
+                throw new WasmException( "Register needed array type after scanning: " + arrayType, -1 );
+            }
+            type = new ArrayType( arrayType );
+            arrayTypes.put( arrayType, type );
         }
         return type;
     }
@@ -123,6 +147,8 @@ public class TypeManager {
         private final String           name;
 
         private int                    code = Integer.MAX_VALUE;
+
+        private HashSet<String>        neededFields = new HashSet<>();
 
         private List<NamedStorageType> fields;
 
@@ -143,6 +169,10 @@ public class TypeManager {
             this.name = name;
         }
 
+        void useFieldName( NamedStorageType fieldName ) {
+            neededFields.add( fieldName.getName());
+        }
+
         /**
          * Write this struct type and initialize internal structures
          * 
@@ -161,7 +191,8 @@ public class TypeManager {
             JWebAssembly.LOGGER.fine( "write type: " + name );
             fields = new ArrayList<>();
             methods = new ArrayList<>();
-            listStructFields( name, functions, types, libraries );
+            HashSet<String> allNeededFields = new HashSet<>();
+            listStructFields( name, functions, types, libraries, allNeededFields );
             code = writer.writeStructType( this );
         }
 
@@ -179,22 +210,27 @@ public class TypeManager {
          * @throws IOException
          *             if any I/O error occur on loading or writing
          */
-        private void listStructFields( String className, FunctionManager functions, TypeManager types, ClassLoader libraries ) throws IOException {
+        private void listStructFields( String className, FunctionManager functions, TypeManager types, ClassLoader libraries, HashSet<String> allNeededFields ) throws IOException {
             ClassFile classFile = ClassFile.get( className, libraries );
             if( classFile == null ) {
                 throw new WasmException( "Missing class: " + className, -1 );
             }
 
+            allNeededFields.addAll( neededFields );
+
             ConstantClass superClass = classFile.getSuperClass();
             if( superClass != null ) {
                 String superClassName = superClass.getName();
-                listStructFields( superClassName, functions, types, libraries );
+                listStructFields( superClassName, functions, types, libraries, allNeededFields );
             } else {
                 fields.add( new NamedStorageType( ValueType.i32, className, VTABLE ) );
             }
 
             for( FieldInfo field : classFile.getFields() ) {
                 if( field.isStatic() ) {
+                    continue;
+                }
+                if( !allNeededFields.contains( field.getName() ) ) {
                     continue;
                 }
                 fields.add( new NamedStorageType( className, field, types ) );

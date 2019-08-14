@@ -36,7 +36,7 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
 public class WatParserTest {
 
     private void test( String wat ) throws IOException {
-        WatParser parser = new WatParser( new HashMap<>() );
+        WatParser parser = new WatParser();
         parser.parse( wat, 100 );
         WasmCodeBuilder codeBuilder = parser;
         StringBuilder builder = new StringBuilder();

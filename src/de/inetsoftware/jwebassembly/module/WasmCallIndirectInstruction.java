@@ -34,6 +34,9 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
 
     private final StructType            type;
 
+    /**
+     * the slot of a temporary variable of type "type" to duplicate "this"
+     */
     private final int                   tempVar;
 
     private final LocaleVariableManager localVariables;
@@ -43,10 +46,6 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      * 
      * @param name
      *            the function name that should be called
-     * @param type
-     *            the type with the virtual method/function
-     * @param tempVar
-     *            the slot of a temporary variable of type "type" to duplicate "this"
      * @param localVariables
      *            the manager for local variables to translate the Java slot of the temporary variable into wasm local
      *            position
@@ -54,11 +53,13 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
+     * @param types
+     *            the type manager
      */
-    WasmCallIndirectInstruction( FunctionName name, @Nonnull StructType type, int tempVar, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
-        super( name, javaCodePos, lineNumber );
-        this.type = type;
-        this.tempVar = tempVar;
+    WasmCallIndirectInstruction( FunctionName name, LocaleVariableManager localVariables, int javaCodePos, int lineNumber, TypeManager types ) {
+        super( name, javaCodePos, lineNumber, types );
+        this.type = types.valueOf( name.className );
+        this.tempVar = localVariables.getTempVariable( type, javaCodePos, javaCodePos + 1 );
         this.localVariables = localVariables;
     }
 
