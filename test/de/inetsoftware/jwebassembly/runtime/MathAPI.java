@@ -18,7 +18,6 @@ package de.inetsoftware.jwebassembly.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.runners.Parameterized.Parameters;
 
@@ -102,12 +101,6 @@ public class MathAPI extends AbstractBaseTest {
         }
         rule.setTestParameters( list );
         return list;
-    }
-
-    @Override
-    public void test() {
-        Assume.assumeFalse( getScriptEngine() == ScriptEngine.SpiderMonkeyWat ); // TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1571230
-        super.test();
     }
 
     static class TestClass {
