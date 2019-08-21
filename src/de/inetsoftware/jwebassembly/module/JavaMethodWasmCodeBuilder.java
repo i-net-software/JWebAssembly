@@ -26,9 +26,9 @@ import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -539,7 +539,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 175: // dreturn
                     case 176: // areturn
                     case 177: // return void
-                        ValueType type = null;
+                        AnyType type = null;
                         switch( op ) {
                             case 172: // ireturn
                                 type = ValueType.i32;
@@ -603,22 +603,28 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 188: // newarray
                         int typeValue = byteCode.readByte();
                         switch( typeValue ) {
-                            case 4: // boolean 
-                            case 5: // char 
-                                type = ValueType.i32;
+                            case 4: // boolean
+                                type = ValueType.i8;
+                                break;
+                            case 5: // char
+                                type = ValueType.i16;
                                 break;
                             case 6: //float
                                 type = ValueType.f32;
                                 break;
-                            case 7: //double 
+                            case 7: //double
                                 type = ValueType.f64;
                                 break;
-                            case 8: //byte 
-                            case 9: //short 
-                            case 10: //int 
+                            case 8: //byte
+                                type = ValueType.i8;
+                                break;
+                            case 9: //short
+                                type = ValueType.i16;
+                                break;
+                            case 10: //int
                                 type = ValueType.i32;
                                 break;
-                            case 11: //long 
+                            case 11: //long
                                 type = ValueType.i64;
                                 break;
                             default:
@@ -628,11 +634,12 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 189: // anewarray
                         name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
-                        type = ValueType.anyref; //TODO we need to use the right type from name
+                        type = ValueType.anyref; //TODO we need to use the right type from name; getTypeManager().valueOf( name );
                         addArrayInstruction( ArrayOperator.NEW, type, codePos, lineNumber );
                         break;
                     case 190: // arraylength
-                        addArrayInstruction( ArrayOperator.LEN, ValueType.i32, codePos, lineNumber );
+                        type = ((ArrayType)findValueTypeFromStack( 1 )).getArrayType();
+                        addArrayInstruction( ArrayOperator.LEN, type, codePos, lineNumber );
                         break;
                     case 191: // athrow
                         addBlockInstruction( WasmBlockOperator.THROW, null, codePos, lineNumber );

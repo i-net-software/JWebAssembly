@@ -65,6 +65,26 @@ public abstract class NonGC {
         return 0; // for compiler
     }
 
+    @Import( js = "(a) => a.length" )
+    static int array_len_i64( Object array ) {
+        return 0; // for compiler
+    }
+
+    @Import( js = "(a) => a.length" )
+    static int array_len_f32( Object array ) {
+        return 0; // for compiler
+    }
+
+    @Import( js = "(a) => a.length" )
+    static int array_len_f64( Object array ) {
+        return 0; // for compiler
+    }
+
+    @Import( js = "(a) => a.length" )
+    static int array_len_anyref( Object array ) {
+        return 0; // for compiler
+    }
+
     @Import( js = "(a,i,v) => a[i]=v" )
     static void array_set_i8( byte[] array, int idx, byte value ) {
     }

@@ -34,6 +34,14 @@ public class ArrayType implements AnyType {
     }
 
     /**
+     * The element type of the array
+     * @return the type
+     */
+    public AnyType getArrayType() {
+        return arrayType;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

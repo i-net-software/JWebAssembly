@@ -346,6 +346,9 @@ public abstract class WasmCodeBuilder {
             instructions.add( new WasmArrayInstruction( op, type, javaCodePos, lineNumber ) );
         } else {
             try {
+                if( type.getCode() >= 0 ) {
+                    type = ValueType.anyref;
+                }
                 String api = "array_" + op.toString().toLowerCase() + "_" + type;
                 ClassFile classFile = ClassFile.get( NonGC.class.getName().replace( '.', '/' ), getClass().getClassLoader() );
                 for( MethodInfo method : classFile.getMethods() ) {
