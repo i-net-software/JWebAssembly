@@ -416,8 +416,8 @@ public class WasmRule extends TemporaryFolder {
             }
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
-            int exitCode = process.waitFor();
             String result = readStream( process.getInputStream() ).trim();
+            int exitCode = process.waitFor();
             if( exitCode != 0 || !result.isEmpty() ) {
                 String errorMessage = readStream( process.getErrorStream() );
                 fail( result + '\n' + errorMessage + "\nExit code: " + exitCode );
