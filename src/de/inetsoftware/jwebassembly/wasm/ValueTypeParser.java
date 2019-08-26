@@ -62,6 +62,17 @@ public class ValueTypeParser implements Iterator<AnyType> {
      * @return next type or null
      */
     public AnyType next() {
+        return next( false );
+    }
+
+    /**
+     * Get the next value in the signature or null if the parameter are end or the signature is end.
+     * 
+     * @param isArray
+     *            true, if this is an element type of an array
+     * @return next type or null
+     */
+    private AnyType next( boolean isArray ) {
         if( !hasNext() ) {
             throw new NoSuchElementException();
         }
@@ -69,7 +80,7 @@ public class ValueTypeParser implements Iterator<AnyType> {
             case ')':
                 return null;
             case '[': // array
-                return types.arrayType( next() );
+                return types.arrayType( next( true ) );
             case 'L':
                 int idx2 = sig.indexOf( ';', idx );
                 String name = sig.substring( idx, idx2 );
@@ -77,8 +88,10 @@ public class ValueTypeParser implements Iterator<AnyType> {
                 return "java/lang/Object".equals( name ) ? ValueType.anyref : types.valueOf( name );
             case 'Z': // boolean
             case 'B': // byte
+                return isArray ? ValueType.i8 : ValueType.i32;
             case 'C': // char
             case 'S': // short
+                return isArray ? ValueType.i16 : ValueType.i32;
             case 'I': // int
                 return ValueType.i32;
             case 'D': // double
