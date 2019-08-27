@@ -38,6 +38,8 @@ class WasmArrayInstruction extends WasmInstruction {
 
     private final AnyType   type;
 
+    private final TypeManager types;
+
     /**
      * Create an instance of an array operation.
      * 
@@ -50,10 +52,11 @@ class WasmArrayInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable AnyType type, int javaCodePos, int lineNumber ) {
+    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable AnyType type, TypeManager types, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.op = op;
         this.type = type;
+        this.types = types;
     }
 
     /**
@@ -77,7 +80,7 @@ class WasmArrayInstruction extends WasmInstruction {
     AnyType getPushValueType() {
         switch( op ) {
             case NEW:
-                return ValueType.anyref;
+                return types.arrayType( type );
             case GET:
                 return type instanceof ValueType ? (ValueType)type : ValueType.anyref;
             case SET:

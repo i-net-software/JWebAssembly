@@ -343,7 +343,7 @@ public abstract class WasmCodeBuilder {
      */
     protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos, int lineNumber ) {
         if( useGC ) {
-            instructions.add( new WasmArrayInstruction( op, type, javaCodePos, lineNumber ) );
+            instructions.add( new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber ) );
         } else {
             try {
                 if( type.getCode() >= 0 ) {
