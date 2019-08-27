@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.runtime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.Assume;
@@ -28,19 +29,23 @@ import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
 
-public class Arrays extends AbstractBaseTest {
+public class ArrayOperations extends AbstractBaseTest {
 
     @ClassRule
     public static WasmRule rule = new WasmRule( TestClass.class );
 
-    public Arrays( ScriptEngine script, String method, Object[] params ) {
+    public ArrayOperations( ScriptEngine script, String method, Object[] params ) {
         super( rule, script, method, params );
     }
 
     @Parameters( name = "{0}-{1}" )
     public static Collection<Object[]> data() {
         ArrayList<Object[]> list = new ArrayList<>();
-        for( ScriptEngine script : ScriptEngine.testEngines() ) {
+
+        ScriptEngine[] engines = ScriptEngine.testEngines();
+        engines = Arrays.copyOf( engines, engines.length + 1 );
+        engines[engines.length - 1] = ScriptEngine.SpiderMonkeyGC;
+        for( ScriptEngine script : engines ) {
             addParam( list, script, "length" );
             addParam( list, script, "loopByte" );
             addParam( list, script, "loopShort" );
@@ -58,7 +63,7 @@ public class Arrays extends AbstractBaseTest {
     @Test
     @Override
     public void test() {
-        Assume.assumeFalse( (getScriptEngine() == ScriptEngine.SpiderMonkeyWat || getScriptEngine() == ScriptEngine.SpiderMonkey)
+        Assume.assumeFalse( (getScriptEngine().name().startsWith( "SpiderMonkey" ) )
                         && "loopLong".equals( getMethod() ) ); // TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1511958
         super.test();
     }

@@ -68,6 +68,8 @@ public class WasmRule extends TemporaryFolder {
 
     private File                      spiderMonkeyScript;
 
+    private File                      spiderMonkeyScriptGC;
+
     private File                      nodeWatScript;
 
     private File                      spiderMonkeyWatScript;
@@ -130,7 +132,7 @@ public class WasmRule extends TemporaryFolder {
      */
     private void writeJsonTestData( Map<String, Object[]> data ) throws IOException {
         // a character we need to convert an integer
-        HashMap<String, Object[]> copy = new HashMap( data );
+        HashMap<String, Object[]> copy = new HashMap<>( data );
         for( Entry<String, Object[]> entry : copy.entrySet() ) {
             Object[] params = entry.getValue();
             for( int i = 0; i < params.length; i++ ) {
@@ -395,10 +397,13 @@ public class WasmRule extends TemporaryFolder {
 
             switch( script ) {
                 case SpiderMonkey:
-                    processBuilder = spiderMonkeyCommand( true );
+                    processBuilder = spiderMonkeyCommand( true, false );
                     break;
                 case SpiderMonkeyWat:
-                    processBuilder = spiderMonkeyCommand( false );
+                    processBuilder = spiderMonkeyCommand( false, false );
+                    break;
+                case SpiderMonkeyGC:
+                    processBuilder = spiderMonkeyCommand( true, true );
                     break;
                 case NodeJS:
                     processBuilder = nodeJsCommand( nodeScript );
@@ -455,15 +460,25 @@ public class WasmRule extends TemporaryFolder {
      * Create a ProcessBuilder for spider monkey script shell.
      * 
      * @param binary true, if the WASM format should be test; false, if the WAT format should be tested.
+     * @param gc true, if with gc should be test
      * @return the value from the script
      * @throws IOException
      *             if the download failed
      */
-    private ProcessBuilder spiderMonkeyCommand( boolean binary ) throws IOException {
+    private ProcessBuilder spiderMonkeyCommand( boolean binary, boolean gc ) throws IOException {
         File script;
         try {
             System.setProperty( "SpiderMonkey", "true" );
-            if( binary ) {
+            if( gc ) {
+                if( spiderMonkeyScriptGC == null ) {
+                    File file = newFile( "spiderMonkeyGC.wasm" );
+                    compiler.setProperty( JWebAssembly.WASM_USE_GC, "true" );
+                    compiler.compileToBinary( file );
+                    spiderMonkeyScriptGC = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                }
+                script = spiderMonkeyScriptGC;
+
+            } else if( binary ) {
                 if( spiderMonkeyScript == null ) {
                     File file = newFile( "spiderMonkey.wasm" );
                     compiler.compileToBinary( file );
@@ -479,9 +494,10 @@ public class WasmRule extends TemporaryFolder {
                 script = spiderMonkeyWatScript;
             }
         } finally {
+            compiler.setProperty( JWebAssembly.WASM_USE_GC, null );
             System.clearProperty( "SpiderMonkey" );
         }
-        return new ProcessBuilder( spiderMonkey.getCommand(), "--wasm-gc", script.getAbsolutePath() );
+        return new ProcessBuilder( spiderMonkey.getCommand(), "--wasm-gc", /*"--wasm-bigint",*/ script.getAbsolutePath() );
     }
 
     /**

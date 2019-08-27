@@ -27,6 +27,7 @@ public enum ScriptEngine {
     NodeWat,
     SpiderMonkeyWat,
     Wat2Wasm,
+    SpiderMonkeyGC,
     ;
 
     public static ScriptEngine[] testEngines() {
