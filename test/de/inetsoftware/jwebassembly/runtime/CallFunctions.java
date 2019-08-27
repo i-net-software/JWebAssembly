@@ -42,8 +42,7 @@ public class CallFunctions extends AbstractBaseTest {
     @Parameters(name="{0}-{1}")
     public static Collection<Object[]> data() {
         ArrayList<Object[]> list = new ArrayList<>();
-        for( ScriptEngine[] val : ScriptEngine.testParams() ) {
-            ScriptEngine script = val[0];
+        for( ScriptEngine script : ScriptEngine.testEngines() ) {
             addParam( list, script, "intCall" );
             addParam( list, script, "nativeCall" );
         }

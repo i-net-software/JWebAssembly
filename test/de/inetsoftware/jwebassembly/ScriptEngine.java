@@ -15,7 +15,7 @@
  */
 package de.inetsoftware.jwebassembly;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -29,15 +29,23 @@ public enum ScriptEngine {
     Wat2Wasm,
     ;
 
-    public static Collection<ScriptEngine[]> testParams() {
-        ScriptEngine[][] val = { //
-                        { ScriptEngine.SpiderMonkey }, //
-                        { ScriptEngine.NodeJS }, //
-                        { ScriptEngine.NodeWat }, //
-                        { ScriptEngine.SpiderMonkeyWat },//
-                        { ScriptEngine.Wat2Wasm }, //
+    public static ScriptEngine[] testEngines() {
+        ScriptEngine[] val = { //
+                        SpiderMonkey, //
+                        NodeJS, //
+                        NodeWat, //
+                        SpiderMonkeyWat,//
+                        Wat2Wasm, //
         };
-        return Arrays.asList(val);
+        return val;
+    }
+
+    public static Collection<ScriptEngine[]> testParams() {
+        ArrayList<ScriptEngine[]> val = new ArrayList<>();
+        for( ScriptEngine script : ScriptEngine.testEngines() ) {
+            val.add( new ScriptEngine[] { script } );
+        }
+        return val;
     }
 }
 
