@@ -43,7 +43,7 @@ public abstract class NonGC {
     @Import( js = "(l) => new Float64Array(l)" )
     native static double[] array_new_f64( int length );
 
-    @Import( js = "(l) => Object.seal(new Array(l))" )
+    @Import( js = "(l) => Object.seal(new Array(l).fill(null))" )
     native static Object[] array_new_anyref( int length );
 
     @Import( js = "(a) => a.length" )
