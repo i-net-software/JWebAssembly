@@ -93,7 +93,7 @@ public class JavaScriptWriter {
      *             if any I/O error occur
      */
     void finish( Appendable out ) throws IOException {
-        out.append( "var wasmImports = {\n" );
+        out.append( "'use strict';var wasmImports = {\n" );
         boolean isFirst = true;
         for( Entry<String, Map<String, String>> module : modules.entrySet() ) {
             if( !isFirst ) {
@@ -129,6 +129,6 @@ public class JavaScriptWriter {
             }
             isFirst = false;
         }
-        out.append( "\n};\nif (typeof module !== \"undefined\") module.exports = wasmImports;" );
+        out.append( "\n};\nif (typeof module !== 'undefined') module.exports = wasmImports;" );
     }
 }

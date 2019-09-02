@@ -22,12 +22,12 @@ public class JavaScriptWriterTest {
         writer.addImport( "Foo", "bar", Collections.singletonMap( JavaScriptWriter.JAVA_SCRIPT_CONTENT, "1 + 1" ) );
         StringBuilder builder = new StringBuilder();
         writer.finish( builder );
-        assertEquals( "var wasmImports = {\n" + 
+        assertEquals( "'use strict';var wasmImports = {\n" + 
                         "Foo:{\n" + 
                         "bar:1 + 1\n" + 
                         "}\n" + 
                         "};\n" + 
-                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
+                        "if (typeof module !== 'undefined') module.exports = wasmImports;", builder.toString() );
     }
 
     @Test
@@ -37,13 +37,13 @@ public class JavaScriptWriterTest {
         writer.addImport( "Foo", "xyz", Collections.singletonMap( JavaScriptWriter.JAVA_SCRIPT_CONTENT, "3" ) );
         StringBuilder builder = new StringBuilder();
         writer.finish( builder );
-        assertEquals( "var wasmImports = {\n" + 
+        assertEquals( "'use strict';var wasmImports = {\n" + 
                         "Foo:{\n" + 
                         "bar:1 + 1,\n" + 
                         "xyz:3\n" + 
                         "}\n" + 
                         "};\n" + 
-                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
+                        "if (typeof module !== 'undefined') module.exports = wasmImports;", builder.toString() );
     }
 
     @Test
@@ -53,7 +53,7 @@ public class JavaScriptWriterTest {
         writer.addImport( "Bar", "bar", Collections.singletonMap( JavaScriptWriter.JAVA_SCRIPT_CONTENT, "3" ) );
         StringBuilder builder = new StringBuilder();
         writer.finish( builder );
-        assertEquals( "var wasmImports = {\n" + 
+        assertEquals( "'use strict';var wasmImports = {\n" + 
                         "Bar:{\n" + 
                         "bar:3\n" + 
                         "},\n" + 
@@ -61,7 +61,7 @@ public class JavaScriptWriterTest {
                         "foo:1 + 1\n" + 
                         "}\n" + 
                         "};\n" + 
-                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
+                        "if (typeof module !== 'undefined') module.exports = wasmImports;", builder.toString() );
     }
 
     @Test
@@ -71,9 +71,9 @@ public class JavaScriptWriterTest {
         writer.addImport( "Foo", "bar", Collections.emptyMap() );
         StringBuilder builder = new StringBuilder();
         writer.finish( builder );
-        assertEquals( "var wasmImports = {\n" + 
+        assertEquals( "'use strict';var wasmImports = {\n" + 
                         "Foo:Foo\n" + 
                         "};\n" + 
-                        "if (typeof module !== \"undefined\") module.exports = wasmImports;", builder.toString() );
+                        "if (typeof module !== 'undefined') module.exports = wasmImports;", builder.toString() );
     }
 }
