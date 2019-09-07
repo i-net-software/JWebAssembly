@@ -479,7 +479,7 @@ public class TextModuleWriter extends ModuleWriter {
      *             if an I/O error occurs.
      */
     private static void writeDefaultValue( Appendable output, AnyType type ) throws IOException {
-        if( type.getCode() < 0 ) {
+        if( type instanceof ValueType ) {
             ValueType valueType = (ValueType)type;
             switch( valueType ) {
                 case i32:

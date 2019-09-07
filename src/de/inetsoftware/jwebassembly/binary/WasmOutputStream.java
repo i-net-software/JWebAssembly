@@ -121,7 +121,7 @@ class WasmOutputStream extends FilterOutputStream {
      *             if an I/O error occurs.
      */
     public void writeDefaultValue( AnyType type ) throws IOException {
-        if( type.getCode() < 0 ) {
+        if( type instanceof ValueType ) {
             ValueType valueType = (ValueType)type;
             switch( valueType ) {
                 case i32:
