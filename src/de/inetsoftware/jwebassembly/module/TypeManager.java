@@ -19,6 +19,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,6 +53,18 @@ public class TypeManager {
     private Map<AnyType, ArrayType> arrayTypes  = new LinkedHashMap<>();
 
     private boolean                 isFinish;
+
+    private boolean                 useGC;
+
+    /**
+     * Initialize the type manager.
+     * 
+     * @param properties
+     *            compiler properties
+     */
+    void init( HashMap<String, String> properties ) {
+        this.useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
+    }
 
     /**
      * Finish the prepare and write the types. Now no new types and functions should be added.

@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.function.Function;
 
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
@@ -34,13 +35,15 @@ abstract class SyntheticFunctionName extends FunctionName {
     /**
      * Create a new instance.
      * 
+     * @param className
+     *            the Java class name
      * @param name
      *            the function name
      * @param signature
      *            the method signature, first the parameters, then null and the the return types
      */
-    public SyntheticFunctionName( String name, AnyType... signature ) {
-        super( "", name, "()V" ); //TODO better signature name
+    public SyntheticFunctionName( String className, String name, AnyType... signature ) {
+        super( className, name, "()V" ); //TODO better signature name
         this.signature = signature;
     }
 
@@ -53,10 +56,29 @@ abstract class SyntheticFunctionName extends FunctionName {
     }
 
     /**
-     * Get the WasmCodeBuilder.
+     * If this function has WASM code or if this function is a import with JavaScript code.
      * 
-     * @param watParser a helping WatParser
+     * @return true, if WASM code
+     */
+    abstract boolean hasWasmCode();
+
+    /**
+     * Get the WasmCodeBuilder for the synthetic WASM code.
+     * 
+     * @param watParser
+     *            a helping WatParser
      * @return the code
      */
-    abstract WasmCodeBuilder getCodeBuilder( WatParser watParser );
+    WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
+        return null;
+    }
+
+    /**
+     * Get the synthetic annotation of a import function.
+     * 
+     * @return the annotation
+     */
+    Function<String, Object> getAnnotation() {
+        return null;
+    }
 }

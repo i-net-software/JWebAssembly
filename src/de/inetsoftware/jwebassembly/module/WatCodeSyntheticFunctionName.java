@@ -39,8 +39,16 @@ class WatCodeSyntheticFunctionName extends SyntheticFunctionName {
      *            the method signature, first the parameters, then null and the the return types
      */
     public WatCodeSyntheticFunctionName( String name, String code, AnyType... signature ) {
-        super( name, signature );
+        super( "", name, signature );
         this.code = code;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    boolean hasWasmCode() {
+        return true;
     }
 
     /**

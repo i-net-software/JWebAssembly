@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -92,6 +93,7 @@ public class ModuleGenerator {
         this.writer = writer;
         this.javaScript = new JavaScriptWriter( target );
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
+        types.init( properties );
         javaCodeBuilder.init( types, properties );
         ((WasmCodeBuilder)watParser).init( types, properties );
         scanLibraries( libraries );
@@ -168,7 +170,12 @@ public class ModuleGenerator {
             if( classFile == null ) {
                 if( next instanceof SyntheticFunctionName ) {
                     JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
-                    scanMethod( ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
+                    SyntheticFunctionName synth = (SyntheticFunctionName)next;
+                    if( synth.hasWasmCode() ) {
+                        scanMethod( synth.getCodeBuilder( watParser ) );
+                    } else {
+                        functions.markAsImport( synth, synth.getAnnotation() );
+                    }
                     functions.markAsScanned( next );
                 }
             } else {
@@ -220,13 +227,13 @@ public class ModuleGenerator {
             FunctionName name = iterator.next();
 
             functions.markAsWritten( name );
-            Map<String, Object> importAnannotation = functions.getImportAnannotation( name );
-            String importModule = (String)importAnannotation.get( "module" );
+            Function<String, Object> importAnannotation = functions.getImportAnannotation( name );
+            String importModule = (String)importAnannotation.apply( "module" );
             if( importModule == null || importModule.isEmpty() ) {
                 // use className if module is not set 
                 importModule = name.className.substring( name.className.lastIndexOf( '/' ) + 1 );
             }
-            String importName = (String)importAnannotation.get( "name" );
+            String importName = (String)importAnannotation.apply( "name" );
             if( importName == null || importName.isEmpty() ) {
                 // use method name as function if not set
                 importName = name.methodName;

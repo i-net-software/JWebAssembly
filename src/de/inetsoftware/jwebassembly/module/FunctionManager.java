@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -68,6 +69,19 @@ public class FunctionManager {
      *            the annotation of the import
      */
     void markAsImport( FunctionName name, Map<String,Object> importAnannotation ) {
+        markAsImport( name, (key) -> importAnannotation.get( key ) );
+    }
+
+    /**
+     * Mark the a function as a import function. Only if the function is also needed then it will imported from
+     * compiler.
+     * 
+     * @param name
+     *            the function name
+     * @param importAnannotation
+     *            the annotation of the import
+     */
+    void markAsImport( FunctionName name, Function<String,Object> importAnannotation ) {
         getOrCreate( name ).importAnannotation = importAnannotation;
     }
 
@@ -134,7 +148,7 @@ public class FunctionManager {
      *            the function name
      * @return the annotation or null
      */
-    Map<String, Object> getImportAnannotation( FunctionName name ) {
+    Function<String, Object> getImportAnannotation( FunctionName name ) {
         return getOrCreate( name ).importAnannotation;
     }
 
@@ -302,17 +316,17 @@ public class FunctionManager {
      * State of a function/method
      */
     private static class FunctionState {
-        private State               state       = State.None;
+        private State                    state       = State.None;
 
-        private MethodInfo          method;
+        private MethodInfo               method;
 
-        private FunctionName        alias;
+        private FunctionName             alias;
 
-        private Map<String, Object> importAnannotation;
+        private Function<String, Object> importAnannotation;
 
-        private int                 functionIdx = -1;
+        private int                      functionIdx = -1;
 
-        private boolean             isStatic;
+        private boolean                  isStatic;
     }
 
     private static enum State {

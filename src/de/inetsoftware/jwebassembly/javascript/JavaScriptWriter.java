@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import de.inetsoftware.jwebassembly.module.WasmTarget;
 
@@ -57,8 +58,8 @@ public class JavaScriptWriter {
      * @param annotationValues
      *            the other values of the annotation
      */
-    public void addImport( String module, String name, Map<String, Object> annotationValues ) {
-        String content = (String)annotationValues.get( JAVA_SCRIPT_CONTENT );
+    public void addImport( String module, String name, Function<String, Object> annotationValues ) {
+        String content = (String)annotationValues.apply( JAVA_SCRIPT_CONTENT );
         Map<String, String> moduleEntries = modules.get( module );
         if( moduleEntries == null ) {
             modules.put( module, moduleEntries = new HashMap<>() );
