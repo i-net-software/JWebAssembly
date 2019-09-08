@@ -123,6 +123,24 @@ public class WasmRule extends TemporaryFolder {
     }
 
     /**
+     * Prepare the rule for the script engine
+     * 
+     * @param script
+     *            the script engine
+     * @throws Exception
+     *             if any error occur
+     */
+    public void before( ScriptEngine script ) throws Exception {
+        switch( script ) {
+            case Wat2Wasm:
+                // this is already part of execute and not only a compile
+                return;
+            default:
+                createCommand( script );
+        }
+    }
+
+    /**
      * Write the test data as JSON file.
      * 
      * @param data
@@ -371,6 +389,36 @@ public class WasmRule extends TemporaryFolder {
     }
 
     /**
+     * Compile the sources and create the ProcessBuilder
+     * 
+     * @param script
+     *            The script engine
+     * @return ProcessBuilder to execute the test
+     * @throws Exception
+     *             if any error occur
+     */
+    private ProcessBuilder createCommand( ScriptEngine script ) throws Exception {
+        switch( script ) {
+            case SpiderMonkey:
+                return spiderMonkeyCommand( true, false );
+            case SpiderMonkeyWat:
+                return spiderMonkeyCommand( false, false );
+            case SpiderMonkeyGC:
+                return spiderMonkeyCommand( true, true );
+            case NodeJS:
+                return nodeJsCommand( nodeScript );
+            case NodeWat:
+                prepareNodeWat();
+                return nodeJsCommand( nodeWatScript );
+            case Wat2Wasm:
+                prepareWat2Wasm();
+                return nodeJsCommand( wat2WasmScript );
+            default:
+                throw new IllegalStateException( script.toString() );
+        }
+    }
+
+    /**
      * Evaluate the wasm exported function.
      * 
      * @param script
@@ -395,30 +443,7 @@ public class WasmRule extends TemporaryFolder {
                 writeJsonTestData( Collections.singletonMap( methodName, params ) );
             }
 
-            switch( script ) {
-                case SpiderMonkey:
-                    processBuilder = spiderMonkeyCommand( true, false );
-                    break;
-                case SpiderMonkeyWat:
-                    processBuilder = spiderMonkeyCommand( false, false );
-                    break;
-                case SpiderMonkeyGC:
-                    processBuilder = spiderMonkeyCommand( true, true );
-                    break;
-                case NodeJS:
-                    processBuilder = nodeJsCommand( nodeScript );
-                    break;
-                case NodeWat:
-                    prepareNodeWat();
-                    processBuilder = nodeJsCommand( nodeWatScript );
-                    break;
-                case Wat2Wasm:
-                    prepareWat2Wasm();
-                    processBuilder = nodeJsCommand( wat2WasmScript );
-                    break;
-                default:
-                    throw new IllegalStateException( script.toString() );
-            }
+            processBuilder = createCommand( script );
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
             String result = readStream( process.getInputStream() ).trim();

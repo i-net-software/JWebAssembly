@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.runtime;
 
 import java.util.ArrayList;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -64,6 +65,11 @@ public abstract class AbstractBaseTest {
      */
     protected String getMethod() {
         return method;
+    }
+
+    @Before
+    public void before() throws Exception {
+        wasm.before( script );
     }
 
     @Test
