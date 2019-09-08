@@ -18,7 +18,7 @@ package de.inetsoftware.jwebassembly.javascript;
 import de.inetsoftware.jwebassembly.api.annotation.Import;
 
 /**
- * Workaround for the missing GC feature of WebAssembly. This call add import functions to allocate the objects in the JavaScript host.
+ * Workaround/polyfill for the missing GC feature of WebAssembly. This call add import functions to allocate the objects in the JavaScript host.
  * 
  * @author Volker Berlin
  *
@@ -108,4 +108,7 @@ public abstract class NonGC {
 
     @Import( js = "(a,i,v) => a[i]" )
     native static Object array_get_anyref( Object[] array, int idx );
+
+    @Import( js = "(a,b) => a === b" )
+    native static Object ref_eq( Object a, Object b );
 }

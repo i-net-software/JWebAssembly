@@ -875,9 +875,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      */
     private void opIfCompareCondition( NumericOperator compareOp, CodeInputStream byteCode, int codePos, int lineNumber ) throws IOException {
         int offset = byteCode.readShort();
-        WasmNumericInstruction compare = new WasmNumericInstruction( compareOp, ValueType.i32, codePos, lineNumber );
+        WasmNumericInstruction compare = addNumericInstruction( compareOp, ValueType.i32, codePos, lineNumber );
         branchManager.addIfOperator( codePos, offset, byteCode.getLineNumber(), compare );
-        getInstructions().add( compare );
     }
 
     /**

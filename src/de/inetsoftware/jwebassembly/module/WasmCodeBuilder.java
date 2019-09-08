@@ -257,9 +257,15 @@ public abstract class WasmCodeBuilder {
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
+     * @return the added instruction
      */
-    protected void addNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmNumericInstruction( numOp, valueType, javaCodePos, lineNumber ) );
+    protected WasmNumericInstruction addNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos, int lineNumber ) {
+        WasmNumericInstruction numeric = new WasmNumericInstruction( numOp, valueType, javaCodePos, lineNumber );
+        instructions.add( numeric );
+        if( !useGC && numOp == NumericOperator.ref_eq ) {
+            functions.markAsNeeded( getNonGC( "ref_eq", lineNumber ), true );
+        }
+        return numeric;
     }
 
     /**
@@ -334,6 +340,26 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Get a non GC polyfill function.
+     * @param name the function name
+     * @param lineNumber the line number for a possible error
+     * @return the function name
+     */
+    private FunctionName getNonGC( String name, int lineNumber ) {
+        try {
+            ClassFile classFile = ClassFile.get( NonGC.class.getName().replace( '.', '/' ), getClass().getClassLoader() );
+            for( MethodInfo method : classFile.getMethods() ) {
+                if( name.equals( method.getName() ) ) {
+                    return new FunctionName( method );
+                }
+            }
+        } catch( IOException ex ) {
+            throw WasmException.create( ex, lineNumber );
+        }
+        throw new WasmException( "Not implemented NonGC polyfill function: " + name, lineNumber );
+    }
+
+    /**
      * Add an array operation to the instruction list as marker on the code position.
      * 
      * @param op
@@ -349,23 +375,12 @@ public abstract class WasmCodeBuilder {
         if( useGC ) {
             instructions.add( new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber ) );
         } else {
-            try {
-                if( type.getCode() >= 0 ) {
-                    type = ValueType.anyref;
-                }
-                String api = "array_" + op.toString().toLowerCase() + "_" + type;
-                ClassFile classFile = ClassFile.get( NonGC.class.getName().replace( '.', '/' ), getClass().getClassLoader() );
-                for( MethodInfo method : classFile.getMethods() ) {
-                    if( api.equals( method.getName() ) ) {
-                        FunctionName name = new FunctionName( method );
-                        addCallInstruction( name, javaCodePos, lineNumber );
-                        return;
-                    }
-                }
-            } catch( IOException ex ) {
-                throw WasmException.create( ex, lineNumber );
+            if( type.getCode() >= 0 ) {
+                type = ValueType.anyref;
             }
-            throw new WasmException( "Not implemented array op " + op + " for type " + type, lineNumber );
+            String api = "array_" + op.toString().toLowerCase() + "_" + type;
+            FunctionName name = getNonGC( api, lineNumber );
+            addCallInstruction( name, javaCodePos, lineNumber );
         }
     }
 
