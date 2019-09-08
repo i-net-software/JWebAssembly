@@ -1,5 +1,5 @@
-load( "spiderMonkey.wasm.js" );
-var wasm = read( "spiderMonkey.wasm", "binary" ); // https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Shell_global_objects
+load( "{test.wasm}.js" );
+var wasm = read( "{test.wasm}", "binary" ); // https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Shell_global_objects
 var testData = JSON.parse( read( "testdata.json" ) );
 
 function callExport(instance) {
