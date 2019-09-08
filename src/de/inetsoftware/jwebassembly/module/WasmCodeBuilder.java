@@ -31,7 +31,6 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
-import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -54,6 +53,8 @@ public abstract class WasmCodeBuilder {
     private final List<WasmInstruction> instructions   = new ArrayList<>();
 
     private TypeManager                 types;
+
+    private FunctionManager             functions;
 
     private boolean                     useGC;
 
@@ -84,12 +85,15 @@ public abstract class WasmCodeBuilder {
      * 
      * @param types
      *            the type manager
+     * @param functions
+     *            the function manager
      * @param properties
      *            compiler properties
      */
-    void init( TypeManager types, HashMap<String, String> properties ) {
+    void init( TypeManager types, FunctionManager functions, HashMap<String, String> properties ) {
         this.localVariables.init( types );
         this.types = types;
+        this.functions = functions;
         this.useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
     }
 
@@ -380,6 +384,14 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addStructInstruction( StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmStructInstruction( op, typeName, fieldName, javaCodePos, lineNumber, types ) );
+        WasmStructInstruction structInst = new WasmStructInstruction( op, typeName, fieldName, javaCodePos, lineNumber, types );
+        instructions.add( structInst );
+        if( !useGC ) {
+            SyntheticFunctionName name = structInst.createNonGcFunction();
+            if( name != null ) {
+                functions.markAsNeeded( name, true );
+                functions.markAsImport( name, name.getAnnotation() );
+            }
+        }
     }
 }

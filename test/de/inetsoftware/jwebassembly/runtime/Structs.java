@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.runtime;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.ClassRule;
@@ -40,7 +41,10 @@ public class Structs extends AbstractBaseTest {
     @Parameters( name = "{0}-{1}" )
     public static Collection<Object[]> data() {
         ArrayList<Object[]> list = new ArrayList<>();
-        for( ScriptEngine script : ScriptEngine.testEngines() ) {
+        ScriptEngine[] engines = ScriptEngine.testEngines();
+        engines = Arrays.copyOf( engines, engines.length + 1 );
+        engines[engines.length - 1] = ScriptEngine.SpiderMonkeyGC;
+        for( ScriptEngine script : engines ) {
             addParam( list, script, "isNull" );
             addParam( list, script, "isNotNull" );
             addParam( list, script, "isSame" );
@@ -57,7 +61,7 @@ public class Structs extends AbstractBaseTest {
 
     @Test
     public void test() {
-        assumeTrue( getScriptEngine() == ScriptEngine.SpiderMonkey || getScriptEngine() == ScriptEngine.SpiderMonkeyWat );
+        assumeTrue( getScriptEngine() == ScriptEngine.SpiderMonkeyGC );
         super.test();
     }
 

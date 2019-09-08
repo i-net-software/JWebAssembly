@@ -47,7 +47,7 @@ class WatCodeSyntheticFunctionName extends SyntheticFunctionName {
      * {@inheritDoc}
      */
     @Override
-    boolean hasWasmCode() {
+    protected boolean hasWasmCode() {
         return true;
     }
 
@@ -55,7 +55,7 @@ class WatCodeSyntheticFunctionName extends SyntheticFunctionName {
      * {@inheritDoc}
      */
     @Override
-    public WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
+    protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
         watParser.parse( code, -1 );
         return watParser;
     }

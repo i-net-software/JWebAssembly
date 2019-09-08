@@ -28,7 +28,7 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
  * 
  * @author Volker Berlin
  */
-abstract class SyntheticFunctionName extends FunctionName {
+public abstract class SyntheticFunctionName extends FunctionName {
 
     private final AnyType[] signature;
 
@@ -60,7 +60,7 @@ abstract class SyntheticFunctionName extends FunctionName {
      * 
      * @return true, if WASM code
      */
-    abstract boolean hasWasmCode();
+    protected abstract boolean hasWasmCode();
 
     /**
      * Get the WasmCodeBuilder for the synthetic WASM code.
@@ -69,7 +69,7 @@ abstract class SyntheticFunctionName extends FunctionName {
      *            a helping WatParser
      * @return the code
      */
-    WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
+    protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
         return null;
     }
 
@@ -78,7 +78,7 @@ abstract class SyntheticFunctionName extends FunctionName {
      * 
      * @return the annotation
      */
-    Function<String, Object> getAnnotation() {
+    protected Function<String, Object> getAnnotation() {
         return null;
     }
 }

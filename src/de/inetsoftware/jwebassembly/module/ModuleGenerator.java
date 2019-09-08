@@ -94,8 +94,8 @@ public class ModuleGenerator {
         this.javaScript = new JavaScriptWriter( target );
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
         types.init( properties );
-        javaCodeBuilder.init( types, properties );
-        ((WasmCodeBuilder)watParser).init( types, properties );
+        javaCodeBuilder.init( types, functions, properties );
+        ((WasmCodeBuilder)watParser).init( types, functions, properties );
         scanLibraries( libraries );
     }
 

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -79,11 +80,13 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean                     isPrepared;
 
-    private HashSet<String>             globals          = new HashSet<>();
+    private HashMap<String,AnyType>     globals          = new HashMap<>();
 
     private boolean                     useExceptions;
 
     private boolean                     callIndirect;
+
+    private boolean                     useGC;
 
     /**
      * Create a new instance.
@@ -100,7 +103,8 @@ public class TextModuleWriter extends ModuleWriter {
         debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         output.append( "(module" );
         inset++;
-        if( spiderMonkey ) {
+        useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
+        if( spiderMonkey && useGC ) {
             output.append( " (gc_feature_opt_in 3)" ); // enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
         }
     }
@@ -116,6 +120,15 @@ public class TextModuleWriter extends ModuleWriter {
         }
 
         output.append( imports );
+
+        for( Entry<String, AnyType> entry : globals.entrySet() ) {
+            output.append( "\n  " );
+            output.append( "(global $" ).append( entry.getKey() ).append( " (mut " );
+            writeTypeName( output, entry.getValue() );
+            output.append( ')' );
+            writeDefaultValue( output, entry.getValue() );
+            output.append( ')' );
+        }
 
         for( Function func : functions.values() ) {
             output.append( func.output );
@@ -285,10 +298,12 @@ public class TextModuleWriter extends ModuleWriter {
      *             if any I/O error occur
      */
     private void writeTypeName( Appendable output, AnyType type ) throws IOException {
-        if( type.getCode() < 0 ) {
+        if( type instanceof ValueType ) {
             output.append( type.toString() );
-        } else {
+        } else if( useGC ) {
             output.append( "(ref " ).append( normalizeName( type.toString() ) ).append( ')' );
+        } else {
+            output.append( ValueType.anyref.toString() );
         }
     }
 
@@ -445,15 +460,9 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeGlobalAccess( boolean load, FunctionName name, AnyType type ) throws IOException {
         String fullName = normalizeName( name.fullName );
-        if( !globals.contains( fullName ) ) {
+        if( !globals.containsKey( fullName ) ) {
             // declare global variable if not already declared.
-            output.append( "\n  " );
-            output.append( "(global $" ).append( fullName ).append( " (mut " );
-            writeTypeName( output, type );
-            output.append( ')' );
-            writeDefaultValue( output, type );
-            output.append( ')' );
-            globals.add( fullName );
+            globals.put( fullName, type );
         }
         newline( methodOutput );
         methodOutput.append( load ? "global.get $" : "global.set $" ).append( fullName );

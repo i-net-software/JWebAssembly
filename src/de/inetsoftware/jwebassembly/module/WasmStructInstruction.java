@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -43,6 +44,8 @@ class WasmStructInstruction extends WasmInstruction {
 
     private final NamedStorageType fieldName;
 
+    private SyntheticFunctionName functionName;
+
     /**
      * Create an instance of numeric operation.
      * 
@@ -56,6 +59,8 @@ class WasmStructInstruction extends WasmInstruction {
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
+     * @param types
+     *            the type manager
      */
     WasmStructInstruction( @Nullable StructOperator op, @Nullable String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
         super( javaCodePos, lineNumber );
@@ -65,6 +70,34 @@ class WasmStructInstruction extends WasmInstruction {
         if( type != null && fieldName != null ) {
             type.useFieldName( fieldName );
         }
+    }
+
+    /**
+     * Create the synthetic polyfill function of this instruction for nonGC mode.
+     * 
+     * @return the function or null if not needed
+     */
+    SyntheticFunctionName createNonGcFunction() {
+        switch( op ) {
+            case NEW:
+            case NEW_DEFAULT:
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "new_" + getSciptTypeName(), () -> "{}", null, type );
+                break;
+            case SET:
+                AnyType type = fieldName.getType();
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + getSciptTypeName(), () -> "(a,i,v) => a[i]=v", type, null, null );
+                break;
+            case GET:
+                type = fieldName.getType();
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + getSciptTypeName(), () -> "(a,i) => a[i]", type, null, type );
+                break;
+            default:
+        }
+        return functionName;
+    }
+
+    private String getSciptTypeName() {
+        return type.getName().replace( '/', '_' );
     }
 
     /**
@@ -123,7 +156,12 @@ class WasmStructInstruction extends WasmInstruction {
                 }
             }
         }
-        writer.writeStructOperator( op, type, fieldName, idx );
+        if( functionName != null ) { // nonGC
+            //TODO idx
+            writer.writeFunctionCall( functionName );
+        } else {
+            writer.writeStructOperator( op, type, fieldName, idx );
+        }
     }
 
     /**
