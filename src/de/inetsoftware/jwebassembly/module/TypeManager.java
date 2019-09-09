@@ -37,6 +37,7 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Manage the written and to write types (classes)
@@ -54,16 +55,16 @@ public class TypeManager {
 
     private boolean                 isFinish;
 
-    private boolean                 useGC;
+    private WasmOptions             options;
 
     /**
      * Initialize the type manager.
      * 
-     * @param properties
+     * @param options
      *            compiler properties
      */
-    void init( HashMap<String, String> properties ) {
-        this.useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
+    void init( WasmOptions options ) {
+        this.options = options;
     }
 
     /**
@@ -206,7 +207,7 @@ public class TypeManager {
             methods = new ArrayList<>();
             HashSet<String> allNeededFields = new HashSet<>();
             listStructFields( name, functions, types, libraries, allNeededFields );
-            code = types.useGC ? writer.writeStructType( this ) : ValueType.anyref.getCode();
+            code = types.options.useGC() ? writer.writeStructType( this ) : ValueType.anyref.getCode();
         }
 
         /**

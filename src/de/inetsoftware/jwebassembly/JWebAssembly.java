@@ -40,6 +40,7 @@ import de.inetsoftware.jwebassembly.module.ModuleGenerator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * The main class of the compiler.
@@ -325,7 +326,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compile( ModuleWriter writer, WasmTarget target ) throws IOException, WasmException {
-        ModuleGenerator generator = new ModuleGenerator( writer, target, libraries, properties );
+        ModuleGenerator generator = new ModuleGenerator( writer, target, libraries, new WasmOptions( properties ) );
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             generator.prepare( classFile );

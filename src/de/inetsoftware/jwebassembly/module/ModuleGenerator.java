@@ -46,6 +46,7 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
@@ -84,18 +85,18 @@ public class ModuleGenerator {
      *            the target for the module data
      * @param libraries
      *            libraries 
-     * @param properties
+     * @param options
      *            compiler properties
      */
-    public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries, HashMap<String, String> properties ) {
+    public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries, WasmOptions options ) {
         this.javaCodeBuilder = new JavaMethodWasmCodeBuilder();
         this.watParser = new WatParser();
         this.writer = writer;
         this.javaScript = new JavaScriptWriter( target );
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
-        types.init( properties );
-        javaCodeBuilder.init( types, functions, properties );
-        ((WasmCodeBuilder)watParser).init( types, functions, properties );
+        types.init( options );
+        javaCodeBuilder.init( types, functions, options );
+        ((WasmCodeBuilder)watParser).init( types, functions, options );
         scanLibraries( libraries );
     }
 

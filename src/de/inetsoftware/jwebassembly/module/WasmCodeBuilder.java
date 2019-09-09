@@ -17,7 +17,6 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nonnegative;
@@ -28,7 +27,6 @@ import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
-import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
@@ -40,6 +38,7 @@ import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Base class for Code Building.
@@ -56,7 +55,7 @@ public abstract class WasmCodeBuilder {
 
     private FunctionManager             functions;
 
-    private boolean                     useGC;
+    private WasmOptions                 options;
 
     /**
      * Get the list of instructions
@@ -87,14 +86,14 @@ public abstract class WasmCodeBuilder {
      *            the type manager
      * @param functions
      *            the function manager
-     * @param properties
+     * @param options
      *            compiler properties
      */
-    void init( TypeManager types, FunctionManager functions, HashMap<String, String> properties ) {
+    void init( TypeManager types, FunctionManager functions, WasmOptions options ) {
         this.localVariables.init( types );
         this.types = types;
         this.functions = functions;
-        this.useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
+        this.options = options;
     }
 
     /**
@@ -262,7 +261,7 @@ public abstract class WasmCodeBuilder {
     protected WasmNumericInstruction addNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos, int lineNumber ) {
         WasmNumericInstruction numeric = new WasmNumericInstruction( numOp, valueType, javaCodePos, lineNumber );
         instructions.add( numeric );
-        if( !useGC && numOp == NumericOperator.ref_eq ) {
+        if( !options.useGC() && numOp == NumericOperator.ref_eq ) {
             functions.markAsNeeded( getNonGC( "ref_eq", lineNumber ), true );
         }
         return numeric;
@@ -372,7 +371,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos, int lineNumber ) {
-        if( useGC ) {
+        if( options.useGC() ) {
             instructions.add( new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber ) );
         } else {
             if( type.getCode() >= 0 ) {
@@ -401,7 +400,7 @@ public abstract class WasmCodeBuilder {
     protected void addStructInstruction( StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
         WasmStructInstruction structInst = new WasmStructInstruction( op, typeName, fieldName, javaCodePos, lineNumber, types );
         instructions.add( structInst );
-        if( !useGC ) {
+        if( !options.useGC() ) {
             SyntheticFunctionName name = structInst.createNonGcFunction();
             if( name != null ) {
                 functions.markAsNeeded( name, true );
