@@ -26,6 +26,8 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
  */
 public class WasmOptions {
 
+    private final boolean debugNames;
+
     private final boolean useGC;
 
     /**
@@ -35,7 +37,17 @@ public class WasmOptions {
      *            compiler properties
      */
     public WasmOptions( HashMap<String, String> properties ) {
+        debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
+    }
+
+    /**
+     * Property for adding debug names to the output if true.
+     * 
+     * @return true, add debug information
+     */
+    public boolean debugNames() {
+        return debugNames;
     }
 
     /**
