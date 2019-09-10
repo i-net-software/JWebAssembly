@@ -515,8 +515,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeNumericOperator( NumericOperator numOp, @Nullable ValueType valueType ) throws IOException {
-        newline( methodOutput );
-        String op = numOp.toString();
+        boolean negate = false;
+        String op = valueType.toString() + '.' + numOp.toString();
         switch( valueType ) {
             case i32:
             case i64:
@@ -530,25 +530,33 @@ public class TextModuleWriter extends ModuleWriter {
                         op += "_s";
                         break;
                     case ifnonnull:
-                        methodOutput.append( "ref.is_null" );
-                        writeNumericOperator( NumericOperator.eqz, ValueType.i32 );
-                        return;
+                        op = "ref.is_null";
+                        negate = true;
+                        break;
                     case ifnull:
-                        methodOutput.append( "ref.is_null" );
-                        return;
+                        op = "ref.is_null";
+                        break;
                     case ref_ne:
-                        methodOutput.append( "ref.eq" );
-                        writeNumericOperator( NumericOperator.eqz, ValueType.i32 );
-                        return;
+                        op = options.useGC() ? "ref.eq" : null;
+                        negate = true;
+                        break;
                     case ref_eq:
-                        methodOutput.append( "ref.eq" );
-                        return;
+                        op = options.useGC() ? "ref.eq" : null;
+                        break;
                     default:
                 }
                 break;
             default:
         }
-        methodOutput.append( valueType ).append( '.' ).append( op );
+        if( op != null ) {
+            newline( methodOutput );
+            methodOutput.append( op );
+        } else {
+            writeFunctionCall( options.ref_eq );
+        }
+        if( negate ) {
+            writeNumericOperator( NumericOperator.eqz, ValueType.i32 );
+        }
     }
 
     /**

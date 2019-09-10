@@ -262,7 +262,7 @@ public abstract class WasmCodeBuilder {
         WasmNumericInstruction numeric = new WasmNumericInstruction( numOp, valueType, javaCodePos, lineNumber );
         instructions.add( numeric );
         if( !options.useGC() && numOp == NumericOperator.ref_eq ) {
-            functions.markAsNeeded( getNonGC( "ref_eq", lineNumber ), true );
+            functions.markAsNeeded( options.ref_eq = getNonGC( "ref_eq", lineNumber ), true );
         }
         return numeric;
     }

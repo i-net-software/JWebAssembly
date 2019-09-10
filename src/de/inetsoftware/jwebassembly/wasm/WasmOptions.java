@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.wasm;
 import java.util.HashMap;
 
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.module.FunctionName;
 
 /**
  * The option/properties for the behavior of the compiler.
@@ -29,6 +30,11 @@ public class WasmOptions {
     private final boolean debugNames;
 
     private final boolean useGC;
+
+    /**
+     * NonGC function for ref_eq polyfill.
+     */
+    public FunctionName ref_eq;
 
     /**
      * Create a new instance of options
