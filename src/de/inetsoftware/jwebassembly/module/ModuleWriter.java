@@ -30,6 +30,7 @@ import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Module Writer base class.
@@ -37,6 +38,21 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  * @author Volker Berlin
  */
 public abstract class ModuleWriter implements Closeable {
+
+    /**
+     * The compiler options.
+     */
+    protected final WasmOptions options;
+
+    /**
+     * Create a instance with its options.
+     * 
+     * @param options
+     *            the compiler options
+     */
+    protected ModuleWriter( WasmOptions options ) {
+        this.options = options;
+    }
 
     /**
      * Finish the prepare after all classes/methods are prepare. This must be call before we can start with write the

@@ -25,7 +25,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -245,7 +244,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compileToText( WasmTarget target ) throws WasmException {
-        try (TextModuleWriter writer = new TextModuleWriter( target, properties )) {
+        try (TextModuleWriter writer = new TextModuleWriter( target, new WasmOptions( properties ) )) {
             compile( writer, target );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
@@ -306,7 +305,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compileToBinary( WasmTarget target ) throws WasmException {
-        try (BinaryModuleWriter writer = new BinaryModuleWriter( target, properties )) {
+        try (BinaryModuleWriter writer = new BinaryModuleWriter( target, new WasmOptions( properties ) )) {
             compile( writer, target );
         } catch( Exception ex ) {
             throw WasmException.create( ex );
@@ -326,7 +325,7 @@ public class JWebAssembly {
      *             if any conversion error occurs
      */
     private void compile( ModuleWriter writer, WasmTarget target ) throws IOException, WasmException {
-        ModuleGenerator generator = new ModuleGenerator( writer, target, libraries, new WasmOptions( properties ) );
+        ModuleGenerator generator = new ModuleGenerator( writer, target, libraries );
         for( URL url : classFiles ) {
             ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
             generator.prepare( classFile );

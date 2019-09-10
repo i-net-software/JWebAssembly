@@ -85,15 +85,14 @@ public class ModuleGenerator {
      *            the target for the module data
      * @param libraries
      *            libraries 
-     * @param options
-     *            compiler properties
      */
-    public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries, WasmOptions options ) {
+    public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries ) {
         this.javaCodeBuilder = new JavaMethodWasmCodeBuilder();
         this.watParser = new WatParser();
         this.writer = writer;
         this.javaScript = new JavaScriptWriter( target );
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
+        WasmOptions options = writer.options;
         types.init( options );
         javaCodeBuilder.init( types, functions, options );
         ((WasmCodeBuilder)watParser).init( types, functions, options );

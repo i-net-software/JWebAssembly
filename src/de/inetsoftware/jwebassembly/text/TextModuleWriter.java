@@ -28,7 +28,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
@@ -43,6 +42,7 @@ import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Module Writer for text format with S-expressions.
@@ -55,8 +55,6 @@ public class TextModuleWriter extends ModuleWriter {
     private final boolean               spiderMonkey     = Boolean.getBoolean( "SpiderMonkey" );
 
     private Appendable                  output;
-
-    private final boolean               debugNames;
 
     private final ByteArrayOutputStream dataStream       = new ByteArrayOutputStream();
 
@@ -86,25 +84,25 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean                     callIndirect;
 
-    private boolean                     useGC;
+    private WasmOptions                 options;
 
     /**
      * Create a new instance.
      * 
      * @param target
      *            target for the result
-     * @param properties
+     * @param options
      *            compiler properties
      * @throws IOException
      *             if any I/O error occur
      */
-    public TextModuleWriter( WasmTarget target, HashMap<String, String> properties ) throws IOException {
+    public TextModuleWriter( WasmTarget target, WasmOptions options ) throws IOException {
+        super( options );
         this.output = target.getTextOutput();
-        debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         output.append( "(module" );
         inset++;
-        useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
-        if( spiderMonkey && useGC ) {
+        this.options = options;
+        if( spiderMonkey && options.useGC() ) {
             output.append( " (gc_feature_opt_in 3)" ); // enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
         }
     }
@@ -191,7 +189,7 @@ public class TextModuleWriter extends ModuleWriter {
         for( NamedStorageType field : type.getFields() ) {
             newline( output );
             output.append( "(field" );
-            if( debugNames && field.getName() != null ) {
+            if( options.debugNames() && field.getName() != null ) {
                 output.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
             }
             output.append( " (mut " );
@@ -300,7 +298,7 @@ public class TextModuleWriter extends ModuleWriter {
     private void writeTypeName( Appendable output, AnyType type ) throws IOException {
         if( type instanceof ValueType ) {
             output.append( type.toString() );
-        } else if( useGC ) {
+        } else if( options.useGC() ) {
             output.append( "(ref " ).append( normalizeName( type.toString() ) ).append( ')' );
         } else {
             output.append( ValueType.anyref.toString() );
@@ -330,7 +328,7 @@ public class TextModuleWriter extends ModuleWriter {
             return;
         }
         methodOutput.append( '(' ).append( kind );
-        if( debugNames ) { 
+        if( options.debugNames() ) { 
             if( name != null ) {
                 methodOutput.append( " $" ).append( name );
             }

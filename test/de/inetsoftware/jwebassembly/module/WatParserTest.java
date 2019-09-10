@@ -28,6 +28,7 @@ import org.junit.Test;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.binary.BinaryModuleWriter;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
@@ -36,11 +37,13 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
 public class WatParserTest {
 
     private void test( String wat ) throws IOException {
+        WasmOptions options = new WasmOptions( new HashMap<>() );
         WatParser parser = new WatParser();
-        parser.parse( wat, 100 );
         WasmCodeBuilder codeBuilder = parser;
+        codeBuilder.init( null, null, options );
+        parser.parse( wat, 100 );
         StringBuilder builder = new StringBuilder();
-        ModuleWriter writer = new TextModuleWriter( new WasmTarget( builder ), new HashMap<>() );
+        ModuleWriter writer = new TextModuleWriter( new WasmTarget( builder ), options );
         writer.writeMethodStart( new FunctionName( "A.a()V" ), null );
         for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
             instruction.writeTo( writer );
@@ -52,7 +55,7 @@ public class WatParserTest {
         assertEquals( expected, actual );
 
         // smoke test of the binary writer
-        writer = new BinaryModuleWriter( new WasmTarget( builder ), new HashMap<>() );
+        writer = new BinaryModuleWriter( new WasmTarget( builder ), new WasmOptions( new HashMap<>() ) );
         writer.writeMethodStart( new FunctionName( "A.a()V" ), null );
         for( WasmInstruction instruction : codeBuilder.getInstructions() ) {
             instruction.writeTo( writer );

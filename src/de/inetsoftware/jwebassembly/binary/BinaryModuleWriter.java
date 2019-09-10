@@ -45,6 +45,7 @@ import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Module Writer for binary format. http://webassembly.org/docs/binary-encoding/
@@ -60,8 +61,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     private WasmTarget                  target;
 
     private WasmOutputStream            wasm;
-
-    private final boolean               debugNames;
 
     private final boolean               createSourceMap;
 
@@ -96,15 +95,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * 
      * @param target
      *            the target for the module data.
-     * @param properties
+     * @param options
      *            compiler properties
      * @throws IOException
      *             if any I/O error occur
      */
-    public BinaryModuleWriter( WasmTarget target, HashMap<String, String> properties ) throws IOException {
+    public BinaryModuleWriter( WasmTarget target, WasmOptions options ) throws IOException {
+        super( options );
         this.target = target;
         // for now we build the source map together with debug names
-        debugNames = createSourceMap = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
+        createSourceMap = options.debugNames();
     }
 
     /**
@@ -351,7 +351,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      *             if any I/O error occur
      */
     private void writeDebugNames() throws IOException {
-        if( !debugNames ) {
+        if( !options.debugNames() ) {
             return;
         }
         WasmOutputStream stream = new WasmOutputStream();
@@ -541,7 +541,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 locals.add( valueType );
                 break;
         }
-        if( debugNames && name != null ) {
+        if( options.debugNames() && name != null ) {
             if( function.paramNames == null ) {
                 function.paramNames = new ArrayList<>();
             }
