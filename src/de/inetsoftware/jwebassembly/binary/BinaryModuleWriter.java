@@ -116,7 +116,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         wasm.write( WASM_BINARY_MAGIC );
         wasm.writeInt32( WASM_BINARY_VERSION );
 
-        if( Boolean.getBoolean( "SpiderMonkey" ) ) {
+        if( options.useGC() && Boolean.getBoolean( "SpiderMonkey" ) ) {
             // Section 42, enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
             wasm.writeVaruint32( 42 );
             wasm.writeVaruint32( 1 );
@@ -967,10 +967,19 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 op = I32_EQZ;
                 break;
             case ref_eq:
-                op = REF_EQ;
+                if( options.useGC() ) {
+                    op = REF_EQ;
+                } else {
+                    writeFunctionCall( options.ref_eq );
+                    return;
+                }
                 break;
             case ref_ne:
-                codeStream.writeOpCode( REF_EQ );
+                if( options.useGC() ) {
+                    codeStream.writeOpCode( REF_EQ );
+                } else {
+                    writeFunctionCall( options.ref_eq );
+                }
                 op = I32_EQZ;
                 break;
             case sqrt:
