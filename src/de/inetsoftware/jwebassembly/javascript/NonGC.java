@@ -110,5 +110,5 @@ public abstract class NonGC {
     native static Object array_get_anyref( Object[] array, int idx );
 
     @Import( js = "(a,b) => a === b" )
-    native static Object ref_eq( Object a, Object b );
+    native static int ref_eq( Object a, Object b );
 }
