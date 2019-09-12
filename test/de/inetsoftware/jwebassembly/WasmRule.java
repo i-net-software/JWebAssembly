@@ -70,6 +70,8 @@ public class WasmRule extends TemporaryFolder {
 
     private File                      spiderMonkeyScriptGC;
 
+    private File                      spiderMonkeyScriptWatGC;
+
     private File                      nodeWatScript;
 
     private File                      spiderMonkeyWatScript;
@@ -405,6 +407,8 @@ public class WasmRule extends TemporaryFolder {
                 return spiderMonkeyCommand( false, false );
             case SpiderMonkeyGC:
                 return spiderMonkeyCommand( true, true );
+            case SpiderMonkeyWatGC:
+                return spiderMonkeyCommand( false, true );
             case NodeJS:
                 return nodeJsCommand( nodeScript );
             case NodeWat:
@@ -495,28 +499,39 @@ public class WasmRule extends TemporaryFolder {
         try {
             System.setProperty( "SpiderMonkey", "true" );
             if( gc ) {
-                if( spiderMonkeyScriptGC == null ) {
-                    File file = newFile( "spiderMonkeyGC.wasm" );
-                    compiler.setProperty( JWebAssembly.WASM_USE_GC, "true" );
-                    compiler.compileToBinary( file );
-                    spiderMonkeyScriptGC = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                if( binary ) {
+                    if( spiderMonkeyScriptGC == null ) {
+                        File file = newFile( "spiderMonkeyGC.wasm" );
+                        compiler.setProperty( JWebAssembly.WASM_USE_GC, "true" );
+                        compiler.compileToBinary( file );
+                        spiderMonkeyScriptGC = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                    }
+                    script = spiderMonkeyScriptGC;
+                } else {
+                    if( spiderMonkeyScriptWatGC == null ) {
+                        File file = newFile( "spiderMonkeyGC.wat" );
+                        compiler.setProperty( JWebAssembly.WASM_USE_GC, "true" );
+                        compiler.compileToText( file );
+                        spiderMonkeyScriptWatGC = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkeyGC" );
+                    }
+                    script = spiderMonkeyScriptWatGC;
                 }
-                script = spiderMonkeyScriptGC;
-
-            } else if( binary ) {
-                if( spiderMonkeyScript == null ) {
-                    File file = newFile( "spiderMonkey.wasm" );
-                    compiler.compileToBinary( file );
-                    spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
-                }
-                script = spiderMonkeyScript;
             } else {
-                if( spiderMonkeyWatScript == null ) {
-                    File file = newFile( "spiderMonkey.wat" );
-                    compiler.compileToText( file );
-                    spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test.wat}", file.getName() );
+                if( binary ) {
+                    if( spiderMonkeyScript == null ) {
+                        File file = newFile( "spiderMonkey.wasm" );
+                        compiler.compileToBinary( file );
+                        spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                    }
+                    script = spiderMonkeyScript;
+                } else {
+                    if( spiderMonkeyWatScript == null ) {
+                        File file = newFile( "spiderMonkey.wat" );
+                        compiler.compileToText( file );
+                        spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkey" );
+                    }
+                    script = spiderMonkeyWatScript;
                 }
-                script = spiderMonkeyWatScript;
             }
         } finally {
             compiler.setProperty( JWebAssembly.WASM_USE_GC, null );

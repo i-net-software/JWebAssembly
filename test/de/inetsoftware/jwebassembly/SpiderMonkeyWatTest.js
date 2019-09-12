@@ -1,5 +1,5 @@
-load( "spiderMonkey.wasm.js" );
-var wasm = wasmTextToBinary( read( "spiderMonkey.wat" ) );
+load( "{test}.wasm.js" );
+var wasm = wasmTextToBinary( read( "{test}.wat" ) );
 var testData = JSON.parse( read( "testdata.json" ) );
 
 function callExport(instance) {
