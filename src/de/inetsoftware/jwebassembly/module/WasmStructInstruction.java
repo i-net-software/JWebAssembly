@@ -84,12 +84,12 @@ class WasmStructInstruction extends WasmInstruction {
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC", "new_" + getSciptTypeName(), () -> "{}", null, type );
                 break;
             case SET:
-                AnyType type = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + getSciptTypeName(), () -> "(a,i,v) => a[i]=v", type, null, null );
+                AnyType fieldType = fieldName.getType();
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + fieldType, () -> "(a,i,v) => a[i]=v", ValueType.anyref, ValueType.i32, fieldType, null, null );
                 break;
             case GET:
-                type = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + getSciptTypeName(), () -> "(a,i) => a[i]", type, null, type );
+                fieldType = fieldName.getType();
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + fieldType, () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, fieldType );
                 break;
             default:
         }
