@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
@@ -1149,20 +1147,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeVirtualFunctionCall( FunctionName name, AnyType type, int virtualFunctionIdx, int tempVarIdx ) throws IOException {
+    protected void writeVirtualFunctionCall( FunctionName name, AnyType type ) throws IOException {
         callIndirect = true;
-
-        // duplicate this on the stack
-        writeLocal( VariableOperator.tee, tempVarIdx );
-        writeLocal( VariableOperator.get, tempVarIdx );
-
-        codeStream.writeOpCode( STRUCT_GET );
-        codeStream.writeValueType( type );
-        codeStream.writeVaruint32( 0 ); // vtable is ever on position 0
-
-        codeStream.writeOpCode( I32_LOAD );
-        codeStream.write( 2 ); // 32 alignment
-        codeStream.writeVaruint32( virtualFunctionIdx * 4 );
 
         Function func = getFunction( name );
         codeStream.writeOpCode( CALL_INDIRECT );
@@ -1326,5 +1312,15 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( fieldName != null ) {
             codeStream.writeVaruint32( idx );
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeLoadI32( int offset ) throws IOException {
+        codeStream.writeOpCode( I32_LOAD );
+        codeStream.write( 2 ); // 32 alignment
+        codeStream.writeVaruint32( offset );
     }
 }

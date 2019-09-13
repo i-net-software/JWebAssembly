@@ -656,18 +656,9 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeVirtualFunctionCall( FunctionName name, AnyType type, int virtualFunctionIdx, int tempVarIdx ) throws IOException {
+    protected void writeVirtualFunctionCall( FunctionName name, AnyType type ) throws IOException {
         callIndirect = true;
 
-        // duplicate this on the stack
-        writeLocal( VariableOperator.tee, tempVarIdx );
-        writeLocal( VariableOperator.get, tempVarIdx );
-
-        newline( methodOutput );
-        methodOutput.append( "struct.get " ).append( normalizeName( type.toString() ) ).append( " 0 ;;vtable" ); // vtable is ever on position 0
-        newline( methodOutput );
-        methodOutput.append( "i32.load offset=" ).append( virtualFunctionIdx * 4 ); // use default alignment
-        newline( methodOutput );
         if(spiderMonkey)
             methodOutput.append( "call_indirect $t" ).append( functions.get( name.signatureName ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
         else
@@ -819,5 +810,14 @@ public class TextModuleWriter extends ModuleWriter {
         if( fieldName != null ) {
             methodOutput.append(  ' ' ).append( idx ).append( " ;; $" ).append( normalizeName( fieldName.getName() ) );
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeLoadI32( int offset ) throws IOException {
+        newline( methodOutput );
+        methodOutput.append( "i32.load offset=" ).append( offset ); // use default alignment
     }
 }
