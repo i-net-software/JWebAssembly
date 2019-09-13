@@ -659,6 +659,7 @@ public class TextModuleWriter extends ModuleWriter {
     protected void writeVirtualFunctionCall( FunctionName name, AnyType type ) throws IOException {
         callIndirect = true;
 
+        newline( methodOutput );
         if(spiderMonkey)
             methodOutput.append( "call_indirect $t" ).append( functions.get( name.signatureName ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
         else
