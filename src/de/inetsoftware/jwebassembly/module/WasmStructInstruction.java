@@ -157,7 +157,9 @@ class WasmStructInstruction extends WasmInstruction {
             }
         }
         if( functionName != null ) { // nonGC
-            //TODO idx
+            if( fieldName != null ) {
+                writer.writeConst( idx, ValueType.i32 );
+            }
             writer.writeFunctionCall( functionName );
         } else {
             writer.writeStructOperator( op, type, fieldName, idx );

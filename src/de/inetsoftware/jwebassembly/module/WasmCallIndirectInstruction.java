@@ -20,10 +20,13 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
+import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * WasmInstruction for a function call.
@@ -44,6 +47,8 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
 
     private final LocaleVariableManager localVariables;
 
+    private final WasmOptions           options;
+
     /**
      * Create an instance of a function call instruction
      * 
@@ -59,11 +64,12 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      * @param types
      *            the type manager
      */
-    WasmCallIndirectInstruction( FunctionName name, LocaleVariableManager localVariables, int javaCodePos, int lineNumber, TypeManager types ) {
+    WasmCallIndirectInstruction( FunctionName name, LocaleVariableManager localVariables, int javaCodePos, int lineNumber, TypeManager types, WasmOptions options ) {
         super( name, javaCodePos, lineNumber, types );
         this.type = types.valueOf( name.className );
         this.tempVar = localVariables.getTempVariable( type, javaCodePos, javaCodePos + 1 );
         this.localVariables = localVariables;
+        this.options = options;
     }
 
     /**
@@ -97,7 +103,12 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
             writer.writeLocal( VariableOperator.tee, tempVarIdx );
             writer.writeLocal( VariableOperator.get, tempVarIdx );
 
-            writer.writeStructOperator( StructOperator.GET, type, new NamedStorageType( type, "", "vtable" ), 0 ); // vtable is ever on position 0
+            if( options.useGC() ) {
+                writer.writeStructOperator( StructOperator.GET, type, new NamedStorageType( type, "", "vtable" ), 0 ); // vtable is ever on position 0
+            } else {
+                writer.writeConst( 0, ValueType.i32 ); // vtable is ever on position 0
+                writer.writeFunctionCall( new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, ValueType.i32 ) );
+            }
             writer.writeLoadI32( virtualFunctionIdx * 4 );
             writer.writeVirtualFunctionCall( getFunctionName(), type );
         }
