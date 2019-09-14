@@ -180,6 +180,10 @@ public class TextModuleWriter extends ModuleWriter {
             dataStream.write( functIdx >>> 24 );
         }
 
+        if( !options.useGC() ) {
+            return ValueType.anyref.getCode();
+        }
+
         int oldInset = inset;
         inset = 1;
         newline( output );

@@ -207,7 +207,7 @@ public class TypeManager {
             methods = new ArrayList<>();
             HashSet<String> allNeededFields = new HashSet<>();
             listStructFields( name, functions, types, libraries, allNeededFields );
-            code = types.options.useGC() ? writer.writeStructType( this ) : ValueType.anyref.getCode();
+            code = writer.writeStructType( this );
         }
 
         /**

@@ -458,6 +458,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             dataStream.write( functIdx >>> 24 );
         }
 
+        if( !options.useGC() ) {
+            return ValueType.anyref.getCode();
+        }
+
         int typeId = functionTypes.size();
         functionTypes.add( new StructTypeEntry( type.getFields() ) );
         return typeId;
