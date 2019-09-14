@@ -81,11 +81,13 @@ class WasmStructInstruction extends WasmInstruction {
         switch( op ) {
             case NEW:
             case NEW_DEFAULT:
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "new_" + getSciptTypeName(), () -> "{}", null, type );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "new_" + type.getName().replace( '/', '_' ), () -> {
+                    return "() => {return {0:0}}"; //TODO default values of fields and then use Object.seal()
+                }, null, type );
                 break;
             case SET:
                 AnyType fieldType = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + fieldType, () -> "(a,i,v) => a[i]=v", ValueType.anyref, ValueType.i32, fieldType, null, null );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + fieldType, () -> "(a,v,i) => a[i]=v", ValueType.anyref, ValueType.i32, fieldType, null, null );
                 break;
             case GET:
                 fieldType = fieldName.getType();
@@ -94,10 +96,6 @@ class WasmStructInstruction extends WasmInstruction {
             default:
         }
         return functionName;
-    }
-
-    private String getSciptTypeName() {
-        return type.getName().replace( '/', '_' );
     }
 
     /**
