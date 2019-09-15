@@ -284,7 +284,7 @@ public class WasmRule extends TemporaryFolder {
         Process process = processBuilder.start();
         int exitCode = process.waitFor();
         if( exitCode != 0 ) {
-            fail( readStream( process.getErrorStream() ) );
+            fail( readStream( process.getErrorStream() ) + "\nExit code: " + exitCode + " from: " + processBuilder.command().get( 0 ) );
         }
     }
 
