@@ -22,7 +22,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -500,6 +499,9 @@ public class ModuleGenerator {
                         ((WasmCallInstruction)instruction).markAsNeeded( functions, false );
                         break;
                     case Struct:
+                        if( !writer.options.useGC() ) {
+                            break;
+                        }
                         WasmStructInstruction instr = (WasmStructInstruction)instruction;
                         if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
                             StructType structType = instr.getStructType();

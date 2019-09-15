@@ -82,7 +82,28 @@ class WasmStructInstruction extends WasmInstruction {
             case NEW:
             case NEW_DEFAULT:
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC", "new_" + type.getName().replace( '/', '_' ), () -> {
-                    return "() => {return {0:0}}"; //TODO default values of fields and then use Object.seal()
+                    // create the default values of a new type
+                    StringBuilder js = new StringBuilder("() => Object.seal({");
+                    List<NamedStorageType> list = type.getFields();
+                    for( int i = 0; i < list.size(); i++ ) {
+                        if( i > 0 ) {
+                            js.append( ',' );
+                        }
+                        js.append( i ).append( ':' );
+                        NamedStorageType storageType = list.get( i );
+                        if( TypeManager.VTABLE == storageType.getName() ) {
+                            js.append( type.getVTable() );
+                        } else {
+                            AnyType fieldType = storageType.getType();
+                            if( fieldType instanceof ValueType && fieldType != ValueType.anyref ) {
+                                js.append( '0' );
+                            } else {
+                                js.append( "null" );
+                            }
+                        }
+                    }
+                    js.append( "})" );
+                    return js.toString();
                 }, null, type );
                 break;
             case SET:

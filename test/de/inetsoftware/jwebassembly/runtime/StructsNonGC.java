@@ -50,7 +50,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "isNotSame" );
             addParam( list, script, "simple" );
             addParam( list, script, "callSuperMethod" );
-            //TODO addParam( list, script, "callVirtualMethod" );
+            addParam( list, script, "callVirtualMethod" );
             addParam( list, script, "useGlobalObject" );
             addParam( list, script, "multipleAssign" );
         }
