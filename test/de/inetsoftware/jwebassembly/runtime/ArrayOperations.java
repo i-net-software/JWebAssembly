@@ -43,8 +43,9 @@ public class ArrayOperations extends AbstractBaseTest {
         ArrayList<Object[]> list = new ArrayList<>();
 
         ScriptEngine[] engines = ScriptEngine.testEngines();
-        engines = Arrays.copyOf( engines, engines.length + 1 );
-        engines[engines.length - 1] = ScriptEngine.SpiderMonkeyGC;
+        engines = Arrays.copyOf( engines, engines.length + 2 );
+        engines[engines.length - 2] = ScriptEngine.SpiderMonkeyGC;
+        engines[engines.length - 1] = ScriptEngine.SpiderMonkeyWatGC;
         for( ScriptEngine script : engines ) {
             addParam( list, script, "length" );
             addParam( list, script, "loopByte" );
@@ -65,7 +66,7 @@ public class ArrayOperations extends AbstractBaseTest {
     public void test() {
         Assume.assumeFalse( (getScriptEngine().name().startsWith( "SpiderMonkey" ) )
                         && "loopLong".equals( getMethod() ) ); // TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1511958
-        Assume.assumeFalse( getScriptEngine() == ScriptEngine.SpiderMonkeyGC );
+        Assume.assumeFalse( getScriptEngine().name().endsWith( "GC" ) );
         super.test();
     }
 
