@@ -36,7 +36,7 @@ public class JavaScriptWriter {
     /** annotation attribute for the JavaScript content */
     static final String                      JAVA_SCRIPT_CONTENT = "js";
 
-    private Map<String, Map<String, String>> modules             = new HashMap<>();
+    private Map<String, Map<String, Function<String, Object>>> modules             = new HashMap<>();
 
     /**
      * Create a new instance
@@ -59,13 +59,12 @@ public class JavaScriptWriter {
      *            the other values of the annotation
      */
     public void addImport( String module, String name, Function<String, Object> annotationValues ) {
-        String content = (String)annotationValues.apply( JAVA_SCRIPT_CONTENT );
-        Map<String, String> moduleEntries = modules.get( module );
+        Map<String, Function<String, Object>> moduleEntries = modules.get( module );
         if( moduleEntries == null ) {
             modules.put( module, moduleEntries = new HashMap<>() );
         }
 
-        String old = moduleEntries.put( name, content );
+        Function<String, Object> old = moduleEntries.put( name, annotationValues );
         if( old != null ) {
             System.err.println( "Redefine JavaScript function: " + module + "." + name );
         }
@@ -96,15 +95,16 @@ public class JavaScriptWriter {
     void finish( Appendable out ) throws IOException {
         out.append( "'use strict';var wasmImports = {\n" );
         boolean isFirst = true;
-        for( Entry<String, Map<String, String>> module : modules.entrySet() ) {
+        for( Entry<String, Map<String, Function<String, Object>>> module : modules.entrySet() ) {
             if( !isFirst ) {
                 out.append( ",\n" );
             }
             out.append( module.getKey() ).append( ':' );
-            Map<String, String> functions = module.getValue();
+            Map<String, Function<String, Object>> functions = module.getValue();
 
             boolean hasContent = false;
-            for( String content : functions.values() ) {
+            for( Function<String, Object> annotationValues : functions.values() ) {
+                String content = (String)annotationValues.apply( JAVA_SCRIPT_CONTENT );
                 if( content != null && !content.isEmpty() ) {
                     hasContent = true;
                     break;
@@ -116,11 +116,12 @@ public class JavaScriptWriter {
 
                 // write the function
                 boolean isFirstFunc = true;
-                for( Entry<String, String> func : functions.entrySet() ) {
+                for( Entry<String, Function<String, Object>> func : functions.entrySet() ) {
                     if( !isFirstFunc ) {
                         out.append( ",\n" );
                     }
-                    out.append( func.getKey() ).append( ':' ).append( func.getValue() );
+                    String content = (String)func.getValue().apply( JAVA_SCRIPT_CONTENT );
+                    out.append( func.getKey() ).append( ':' ).append( content );
                     isFirstFunc = false;
                 }
 
