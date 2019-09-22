@@ -537,7 +537,11 @@ public class WasmRule extends TemporaryFolder {
             compiler.setProperty( JWebAssembly.WASM_USE_GC, null );
             System.clearProperty( "SpiderMonkey" );
         }
-        return new ProcessBuilder( spiderMonkey.getCommand(), "--wasm-gc", /*"--wasm-bigint",*/ script.getAbsolutePath() );
+        ProcessBuilder process = new ProcessBuilder( spiderMonkey.getCommand(), /*"--wasm-bigint",*/ script.getAbsolutePath() );
+        if( gc ) {
+            process.command().add( 1, "--wasm-gc" );
+        }
+        return process;
     }
 
     /**
