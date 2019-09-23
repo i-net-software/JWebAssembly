@@ -19,7 +19,6 @@ package de.inetsoftware.jwebassembly.module;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -27,6 +26,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.LocalVariable;
 import de.inetsoftware.classparser.LocalVariableTable;
+import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -78,8 +78,10 @@ class LocaleVariableManager {
      * 
      * @param variableTable
      *            variable table of the Java method.
+     * @param method
+     *            the method with signature as fallback for a missing variable table
      */
-    void reset( LocalVariableTable variableTable ) {
+    void reset( LocalVariableTable variableTable, MethodInfo method ) {
         size = 0;
 
         if( variableTable == null ) {
@@ -150,8 +152,24 @@ class LocaleVariableManager {
             var.name = findUniqueVarName( var.name );
         }
 
-        // add all missing slots that we can add self temporary variables
         int maxLocals = variableTable.getMaxLocals();
+
+        // add missing slots from signature
+        if( maxLocals > 0 && vars.length == 0 && method != null ) {
+            ValueTypeParser parser = new ValueTypeParser( method.getType(), types );
+            if( !method.isStatic() ) {
+                resetAddVar( ValueType.anyref );
+            }
+            while( size < maxLocals ) {
+                AnyType type = parser.next();
+                if( type == null ) {
+                    break;
+                }
+                resetAddVar( type );
+            }
+        }
+
+        // add all missing slots that we can add self temporary variables
         NEXT: for( int i = 0; i < maxLocals; i++ ) {
             for( int j = 0; j < size; j++ ) {
                 Variable var = variables[j];
@@ -159,15 +177,25 @@ class LocaleVariableManager {
                     continue NEXT;
                 }
             }
-            ensureCapacity( size + 1 );
-            Variable var = variables[size];
-            var.valueType = null;
-            var.name = null;
-            var.idx = i;
-            var.startPos = 0;
-            var.endPos = Integer.MAX_VALUE;
-            size++;
+            resetAddVar( null );
         }
+    }
+
+    /**
+     * Add a variable in the reset with range.
+     * 
+     * @param type
+     *            the type of the variable
+     */
+    private void resetAddVar( AnyType type ) {
+        ensureCapacity( size + 1 );
+        Variable var = variables[size];
+        var.valueType = type;
+        var.name = null;
+        var.idx = size;
+        var.startPos = 0;
+        var.endPos = Integer.MAX_VALUE;
+        size++;
     }
 
     /**

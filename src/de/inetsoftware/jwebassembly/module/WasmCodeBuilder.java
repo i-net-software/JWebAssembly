@@ -147,10 +147,12 @@ public abstract class WasmCodeBuilder {
      * 
      * @param variableTable
      *            variable table of the Java method.
+     * @param method
+     *            the method with signature as fallback for a missing variable table
      */
-    protected void reset( LocalVariableTable variableTable ) {
+    protected void reset( LocalVariableTable variableTable, MethodInfo method ) {
         instructions.clear();
-        localVariables.reset( variableTable );
+        localVariables.reset( variableTable, method );
     }
 
     /**

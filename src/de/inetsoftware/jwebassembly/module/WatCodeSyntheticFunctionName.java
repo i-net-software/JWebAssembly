@@ -56,7 +56,7 @@ class WatCodeSyntheticFunctionName extends SyntheticFunctionName {
      */
     @Override
     protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
-        watParser.parse( code, -1 );
+        watParser.parse( code, null, -1 );
         return watParser;
     }
 }

@@ -23,6 +23,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
@@ -44,10 +45,12 @@ public class WatParser extends WasmCodeBuilder {
      *            the text format content of a function
      * @param lineNumber
      *            the line number for an error message
+     * @param method
+     *            the method with signature as fallback for a missing variable table
      */
-    public void parse( String wat, int lineNumber ) {
+    public void parse( String wat, MethodInfo method, int lineNumber ) {
         try {
-            reset( null );
+            reset( null, method );
 
             List<String> tokens = splitTokens( wat );
             for( int i = 0; i < tokens.size(); i++ ) {

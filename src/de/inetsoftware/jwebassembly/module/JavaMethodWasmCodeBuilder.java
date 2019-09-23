@@ -25,6 +25,7 @@ import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
+import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -49,18 +50,19 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      * 
      * @param code
      *            the Java method code
-     * @param hasReturn
-     *            true, if the method has a return value; false, if it is void
+     * @param method
+     *            the method with signature as fallback for a missing variable table
      * @throws WasmException
      *             if some Java code can't converted
      */
-    void buildCode( @Nonnull Code code, boolean hasReturn ) {
+    void buildCode( @Nonnull Code code, MethodInfo method ) {
         CodeInputStream byteCode = null;
         try {
-            reset( code.getLocalVariableTable() );
+            reset( code.getLocalVariableTable(), method );
             branchManager.reset( code );
 
             byteCode = code.getByteCode();
+            boolean hasReturn = !method.getType().endsWith( ")V" );
             writeCode( byteCode, code.getConstantPool(), hasReturn );
             calculateVariables();
         } catch( Exception ioex ) {
