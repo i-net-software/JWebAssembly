@@ -158,14 +158,14 @@ class LocaleVariableManager {
         if( maxLocals > 0 && vars.length == 0 && method != null ) {
             ValueTypeParser parser = new ValueTypeParser( method.getType(), types );
             if( !method.isStatic() ) {
-                resetAddVar( ValueType.anyref );
+                resetAddVar( ValueType.anyref, size );
             }
             while( size < maxLocals ) {
                 AnyType type = parser.next();
                 if( type == null ) {
                     break;
                 }
-                resetAddVar( type );
+                resetAddVar( type, size );
             }
         }
 
@@ -177,7 +177,7 @@ class LocaleVariableManager {
                     continue NEXT;
                 }
             }
-            resetAddVar( null );
+            resetAddVar( null, i );
         }
     }
 
@@ -186,13 +186,15 @@ class LocaleVariableManager {
      * 
      * @param type
      *            the type of the variable
+     * @param slot
+     *            the slot of the variable
      */
-    private void resetAddVar( AnyType type ) {
+    private void resetAddVar( AnyType type, int slot ) {
         ensureCapacity( size + 1 );
         Variable var = variables[size];
         var.valueType = type;
         var.name = null;
-        var.idx = size;
+        var.idx = slot;
         var.startPos = 0;
         var.endPos = Integer.MAX_VALUE;
         size++;
