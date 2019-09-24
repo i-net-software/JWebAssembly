@@ -88,25 +88,25 @@ public abstract class NonGC {
     @Import( js = "(a,i,v) => a[i]=v" )
     native static void array_set_anyref( Object[] array, int idx, Object value );
 
-    @Import( js = "(a,i,v) => a[i]" )
+    @Import( js = "(a,i) => a[i]" )
     native static byte array_get_i8( byte[] array, int idx );
 
-    @Import( js = "(a,i,v) => a[i]" )
+    @Import( js = "(a,i) => a[i]" )
     native static short array_get_i16( short[] array, int idx );
 
-    @Import( js = "(a,i,v) => a[i]" )
+    @Import( js = "(a,i) => a[i]" )
     native static int array_get_i32( int[] array, int idx );
 
-    @Import( js = "(a,i,v) => a[i]" )
+    @Import( js = "(a,i) => a[i]" )
     native static long array_get_i64( long[] array, int idx );
 
-    @Import( js = "(a,i,v) => a[i]" )
+    @Import( js = "(a,i) => a[i]" )
     native static float array_get_f32( float[] array, int idx );
 
-    @Import( js = "(a,i,v) => a[i]" )
+    @Import( js = "(a,i) => a[i]" )
     native static double array_get_f64( double[] array, int idx );
 
-    @Import( js = "(a,i,v) => a[i]" )
+    @Import( js = "(a,i) => a[i]" )
     native static Object array_get_anyref( Object[] array, int idx );
 
     @Import( js = "(a,b) => a === b" )
