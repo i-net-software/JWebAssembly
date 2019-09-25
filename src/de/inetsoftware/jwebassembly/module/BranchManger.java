@@ -186,6 +186,14 @@ class BranchManger {
                                 convertToLoop( parsedBlock, conditionStart, conditionEnd );
                                 allParsedOperations.remove( n );
                                 ((IfParsedBlock)nextBlock).negateCompare();
+
+                                // if conditions that point at the end of the loop for optimization must now point at start.
+                                for( n = b - 1; n >= 0; n-- ) {
+                                    ParsedBlock prevBlock = allParsedOperations.get( n );
+                                    if( prevBlock.op == JavaBlockOperator.IF && prevBlock.endPosition == conditionStart ) {
+                                        prevBlock.endPosition = parsedBlock.startPosition;
+                                    }
+                                }
                                 break;
                             }
                             if( nextBlock.op == JavaBlockOperator.GOTO && nextBlock.endPosition == nextPos && n > 1 ) { // Eclipse loop with wide goto_w

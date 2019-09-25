@@ -70,6 +70,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifAndOr4" );
             addParam( list, script, "ifAndOr6" );
             addParam( list, script, "ifAndOr8" );
+            addParam( list, script, "ifWithoutElseAndLoop" );
         }
         rule.setTestParameters( list );
         return list;
@@ -448,6 +449,21 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 result = 76;
             }
             return result;
+        }
+
+        private static int ifWithoutElseAndLoop;
+
+        @Export
+        static int ifWithoutElseAndLoop() {
+            int n = 1;
+            // because some compiler (Eclipse) move the loop condition to the end of the loop. Then there can be an optimization that the if jump to the end of the loop.
+            if( ifWithoutElseAndLoop != 1 ) {
+                ifWithoutElseAndLoop = 1;
+            }
+            while( n < 10 ) {
+                ifWithoutElseAndLoop *= n++;
+            }
+            return ifWithoutElseAndLoop;
         }
     }
 }
