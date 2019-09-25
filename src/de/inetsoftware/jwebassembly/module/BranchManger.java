@@ -333,9 +333,6 @@ class BranchManger {
         BranchNode branch = null;
         for( ; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.nextPosition > positions.elsePos ) {
-                break;
-            }
             if( parsedBlock.nextPosition == positions.elsePos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
                 parsedOperations.remove( i );
                 // end position can not be outside of the parent
@@ -375,7 +372,9 @@ class BranchManger {
                 }
                 break;
             }
-
+            if( parsedBlock.nextPosition >= positions.elsePos ) {
+                break;
+            }
         }
 
         if( branch == null ) {
