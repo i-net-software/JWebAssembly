@@ -15,14 +15,10 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
-import static org.junit.Assume.assumeTrue;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
@@ -56,12 +52,6 @@ public class StructsNonGC extends AbstractBaseTest {
         }
         rule.setTestParameters( list );
         return list;
-    }
-
-    @Test
-    public void test() {
-        assumeTrue( getScriptEngine() != ScriptEngine.Wat2Wasm ); // fixed in next WABT version https://github.com/WebAssembly/wabt/issues/1160
-        super.test();
     }
 
     static class TestClass {
