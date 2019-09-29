@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.jwebassembly.JWebAssembly;
 
 /**
  * Manage the required function/methods
@@ -256,7 +257,10 @@ public class FunctionManager {
      *            the new implementation
      */
     void addReplacement( FunctionName name, MethodInfo method ) {
-        getOrCreate( name ).method = method;
+        FunctionState state = getOrCreate( name );
+        if( state.method == null ) { // ignore redefinition replacements and use the first instance in the library path
+            state.method = method;
+        }
     }
 
     /**
