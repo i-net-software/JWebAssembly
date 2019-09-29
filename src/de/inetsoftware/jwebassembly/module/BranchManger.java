@@ -1054,16 +1054,11 @@ class BranchManger {
             if( startBlock != null && startBlock.getOperation() == WasmBlockOperator.IF ) {
                 ArrayDeque<AnyType> stack = new ArrayDeque<>();
                 stack.push( ValueType.empty );
+                INSTRUCTIONS:
                 for( int i = startIdx; i < instructions.size(); i++ ) {
                     WasmInstruction instr = instructions.get( i );
                     int codePos = instr.getCodePosition();
                     if( codePos >= endPos ) {
-                        break;
-                    }
-                    if( instr.getType() == Type.Block && ((WasmBlockInstruction)instr).getOperation() == WasmBlockOperator.RETURN ) {
-                        while( stack.size() > 1 ) {
-                            stack.pop();
-                        }
                         break;
                     }
                     int popCount = instr.getPopCount();
@@ -1074,9 +1069,58 @@ class BranchManger {
                     if( pushValue != null ) {
                         stack.push( pushValue );
                     }
+
+                    if( instr.getType() == Type.Block ) {
+                        switch( ((WasmBlockInstruction)instr).getOperation() ) {
+                            case RETURN:
+                                // set "empty" block type
+                                while( stack.size() > 1 ) {
+                                    stack.pop();
+                                }
+                                break INSTRUCTIONS;
+                            case IF:
+                            case BLOCK:
+                            case LOOP:
+                                // skip the content of the block, important to not count ELSE blocks
+                                i = findEndInstruction( instructions, i );
+                                break;
+                        }
+                    }
                 }
                 startBlock.setData( stack.pop() );
             }
+        }
+
+        /**
+         * Find the END instruction of the block.
+         * 
+         * @param instructions
+         *            the list of instructions
+         * @param idx
+         *            the index of the block start
+         * @return the END index
+         */
+        private int findEndInstruction( List<WasmInstruction> instructions, int idx ) {
+            int count = 0;
+            for( ; idx < instructions.size(); idx++ ) {
+                WasmInstruction instr = instructions.get( idx );
+                if( instr.getType() == Type.Block ) {
+                    switch( ((WasmBlockInstruction)instr).getOperation() ) {
+                        case IF:
+                        case BLOCK:
+                        case LOOP:
+                            count++;
+                            break;
+                        case END:
+                            count--;
+                            break;
+                    }
+                }
+                if( count == 0 ) {
+                    break;
+                }
+            }
+            return idx;
         }
     }
 
