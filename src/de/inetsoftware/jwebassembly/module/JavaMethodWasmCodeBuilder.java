@@ -707,7 +707,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             byteCode.skip( 4 - padding );
         }
         startPosition--;
-        int switchValuestartPosition = findPreviousPushInstructionCodePosition();
+        int switchValuestartPosition = findPushInstructionCodePosition( 1 );
 
         int defaultPosition = startPosition + byteCode.readInt();
         int[] keys;
@@ -767,54 +767,6 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             }
         }
         branchManager.addSwitchOperator( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
-    }
-
-    /**
-     * We need one value from the stack inside of a block. We need to find the WasmInstruction on which the block can
-     * start. If this a function call or numeric expression this can be complex to find the right point.
-     * 
-     * @return the code position that push the last instruction
-     */
-    @Nonnull
-    private int findPreviousPushInstructionCodePosition() {
-        int valueCount = 0;
-        List<WasmInstruction> instructions = getInstructions();
-        for( int i = instructions.size() - 1; i >= 0; i-- ) {
-            WasmInstruction instr = instructions.get( i );
-            AnyType valueType = instr.getPushValueType();
-            if( valueType != null ) {
-                valueCount++;
-            }
-            valueCount -= instr.getPopCount();
-            if( valueCount == 1 ) {
-                return instr.getCodePosition();
-            }
-        }
-        throw new WasmException( "Start position not found", -1 ); // should never occur
-    }
-
-    /**
-     * We need the value type from the stack.
-     * 
-     * @param count
-     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
-     * @return the type of the last push value
-     */
-    @Nonnull
-    private AnyType findValueTypeFromStack( int count ) {
-        int valueCount = 0;
-        List<WasmInstruction> instructions = getInstructions();
-        for( int i = instructions.size() - 1; i >= 0; i-- ) {
-            WasmInstruction instr = instructions.get( i );
-            AnyType valueType = instr.getPushValueType();
-            if( valueType != null ) {
-                if( ++valueCount == count ) {
-                    return valueType;
-                }
-            }
-            valueCount -= instr.getPopCount();
-        }
-        throw new WasmException( "Push Value not found", -1 ); // should never occur
     }
 
     /**
