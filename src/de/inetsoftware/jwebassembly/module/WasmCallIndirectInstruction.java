@@ -40,12 +40,7 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
 
     private final StructType            type;
 
-    /**
-     * the slot of a temporary variable of type "type" to duplicate "this"
-     */
-    private final int                   tempVar;
-
-    private final LocaleVariableManager localVariables;
+    private int                         tempVarIdx;
 
     private final WasmOptions           options;
 
@@ -54,21 +49,18 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      * 
      * @param name
      *            the function name that should be called
-     * @param localVariables
-     *            the manager for local variables to translate the Java slot of the temporary variable into wasm local
-     *            position
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
      * @param types
      *            the type manager
+     * @param options
+     *            compiler properties
      */
-    WasmCallIndirectInstruction( FunctionName name, LocaleVariableManager localVariables, int javaCodePos, int lineNumber, TypeManager types, WasmOptions options ) {
+    WasmCallIndirectInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types, WasmOptions options ) {
         super( name, javaCodePos, lineNumber, types );
         this.type = types.valueOf( name.className );
-        this.tempVar = localVariables.getTempVariable( type, javaCodePos, javaCodePos + 1 );
-        this.localVariables = localVariables;
         this.options = options;
     }
 
@@ -81,12 +73,38 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
     }
 
     /**
+     * Get the type of this.
+     * 
+     * @return the type
+     */
+    StructType getThisType() {
+        return type;
+    }
+
+    /**
+     * Set the variable index on which this can be found.
+     * @param tempVarIdx the index
+     */
+    void setVariableIndexOfThis( int tempVarIdx ) {
+        this.tempVarIdx = tempVarIdx;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     void markAsNeeded( FunctionManager functions, boolean isStatic ) {
         super.markAsNeeded( functions, isStatic );
         virtualFunctionIdx = functions.getFunctionIndex( getFunctionName() );
+    }
+
+    /**
+     * if this call is executed virtual or if is was optimized.
+     * 
+     * @return true, virtual call
+     */
+    boolean isVirtual() {
+        return virtualFunctionIdx > 0;
     }
 
     /**
@@ -97,10 +115,7 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
         if( virtualFunctionIdx < 0 ) {
             super.writeTo( writer );
         } else {
-            int tempVarIdx = localVariables.get( tempVar, getCodePosition() );
-
             // duplicate this on the stack
-            writer.writeLocal( VariableOperator.tee, tempVarIdx );
             writer.writeLocal( VariableOperator.get, tempVarIdx );
 
             if( options.useGC() ) {

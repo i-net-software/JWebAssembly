@@ -37,6 +37,7 @@ import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
@@ -104,8 +105,21 @@ public abstract class WasmCodeBuilder {
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
      * @return the code position that push the last instruction
      */
-    @Nonnull
     int findPushInstructionCodePosition( int count ) {
+        return findPushInstruction( count, true );
+    }
+
+    /**
+     * We need one value from the stack inside of a block. We need to find the WasmInstruction on which the block can
+     * start. If this a function call or numeric expression this can be complex to find the right point.
+     * 
+     * @param count
+     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
+     * @param codePosition
+     *            true, get the code position; false, get the index in the instructions
+     * @return the code position that push the last instruction
+     */
+    private int findPushInstruction( int count, boolean codePosition ) {
         int valueCount = 0;
         List<WasmInstruction> instructions = this.instructions;
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
@@ -116,7 +130,7 @@ public abstract class WasmCodeBuilder {
             }
             valueCount -= instr.getPopCount();
             if( valueCount == count ) {
-                return instr.getCodePosition();
+                return codePosition ? instr.getCodePosition() : i;
             }
         }
         throw new WasmException( "Start position not found", -1 ); // should never occur
@@ -358,7 +372,24 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmCallIndirectInstruction( name, localVariables, javaCodePos, lineNumber, types, options ) );
+        WasmCallIndirectInstruction virtualCall = new WasmCallIndirectInstruction( name, javaCodePos, lineNumber, types, options );
+        int count = virtualCall.getPopCount();
+        int idx = findPushInstruction( count, false );
+        WasmInstruction instr = instructions.get( idx );
+        int varIndex = -1; 
+        if( instr.getType() == Type.Local ) {
+            WasmLocalInstruction local1 = (WasmLocalInstruction)instr;
+            if( local1.getOperator() == VariableOperator.get ) {
+                varIndex = local1.getIndex();
+            }
+        }
+        if( varIndex < 0 ) {
+            varIndex = getTempVariable( virtualCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
+            idx = findPushInstruction( count - 1, false );
+            instructions.add( idx, new DupThis( virtualCall, varIndex, javaCodePos ) );
+        }
+        virtualCall.setVariableIndexOfThis( varIndex );
+        instructions.add( virtualCall );
     }
 
     /**
