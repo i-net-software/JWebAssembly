@@ -42,8 +42,8 @@ public class Checksums extends AbstractBaseTest {
     public static Collection<Object[]> data() {
         ArrayList<Object[]> list = new ArrayList<>();
         for( ScriptEngine script : ScriptEngine.testEngines() ) {
-//            addParam( list, script, "crcUpdate" );
-            addParam( list, script, "crcUupdateBytes" );
+            addParam( list, script, "crcUpdate" );
+            addParam( list, script, "crcUpdateBytes" );
         }
         rule.setTestParameters( list );
         return list;
@@ -51,16 +51,15 @@ public class Checksums extends AbstractBaseTest {
 
     static class TestClass {
 
-        // TODO
-//        @Export
-//        static int crcUpdate() {
-//            CRC32 crc = new CRC32();
-//            crc.update( 42 );
-//            return (int)crc.getValue();
-//        }
+        @Export
+        static int crcUpdate() {
+            CRC32 crc = new CRC32();
+            crc.update( 42 );
+            return (int)crc.getValue();
+        }
 
         @Export
-        static int crcUupdateBytes() {
+        static int crcUpdateBytes() {
             CRC32 crc = new CRC32();
             byte[] a = new byte[1000];
             for( int i = 0; i < a.length; i++ ) {
