@@ -15,22 +15,22 @@ Status of the project
 
 The project is currently not production ready but you can run already some tests.
 
-### Finished Components
-* Java byte code parser
-* test framework
-* Public API of the Compiler
-* [Gradle Plugin](https://github.com/i-net-software/JWebAssembly-Gradle)
-
-### Partially Finished
-* Binary format file writer and Text format file writer (195 of 201 Java byte code instructions)
-* Support for native methods [#2](https://github.com/i-net-software/JWebAssembly/issues/2)
-* Exception handling - required the next version of WebAssembly
-* Multiple threads - required the next version of WebAssembly
-* Memory Management - required the next version of WebAssembly with GC
-* Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
-
-### Open Features
-* Library for accessing the DOM
+* [x] Java byte code parser
+* [x] test framework
+* [x] Public API of the Compiler see [class JWebAssembly](src/de/inetsoftware/jwebassembly/JWebAssembly.java)
+* [x] [Gradle Plugin](https://github.com/i-net-software/JWebAssembly-Gradle)
+* [x] Binary format file writer and Text format file writer (195 of 201 Java byte code instructions)
+* [x] Support for native methods [#2](https://github.com/i-net-software/JWebAssembly/issues/2)
+* [ ] Exception handling - required the next version of WebAssembly
+* [ ] Multiple threads - required the next version of WebAssembly
+* [x] Memory Management - currently with a polyfill on JavaScript side
+* [x] invoke static method calls
+* [x] invoke instance method calls
+* [ ] invoke interface method calls
+* [ ] invoke dynamic method calls
+* [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
+* [ ] Library for accessing the DOM
+* [ ] Hello World sample
 
 ### Status of Required WebAssembly Features
 The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly.
