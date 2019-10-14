@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2017 Volker Berlin (i-net software)
+   Copyright 2011 - 2019 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ public class ConstantPool {
                     break;
                 case 7: //CONSTANT_Class
                 case 8: //CONSTANT_String
+                case 19: // CONSTANT_Module
+                case 20: // CONSTANT_Package
                     pool[i] = new int[] { type, input.readUnsignedShort() };
                     break;
                 case 9: //CONSTANT_Fieldref
@@ -84,6 +86,8 @@ public class ConstantPool {
                             pool[i] = new ConstantClass( (String)pool[data[1]] );
                             break;
                         case 8: //CONSTANT_String
+                        case 19: // CONSTANT_Module
+                        case 20: // CONSTANT_Package
                             pool[i] = pool[data[1]];
                             break;
                         case 9: //CONSTANT_Fieldref
@@ -118,6 +122,13 @@ public class ConstantPool {
         } while( repeat );
     }
 
+    /**
+     * Get a object from the pool at the given index.
+     * 
+     * @param index
+     *            the index
+     * @return the object
+     */
     public Object get( int index ) {
         return constantPool[index];
     }
