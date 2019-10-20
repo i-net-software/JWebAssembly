@@ -16,7 +16,7 @@ function callExport(instance) {
     var result = {};
     for (var method in testData) {
         try{
-            result[method] = instance.exports[method]( ...testData[method] ).toString();
+            result[method] = String(instance.exports[method]( ...testData[method] ));
         }catch(err){
             result[method] = err.toString();
         }
