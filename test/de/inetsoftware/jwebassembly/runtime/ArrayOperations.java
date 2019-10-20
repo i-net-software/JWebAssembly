@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.runtime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.zip.CRC32;
 
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -56,6 +57,8 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "loopFloat" );
             addParam( list, script, "loopDouble" );
             addParam( list, script, "loopObject" );
+            addParam( list, script, "copyBack2Front" );
+            addParam( list, script, "copyFront2Back" );
         }
         rule.setTestParameters( list );
         return list;
@@ -155,6 +158,32 @@ public class ArrayOperations extends AbstractBaseTest {
                 sum++;
             }
             return sum;
+        }
+
+        @Export
+        static double copyBack2Front() {
+            byte[] a = new byte[50];
+            for( int i = 0; i < a.length; i++ ) {
+                a[i] = (byte)i;
+            }
+
+            System.arraycopy( a, 20, a, 15, 10 );
+            CRC32 crc = new CRC32();
+            crc.update( a );
+            return crc.getValue();
+        }
+
+        @Export
+        static double copyFront2Back() {
+            byte[] a = new byte[50];
+            for( int i = 0; i < a.length; i++ ) {
+                a[i] = (byte)i;
+            }
+
+            System.arraycopy( a, 15, a, 20, 10 );
+            CRC32 crc = new CRC32();
+            crc.update( a );
+            return crc.getValue();
         }
     }
 }
