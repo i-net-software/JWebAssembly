@@ -375,14 +375,25 @@ public class WasmRule extends TemporaryFolder {
                 expected = new Integer( ((Boolean)expected) ? 1 : 0 );
             }
 
-            String actual = evalWasm( script, methodName, params );
+            Object actual;
+            String actualStr = evalWasm( script, methodName, params );
             if( expected instanceof Double ) { // handle different string formating of double values
-                assertEquals( actual, expected, Double.valueOf( actual ) );
+                try {
+                    actual = Double.valueOf( actualStr );
+                } catch( NumberFormatException ex ) {
+                    actual = actualStr;
+                }
             } else if( expected instanceof Float ) { // handle different string formating of float values
-                assertEquals( actual, expected, Float.valueOf( actual ) );
+                try {
+                    actual = Float.valueOf( actualStr );
+                } catch( NumberFormatException ex ) {
+                    actual = actualStr;
+                }
             } else {
-                assertEquals( String.valueOf( expected ), actual );
+                expected = String.valueOf( expected );
+                actual = actualStr;
             }
+            assertEquals( expected, actual );
         } catch( Throwable ex ) {
             failed = true;
             throwException( ex );
