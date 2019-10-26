@@ -108,7 +108,7 @@ class WasmStructInstruction extends WasmInstruction {
                 break;
             case SET:
                 AnyType fieldType = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + fieldType, () -> "(a,v,i) => a[i]=v", ValueType.anyref, ValueType.i32, fieldType, null, null );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + fieldType, () -> "(a,v,i) => a[i]=v", ValueType.anyref, fieldType, ValueType.i32, null, null );
                 break;
             case GET:
                 fieldType = fieldName.getType();
