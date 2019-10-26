@@ -27,8 +27,7 @@ public class ConstantPool {
     private final Object[] constantPool;
 
     /**
-     * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4
-     * http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#20080
+     * https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.4
      *
      * @param input
      *            the stream of the class
@@ -60,6 +59,7 @@ public class ConstantPool {
                     break;
                 case 7: //CONSTANT_Class
                 case 8: //CONSTANT_String
+                case 16: // CONSTANT_MethodType
                 case 19: // CONSTANT_Module
                 case 20: // CONSTANT_Package
                     pool[i] = new int[] { type, input.readUnsignedShort() };
@@ -68,7 +68,11 @@ public class ConstantPool {
                 case 10: //CONSTANT_Methodref
                 case 11: //CONSTANT_InterfaceMethodref
                 case 12: //CONSTANT_NameAndType
+                case 18: // CONSTANT_InvokeDynamic
                     pool[i] = new int[] { type, input.readUnsignedShort(), input.readUnsignedShort() };
+                    break;
+                case 15: // CONSTANT_MethodHandle
+                    pool[i] = new int[] { type, input.readUnsignedByte(), input.readUnsignedShort() };
                     break;
                 default:
                     throw new IOException( "Unknown constant pool type: " + type );
@@ -85,7 +89,8 @@ public class ConstantPool {
                         case 7: //CONSTANT_Class
                             pool[i] = new ConstantClass( (String)pool[data[1]] );
                             break;
-                        case 8: //CONSTANT_String
+                        case 8: // CONSTANT_String
+                        case 16: // CONSTANT_MethodType
                         case 19: // CONSTANT_Module
                         case 20: // CONSTANT_Package
                             pool[i] = pool[data[1]];
@@ -113,6 +118,12 @@ public class ConstantPool {
                             break;
                         case 12: //CONSTANT_NameAndType
                             pool[i] = new ConstantNameAndType( (String)pool[data[1]], (String)pool[data[2]] );
+                            break;
+                        case 15: // CONSTANT_MethodHandle
+                            pool[i] = pool[data[2]];
+                            break;
+                        case 18: // CONSTANT_InvokeDynamic
+                            pool[i] = new ConstantInvokeDynamic( data[1], (ConstantNameAndType)pool[data[2]] );
                             break;
                         default:
                             throw new IOException( "Unknown constant pool type: " + data[0] );
