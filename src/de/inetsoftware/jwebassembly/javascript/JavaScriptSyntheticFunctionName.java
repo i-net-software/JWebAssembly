@@ -19,7 +19,7 @@ package de.inetsoftware.jwebassembly.javascript;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import de.inetsoftware.jwebassembly.module.SyntheticFunctionName;
+import de.inetsoftware.jwebassembly.module.ArraySyntheticFunctionName;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 
 /**
@@ -28,7 +28,7 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  * @author Volker Berlin
  *
  */
-public class JavaScriptSyntheticFunctionName extends SyntheticFunctionName {
+public class JavaScriptSyntheticFunctionName extends ArraySyntheticFunctionName {
 
     private final Supplier<String> js;
 

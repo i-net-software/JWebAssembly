@@ -16,11 +16,8 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.function.Function;
 
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
@@ -29,8 +26,6 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
  * @author Volker Berlin
  */
 public abstract class SyntheticFunctionName extends FunctionName {
-
-    private final AnyType[] signature;
 
     /**
      * Create a new instance.
@@ -42,17 +37,8 @@ public abstract class SyntheticFunctionName extends FunctionName {
      * @param signature
      *            the method signature, first the parameters, then null and the the return types
      */
-    public SyntheticFunctionName( String className, String name, AnyType... signature ) {
-        super( className, name, "()V" ); //TODO better signature name
-        this.signature = signature;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Iterator<AnyType> getSignature( TypeManager types ) {
-        return Arrays.asList( signature ).iterator();
+    public SyntheticFunctionName( String className, String name, String signature ) {
+        super( className, name, signature );
     }
 
     /**
