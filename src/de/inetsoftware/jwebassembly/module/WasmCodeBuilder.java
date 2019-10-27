@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -358,7 +359,35 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types ) );
+        WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types );
+
+        if( "<init>".equals( name.methodName ) ) {
+            Function<String, Object> importAnannotation = functions.getImportAnannotation( name );
+            if( importAnannotation != null ) {
+                // if there a JavaScript replacement for a constructor we need also replace the create instance instruction
+                List<WasmInstruction> instructions = this.instructions;
+                for( int i = instructions.size() - 1; i >= 0; i-- ) {
+                    WasmInstruction instr = instructions.get( i );
+                    if( instr.getType() == Type.Struct ) {
+                        WasmStructInstruction struct = (WasmStructInstruction)instr;
+                        if( struct.getOperator() == StructOperator.NEW_DEFAULT ) {
+                            instructions.remove( i ); // NEW_DEFAULT
+                            instructions.remove( i ); // SET temp from a dup of the instance reference
+                            instructions.remove( i ); // GET temp from a dup of the instance reference
+                            instructions.remove( i ); // GET temp from a dup of the instance reference
+                            break;
+                        }
+                    }
+                }
+                // The new signature need a return value. The <init> of Java has ever a void return value
+                String signature = name.signature;
+                signature = signature.substring( 0, signature.length() - 1 ) + "Ljava/lang/Object;";
+                FunctionName name2 = new ImportSyntheticFunctionName( "String", "init", signature, importAnannotation );
+                instruction = new WasmCallInstruction( name2, javaCodePos, lineNumber, types );
+            }
+        }
+
+        instructions.add( instruction );
     }
 
     /**
