@@ -15,7 +15,6 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,7 +25,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.MethodInfo;
-import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.WasmException;
 
 /**
  * Manage the required function/methods
@@ -35,13 +34,15 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
  */
 public class FunctionManager {
 
-    private Map<FunctionName, FunctionState> states = new LinkedHashMap<>();
+    private final Map<FunctionName, FunctionState> states = new LinkedHashMap<>();
+
+    private boolean isFinish;
 
     /**
      * Finish the prepare. Now no new function should be added. 
      */
     void prepareFinish() {
-        states = Collections.unmodifiableMap( states );
+        isFinish = true;
     }
 
     /**
@@ -118,6 +119,9 @@ public class FunctionManager {
     FunctionName markAsNeeded( FunctionName name, boolean isStatic ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
+            if( isFinish ) {
+                throw new WasmException( "Prepare was already finish: " + name.signatureName, -1 );
+            }
             state.state = State.Needed;
         }
         state.isStatic = isStatic;
