@@ -27,6 +27,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -40,7 +42,9 @@ import org.junit.Assert;
  */
 class Wat2Wasm {
 
-    private String command;
+    private String      command;
+
+    private IOException error;
 
     /**
      * Check if there is a new version of the script engine
@@ -77,9 +81,9 @@ class Wat2Wasm {
         System.out.println( "\tDownload: " + url );
 
         conn = (HttpURLConnection)url.openConnection();
-        if( target.exists() ) {
-            conn.setIfModifiedSince( target.lastModified() );
-        }
+//        if( target.exists() ) {
+//            conn.setIfModifiedSince( target.lastModified() );
+//        }
 
         input = conn.getInputStream();
         if( conn.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED ) {
@@ -113,7 +117,7 @@ class Wat2Wasm {
             file.setExecutable( true );
         } while( true );
 
-        target.setLastModified( lastModfied );
+//        target.setLastModified( lastModfied );
         System.out.println( "\tUse Version from " + Instant.ofEpochMilli( lastModfied ) );
     }
 
@@ -148,11 +152,26 @@ class Wat2Wasm {
      * @throws IOException
      *             if any I/O error occur 
      */
+    @Nonnull
     public String getCommand() throws IOException {
+        if( error != null ) {
+            throw error;
+        }
         if( command == null ) {
-            File target = new File( System.getProperty( "java.io.tmpdir" ) + "/wabt" );
-            download( target );
-            searchExecuteable( target );
+            try {
+                File target = new File( System.getProperty( "java.io.tmpdir" ) + "/wabt" );
+                searchExecuteable( target );
+                if( command == null ) {
+                    download( target );
+                    searchExecuteable( target );
+                    if( command == null ) {
+                        throw new IOException("Wabt was not download or sved to: " + target );
+                    }
+                }
+            } catch( IOException ex ) {
+                error = ex;
+                throw ex;
+            }
         }
         return command;
     }
