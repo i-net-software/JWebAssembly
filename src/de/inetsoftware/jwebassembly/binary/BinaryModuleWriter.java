@@ -194,16 +194,19 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      *             if any I/O error occur
      */
     private void writeMemorySection() throws IOException {
-        WasmOutputStream stream = new WasmOutputStream();
-        int pages = (dataStream.size() + 0xFFFF) / 0x10000; // a page is defined with a size of 64KiB
-        int count = 1;
-        stream.writeVaruint32( count );
-        for( int i = 0; i < count; i++ ) {
-            stream.writeVaruint32( 1 ); // flags; 1-maximum is available, 0-no maximum value available
-            stream.writeVaruint32( pages ); // initial length
-            stream.writeVaruint32( pages ); // maximum length
+        int dataSize = dataStream.size();
+        if( dataSize > 0 ) {
+            WasmOutputStream stream = new WasmOutputStream();
+            int pages = (dataSize + 0xFFFF) / 0x10000; // a page is defined with a size of 64KiB
+            int count = 1;
+            stream.writeVaruint32( count );
+            for( int i = 0; i < count; i++ ) {
+                stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
+                stream.writeVaruint32( pages ); // initial length
+                //stream.writeVaruint32( pages ); // maximum length
+            }
+            wasm.writeSection( SectionType.Memory, stream );
         }
-        wasm.writeSection( SectionType.Memory, stream );
     }
 
     /**
