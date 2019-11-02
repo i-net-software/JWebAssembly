@@ -2,7 +2,15 @@ load( "{test}.wasm.js" );
 var wasm = wasmTextToBinary( read( "{test}.wat" ) );
 var testData = JSON.parse( read( "testdata.json" ) );
 
-function callExport(instance) {
+// save the test result
+function saveResults(result) {
+    const original = redirect( "testresult.json" );
+    putstr( JSON.stringify(result) );
+    redirect( original );
+}
+
+function callExport( instance, wasmImports ) {
+    wasmImports.exports = instance.exports;
     var result = {};
     for (var method in testData) {
         try{
@@ -11,13 +19,10 @@ function callExport(instance) {
             result[method] = err.toString();
         }
     }
-    // save the test result
-    const original = redirect( "testresult.json" );
-    putstr( JSON.stringify(result) );
-    redirect( original );
+    saveResults(result);
 }
 
 WebAssembly.instantiate( wasm, wasmImports ).then(
-  obj => callExport(obj.instance),
+  obj => callExport( obj.instance, wasmImports ),
   reason => console.log(reason)
 );
