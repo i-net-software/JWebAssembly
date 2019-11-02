@@ -178,7 +178,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         int count = 1;
         stream.writeVaruint32( count ); // count of tables
         for( int i = 0; i < count; i++ ) {
-            stream.writeValueType( ValueType.anyfunc ); // the type of elements
+            stream.writeValueType( ValueType.funcref ); // the type of elements
             stream.writeVaruint32( 1 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( elemCount ); // initial length
             stream.writeVaruint32( elemCount ); // maximum length
