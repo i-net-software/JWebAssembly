@@ -206,6 +206,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 //stream.writeVaruint32( pages ); // maximum length
             }
             wasm.writeSection( SectionType.Memory, stream );
+
+            // export the memory with the name "memory"
+            exports.add( new ExportEntry( "memory", ExternalKind.Memory, 0 ) );
         }
     }
 
