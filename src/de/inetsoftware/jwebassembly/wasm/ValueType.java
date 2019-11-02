@@ -23,8 +23,9 @@ public enum ValueType implements AnyType {
     i64(-0x02),
     f32(-0x03),
     f64(-0x04),
-    i8(-0x05), //TODO dummy value for https://github.com/WebAssembly/gc
-    i16(-0x06), //TODO dummy value for https://github.com/WebAssembly/gc
+    v128(-0x05),
+    i8(-0x06), //TODO dummy value for https://github.com/WebAssembly/gc
+    i16(-0x07), //TODO dummy value for https://github.com/WebAssembly/gc
     funcref(-0x10),
     anyref(-0x11),
     ref_type(-0x12 ), // 0x6E https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
