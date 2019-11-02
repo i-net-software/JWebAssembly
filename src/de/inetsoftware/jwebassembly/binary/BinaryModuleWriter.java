@@ -74,7 +74,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private Map<String, Global>         globals             = new LinkedHashMap<>();
 
-    private Map<String, String>         exports             = new LinkedHashMap<>();
+    private List<ExportEntry>           exports             = new ArrayList<>();
 
     private Map<String, ImportFunction> imports             = new LinkedHashMap<>();
 
@@ -129,7 +129,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeMemorySection();
         writeSection( SectionType.Global, globals.values() );
         writeEventSection();
-        writeExportSection();
+        writeSection( SectionType.Export, exports );
         writeElementSection();
         writeCodeSection();
         writeDataSection();
@@ -222,30 +222,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             stream.writeVaruint32( exceptionSignatureIndex );
 
             wasm.writeSection( SectionType.Event, stream );
-        }
-    }
-
-    /**
-     * Write the export section to the output. This section contains a mapping from the external index to the type signature index.
-     * 
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void writeExportSection() throws IOException {
-        int count = exports.size();
-        if( count > 0 ) {
-            WasmOutputStream stream = new WasmOutputStream();
-            stream.writeVaruint32( count );
-            for( Map.Entry<String,String> entry : exports.entrySet() ) {
-                String exportName = entry.getKey();
-                byte[] bytes = exportName.getBytes( StandardCharsets.UTF_8 );
-                stream.writeVaruint32( bytes.length );
-                stream.write( bytes );
-                stream.writeVaruint32( ExternalKind.Function.ordinal() );
-                int id = functions.get( entry.getValue() ).id;
-                stream.writeVaruint32( id );
-            }
-            wasm.writeSection( SectionType.Export, stream );
         }
     }
 
@@ -514,7 +490,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeExport( FunctionName name, String exportName ) throws IOException {
-        exports.put( exportName, name.signatureName );
+        exports.add( new ExportEntry( exportName, ExternalKind.Function, getFunction( name ).id ) );
     }
 
     /**
