@@ -20,9 +20,7 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.classparser.Member;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
-import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
  * WasmInstruction for set and get global variables.
@@ -70,6 +68,7 @@ class WasmGlobalInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         writer.writeGlobalAccess( load, name, type );
     }
@@ -77,6 +76,7 @@ class WasmGlobalInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     AnyType getPushValueType() {
         return load ? type : null;
     }

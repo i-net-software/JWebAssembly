@@ -96,6 +96,7 @@ class WasmLocalInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         int index = getIndex();
         writer.writeLocal( op, index );
@@ -104,6 +105,7 @@ class WasmLocalInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     AnyType getPushValueType() {
         return null;
     }
