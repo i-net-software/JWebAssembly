@@ -136,7 +136,7 @@ public class TextModuleWriter extends ModuleWriter {
             int count = functions.size();
             String countStr = Integer.toString( count );
             newline( output );
-            output.append( "(table " ).append( countStr ).append( ' ' ).append( countStr ).append( " anyfunc)" );
+            output.append( "(table " ).append( countStr ).append( ' ' ).append( countStr ).append( " funcref)" );
             newline( output );
             output.append( "(elem (i32.const 0) " );
             for( int i = 0; i < count; i++ ) {

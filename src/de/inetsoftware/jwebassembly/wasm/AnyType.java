@@ -20,7 +20,7 @@ package de.inetsoftware.jwebassembly.wasm;
  * <pre><code>
  * numtype ::= i32 | i64 | f32 | f64
  * packedtype ::= i8 | i16
- * reftype ::= anyref | anyfunc | nullref
+ * reftype ::= anyref | funcref | nullref
  * valtype ::= numtype | reftype
  * deftype ::= functype | structtype | arraytype
  * 
