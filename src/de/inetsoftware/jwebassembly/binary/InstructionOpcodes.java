@@ -104,6 +104,10 @@ interface InstructionOpcodes {
 
     static final int GLOBAL_SET        = 0x24;
 
+    static final int TABLE_GET         = 0x25;
+
+    static final int TABLE_SET         = 0x26;
+
     // === memory operations ===========
 
     static final int I32_LOAD          = 0x28;
@@ -456,6 +460,14 @@ interface InstructionOpcodes {
     static final int I64_TRUNC_SAT_F64_S    = 0xFC06;
 
     static final int I64_TRUNC_SAT_F64_U    = 0xFC07;
+
+    // === table opcodes ===== https://webassembly.github.io/reference-types/core/binary/instructions.html#table-instructions
+
+    static final int TABLE_GROW             = 0xFC0F;
+
+    static final int TABLE_SIZE             = 0xFC10;
+
+    static final int TABLE_FILL             = 0xFC11;
 
     // === GC opcodes (unofficial, experimental) ===== https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
 
