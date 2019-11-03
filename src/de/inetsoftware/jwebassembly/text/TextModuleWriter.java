@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -468,6 +469,15 @@ public class TextModuleWriter extends ModuleWriter {
         }
         newline( methodOutput );
         methodOutput.append( load ? "global.get $" : "global.set $" ).append( fullName );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeTable( boolean load, @Nonnegative int idx ) throws IOException {
+        newline( methodOutput );
+        methodOutput.append( load ? "table.get " : "table.set " ).append( idx );
     }
 
     /**

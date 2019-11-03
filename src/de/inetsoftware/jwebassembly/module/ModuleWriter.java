@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.Closeable;
 import java.io.IOException;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -195,7 +196,7 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeLocal( VariableOperator op, int idx ) throws IOException;
 
     /**
-     * Write a set_global variable
+     * Write a global variable operation
      * @param load
      *            true: if load or GET
      * @param name
@@ -207,6 +208,18 @@ public abstract class ModuleWriter implements Closeable {
      *             if any I/O error occur
      */
     protected abstract void writeGlobalAccess( boolean load, FunctionName name, AnyType type ) throws IOException;
+
+    /**
+     * Write a table operation.
+     * @param load
+     *            true: if "get" else "set"
+     * @param idx
+     *            the index of the table
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract void writeTable( boolean load, @Nonnegative int idx ) throws IOException;
 
     /**
      * Write the default/initial value for a type.

@@ -252,7 +252,7 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
-     * Create a WasmLoadStoreInstruction get_local/set_local.
+     * Create a WasmLoadStoreInstruction local.get/local.set.
      * 
      * @param load
      *            true: if load
@@ -284,6 +284,23 @@ public abstract class WasmCodeBuilder {
         FunctionName name = new FunctionName( ref );
         AnyType type = new ValueTypeParser( ref.getType(), types ).next();
         instructions.add( new WasmGlobalInstruction( load, name, type, javaCodePos, lineNumber ) );
+    }
+
+    /**
+     * Add a WasmTableInstruction table.get/table.set.
+     * 
+     * @param load
+     *            true: if load
+     * @param idx
+     *            the index of the table
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    @Nonnull
+    protected void addTableInstruction( boolean load, @Nonnegative int idx, int javaCodePos, int lineNumber ) {
+        instructions.add( new WasmTableInstruction( load, idx, javaCodePos, lineNumber ) );
     }
 
     /**
@@ -319,6 +336,7 @@ public abstract class WasmCodeBuilder {
                 strings.put( (String)value, id = strings.size() );
             }
             FunctionName name = getNonGC( "stringConstant", lineNumber );
+            instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
             addCallInstruction( name, javaCodePos, lineNumber );
         } else {
             instructions.add( new WasmConstInstruction( (Number)value, javaCodePos, lineNumber ) );

@@ -16,7 +16,6 @@
 package de.inetsoftware.jwebassembly.binary;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -646,6 +646,15 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         int op = load ? GLOBAL_GET : GLOBAL_SET;
         codeStream.writeOpCode( op );
         codeStream.writeVaruint32( var.id );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void writeTable( boolean load, @Nonnegative int idx ) throws IOException {
+        codeStream.writeOpCode( load ? TABLE_GET : TABLE_SET );
+        codeStream.writeVaruint32( idx );
     }
 
     /**

@@ -35,7 +35,7 @@ abstract class WasmInstruction {
      * Type of instruction to faster differ as with instanceof.
      */
     static enum Type {
-        Const, Convert, Local, Global, Block, Numeric, Nop, Call, CallIndirect, Array, Struct, DupThis;
+        Const, Convert, Local, Global, Table, Block, Numeric, Nop, Call, CallIndirect, Array, Struct, DupThis;
     }
 
     private int       javaCodePos;

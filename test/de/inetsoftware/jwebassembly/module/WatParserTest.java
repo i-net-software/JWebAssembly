@@ -280,6 +280,16 @@ public class WatParserTest {
     }
 
     @Test
+    public void table_get() throws IOException {
+        test( "table.get 1" );
+    }
+
+    @Test
+    public void table_set() throws IOException {
+        test( "table.set 2" );
+    }
+
+    @Test
     public void errorMissingToken() throws IOException {
         testError( "i32.const", "Missing Token in wasm text format after token: i32.const" );
     }

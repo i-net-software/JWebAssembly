@@ -171,6 +171,12 @@ public class WatParser extends WasmCodeBuilder {
                     case "f64.trunc":
                         addNumericInstruction( NumericOperator.trunc, ValueType.f64, javaCodePos, lineNumber );
                         break;
+                    case "table.get":
+                        addTableInstruction( true, getInt( tokens, ++i), javaCodePos, lineNumber );
+                        break;
+                    case "table.set":
+                        addTableInstruction( false, getInt( tokens, ++i), javaCodePos, lineNumber );
+                        break;
 //                    case "call":
 //                        addCallInstruction( method, javaCodePos );
 //                        break;
