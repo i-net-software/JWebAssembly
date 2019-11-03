@@ -17,7 +17,9 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.annotation.Nonnegative;
@@ -58,6 +60,8 @@ public abstract class WasmCodeBuilder {
     private FunctionManager             functions;
 
     private WasmOptions                 options;
+
+    private Map<String, Integer>        strings        = new LinkedHashMap<>();
 
     /**
      * Initialize the code builder;
@@ -308,8 +312,17 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addConstInstruction( Number value, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmConstInstruction( value, javaCodePos, lineNumber ) );
+    protected void addConstInstruction( Object value, int javaCodePos, int lineNumber ) {
+        if( value.getClass() == String.class ) {
+            Integer id = strings.get( value );
+            if( id == null ) {
+                strings.put( (String)value, id = strings.size() );
+            }
+            FunctionName name = getNonGC( "stringConstant", lineNumber );
+            addCallInstruction( name, javaCodePos, lineNumber );
+        } else {
+            instructions.add( new WasmConstInstruction( (Number)value, javaCodePos, lineNumber ) );
+        }
     }
 
     /**

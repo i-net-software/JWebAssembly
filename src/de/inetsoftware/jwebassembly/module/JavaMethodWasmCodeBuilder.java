@@ -16,7 +16,6 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -126,11 +125,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addConstInstruction( Integer.valueOf( byteCode.readShort() ), ValueType.i32, codePos, lineNumber );
                         break;
                     case 18: // ldc
-                        addConstInstruction( (Number)constantPool.get( byteCode.readUnsignedByte() ), codePos, lineNumber );
+                        addConstInstruction( constantPool.get( byteCode.readUnsignedByte() ), codePos, lineNumber );
                         break;
                     case 19: // ldc_w
                     case 20: // ldc2_w
-                        addConstInstruction( (Number)constantPool.get( byteCode.readUnsignedShort() ), codePos, lineNumber );
+                        addConstInstruction( constantPool.get( byteCode.readUnsignedShort() ), codePos, lineNumber );
                         break;
                     case 21: // iload
                         addLoadStoreInstruction( ValueType.i32, true, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
