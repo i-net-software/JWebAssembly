@@ -254,8 +254,8 @@ public abstract class WasmCodeBuilder {
     /**
      * Create a WasmLoadStoreInstruction local.get/local.set.
      * 
-     * @param load
-     *            true: if load
+     * @param op
+     *            the operation
      * @param wasmIdx
      *            the index of the variable
      * @param javaCodePos
@@ -264,8 +264,8 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     @Nonnull
-    protected void addLocalInstruction( boolean load, @Nonnegative int wasmIdx, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmLocalInstruction( load, wasmIdx, javaCodePos, lineNumber ) );
+    protected void addLocalInstruction( VariableOperator op, @Nonnegative int wasmIdx, int javaCodePos, int lineNumber ) {
+        instructions.add( new WasmLocalInstruction( op, wasmIdx, javaCodePos, lineNumber ) );
     }
 
     /**

@@ -29,6 +29,7 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
@@ -58,10 +59,13 @@ public class WatParser extends WasmCodeBuilder {
                 String tok = tokens.get( i );
                 switch( tok ) {
                     case "local.get":
-                        addLocalInstruction( true, getInt( tokens, ++i), javaCodePos, lineNumber );
+                        addLocalInstruction( VariableOperator.get, getInt( tokens, ++i), javaCodePos, lineNumber );
                         break;
                     case "local.set":
-                        addLocalInstruction( false, getInt( tokens, ++i), javaCodePos, lineNumber );
+                        addLocalInstruction( VariableOperator.set, getInt( tokens, ++i), javaCodePos, lineNumber );
+                        break;
+                    case "local.tee":
+                        addLocalInstruction( VariableOperator.tee, getInt( tokens, ++i), javaCodePos, lineNumber );
                         break;
 //                    case "get_global":
 //                        addGlobalInstruction( true, ref, javaCodePos );

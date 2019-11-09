@@ -16,6 +16,9 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import static de.inetsoftware.jwebassembly.wasm.VariableOperator.get;
+import static de.inetsoftware.jwebassembly.wasm.VariableOperator.set;
+
 import javax.annotation.Nonnegative;
 
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -45,7 +48,7 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      *            the line number in the Java source code
      */
     WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
-        super( load, idx, javaCodePos, lineNumber );
+        super( load ? get : set, idx, javaCodePos, lineNumber );
         this.localVariables = localVariables;
     }
 

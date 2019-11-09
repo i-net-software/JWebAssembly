@@ -39,10 +39,10 @@ class WasmLocalInstruction extends WasmInstruction {
     private int                   idx;
 
     /**
-     * Create an instance of a load/store instruction
+     * Create an instance of a load/store instruction for a local variable.
      * 
-     * @param load
-     *            true: if load
+     * @param op
+     *            the operation
      * @param idx
      *            the memory/slot idx of the variable
      * @param javaCodePos
@@ -50,9 +50,9 @@ class WasmLocalInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmLocalInstruction( boolean load, @Nonnegative int idx, int javaCodePos, int lineNumber ) {
+    WasmLocalInstruction( VariableOperator op, @Nonnegative int idx, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
-        this.op = load ? get : set;
+        this.op = op;
         this.idx = idx;
     }
 

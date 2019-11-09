@@ -110,6 +110,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void Local_tee() throws IOException {
+        test( "local.tee 3" );
+    }
+
+    @Test
     public void i32_add() throws IOException {
         test( "i32.add" );
     }
