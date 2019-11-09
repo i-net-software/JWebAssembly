@@ -29,6 +29,7 @@ The project is currently not production ready but you can run already some tests
 * [ ] invoke interface method calls
 * [ ] invoke dynamic method calls
 * [ ] String support
+* [ ] static constructors
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * [ ] Library for accessing the DOM
 * [ ] Hello World sample
