@@ -73,6 +73,8 @@ public class ModuleGenerator {
 
     private TypeManager                     types = new TypeManager();
 
+    private StringManager                   strings = new StringManager();
+
     private CodeOptimizer                   optimizer = new CodeOptimizer();
 
     /**
@@ -93,8 +95,8 @@ public class ModuleGenerator {
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
         WasmOptions options = writer.options;
         types.init( options );
-        javaCodeBuilder.init( types, functions, options );
-        ((WasmCodeBuilder)watParser).init( types, functions, options );
+        javaCodeBuilder.init( types, functions, strings, options );
+        ((WasmCodeBuilder)watParser).init( types, functions, strings, options );
         scanLibraries( libraries );
     }
 
@@ -252,6 +254,7 @@ public class ModuleGenerator {
         types.prepareFinish( writer, functions, libraries );
         prepareFunctions(); // prepare of types can add some override methods as needed
         functions.prepareFinish();
+        strings.prepareFinish( writer );
         writer.prepareFinish();
     }
 

@@ -57,8 +57,6 @@ public class TextModuleWriter extends ModuleWriter {
 
     private Appendable                  output;
 
-    private final ByteArrayOutputStream dataStream       = new ByteArrayOutputStream();
-
     private final ArrayList<String>     methodParamNames = new ArrayList<>();
 
     private StringBuilder               typeOutput       = new StringBuilder();
@@ -137,13 +135,23 @@ public class TextModuleWriter extends ModuleWriter {
             int count = functions.size();
             String countStr = Integer.toString( count );
             newline( output );
-            output.append( "(table " ).append( countStr ).append( ' ' ).append( countStr ).append( " funcref)" );
+            output.append( "(table " ).append( countStr ).append( " funcref)" );
             newline( output );
             output.append( "(elem (i32.const 0) " );
             for( int i = 0; i < count; i++ ) {
                 output.append( Integer.toString( i ) ).append( ' ' );
             }
             output.append( ')' );
+        }
+
+        // table for string constants
+        int stringCount = getStringCount();
+        if( stringCount > 0 ) {
+            if( !callIndirect ) {
+                // we need to create a placeholder table with index 0 if not exists
+                output.append( "(table 0 funcref)" );
+            }
+            output.append( "(table " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
         }
 
         int dataSize = dataStream.size();

@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -43,7 +44,14 @@ public abstract class ModuleWriter implements Closeable {
     /**
      * The compiler options.
      */
-    protected final WasmOptions options;
+    protected final WasmOptions           options;
+
+    /**
+     * The stream of the data section for constant data like strings and vtables
+     */
+    protected final ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+
+    private int stringCount;
 
     /**
      * Create a instance with its options.
@@ -53,6 +61,25 @@ public abstract class ModuleWriter implements Closeable {
      */
     protected ModuleWriter( WasmOptions options ) {
         this.options = options;
+    }
+
+    /**
+     * Set the used string counts
+     * 
+     * @param count
+     *            the count
+     */
+    void setStringCount( int count ) {
+        this.stringCount = count;
+    }
+
+    /**
+     * Get the string count
+     * 
+     * @return the count
+     */
+    protected int getStringCount() {
+        return stringCount;
     }
 
     /**

@@ -62,8 +62,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private final boolean               createSourceMap;
 
-    private WasmOutputStream            dataStream          = new WasmOutputStream();
-
     private WasmOutputStream            codeStream          = new WasmOutputStream();
 
     private List<TypeEntry>             functionTypes       = new ArrayList<>();
@@ -169,19 +167,27 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      *             if any I/O error occur
      */
     private void writeTableSection() throws IOException {
-        if( !callIndirect ) {
+        int stringCount = getStringCount();
+        if( !callIndirect && stringCount == 0 ) {
             return;
         }
 
-        int elemCount = imports.size() + functions.size();
+        int elemCount = callIndirect ? imports.size() + functions.size() : 0;
         WasmOutputStream stream = new WasmOutputStream();
-        int count = 1;
+        int count = stringCount == 0 ? 1 : 2;
         stream.writeVaruint32( count ); // count of tables
-        for( int i = 0; i < count; i++ ) {
-            stream.writeValueType( ValueType.funcref ); // the type of elements
-            stream.writeVaruint32( 1 ); // flags; 1-maximum is available, 0-no maximum value available
-            stream.writeVaruint32( elemCount ); // initial length
-            stream.writeVaruint32( elemCount ); // maximum length
+
+        // indirect function table 
+        stream.writeValueType( ValueType.funcref ); // the type of elements
+        stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
+        stream.writeVaruint32( elemCount ); // initial length
+        //stream.writeVaruint32( elemCount ); // maximum length
+
+        // string constants table
+        if( count >= 2 ) {
+            stream.writeValueType( ValueType.anyref ); // the type of elements
+            stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
+            stream.writeVaruint32( stringCount ); // initial length
         }
 
         wasm.writeSection( SectionType.Table, stream );

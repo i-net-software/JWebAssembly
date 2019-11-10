@@ -17,9 +17,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import javax.annotation.Nonnegative;
@@ -61,7 +59,7 @@ public abstract class WasmCodeBuilder {
 
     private WasmOptions                 options;
 
-    private Map<String, Integer>        strings        = new LinkedHashMap<>();
+    private StringManager               strings;
 
     /**
      * Initialize the code builder;
@@ -70,13 +68,16 @@ public abstract class WasmCodeBuilder {
      *            the type manager
      * @param functions
      *            the function manager
+     * @param strings
+     *            the string manager
      * @param options
      *            compiler properties
      */
-    void init( TypeManager types, FunctionManager functions, WasmOptions options ) {
+    void init( TypeManager types, FunctionManager functions, StringManager strings, WasmOptions options ) {
         this.localVariables.init( types );
         this.types = types;
         this.functions = functions;
+        this.strings = strings; 
         this.options = options;
     }
 
