@@ -266,6 +266,12 @@ public abstract class WasmCodeBuilder {
      */
     @Nonnull
     protected void addLocalInstruction( VariableOperator op, @Nonnegative int wasmIdx, int javaCodePos, int lineNumber ) {
+        switch( op ) {
+            case set:
+            case tee:
+                AnyType valueType = findValueTypeFromStack( 1 );
+                localVariables.useIndex( valueType, wasmIdx );
+        }
         instructions.add( new WasmLocalInstruction( op, wasmIdx, javaCodePos, lineNumber ) );
     }
 

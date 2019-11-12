@@ -84,39 +84,43 @@ class LocaleVariableManager {
     void reset( LocalVariableTable variableTable, MethodInfo method ) {
         size = 0;
 
+        int maxLocals;
         if( variableTable == null ) {
-            return;
-        }
+            maxLocals = 0;
+        } else {
+            maxLocals = variableTable.getMaxLocals();
 
-        /**
-         * Java can use reuse a variable slot in a different block. The type can be different in the block. WebAssembly
-         * does not support a type change for a local variable. That we need to create 2 variables. This try the follow
-         * complex code.
-         */
+            /**
+             * Java can reuse a variable slot in a different block. The type can be different in the block. WebAssembly
+             * does not support a type change for a local variable. That we need to create 2 variables. This try the
+             * follow complex code.
+             */
 
-        LocalVariable[] vars = variableTable.getTable();
-        ensureCapacity( vars.length );
+            LocalVariable[] vars = variableTable.getTable();
+            ensureCapacity( vars.length );
 
-        // transfer all declarations from the LocalVariableTable
-        for( int i = 0; i < vars.length; i++ ) {
-            LocalVariable local = vars[i];
-            Variable var = variables[size];
-            var.valueType = new ValueTypeParser( local.getSignature(), types ).next();
-            var.name = local.getName();
-            var.idx = local.getIndex();
-            var.startPos = local.getStartPosition() - 2;
-            var.endPos = local.getStartPosition() + local.getLengthPosition();
-            size++;
-        }
-
-        // sort to make sure but it should already sorted
-        Arrays.sort( variables, 0, size, (Comparator<Variable>)( v1, v2 ) -> {
-            int comp = Integer.compare( v1.idx, v2.idx );
-            if( comp != 0 ) {
-                return comp;
+            // transfer all declarations from the LocalVariableTable
+            for( int i = 0; i < vars.length; i++ ) {
+                LocalVariable local = vars[i];
+                Variable var = variables[size];
+                var.valueType = new ValueTypeParser( local.getSignature(), types ).next();
+                var.name = local.getName();
+                var.idx = local.getIndex();
+                var.startPos = local.getStartPosition() - 2;
+                var.endPos = local.getStartPosition() + local.getLengthPosition();
+                size++;
             }
-            return Integer.compare( v1.startPos, v2.startPos );
-        } );
+
+            // sort to make sure but it should already sorted
+            Arrays.sort( variables, 0, size, (Comparator<Variable>)( v1, v2 ) -> {
+                int comp = Integer.compare( v1.idx, v2.idx );
+                if( comp != 0 ) {
+                    return comp;
+                }
+                return Integer.compare( v1.startPos, v2.startPos );
+
+            } );
+        }
 
         // reduce all duplications if there are no conflicts and expands startPos and endPos
         for( int i = 0; i < size - 1; i++ ) {
@@ -152,15 +156,13 @@ class LocaleVariableManager {
             var.name = findUniqueVarName( var.name );
         }
 
-        int maxLocals = variableTable.getMaxLocals();
-
         // add missing slots from signature
-        if( maxLocals > 0 && vars.length == 0 && method != null ) {
+        if( (maxLocals > 0 || variableTable == null) && size == 0 && method != null ) {
             ValueTypeParser parser = new ValueTypeParser( method.getType(), types );
             if( !method.isStatic() ) {
                 resetAddVar( ValueType.anyref, size );
             }
-            while( size < maxLocals ) {
+            while( true ) {
                 AnyType type = parser.next();
                 if( type == null ) {
                     break;
@@ -235,6 +237,10 @@ class LocaleVariableManager {
      */
     void use( AnyType valueType, int slot, int javaCodePos ) {
         int idx = get( slot, javaCodePos );
+        useImpl( valueType, idx );
+    }
+
+    private void useImpl( AnyType valueType, int idx ) {
         Variable var = variables[idx];
         if( var.valueType != null && var.valueType != valueType ) {
             if( var.valueType.getCode() >= 0 && valueType == ValueType.anyref ) {
@@ -250,6 +256,13 @@ return;// TODO we need a better check
             }
         }
         var.valueType = valueType;
+    }
+
+    void useIndex(  AnyType valueType, int wasmIdx ) {
+        while( size <= wasmIdx ) {
+            resetAddVar( null, size );
+        }
+        useImpl( valueType, wasmIdx );
     }
 
     /**
