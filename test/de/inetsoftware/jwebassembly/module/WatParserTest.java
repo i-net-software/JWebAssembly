@@ -77,6 +77,12 @@ public class WatParserTest {
                         wasSpace = true;
                     }
                     break;
+                case ';':
+                    do {
+                        i++;
+                    } while( i < str.length() && str.charAt( i ) != '\n' );
+                    i--;
+                    break;
                 default:
                     builder.append( ch );
                     wasSpace = false;
@@ -106,12 +112,12 @@ public class WatParserTest {
 
     @Test
     public void Local_set() throws IOException {
-        test( "local.set 2" );
+        test( "i32.const 42 local.set 2" );
     }
 
     @Test
     public void Local_tee() throws IOException {
-        test( "local.tee 3" );
+        test( "i64.const 42 local.tee 3" );
     }
 
     @Test
@@ -121,7 +127,7 @@ public class WatParserTest {
 
     @Test
     public void i32_const() throws IOException {
-        test( " i32.const -7 " );
+        test( "i32.const -7" );
     }
 
     @Test
@@ -132,6 +138,11 @@ public class WatParserTest {
     @Test
     public void i32_trunc_sat_f32_s() throws IOException {
         test( "i32.trunc_sat_f32_s" );
+    }
+
+    @Test
+    public void i64_const() throws IOException {
+        test( "i64.const 13" );
     }
 
     @Test
@@ -152,6 +163,11 @@ public class WatParserTest {
     @Test
     public void f32_ceil() throws IOException {
         test( "f32.ceil" );
+    }
+
+    @Test
+    public void f32_const() throws IOException {
+        test( "f32.const 0x1.5p5" );
     }
 
     @Test
@@ -212,6 +228,11 @@ public class WatParserTest {
     @Test
     public void f64_ceil() throws IOException {
         test( "f64.ceil" );
+    }
+
+    @Test
+    public void f64_const() throws IOException {
+        test( "f64.const 0x1.5p5" );
     }
 
     @Test
