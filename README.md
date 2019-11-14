@@ -35,22 +35,29 @@ The project is currently not production ready but you can run already some tests
 * [ ] Hello World sample
 
 ### Status of Required WebAssembly Features
-The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly.
+The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly. If you want know the status of your current browser then look for [your browser support](https://wasm-feature-detect.surma.technology/).
 
-| Feature                 | V8     | SpiderMonkey | WABT   |
-| ----------------------- | ------ | ------------ | ------ |
-| [float-to-int][1]       | yes    | yes          | yes    |
-| [Sign-extension][2]     | yes    | yes          | yes    |
-| ~~[Multi-value][3]~~    | yes    | -            | yes    |
-| [Reference Types][4]    | yes    | yes          | yes    |
-| [Garbage collection][5] | -      | [partly][7]  | -      |
-| [Exceptions][6]         | partly | -            | partly |
+| Feature                 | Importance | V8/Chrome | SpiderMonkey/FF | WABT   |
+| ----------------------- |----------- | --------- | --------------- | ------ |
+| [Mutable Globals][1]    | high       | yes       | yes             | yes    |
+| [float-to-int][2]       | high       | yes       | yes             | yes    |
+| [Sign-extension][3]     | high       | yes       | yes             | yes    |
+| [Reference Types][4]    | high       | yes       | yes             | yes    |
+| [JavaScript BigInt][5]  | medium     | yes       | -               | yes    |
+| ~~[Multi-value][6]~~    | medium     | yes       | -               | yes    |
+| [Garbage collection][7] | medium     | -         | [partly][11]    | -      |
+| [Exceptions][8]         | low        | partly    | -               | partly |
+| [Threads][9]            | low        | yes       | ?               | yes    |
+| [Tail call][10]         | very low   | yes       | ?               | yes    |
+
 
 - For V8 it based on the [V8 - node.js integrations builds](https://ci.chromium.org/p/v8/builders/luci.v8.ci/V8%20Linux64%20-%20node.js%20integration).
 - For SpiderMonkey it based on the nightly build of [jsshell](https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/).
 - For WABT it based on [libwabt.js](https://github.com/WebAssembly/wabt/blob/master/demo/libwabt.js) via node module wabt@nightly.
 
-To use it also some flags and switches are needed.
+To use it also some flags and switches are currently needed.
+
+Importance: All with high marked features are required for a hello word sample. For a first version that can be used for production.
 
 Required Java Version
 ----
@@ -100,10 +107,14 @@ If you want to develop some tools like plugins for a build system or an IDE, the
 * to include the full contents of the packages [de.inetsoftware.jwebassembly](https://github.com/i-net-software/JWebAssembly/tree/master/src/de/inetsoftware/jwebassembly) and [de.inetsoftware.classparser](https://github.com/i-net-software/JWebAssembly/tree/master/src/de/inetsoftware/classparser) and its subpackages.
 * Create an instance of [de.inetsoftware.jwebassembly.JWebAssembly](https://github.com/i-net-software/JWebAssembly/blob/master/src/de/inetsoftware/jwebassembly/JWebAssembly.java) class and use its API.
 
-[1]: https://github.com/WebAssembly/nontrapping-float-to-int-conversions
-[2]: https://github.com/WebAssembly/sign-extension-ops
-[3]: https://github.com/WebAssembly/multi-value
+[1]: https://github.com/WebAssembly/mutable-global
+[2]: https://github.com/WebAssembly/nontrapping-float-to-int-conversions
+[3]: https://github.com/WebAssembly/sign-extension-ops
 [4]: https://github.com/WebAssembly/reference-types
-[5]: https://github.com/webassembly/gc
-[6]: https://github.com/WebAssembly/exception-handling
-[7]: https://github.com/lars-t-hansen/moz-gc-experiments
+[5]: https://github.com/WebAssembly/JS-BigInt-integration
+[6]: https://github.com/WebAssembly/multi-value
+[7]: https://github.com/webassembly/gc
+[8]: https://github.com/WebAssembly/exception-handling
+[9]: https://github.com/WebAssembly/threads
+[10]: https://github.com/webassembly/tail-call
+[11]: https://github.com/lars-t-hansen/moz-gc-experiments
