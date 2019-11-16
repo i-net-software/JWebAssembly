@@ -246,7 +246,6 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    @Nonnull
     protected void addLoadStoreInstruction( AnyType valueType, boolean load, @Nonnegative int javaIdx, int javaCodePos, int lineNumber ) {
         localVariables.use( valueType, javaIdx, javaCodePos );
         instructions.add( new WasmLoadStoreInstruction( load, javaIdx, localVariables, javaCodePos, lineNumber ) );
@@ -264,7 +263,6 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    @Nonnull
     protected void addLocalInstruction( VariableOperator op, @Nonnegative int wasmIdx, int javaCodePos, int lineNumber ) {
         switch( op ) {
             case set:
@@ -273,6 +271,22 @@ public abstract class WasmCodeBuilder {
                 localVariables.useIndex( valueType, wasmIdx );
         }
         instructions.add( new WasmLocalInstruction( op, wasmIdx, javaCodePos, lineNumber ) );
+    }
+
+    /**
+     * Create a WasmDupInstruction.
+     * 
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addDupInstruction( int javaCodePos, int lineNumber ) {
+        AnyType type = findValueTypeFromStack( 1 );
+        int idx = getTempVariable( type, javaCodePos, javaCodePos + 1 );
+        instructions.add( new WasmDupInstruction( idx, type, localVariables, javaCodePos, lineNumber ) );
+        // an alternative solution can be a function call with multiple return values but this seems to be slower
+        // new SyntheticFunctionName( "dup" + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber )
     }
 
     /**
@@ -409,10 +423,11 @@ public abstract class WasmCodeBuilder {
                     if( instr.getType() == Type.Struct ) {
                         WasmStructInstruction struct = (WasmStructInstruction)instr;
                         if( struct.getOperator() == StructOperator.NEW_DEFAULT ) {
-                            instructions.remove( i ); // NEW_DEFAULT
-                            instructions.remove( i ); // SET temp from a dup of the instance reference
-                            instructions.remove( i ); // GET temp from a dup of the instance reference
-                            instructions.remove( i ); // GET temp from a dup of the instance reference
+                            instructions.set( i, new WasmNopInstruction( struct.getCodePosition(), struct.getLineNumber() ) ); // replace NEW_DEFAULT with Nop, Nop because the code position can be needed for the branch manager
+                            instr = instructions.get( ++i );
+                            if( instr.getType() == Type.Dup ) {
+                                instructions.remove( i ); // dup of the instance reference if it is later assign, missing if the object after the constructor is never assign
+                            }
                             break;
                         }
                     }

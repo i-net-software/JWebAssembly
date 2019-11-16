@@ -282,14 +282,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 92: // dup2
-                        // save it in a temporary variable and load it 2 times; optimize will change it to TEE
-                        storeType = findValueTypeFromStack( 1 );
-                        int idx = getTempVariable( storeType, codePos, codePos + 1 );
-                        addLoadStoreInstruction( storeType, false, idx, codePos, lineNumber );
-                        addLoadStoreInstruction( storeType, true, idx, codePos, lineNumber );
-                        addLoadStoreInstruction( storeType, true, idx, codePos, lineNumber );
-//                        addCallInstruction( new SyntheticFunctionName( "dup"
-//                                        + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber );
+                        addDupInstruction( codePos, lineNumber );
                         break;
                     case 90: // dup_x1
                     case 91: // dup_x2
@@ -415,7 +408,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addNumericInstruction( NumericOperator.xor, ValueType.i64, codePos, lineNumber );
                         break;
                     case 132: // iinc
-                        idx = byteCode.readUnsignedIndex( wide );
+                        int idx = byteCode.readUnsignedIndex( wide );
                         addLoadStoreInstruction( ValueType.i32, true, idx, codePos, lineNumber );
                         addConstInstruction( (int)(wide ? byteCode.readShort() : byteCode.readByte()), ValueType.i32, codePos, lineNumber );
                         addNumericInstruction( NumericOperator.add, ValueType.i32, codePos, lineNumber );
