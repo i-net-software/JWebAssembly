@@ -367,8 +367,12 @@ public class ModuleGenerator {
     private void prepareMethod( MethodInfo method ) throws WasmException {
         try {
             FunctionName name = new FunctionName( method );
+            if( functions.isKnown( name ) ) {
+                return;
+            }
             Map<String,Object> annotationValues;
             if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
+                functions.isStatic( name ); // register this class that process the annotation of this replacement function not a second time. iSKnown() returns true now.
                 String signatureName = (String)annotationValues.get( "value" );
                 name = new FunctionName( signatureName );
                 functions.addReplacement( name, method );

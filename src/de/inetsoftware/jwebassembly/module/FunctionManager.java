@@ -62,6 +62,17 @@ public class FunctionManager {
     }
 
     /**
+     * Check if this function is already known/registered.
+     * 
+     * @param name
+     *            the function name
+     * @return true, if known
+     */
+    boolean isKnown( FunctionName name ) {
+        return states.get( name ) != null;
+    }
+
+    /**
      * Mark the a function as a import function. Only if the function is also needed then it will imported from
      * compiler.
      * 
