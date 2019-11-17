@@ -47,13 +47,6 @@ public class StringOperations extends AbstractBaseTest {
         return list;
     }
 
-    @Test
-    @Override
-    public void test() {
-        Assume.assumeFalse( (getScriptEngine().name().startsWith( "SpiderMonkey" ) ) ); // SpiderMonkey shell does not have TextDecoder.
-        super.test();
-    }
-
     static class TestClass {
 
         @Export
