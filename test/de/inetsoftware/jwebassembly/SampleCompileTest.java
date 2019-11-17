@@ -73,7 +73,7 @@ public class SampleCompileTest {
     public void compileToText() throws Exception {
         URL url = SampleCompileTest.class.getResource( "samples/" + testName + ".wat" );
         File watFile = new File( url.toURI() );
-        String expected = new String( Files.readAllBytes( watFile.toPath() ) );
+        String expected = new String( Files.readAllBytes( watFile.toPath() ) ).replace( "\r\n", "\n" );
         JWebAssembly webAsm = new JWebAssembly();
         webAsm.addFile( classFile );
         String text = webAsm.compileToText();
