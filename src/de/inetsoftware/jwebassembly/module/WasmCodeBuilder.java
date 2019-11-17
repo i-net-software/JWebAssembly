@@ -414,9 +414,25 @@ public abstract class WasmCodeBuilder {
         WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types );
 
         if( "<init>".equals( name.methodName ) ) {
+            // check if there a factory for the constructor in JavaScript then we need to do some more complex patching
             Function<String, Object> importAnannotation = functions.getImportAnannotation( name );
-            if( importAnannotation != null ) {
-                // if there a JavaScript replacement for a constructor we need also replace the create instance instruction
+            FunctionName factoryName = null;
+
+            if( importAnannotation != null ) { // JavaScript replacement for a constructor via import
+                // The new signature need a return value. The <init> of Java has ever a void return value
+                String signature = name.signature;
+                signature = signature.substring( 0, signature.length() - 1 ) + "Ljava/lang/Object;";
+                factoryName = new ImportSyntheticFunctionName( "String", "init", signature, importAnannotation );
+            } else {
+                MethodInfo replace = functions.replace( name, null );
+                if( replace != null && !"<init>".equals( replace.getName() ) ) {
+                    // the constructor was replaced with a factory method. Typical this method called then a JavaScript replacement
+                    factoryName = new FunctionName( replace );
+                }
+            }
+
+            if( factoryName != null ) {
+                // the constructor was replaced we need also replace the create instance instruction
                 List<WasmInstruction> instructions = this.instructions;
                 for( int i = instructions.size() - 1; i >= 0; i-- ) {
                     WasmInstruction instr = instructions.get( i );
@@ -432,11 +448,8 @@ public abstract class WasmCodeBuilder {
                         }
                     }
                 }
-                // The new signature need a return value. The <init> of Java has ever a void return value
-                String signature = name.signature;
-                signature = signature.substring( 0, signature.length() - 1 ) + "Ljava/lang/Object;";
-                FunctionName name2 = new ImportSyntheticFunctionName( "String", "init", signature, importAnannotation );
-                instruction = new WasmCallInstruction( name2, javaCodePos, lineNumber, types );
+                // the new instruction
+                instruction = new WasmCallInstruction( factoryName, javaCodePos, lineNumber, types );
             }
         }
 
