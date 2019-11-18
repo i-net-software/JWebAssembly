@@ -76,6 +76,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "i32.add":
                         addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos, lineNumber );
                         break;
+                    case "i32.mul":
+                        addNumericInstruction( NumericOperator.mul, ValueType.i32, javaCodePos, lineNumber );
+                        break;
                     case "i32.reinterpret_f32":
                         addConvertInstruction( ValueTypeConvertion.f2i_re, javaCodePos, lineNumber );
                         break;

@@ -131,6 +131,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void i32_mul() throws IOException {
+        test( "i32.mul" );
+    }
+
+    @Test
     public void i32_reinterpret_f32() throws IOException {
         test( "i32.reinterpret_f32" );
     }
