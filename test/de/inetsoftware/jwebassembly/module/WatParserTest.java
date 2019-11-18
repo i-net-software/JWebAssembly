@@ -316,6 +316,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void drop() throws IOException {
+        test( "drop" );
+    }
+
+    @Test
     public void table_get() throws IOException {
         test( "table.get 1" );
     }
@@ -326,6 +331,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void i32_load() throws IOException {
+        test( "i32.load offset=2 align=1" );
+    }
+
+     @Test
     public void errorMissingToken() throws IOException {
         testError( "i32.const", "Missing Token in wasm text format after token: i32.const" );
     }

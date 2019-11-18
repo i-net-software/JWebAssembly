@@ -38,10 +38,10 @@ class WasmMemoryInstruction extends WasmInstruction {
 
     private int offset;
 
-    private int aligment;
+    private int alignment;
 
     /**
-     * Create an instance of a load/store instruction
+     * Create an instance of a load/store to the linear memory instruction
      * 
      * @param op
      *            the operation
@@ -56,12 +56,12 @@ class WasmMemoryInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmMemoryInstruction( MemoryOperator op, ValueType type, int offset, int aligment, int javaCodePos, int lineNumber ) {
+    WasmMemoryInstruction( MemoryOperator op, ValueType type, int offset, int alignment, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.op = op;
         this.type = type;
         this.offset = offset;
-        this.aligment = aligment;
+        this.alignment = alignment;
     }
 
     /**
@@ -77,7 +77,7 @@ class WasmMemoryInstruction extends WasmInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeMemoryOperator( op, type, offset, aligment );
+        writer.writeMemoryOperator( op, type, offset, alignment );
     }
 
     /**

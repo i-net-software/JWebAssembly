@@ -149,8 +149,10 @@ public class TextModuleWriter extends ModuleWriter {
         if( stringCount > 0 ) {
             if( !callIndirect ) {
                 // we need to create a placeholder table with index 0 if not exists
+                newline( output );
                 output.append( "(table 0 funcref)" );
             }
+            newline( output );
             output.append( "(table " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
         }
 
@@ -843,6 +845,6 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         methodOutput.append( valueType ).append( '.' ).append( memOp )
         .append( " offset=" ).append( offset )
-        .append( " align=" ).append( alignment );
+        .append( " align=" ).append( 1 << alignment );
     }
 }

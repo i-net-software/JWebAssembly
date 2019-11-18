@@ -33,6 +33,7 @@ import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -356,7 +357,20 @@ public abstract class WasmCodeBuilder {
             if( id == null ) {
                 strings.put( (String)value, id = strings.size() );
             }
-            FunctionName name = getNonGC( "stringConstant", lineNumber );
+            String wat = "local.get 0 " + //
+                            "table.get 1 " + // strings table
+                            "local.tee 1 " + //
+                            "ref.is_null " + //
+                            "if " + //
+                            "local.get 0 " + //
+                            "i32.const 4 " + //
+                            "i32.mul " + //
+                            "i32.load offset=0 " + //
+                            "drop " + //
+                            "end " + //
+                            "local.get 1 " + //
+                            "return";
+            FunctionName name = new WatCodeSyntheticFunctionName( "stringConstant", wat, ValueType.i32, null, ValueType.anyref );
             instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
             addCallInstruction( name, javaCodePos, lineNumber );
         } else {
@@ -585,5 +599,25 @@ public abstract class WasmCodeBuilder {
                 functions.markAsImport( name, name.getAnnotation() );
             }
         }
+    }
+
+    /**
+     * Create an instance of a load/store to the linear memory instruction
+     * 
+     * @param op
+     *            the operation
+     * @param type
+     *            the type of the static field
+     * @param offset
+     *            the base offset which will be added to the offset value on the stack
+     * @param alignment
+     *            the alignment of the value on the linear memory (0: 8 Bit; 1: 16 Bit; 2: 32 Bit)
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addMemoryInstruction( MemoryOperator op, ValueType type, int offset, int alignment, int javaCodePos, int lineNumber ) {
+        instructions.add( new WasmMemoryInstruction( op, type, offset, alignment, javaCodePos, lineNumber ) );
     }
 }

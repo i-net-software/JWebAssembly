@@ -27,6 +27,7 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
+import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
@@ -220,6 +221,12 @@ public class WatParser extends WasmCodeBuilder {
                     case "end":
                         addBlockInstruction( WasmBlockOperator.END, null, javaCodePos, lineNumber );
                         break;
+                    case "drop":
+                        addBlockInstruction( WasmBlockOperator.DROP, null, javaCodePos, lineNumber );
+                        break;
+                    case "i32.load":
+                        i = addMemoryInstruction( MemoryOperator.load, ValueType.i32, tokens, i, lineNumber );
+                        break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );
                 }
@@ -300,5 +307,52 @@ public class WatParser extends WasmCodeBuilder {
             tokens.add( wat.substring( off, count ) );
         }
         return tokens;
+    }
+
+    /**
+     * Parse the optional tokens of a load memory instruction and add it.
+     * 
+     * @param op
+     *            the operation
+     * @param type
+     *            the type of the static field
+     * @param tokens
+     *            the token list
+     * @param i
+     *            the position in the tokens
+     * @param lineNumber
+     *            the line number in the Java source code
+     * @return the current index to the tokens
+     */
+    private int addMemoryInstruction( MemoryOperator op, ValueType type, List<String> tokens, int i, int lineNumber ) {
+        int offset = 0;
+        int alignment = 0;
+        if( i < tokens.size() ) {
+            String str = tokens.get( i + 1 );
+            if( str.startsWith( "offset=" ) ) {
+                offset = Integer.parseInt( str.substring( 7 ) );
+                i++;
+            }
+            str = tokens.get( i + 1 );
+            if( str.startsWith( "align=" ) ) {
+                int align = Integer.parseInt( str.substring( 6 ) );
+                switch( align ) {
+                    case 1:
+                        alignment = 0;
+                        break;
+                    case 2:
+                        alignment = 1;
+                        break;
+                    case 4:
+                        alignment = 2;
+                        break;
+                    default:
+                        throw new WasmException( "alignment must be power-of-two", lineNumber );
+                }
+                i++;
+            }
+        }
+        addMemoryInstruction( op, type, offset, alignment, i, lineNumber );
+        return i;
     }
 }
