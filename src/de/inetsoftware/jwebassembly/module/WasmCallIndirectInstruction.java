@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -124,7 +125,7 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
                 writer.writeConst( 0, ValueType.i32 ); // vtable is ever on position 0
                 writer.writeFunctionCall( new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, ValueType.i32 ) );
             }
-            writer.writeLoadI32( virtualFunctionIdx * 4 );
+            writer.writeMemoryOperator( MemoryOperator.load, ValueType.i32, virtualFunctionIdx * 4, 2 );
             writer.writeVirtualFunctionCall( getFunctionName(), type );
         }
     }

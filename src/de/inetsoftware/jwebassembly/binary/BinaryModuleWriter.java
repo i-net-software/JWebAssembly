@@ -37,6 +37,7 @@ import de.inetsoftware.jwebassembly.sourcemap.SourceMapWriter;
 import de.inetsoftware.jwebassembly.sourcemap.SourceMapping;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -1319,9 +1320,25 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeLoadI32( int offset ) throws IOException {
+    protected void writeMemoryOperator( MemoryOperator memOp, ValueType valueType, int offset, int alignment ) throws IOException {
+        int op = 0;
+        switch( memOp ) {
+            case load:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_LOAD;
+                        break;
+                    case i64:
+                        op = I64_LOAD;
+                        break;
+                }
+                break;
+        }
+        if( op == 0 ) {
+            throw new Error( valueType + "." + memOp );
+        }
         codeStream.writeOpCode( I32_LOAD );
-        codeStream.write( 2 ); // 32 alignment
+        codeStream.write( alignment ); // 0: 8 Bit; 1: 16 Bit; 2: 32 Bit of the resulting offset
         codeStream.writeVaruint32( offset );
     }
 }

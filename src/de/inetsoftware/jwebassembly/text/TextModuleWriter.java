@@ -15,7 +15,6 @@
  */
 package de.inetsoftware.jwebassembly.text;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +36,7 @@ import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -839,8 +839,10 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeLoadI32( int offset ) throws IOException {
+    protected void writeMemoryOperator( MemoryOperator memOp, ValueType valueType, int offset, int alignment ) throws IOException {
         newline( methodOutput );
-        methodOutput.append( "i32.load offset=" ).append( offset ); // use default alignment
+        methodOutput.append( valueType ).append( '.' ).append( memOp )
+        .append( " offset=" ).append( offset )
+        .append( " align=" ).append( alignment );
     }
 }

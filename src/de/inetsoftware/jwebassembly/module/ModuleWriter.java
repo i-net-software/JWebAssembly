@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -344,12 +345,18 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeStructOperator( StructOperator op, AnyType type, NamedStorageType fieldName, int idx ) throws IOException;
 
     /**
-     * Write a i32.load operation from linear memory
+     * Write a memory operation for the linear memory.
      * 
+     * @param memOp
+     *            the memory operation
+     * @param valueType
+     *            the value type of the stack value
      * @param offset
      *            the offset into the memory. Should be ideally a factor of 4.
+     * @param alignment
+     *            the alignment of the value on the linear memory (0: 8 Bit; 1: 16 Bit; 2: 32 Bit)
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeLoadI32( int offset ) throws IOException;
+    protected abstract void writeMemoryOperator( MemoryOperator memOp, ValueType valueType, int offset, int alignment ) throws IOException;
 }
