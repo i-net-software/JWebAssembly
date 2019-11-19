@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
@@ -76,6 +77,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "i32.add":
                         addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos, lineNumber );
+                        break;
+                    case "i32.eqz":
+                        addNumericInstruction( NumericOperator.eqz, ValueType.i32, javaCodePos, lineNumber );
                         break;
                     case "i32.mul":
                         addNumericInstruction( NumericOperator.mul, ValueType.i32, javaCodePos, lineNumber );
@@ -197,9 +201,17 @@ public class WatParser extends WasmCodeBuilder {
                     case "table.set":
                         addTableInstruction( false, getInt( tokens, ++i), javaCodePos, lineNumber );
                         break;
-//                    case "call":
-//                        addCallInstruction( method, javaCodePos );
-//                        break;
+                    case "call":
+                        StringBuilder builder = new StringBuilder( get( tokens, ++i ) );
+                        String str;
+                        do {
+                            str = get( tokens, ++i );
+                            builder.append( str );
+                        } while ( !")".equals( str ) );
+                        builder.append( get( tokens, ++i ) );
+                        FunctionName name = new FunctionName( builder.substring( 1 ) );
+                        addCallInstruction( name, javaCodePos, lineNumber );
+                        break;
                     case "return":
                         addBlockInstruction( WasmBlockOperator.RETURN, null, javaCodePos, lineNumber );
                         break;
@@ -226,6 +238,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "i32.load":
                         i = addMemoryInstruction( MemoryOperator.load, ValueType.i32, tokens, i, lineNumber );
+                        break;
+                    case "i32.load8_u":
+                        i = addMemoryInstruction( MemoryOperator.load8_u, ValueType.i32, tokens, i, lineNumber );
                         break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );

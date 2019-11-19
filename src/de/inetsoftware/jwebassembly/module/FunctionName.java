@@ -108,7 +108,7 @@ public class FunctionName {
      * @param signatureName
      *            the full Java method signature like "com/foo/Bar.method()V"
      */
-    FunctionName( String signatureName ) {
+    public FunctionName( String signatureName ) {
         int idx1 = signatureName.indexOf( '.' );
         this.className = signatureName.substring( 0, idx1 );
         int idx2 = signatureName.indexOf( '(', idx1 );

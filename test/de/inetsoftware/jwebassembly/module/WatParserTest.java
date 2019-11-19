@@ -131,10 +131,15 @@ public class WatParserTest {
     }
 
     @Test
+    public void i32_eqz() throws IOException {
+        test( "i32.eqz" );
+    }
+
+    @Test
     public void i32_mul() throws IOException {
         test( "i32.mul" );
     }
-
+    
     @Test
     public void i32_reinterpret_f32() throws IOException {
         test( "i32.reinterpret_f32" );
@@ -166,6 +171,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void f32_abs() throws IOException {
+        test( "f32.abs" );
+    }
+
+    @Test
     public void f32_ceil() throws IOException {
         test( "f32.ceil" );
     }
@@ -173,6 +183,11 @@ public class WatParserTest {
     @Test
     public void f32_const() throws IOException {
         test( "f32.const 0x1.5p5" );
+    }
+
+    @Test
+    public void f32_copysign() throws IOException {
+        test( "f32.copysign" );
     }
 
     @Test
@@ -231,6 +246,11 @@ public class WatParserTest {
     }
 
     @Test
+    public void f64_abs() throws IOException {
+        test( "f64.abs" );
+    }
+
+    @Test
     public void f64_ceil() throws IOException {
         test( "f64.ceil" );
     }
@@ -243,6 +263,11 @@ public class WatParserTest {
     @Test
     public void f64_convert_i64_s() throws IOException {
         test( "f64.convert_i64_s" );
+    }
+
+    @Test
+    public void f64_copysign() throws IOException {
+        test( "f64.copysign" );
     }
 
     @Test
@@ -335,7 +360,12 @@ public class WatParserTest {
         test( "i32.load offset=2 align=1" );
     }
 
-     @Test
+    @Test
+    public void i32_load8_u() throws IOException {
+        test( "i32.load8_u offset=2 align=1" );
+    }
+
+    @Test
     public void errorMissingToken() throws IOException {
         testError( "i32.const", "Missing Token in wasm text format after token: i32.const" );
     }

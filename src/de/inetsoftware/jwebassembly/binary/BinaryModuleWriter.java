@@ -835,6 +835,17 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     default:
                 }
                 break;
+            case eqz:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_EQZ;
+                        break;
+                    case i64:
+                        op = I64_EQZ;
+                        break;
+                    default:
+                }
+                break;
             case eq:
                 switch( valueType ) {
                     case i32:
@@ -1330,6 +1341,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                         break;
                     case i64:
                         op = I64_LOAD;
+                        break;
+                }
+                break;
+            case load8_u:
+                switch( valueType ) {
+                    case i32:
+                        op = I32_LOAD8_U;
+                        break;
+                    case i64:
+                        op = I64_LOAD8_U;
                         break;
                 }
                 break;
