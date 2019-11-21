@@ -1358,7 +1358,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( op == 0 ) {
             throw new Error( valueType + "." + memOp );
         }
-        codeStream.writeOpCode( I32_LOAD );
+        codeStream.writeOpCode( op );
         codeStream.write( alignment ); // 0: 8 Bit; 1: 16 Bit; 2: 32 Bit of the resulting offset
         codeStream.writeVaruint32( offset );
     }
