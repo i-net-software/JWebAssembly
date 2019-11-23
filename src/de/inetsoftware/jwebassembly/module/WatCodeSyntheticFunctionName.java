@@ -35,11 +35,30 @@ class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
      *            the function name
      * @param code
      *            the WAT code (WASM in text form)
-     * @param signature
+     * @param signatureTypes
      *            the method signature, first the parameters, then null and the the return types
      */
-    public WatCodeSyntheticFunctionName( String name, String code, AnyType... signature ) {
-        super( "", name, signature );
+    public WatCodeSyntheticFunctionName( String name, String code, AnyType... signatureTypes ) {
+        super( "", name, signatureTypes );
+        this.code = code;
+    }
+
+    /**
+     * Create a new instance.
+     * 
+     * @param className
+     *            the Java class name
+     * @param name
+     *            the function name
+     * @param code
+     *            the WAT code (WASM in text form)
+     * @param signature
+     *            the string signature
+     * @param signatureTypes
+     *            the method signature, first the parameters, then null and the the return types
+     */
+    public WatCodeSyntheticFunctionName( String className, String name, String signature, String code, AnyType... signatureTypes ) {
+        super( className, name, signature, signatureTypes );
         this.code = code;
     }
 

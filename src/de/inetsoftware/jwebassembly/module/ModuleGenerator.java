@@ -95,6 +95,7 @@ public class ModuleGenerator {
         this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
         WasmOptions options = writer.options;
         types.init( options );
+        strings.init( functions );
         javaCodeBuilder.init( types, functions, strings, options );
         ((WasmCodeBuilder)watParser).init( types, functions, strings, options );
         scanLibraries( libraries );

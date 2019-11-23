@@ -357,20 +357,7 @@ public abstract class WasmCodeBuilder {
             if( id == null ) {
                 strings.put( (String)value, id = strings.size() );
             }
-            String wat = "local.get 0 " + //
-                            "table.get 1 " + // strings table
-                            "local.tee 1 " + //
-                            "ref.is_null " + //
-                            "if " + //
-                            "local.get 0 " + //
-                            "i32.const 4 " + //
-                            "i32.mul " + //
-                            "i32.load offset=0 " + //
-                            "drop " + //
-                            "end " + //
-                            "local.get 1 " + //
-                            "return";
-            FunctionName name = new WatCodeSyntheticFunctionName( "stringConstant", wat, ValueType.i32, null, ValueType.anyref );
+            FunctionName name = new FunctionName( StringManager.STRING_CONSTANT_SIGNATURE );
             instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
             addCallInstruction( name, javaCodePos, lineNumber );
         } else {

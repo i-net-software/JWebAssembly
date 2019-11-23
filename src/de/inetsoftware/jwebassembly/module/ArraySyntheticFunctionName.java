@@ -28,7 +28,21 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 public abstract class ArraySyntheticFunctionName extends SyntheticFunctionName {
 
-    private final AnyType[] signature;
+    private final AnyType[] signatureTypes;
+
+    /**
+     * Create a new instance.
+     * 
+     * @param className
+     *            the Java class name
+     * @param name
+     *            the function name
+     * @param signatureTypes
+     *            the method signature, first the parameters, then null and the the return types
+     */
+    public ArraySyntheticFunctionName( String className, String name, AnyType... signatureTypes ) {
+        this( className, name, "()V", signatureTypes ); //TODO better signature name
+    }
 
     /**
      * Create a new instance.
@@ -38,11 +52,13 @@ public abstract class ArraySyntheticFunctionName extends SyntheticFunctionName {
      * @param name
      *            the function name
      * @param signature
+     *            the string signature
+     * @param signatureTypes
      *            the method signature, first the parameters, then null and the the return types
      */
-    public ArraySyntheticFunctionName( String className, String name, AnyType... signature ) {
-        super( className, name, "()V" ); //TODO better signature name
-        this.signature = signature;
+    public ArraySyntheticFunctionName( String className, String name, String signature, AnyType... signatureTypes ) {
+        super( className, name, signature );
+        this.signatureTypes = signatureTypes;
     }
 
     /**
@@ -50,6 +66,6 @@ public abstract class ArraySyntheticFunctionName extends SyntheticFunctionName {
      */
     @Override
     public Iterator<AnyType> getSignature( TypeManager types ) {
-        return Arrays.asList( signature ).iterator();
+        return Arrays.asList( signatureTypes ).iterator();
     }
 }
