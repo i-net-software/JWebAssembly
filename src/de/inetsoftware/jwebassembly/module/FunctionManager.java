@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -184,21 +185,21 @@ public class FunctionManager {
     }
 
     /**
-     * Get the first FunctionName that is required but was not written.
+     * Get all FunctionName that is required but was not written.
      * 
      * @return the FunctionName or null
      */
     @Nullable
-    FunctionName nextWriteLater() {
-        for( Entry<FunctionName, FunctionState> entry : states.entrySet() ) {
+    Iterator<FunctionName> getWriteLater() {
+        return iterator( entry -> {
             switch( entry.getValue().state ) {
                 case Needed:
                 case Scanned:
-                    return entry.getKey();
+                    return true;
                 default:
+                    return false;
             }
-        }
-        return null;
+        } );
     }
 
     /**
@@ -207,16 +208,25 @@ public class FunctionManager {
      * @return an iterator
      */
     Iterator<FunctionName> getNeededFunctions() {
-        return states.entrySet().stream().filter( entry -> {
+        return iterator( entry -> {
             FunctionState state = entry.getValue();
             switch( state.state ) {
                 case Needed:
                 case Scanned:
                     return true;
                 default:
+                    return false;
             }
-            return false;
-        } ).map( entry -> entry.getKey() ).iterator();
+        } );
+    }
+
+    /**
+     * get a iterator for function names
+     * @param filter the filter
+     * @return the iterator
+     */
+    private Iterator<FunctionName> iterator( Predicate<Entry<FunctionName, FunctionState>> filter ) {
+        return states.entrySet().stream().filter( filter ).map( entry -> entry.getKey() ).iterator();
     }
 
     /**

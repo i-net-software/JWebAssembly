@@ -137,7 +137,8 @@ public class FunctionName {
         if( obj == null ) {
             return false;
         }
-        if( getClass() != obj.getClass() ) {
+        // synthetic functions should be replace/equals to real functions.
+        if( !(obj instanceof FunctionName) ) {
             return false;
         }
         FunctionName other = (FunctionName)obj;

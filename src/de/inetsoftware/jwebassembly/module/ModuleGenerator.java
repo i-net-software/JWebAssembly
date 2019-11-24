@@ -292,41 +292,40 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     public void finish() throws IOException {
-        FunctionName next;
-        while( (next = functions.nextWriteLater()) != null ) {
-            ClassFile classFile = ClassFile.get( next.className, libraries );
-            if( classFile == null ) {
-                if( next instanceof SyntheticFunctionName ) {
-                    writeMethodImpl( next, true, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
-                } else {
-                    throw new WasmException( "Missing function: " + next.signatureName, -1 );
-                }
+        for( Iterator<FunctionName> it = functions.getWriteLater(); it.hasNext(); ) {
+            FunctionName next = it.next();
+            if( next instanceof SyntheticFunctionName ) {
+                writeMethodImpl( next, true, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
             } else {
-                iterateMethods( classFile, method -> {
-                    try {
-                        FunctionName name;
-                        Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
-                        if( wat != null ) {
-                            String signature = (String)wat.get( "signature" );
-                            if( signature == null ) {
-                                signature = method.getType();
+                ClassFile classFile = ClassFile.get( next.className, libraries );
+                if( classFile == null ) {
+                    throw new WasmException( "Missing function: " + next.signatureName, -1 );
+                } else {
+                    MethodInfo method = classFile.getMethod( next.methodName, next.signature );
+                    if( method != null ) {
+                        try {
+                            Map<String, Object> wat = method.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION  );
+                            if( wat != null ) {
+                                String signature = (String)wat.get( "signature" );
+                                if( signature == null ) {
+                                    signature = method.getType();
+                                }
+                                next = new FunctionName( method, signature );
+                            } else {
+                                method = functions.replace( next, method );
                             }
-                            name = new FunctionName( method, signature );
-                        } else {
-                            name = new FunctionName( method );
-                            method = functions.replace( name, method );
+                            if( functions.needToWrite( next ) ) {
+                                writeMethod( next, method );
+                            }
+                        } catch (IOException ioex){
+                            throw WasmException.create( ioex, sourceFile, className, -1 );
                         }
-                        if( functions.needToWrite( name ) ) {
-                            writeMethod( name, method );
+                    } else {
+                        if( functions.needToWrite( next ) ) {
+                            throw new WasmException( "Missing function: " + next.signatureName, -1 );
                         }
-                    } catch (IOException ioex){
-                        throw WasmException.create( ioex, sourceFile, className, -1 );
                     }
-                } );
-            }
-
-            if( functions.needToWrite( next ) ) {
-                throw new WasmException( "Missing function: " + next.signatureName, -1 );
+                }
             }
         }
         javaScript.finish();

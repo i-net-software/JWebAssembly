@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -34,10 +35,49 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class StringManager extends LinkedHashMap<String, Integer> {
 
-    private FunctionManager functions;
+    /**
+     * Signature of method stringConstant.
+     * 
+     * @see #stringConstant(int)
+     */
+    private static final FunctionName STRING_CONSTANT_FUNCTION =
+                    new FunctionName( "de/inetsoftware/jwebassembly/module/StringManager.stringConstant(I)Ljava/lang/String;" );
 
+    private FunctionManager           functions;
+
+    private int                       stringMemoryOffset       = -1;
+
+    /**
+     * Initialize the string manager.
+     * 
+     * @param functions
+     *            the function manager
+     */
     void init( FunctionManager functions ) {
         this.functions = functions;
+    }
+
+    /**
+     * Get the function name object for the {@link #stringConstant(int)}.
+     * 
+     * @see #stringConstant(int)
+     * @return the name
+     */
+    @Nonnull
+    FunctionName getStringConstantFunction() {
+        if( stringMemoryOffset < 0 ) {
+            // register the function stringsMemoryOffset() as synthetic function
+            stringMemoryOffset = 0;
+            FunctionName offsetFunction =
+                            new WatCodeSyntheticFunctionName( "de/inetsoftware/jwebassembly/module/StringManager", "stringsMemoryOffset", "()I", "", null, ValueType.i32 ) {
+                                protected String getCode() {
+                                    return "i32.const " + stringMemoryOffset;
+                                }
+                            };
+            functions.markAsNeeded( offsetFunction, true );
+        }
+
+        return STRING_CONSTANT_FUNCTION;
     }
 
     /**
@@ -82,10 +122,9 @@ class StringManager extends LinkedHashMap<String, Integer> {
         ByteArrayOutputStream stringOut = new ByteArrayOutputStream();
         ByteArrayOutputStream dataStream = writer.dataStream;
 
-        int offset = dataStream.size();
-        WatCodeSyntheticFunctionName stringMemoryOffset = new WatCodeSyntheticFunctionName( "de/inetsoftware/jwebassembly/module/StringManager", "stringsMemoryOffset", "()I", "i32.const " + offset, null, ValueType.i32 );
-//        functions.markAsNeeded( stringMemoryOffset, true );
-        offset += size * 4;
+        // save the offset of the string data for later code inlining
+        stringMemoryOffset = dataStream.size();
+        int offset = stringMemoryOffset + size * 4;
 
         for( String str : this.keySet() ) {
             // write the position where the string starts in the data section
@@ -129,18 +168,13 @@ class StringManager extends LinkedHashMap<String, Integer> {
     }
 
     /**
-     * Signature of method stringConstant.
-     * @see #stringConstant(int)
-     */
-    static final String STRING_CONSTANT_SIGNATURE = "de/inetsoftware/jwebassembly/module/StringManager.stringConstant(I)Ljava/lang/String;";
-
-    /**
-     * WASM code
-     * Get a constant string from the table. 
+     * WASM code<p>
+     * Get a constant string from the table.
      * 
-     * @param strIdx the id/index of the string.
+     * @param strIdx
+     *            the id/index of the string.
      * @return the string
-     * @see #STRING_CONSTANT_SIGNATURE
+     * @see #STRING_CONSTANT_FUNCTION
      */
     private static String stringConstant( int strIdx ) {
         String str = getStringFromTable( strIdx );
@@ -148,25 +182,30 @@ class StringManager extends LinkedHashMap<String, Integer> {
             return str;
         }
 
+        // read the compact string length
         int offset = getIntFromMemory( strIdx * 4 + stringsMemoryOffset() );
         int length = 0;
         int b;
+        int shift = 0;
         do {
             b = getUnsignedByteFromMemory( offset++ );
-            length = (length << 7) + (b & 0x7F);
+            length += (b & 0x7F) << shift;
+            shift += 7;
         } while( b >= 0x80 );
 
+        // copy the bytes from the data section
         byte[] bytes = new byte[length];
         for( int i = 0; i < length; i++ ) {
             bytes[i] = getUnsignedByteFromMemory( i + offset );
         }
         str = new String( bytes );
+        // save the string for future use
         setStringIntoTable( strIdx, str );
         return str;
     }
 
     /**
-     * WASM code
+     * WASM code<p>
      * Get a string from the string table. Should be inlined from the optimizer.
      * 
      * @param strIdx
@@ -179,7 +218,7 @@ class StringManager extends LinkedHashMap<String, Integer> {
     private static native String getStringFromTable( int strIdx );
 
     /**
-     * WASM code
+     * WASM code<p>
      * Set a string from the string table. Should be inlined from the optimizer.
      * 
      * @param strIdx
@@ -193,12 +232,18 @@ class StringManager extends LinkedHashMap<String, Integer> {
                     "return" )
     private static native void setStringIntoTable( int strIdx, String str );
 
+    /**
+     * WASM code<p>
+     * Placeholder for a synthetic function. Should be inlined from the optimizer.
+     * @return the memory offset of the string data in the element section
+     */
+    //TODO the annotation can be removed if ModuleGenerator.prepareFunctions() can detect Synthetic functions correctly
     @WasmTextCode( "i32.const 0" )
     private static native int stringsMemoryOffset();
 
     /**
-     * WASM code
-     * Load an i32 from memory. The offset must be aligned.
+     * WASM code<p>
+     * Load an i32 from memory. The offset must be aligned. Should be inlined from the optimizer.
      * 
      * @param pos
      *            the memory position
@@ -210,8 +255,8 @@ class StringManager extends LinkedHashMap<String, Integer> {
     private static native int getIntFromMemory( int pos );
 
     /**
-     * WASM code
-     * Load a byte from the memory.
+     * WASM code<p>
+     * Load a byte from the memory. Should be inlined from the optimizer.
      * 
      * @param pos
      *            the memory position

@@ -42,6 +42,7 @@ public class StringOperations extends AbstractBaseTest {
         for( ScriptEngine script : ScriptEngine.testEngines() ) {
             addParam( list, script, "newFromChars" );
             addParam( list, script, "newFromBytes" );
+            addParam( list, script, "constant" );
         }
         rule.setTestParameters( list );
         return list;
@@ -60,5 +61,15 @@ public class StringOperations extends AbstractBaseTest {
             byte[] bytes = {(byte)0xC3,(byte)0xA4};
             return new String( bytes );
         }
+
+        @Export
+        static String constant() {
+            // string larger as 128 bytes
+            String constant  = "1234567890 äöüäöüß " // umlaute
+                            + "𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡 𝒥𝒶𝓋𝒶𝓈𝒸𝓇𝒾𝓅𝓉 " // surrogate chars
+                            + "abcdefghijklmnopqrstuvwxyz";
+            return constant;
+        }
+
     }
 }

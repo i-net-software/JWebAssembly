@@ -16,6 +16,8 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import javax.annotation.Nonnull;
+
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
@@ -57,9 +59,19 @@ class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
      * @param signatureTypes
      *            the method signature, first the parameters, then null and the the return types
      */
-    public WatCodeSyntheticFunctionName( String className, String name, String signature, String code, AnyType... signatureTypes ) {
+    public WatCodeSyntheticFunctionName( String className, String name, String signature, @Nonnull String code, AnyType... signatureTypes ) {
         super( className, name, signature, signatureTypes );
         this.code = code;
+    }
+
+    /**
+     * Get Wat code, can be overridden.
+     * 
+     * @return the code
+     */
+    @Nonnull
+    protected String getCode() {
+        return code;
     }
 
     /**
@@ -75,7 +87,7 @@ class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
      */
     @Override
     protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
-        watParser.parse( code, null, -1 );
+        watParser.parse( getCode(), null, -1 );
         return watParser;
     }
 }
