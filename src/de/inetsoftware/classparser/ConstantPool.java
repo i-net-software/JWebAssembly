@@ -123,7 +123,11 @@ public class ConstantPool {
                             pool[i] = pool[data[2]];
                             break;
                         case 18: // CONSTANT_InvokeDynamic
-                            pool[i] = new ConstantInvokeDynamic( data[1], (ConstantNameAndType)pool[data[2]] );
+                            if( pool[data[2]] instanceof int[] ) {
+                                repeat = true;
+                            } else {
+                                pool[i] = new ConstantInvokeDynamic( data[1], (ConstantNameAndType)pool[data[2]] );
+                            }
                             break;
                         default:
                             throw new IOException( "Unknown constant pool type: " + data[0] );
