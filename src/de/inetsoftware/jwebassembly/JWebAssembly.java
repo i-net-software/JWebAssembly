@@ -337,8 +337,12 @@ public class JWebAssembly {
     private void compile( ModuleWriter writer, WasmTarget target ) throws IOException, WasmException {
         ModuleGenerator generator = new ModuleGenerator( writer, target, libraries );
         for( URL url : classFiles ) {
-            ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
-            generator.prepare( classFile );
+            try {
+                ClassFile classFile = new ClassFile( new BufferedInputStream( url.openStream() ) );
+                generator.prepare( classFile );
+            } catch( IOException ex ) {
+                throw WasmException.create( "Parsing of file " + url + " failed.", ex );
+            }
         }
         generator.prepareFinish();
         generator.finish();
