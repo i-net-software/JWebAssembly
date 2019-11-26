@@ -481,7 +481,7 @@ public abstract class WasmCodeBuilder {
         }
         if( varIndex < 0 ) {
             varIndex = getTempVariable( virtualCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
-            idx = findPushInstruction( count - 1, false );
+            idx = count == 1 ? instructions.size() : findPushInstruction( count - 1, false );
             instructions.add( idx, new DupThis( virtualCall, varIndex, javaCodePos ) );
         }
         virtualCall.setVariableIndexOfThis( varIndex );
