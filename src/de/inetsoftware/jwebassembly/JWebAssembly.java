@@ -20,6 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -93,7 +95,15 @@ public class JWebAssembly {
         Formatter formatter = new Formatter() {
             @Override
             public String format( LogRecord record ) {
-                return record.getMessage() + '\n';
+                String msg = record.getMessage() + '\n';
+                if( record.getThrown() != null ) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter( sw );
+                    record.getThrown().printStackTrace( pw );
+                    pw.close();
+                    msg += sw.toString();
+                }
+                return msg;
             }
         };
         StreamHandler handler = new StreamHandler( System.out, formatter ) {

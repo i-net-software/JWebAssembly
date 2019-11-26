@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -132,12 +133,16 @@ public class ModuleGenerator {
                         break;
                     }
                     if( entry.getName().endsWith( ".class" ) ) {
-                        ClassFile classFile = new ClassFile( new BufferedInputStream( input ) {
-                            @Override
-                            public void close() {
-                            } // does not close the zip stream
-                        } );
-                        prepare( classFile );
+                        try {
+                            ClassFile classFile = new ClassFile( new BufferedInputStream( input ) {
+                                @Override
+                                public void close() {
+                                } // does not close the zip stream
+                            } );
+                            prepare( classFile );
+                        } catch( Throwable th ) {
+                            JWebAssembly.LOGGER.log( Level.SEVERE, "Parsing error with " + entry.getName() + " in " + url, th );
+                        }
                     }
                 } while( true );
             } catch( IOException e ) {
