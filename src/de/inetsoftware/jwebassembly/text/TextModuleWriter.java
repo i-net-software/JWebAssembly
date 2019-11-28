@@ -55,7 +55,9 @@ public class TextModuleWriter extends ModuleWriter {
 
     private final boolean               spiderMonkey     = Boolean.getBoolean( "SpiderMonkey" );
 
-    private Appendable                  output;
+    private final WasmTarget            target;
+
+    private StringBuilder               output           = new StringBuilder();
 
     private final ArrayList<String>     methodParamNames = new ArrayList<>();
 
@@ -81,8 +83,6 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean                     callIndirect;
 
-    private WasmOptions                 options;
-
     /**
      * Create a new instance.
      * 
@@ -95,13 +95,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     public TextModuleWriter( WasmTarget target, WasmOptions options ) throws IOException {
         super( options );
-        this.output = target.getTextOutput();
-        output.append( "(module" );
+        this.target = target;
         inset++;
-        this.options = options;
-        if( spiderMonkey && options.useGC() ) {
-            output.append( " (gc_feature_opt_in 3)" ); // enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
-        }
     }
 
     /**
@@ -109,37 +104,45 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     public void close() throws IOException {
-        for( int i = 0; i < types.size(); i++ ) {
-            newline( output );
-            output.append( "(type $t" ).append( Integer.toString( i ) ).append( " (func" ).append( types.get( i ) ).append( "))" );
+        Appendable textOutput = target.getTextOutput();
+        textOutput.append( "(module" );
+        if( spiderMonkey && options.useGC() ) {
+            textOutput.append( " (gc_feature_opt_in 3)" ); // enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
         }
 
-        output.append( imports );
+        for( int i = 0; i < types.size(); i++ ) {
+            newline( textOutput );
+            textOutput.append( "(type $t" ).append( Integer.toString( i ) ).append( " (func" ).append( types.get( i ) ).append( "))" );
+        }
+
+        textOutput.append( imports );
 
         for( Entry<String, AnyType> entry : globals.entrySet() ) {
-            output.append( "\n  " );
-            output.append( "(global $" ).append( entry.getKey() ).append( " (mut " );
-            writeTypeName( output, entry.getValue() );
-            output.append( ')' );
-            writeDefaultValue( output, entry.getValue() );
-            output.append( ')' );
+            textOutput.append( "\n  " );
+            textOutput.append( "(global $" ).append( entry.getKey() ).append( " (mut " );
+            writeTypeName( textOutput, entry.getValue() );
+            textOutput.append( ')' );
+            writeDefaultValue( textOutput, entry.getValue() );
+            textOutput.append( ')' );
         }
 
+        textOutput.append( output );
+
         for( Function func : functions.values() ) {
-            output.append( func.output );
+            textOutput.append( func.output );
         }
 
         if( callIndirect ) {
             int count = functions.size();
             String countStr = Integer.toString( count );
-            newline( output );
-            output.append( "(table " ).append( countStr ).append( " funcref)" );
-            newline( output );
-            output.append( "(elem (i32.const 0) " );
+            newline( textOutput );
+            textOutput.append( "(table " ).append( countStr ).append( " funcref)" );
+            newline( textOutput );
+            textOutput.append( "(elem (i32.const 0) " );
             for( int i = 0; i < count; i++ ) {
-                output.append( Integer.toString( i ) ).append( ' ' );
+                textOutput.append( Integer.toString( i ) ).append( ' ' );
             }
-            output.append( ')' );
+            textOutput.append( ')' );
         }
 
         // table for string constants
@@ -147,31 +150,31 @@ public class TextModuleWriter extends ModuleWriter {
         if( stringCount > 0 ) {
             if( !callIndirect ) {
                 // we need to create a placeholder table with index 0 if not exists
-                newline( output );
-                output.append( "(table 0 funcref)" );
+                newline( textOutput );
+                textOutput.append( "(table 0 funcref)" );
             }
-            newline( output );
-            output.append( "(table " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
+            newline( textOutput );
+            textOutput.append( "(table " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
         }
 
         int dataSize = dataStream.size();
         if( dataSize > 0 ) {
             int pages = (dataSize + 0xFFFF) / 0x10000;
-            newline( output );
+            newline( textOutput );
             String pagesStr = Integer.toString( pages );
-            output.append( "(memory (export \"memory\") " ).append( pagesStr ).append( ' ' ).append( pagesStr ).append( ')' );
-            newline( output );
-            output.append( "(data (i32.const 0) \"" );
+            textOutput.append( "(memory (export \"memory\") " ).append( pagesStr ).append( ' ' ).append( pagesStr ).append( ')' );
+            newline( textOutput );
+            textOutput.append( "(data (i32.const 0) \"" );
             byte[] data = dataStream.toByteArray();
             for( byte b : data ) {
-                output.append( '\\' ).append( Character.forDigit( (b >> 4) & 0xF, 16 ) ).append( Character.forDigit( b & 0xF, 16 ) );
+                textOutput.append( '\\' ).append( Character.forDigit( (b >> 4) & 0xF, 16 ) ).append( Character.forDigit( b & 0xF, 16 ) );
             }
-            output.append( "\")" );
+            textOutput.append( "\")" );
         }
 
         inset--;
-        newline( output );
-        output.append( ')' );
+        newline( textOutput );
+        textOutput.append( ')' );
     }
 
     /**
