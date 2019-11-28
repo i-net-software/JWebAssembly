@@ -131,6 +131,19 @@ public class Exceptions extends AbstractBaseTest {
         }
 
 //        @Export
+//        static int multiCatch() {
+//            int r;
+//            try {
+//                r = 5 / 0;
+//            } catch(RuntimeException ex ) {
+//                r = 1;
+//            } catch(Exception ex ) {
+//                r = 2;
+//            }
+//            return r;
+//        }
+
+//        @Export
 //        static int npe() {
 //            Object obj = new NullPointerException();
 //            return 3;

@@ -741,6 +741,14 @@ class BranchManger {
         int idx;
         for( idx = 0; idx < parsedOperations.size(); idx++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( idx );
+
+            if( parsedBlock.op == JavaBlockOperator.TRY ) {
+                TryCatchFinally tryCatch2 = ((TryCatchParsedBlock)parsedBlock).tryCatch;
+                if( tryCatch.getStart() == tryCatch2.getStart() && tryCatch.getEnd() == tryCatch2.getEnd() ) {
+                    throw new WasmException( "Try with multiple catch blocks can't compile currently.", null, null, tryBlock.lineNumber );
+                }
+            }
+
             if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
                 parsedOperations.remove( idx );
                 endPos = parsedBlock.endPosition;
