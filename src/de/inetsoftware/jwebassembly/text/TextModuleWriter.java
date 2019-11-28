@@ -75,8 +75,6 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean                     isImport;
 
-    private boolean                     isPrepared;
-
     private HashMap<String,AnyType>     globals          = new HashMap<>();
 
     private boolean                     useExceptions;
@@ -238,7 +236,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void prepareFinish() {
-        isPrepared = true;
+        // nothing
     }
 
     /**
