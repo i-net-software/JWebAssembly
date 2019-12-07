@@ -15,15 +15,12 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.Collection;
 
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -41,9 +38,6 @@ import de.inetsoftware.jwebassembly.api.annotation.Import;
 @RunWith( Parameterized.class )
 public class RuntimeErrors {
 
-    @ClassRule
-    public static WasmRule     rule = new WasmRule( TestClass.class );
-
     private final ScriptEngine script;
 
     public RuntimeErrors( ScriptEngine script ) {
@@ -53,26 +47,6 @@ public class RuntimeErrors {
     @Parameters( name = "{0}" )
     public static Collection<ScriptEngine[]> data() {
         return ScriptEngine.testParams();
-    }
-
-    @Test
-    public void longReturn() {
-        assumeTrue( script == ScriptEngine.SpiderMonkey || script == ScriptEngine.SpiderMonkeyWat );
-        String error = rule.evalWasm( script, "longReturn" );
-        int newlineIdx = error.indexOf( '\n' );
-        if( newlineIdx > 0 ) {
-            error = error.substring( 0, newlineIdx );
-        }
-        String expected = "TypeError: cannot pass i64 to or from JS";
-        assertEquals( expected, error );
-    }
-
-    static class TestClass {
-
-        @Export
-        static long longReturn() {
-            return Long.MAX_VALUE;
-        }
     }
 
     private void compileErrorTest( String expectedMessge, Class<?> classes ) throws IOException {

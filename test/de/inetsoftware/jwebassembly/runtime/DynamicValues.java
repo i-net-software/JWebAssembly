@@ -56,7 +56,6 @@ public class DynamicValues {
 
     @Test
     public void currentTimeMillis() {
-        assumeFalse( script == ScriptEngine.SpiderMonkey || script == ScriptEngine.SpiderMonkeyWat );
         long before = System.currentTimeMillis(); 
         String result = rule.evalWasm( script, "currentTimeMillis" );
         long after = System.currentTimeMillis(); 

@@ -235,15 +235,13 @@ public class MathAPI extends AbstractBaseTest {
         }
 
         @Export
-        static int roundD3_8() {
-            // SpiderMonkey does not support BigInt currently
-            return (int)Math.round( 3.8 );
+        static long roundD3_8() {
+            return Math.round( 3.8 );
         }
 
         @Export
-        static int roundD_3_8() {
-            // SpiderMonkey does not support BigInt currently
-            return (int)Math.round( -3.8 );
+        static long roundD_3_8() {
+            return Math.round( -3.8 );
         }
 
         @Export

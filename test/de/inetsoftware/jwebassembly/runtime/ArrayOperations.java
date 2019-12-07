@@ -67,8 +67,6 @@ public class ArrayOperations extends AbstractBaseTest {
     @Test
     @Override
     public void test() {
-        Assume.assumeFalse( (getScriptEngine().name().startsWith( "SpiderMonkey" ) )
-                        && "loopLong".equals( getMethod() ) ); // TODO SpiderMonkey https://bugzilla.mozilla.org/show_bug.cgi?id=1511958
         Assume.assumeFalse( getScriptEngine().name().endsWith( "GC" ) );
         super.test();
     }
