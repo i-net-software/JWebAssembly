@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -122,6 +123,10 @@ public class JWebAssembly {
      * Create a instance.
      */
     public JWebAssembly() {
+        ProtectionDomain protectionDomain = getClass().getProtectionDomain();
+        if( protectionDomain != null ) {
+            libraries.add( protectionDomain.getCodeSource().getLocation() ); // add the compiler self to the library path
+        }
     }
 
     /**
