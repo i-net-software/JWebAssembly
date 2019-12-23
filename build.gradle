@@ -49,6 +49,9 @@ sourceSets {
     }
 }
 
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
 jar {
     manifest {
         attributes( 'Implementation-Title': 'JWebAssembly-API',
@@ -97,6 +100,7 @@ task nodeVersion(type: NodeTask) {
 }
 
 test {
+    systemProperty "file.encoding", "UTF-8"
     testLogging {
         showStandardStreams = true
         showStackTraces = true
