@@ -167,7 +167,11 @@ public class TextModuleWriter extends ModuleWriter {
             textOutput.append( "(data (i32.const 0) \"" );
             byte[] data = dataStream.toByteArray();
             for( byte b : data ) {
-                textOutput.append( '\\' ).append( Character.forDigit( (b >> 4) & 0xF, 16 ) ).append( Character.forDigit( b & 0xF, 16 ) );
+                if( b >= ' ' && b < 0x7F && b != '\"' && b != '\\' ) {
+                    textOutput.append( (char)b );
+                } else {
+                    textOutput.append( '\\' ).append( Character.forDigit( (b >> 4) & 0xF, 16 ) ).append( Character.forDigit( b & 0xF, 16 ) );
+                }
             }
             textOutput.append( "\")" );
         }
