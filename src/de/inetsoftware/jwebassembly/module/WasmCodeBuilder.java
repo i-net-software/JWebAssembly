@@ -29,6 +29,7 @@ import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -49,6 +50,11 @@ import de.inetsoftware.jwebassembly.wasm.WasmOptions;
  * @author Volker Berlin
  */
 public abstract class WasmCodeBuilder {
+
+    /**
+     * declare for frequently use of virtual call with non GC mode.
+     */
+    static final SyntheticFunctionName GET_I32 = new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, ValueType.i32 );
 
     private final LocaleVariableManager localVariables = new LocaleVariableManager();
 
@@ -486,6 +492,10 @@ public abstract class WasmCodeBuilder {
         }
         virtualCall.setVariableIndexOfThis( varIndex );
         instructions.add( virtualCall );
+        if( !options.useGC() ) {
+            functions.markAsNeeded( GET_I32, true );
+            functions.markAsImport( GET_I32, GET_I32.getAnnotation() );
+        }
     }
 
     /**
