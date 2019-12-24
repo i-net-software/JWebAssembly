@@ -19,7 +19,6 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -221,6 +220,8 @@ public class TypeManager {
          *            for types of fields
          * @param libraries
          *            for loading the class files if not in the cache
+         * @param allNeededFields
+         *            for recursive call list this all used fields
          * @throws IOException
          *             if any I/O error occur on loading or writing
          */
@@ -230,7 +231,13 @@ public class TypeManager {
                 throw new WasmException( "Missing class: " + className, -1 );
             }
 
-            allNeededFields.addAll( neededFields );
+            {
+                // list all used fields
+                StructType type = types.structTypes.get( className );
+                if( type != null ) {
+                    allNeededFields.addAll( type.neededFields );
+                }
+            }
 
             ConstantClass superClass = classFile.getSuperClass();
             if( superClass != null ) {
