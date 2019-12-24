@@ -580,6 +580,7 @@ public class ModuleGenerator {
         if( !isStatic ) {
             StructType instanceType = types.valueOf( name.className );
             writer.writeMethodParam( "param", instanceType, "this" );
+            paramCount++;
         }
         Iterator<AnyType> parser = name.getSignature( types );
         AnyType type;
@@ -598,9 +599,6 @@ public class ModuleGenerator {
             }
         }
         if( codeBuilder != null ) {
-            if( !isStatic ) {
-                paramCount++;
-            }
             List<AnyType> localTypes = codeBuilder.getLocalTypes( paramCount );
             for( int i = 0; i < localTypes.size(); i++ ) {
                 type = localTypes.get( i );
