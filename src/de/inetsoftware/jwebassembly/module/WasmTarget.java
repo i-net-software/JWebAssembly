@@ -138,8 +138,10 @@ public class WasmTarget implements Closeable {
      *             if any I/O error occur
      */
     public Writer getJavaScriptOutput() throws IOException {
-        if( javaScript == null && file != null && file.isFile() ) {
-            javaScript = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( getBaseWasmFile() + ".wasm.js" ) ), StandardCharsets.UTF_8 );
+        if( javaScript == null && file != null ) {
+            File jsFile = new File( getBaseWasmFile() + ".wasm.js" );
+            jsFile.getParentFile().mkdirs();
+            javaScript = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( jsFile ) ), StandardCharsets.UTF_8 );
         }
         return javaScript;
     }
