@@ -1,0 +1,6 @@
+{
+"version":3,
+"sources":["de/inetsoftware/jwebassembly/api/java/lang/Object.java","Object.java","de/inetsoftware/jwebassembly/web/dom/Object.java","de/inetsoftware/jwebassembly/module/Object.java","de/inetsoftware/jwebassembly/web/Object.java","java/lang/Object.java"],
+"names":[],
+"mappings":"u1BAgCA,uBAQA,IACA,SACA,SACA,qBAEA,MAEA,OACA,6BACA,OACA,iDAEA,sEAEA,gCAEA,aAGA,sBACA,EAEA,qBCrCA,IACA,kBACA,oBACA,gBACA,4BACA,YCYA,6BCyIA,MACA,EACA,KAIA,aACA,IAEA,IAEA,iBACA,cACA,OACA,MAGA,UACA,aACA,eADA,SAGA,SAEA,MACA,QDjKA,kCAWA,oCASA,oBACA,CACA,IAEA,eAzBA,yBACA,wCAXA,MACA,IADA,MACA,IADA,MACA,IADA,MACA,IADA,MACA,IAFA,MACA,IESA,IACA,QACA,IAuCA,cA+BA,gBFjFA,MACA,IGIA;"
+}
