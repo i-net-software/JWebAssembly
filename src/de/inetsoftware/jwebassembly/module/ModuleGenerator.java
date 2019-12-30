@@ -298,6 +298,8 @@ public class ModuleGenerator {
      */
     public void finish() throws IOException {
         for( Iterator<FunctionName> it = functions.getWriteLater(); it.hasNext(); ) {
+            sourceFile = null; // clear previous value for the case an IO exception occur
+            className = null;
             FunctionName next = it.next();
             if( next instanceof SyntheticFunctionName ) {
                 writeMethodImpl( next, true, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
@@ -306,6 +308,8 @@ public class ModuleGenerator {
                 if( classFile == null ) {
                     throw new WasmException( "Missing function: " + next.signatureName, -1 );
                 } else {
+                    sourceFile = classFile.getSourceFile();
+                    className = classFile.getThisClass().getName();
                     MethodInfo method = classFile.getMethod( next.methodName, next.signature );
                     if( method != null ) {
                         try {
