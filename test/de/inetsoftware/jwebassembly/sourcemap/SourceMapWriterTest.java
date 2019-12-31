@@ -10,7 +10,7 @@ public class SourceMapWriterTest {
 
     @Test
     public void simple() throws IOException {
-        SourceMapWriter map = new SourceMapWriter();
+        SourceMapWriter map = new SourceMapWriter( null );
 
         map.addMapping( new SourceMapping( 0, 1, "Test1.java" ) );
         map.addMapping( new SourceMapping( 5, 2, "Test1.java" ) );

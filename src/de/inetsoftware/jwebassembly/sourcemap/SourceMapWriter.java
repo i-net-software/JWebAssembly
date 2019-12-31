@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.annotation.Nullable;
+
 /**
  * Generates Source Map version 3.
  *
@@ -28,11 +30,23 @@ import java.util.Map.Entry;
  */
 public class SourceMapWriter {
 
-    private List<SourceMapping>                  mappings        = new ArrayList<>();
+    private final String                         sourceRoot;
 
-    private LinkedHashMap<String, Integer> sourceFileNames = new LinkedHashMap<String, Integer>();
+    private final List<SourceMapping>            mappings        = new ArrayList<>();
 
-    private int                            nextSourceFileNameIndex;
+    private final LinkedHashMap<String, Integer> sourceFileNames = new LinkedHashMap<String, Integer>();
+
+    private int                                  nextSourceFileNameIndex;
+
+    /**
+     * Create a new instance of the writer for a single map file.
+     * 
+     * @param sourceRoot
+     *            optional absolute or relative path to the sources
+     */
+    public SourceMapWriter( @Nullable String sourceRoot ) {
+        this.sourceRoot = sourceRoot;
+    }
 
     /**
      * Adds a mapping for the given node. Mappings must be added in order.
@@ -60,6 +74,11 @@ public class SourceMapWriter {
     public void generate( Appendable out ) throws IOException {
         out.append( "{\n" );
         appendJsonField( out, "version", "3" );
+
+        // sourceRoot
+        if( sourceRoot != null && !sourceRoot.isEmpty() ) {
+            appendJsonField( out, "sourceRoot", sourceRoot );
+        }
 
         // the source file names
         out.append( ",\n" );

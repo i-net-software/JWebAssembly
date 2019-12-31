@@ -63,8 +63,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private final boolean               createSourceMap;
 
-    private final String                javaSourceMapBase;
-
     private WasmOutputStream            codeStream          = new WasmOutputStream();
 
     private List<TypeEntry>             functionTypes       = new ArrayList<>();
@@ -104,7 +102,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         this.target = target;
         // for now we build the source map together with debug names
         createSourceMap = options.debugNames();
-        javaSourceMapBase = options.getSourceMapBase();
     }
 
     /**
@@ -294,7 +291,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
         wasm.writeSection( SectionType.Code, stream );
 
-        SourceMapWriter sourceMap = createSourceMap ? new SourceMapWriter() : null;
+        SourceMapWriter sourceMap = createSourceMap ? new SourceMapWriter( options.getSourceMapBase() ) : null;
         if( sourceMap != null ) {
             int offset = wasm.size() - start - stream.size();
             for( Function func : functions.values() ) {
@@ -563,7 +560,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     protected void writeMethodStart( FunctionName name, String sourceFile ) throws IOException {
         if( createSourceMap ) {
             int idx = name.className.lastIndexOf( '/' );
-            this.javaSourceFile = javaSourceMapBase + name.className.substring( 0, idx + 1 ) + sourceFile;
+            this.javaSourceFile = name.className.substring( 0, idx + 1 ) + sourceFile;
         }
         codeStream.reset();
     }
