@@ -10,6 +10,10 @@ As output it generates the binary format (.wasm file) or the text format (.wat f
 
 The difference to similar projects is that not a complete VM with GC and memory management should be ported. It's more like a 1: 1 conversion. The generated WebAssembly code is similar in size to the original Java class files.
 
+Documentation
+----
+The documentation can be found in the [wiki](wiki).
+
 Status of the project
 ----
 
