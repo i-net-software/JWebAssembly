@@ -32,7 +32,7 @@ The project is currently not production ready but you can run already some tests
 * [ ] static constructors
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * [ ] Library for accessing the DOM
-* [ ] Hello World sample
+* [x] Hello World sample [(live)](https://i-net-software.github.io/JWebAssembly/samples/HelloWorld/HelloWorld.html), [(source code)](https://github.com/i-net-software/JWebAssembly/blob/master/docs/samples/HelloWorld/HelloWorld.java)
 
 ### Status of Required WebAssembly Features
 The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly. If you want know the status of your current browser then look for [your browser support](https://wasm-feature-detect.surma.technology/).
