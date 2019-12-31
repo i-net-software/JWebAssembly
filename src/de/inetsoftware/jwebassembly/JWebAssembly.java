@@ -63,6 +63,12 @@ public class JWebAssembly {
     public static final String DEBUG_NAMES = "DebugNames";
 
     /**
+     * Property for relative path between the final wasm file location and the source files location for the source map.
+     * If not empty it should end with a slash like "../../src/main/java/".
+     */
+    public static final String SOURCE_MAP_BASE = "SourceMapBase";
+
+    /**
      * The name of the annotation for import functions.
      */
     public static final String IMPORT_ANNOTATION = "de.inetsoftware.jwebassembly.api.annotation.Import";

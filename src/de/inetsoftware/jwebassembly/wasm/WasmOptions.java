@@ -17,6 +17,8 @@ package de.inetsoftware.jwebassembly.wasm;
 
 import java.util.HashMap;
 
+import javax.annotation.Nonnull;
+
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 
@@ -30,6 +32,9 @@ public class WasmOptions {
     private final boolean debugNames;
 
     private final boolean useGC;
+
+    @Nonnull
+    private final String  sourceMapBase;
 
     /**
      * NonGC function for ref_eq polyfill.
@@ -45,6 +50,11 @@ public class WasmOptions {
     public WasmOptions( HashMap<String, String> properties ) {
         debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
+        String base = properties.getOrDefault( JWebAssembly.SOURCE_MAP_BASE, "" );
+        if( !base.isEmpty() && !base.endsWith( "/" ) ) {
+            base += "/";
+        }
+        sourceMapBase = base;
     }
 
     /**
@@ -63,5 +73,15 @@ public class WasmOptions {
      */
     public boolean useGC() {
         return useGC;
+    }
+
+    /**
+     * Get the relative path between the final wasm file location and the source files location.
+     * If not empty it should end with a slash like "../../src/main/java/". 
+     * @return the path
+     */
+    @Nonnull
+    public String getSourceMapBase() {
+        return sourceMapBase;
     }
 }
