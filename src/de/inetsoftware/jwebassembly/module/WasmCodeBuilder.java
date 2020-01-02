@@ -68,6 +68,8 @@ public abstract class WasmCodeBuilder {
 
     private StringManager               strings;
 
+    private ClassFileLoader             classFileLoader;
+
     /**
      * Initialize the code builder;
      * 
@@ -80,12 +82,13 @@ public abstract class WasmCodeBuilder {
      * @param options
      *            compiler properties
      */
-    void init( TypeManager types, FunctionManager functions, StringManager strings, WasmOptions options ) {
+    void init( TypeManager types, FunctionManager functions, StringManager strings, WasmOptions options, ClassFileLoader classFileLoader ) {
         this.localVariables.init( types );
         this.types = types;
         this.functions = functions;
         this.strings = strings; 
         this.options = options;
+        this.classFileLoader = classFileLoader;
     }
 
     /**
@@ -535,7 +538,7 @@ public abstract class WasmCodeBuilder {
      */
     private FunctionName getNonGC( String name, int lineNumber ) {
         try {
-            ClassFile classFile = ClassFile.get( NonGC.class.getName().replace( '.', '/' ), getClass().getClassLoader() );
+            ClassFile classFile = classFileLoader.get( NonGC.class.getName().replace( '.', '/' ) );
             for( MethodInfo method : classFile.getMethods() ) {
                 if( name.equals( method.getName() ) ) {
                     return new FunctionName( method );

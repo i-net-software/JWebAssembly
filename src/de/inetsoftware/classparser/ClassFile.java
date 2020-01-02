@@ -34,8 +34,6 @@ import de.inetsoftware.classparser.Attributes.AttributeInfo;
  */
 public class ClassFile {
 
-    private static final WeakValueCache<String,ClassFile> CACHE = new WeakValueCache<>(); 
-
     private final DataInputStream input;
 
     private final int             minorVersion;
@@ -63,30 +61,6 @@ public class ClassFile {
     private String                superSignature;
 
     private Map<String,Map<String,Object>> annotations;
-
-    /**
-     * Get the ClassFile from cache or load it.
-     * 
-     * @param className
-     *            the class name
-     * @param loader
-     *            the ClassLoader to load
-     * @return the ClassFile or null
-     * @throws IOException
-     *             If any I/O error occur
-     */
-    @Nullable
-    public static ClassFile get( String className, ClassLoader loader ) throws IOException {
-        ClassFile classFile = CACHE.get( className );
-        if( classFile != null ) {
-            return classFile;
-        }
-        InputStream stream = loader.getResourceAsStream( className + ".class" );
-        if( stream != null ) {
-            return new ClassFile( stream );
-        }
-        return null;
-    }
 
     /**
      * Load a class file and create a model of the class.
@@ -141,7 +115,6 @@ public class ClassFile {
                 }
             }
         }
-        CACHE.put( thisClass.getName(), this );
     }
 
     /**

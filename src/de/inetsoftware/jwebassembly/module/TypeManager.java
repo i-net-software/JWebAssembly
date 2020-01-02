@@ -73,15 +73,15 @@ public class TypeManager {
      *            the targets for the types
      * @param functions
      *            the used functions for the vtables of the types
-     * @param libraries
-     *            for loading the class files if not in the cache
+     * @param classFileLoader
+     *            for loading the class files
      * @throws IOException
      *             if any I/O error occur on loading or writing
      */
-    void prepareFinish( ModuleWriter writer, FunctionManager functions, ClassLoader libraries ) throws IOException {
+    void prepareFinish( ModuleWriter writer, FunctionManager functions, ClassFileLoader classFileLoader ) throws IOException {
         isFinish = true;
         for( StructType type : structTypes.values() ) {
-            type.writeStructType( writer, functions, this, libraries );
+            type.writeStructType( writer, functions, this, classFileLoader );
         }
     }
 
@@ -195,17 +195,17 @@ public class TypeManager {
          *            the used functions for the vtables of the types
          * @param types
          *            for types of fields
-         * @param libraries
-         *            for loading the class files if not in the cache
+         * @param classFileLoader
+         *            for loading the class files
          * @throws IOException
          *             if any I/O error occur on loading or writing
          */
-        private void writeStructType( ModuleWriter writer, FunctionManager functions, TypeManager types, ClassLoader libraries ) throws IOException {
+        private void writeStructType( ModuleWriter writer, FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
             JWebAssembly.LOGGER.fine( "write type: " + name );
             fields = new ArrayList<>();
             methods = new ArrayList<>();
             HashSet<String> allNeededFields = new HashSet<>();
-            listStructFields( name, functions, types, libraries, allNeededFields );
+            listStructFields( name, functions, types, classFileLoader, allNeededFields );
             code = writer.writeStructType( this );
         }
 
@@ -218,15 +218,15 @@ public class TypeManager {
          *            the used functions for the vtables of the types
          * @param types
          *            for types of fields
-         * @param libraries
-         *            for loading the class files if not in the cache
+         * @param classFileLoader
+         *            for loading the class files
          * @param allNeededFields
          *            for recursive call list this all used fields
          * @throws IOException
          *             if any I/O error occur on loading or writing
          */
-        private void listStructFields( String className, FunctionManager functions, TypeManager types, ClassLoader libraries, HashSet<String> allNeededFields ) throws IOException {
-            ClassFile classFile = ClassFile.get( className, libraries );
+        private void listStructFields( String className, FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader, HashSet<String> allNeededFields ) throws IOException {
+            ClassFile classFile = classFileLoader.get( className );
             if( classFile == null ) {
                 throw new WasmException( "Missing class: " + className, -1 );
             }
@@ -242,7 +242,7 @@ public class TypeManager {
             ConstantClass superClass = classFile.getSuperClass();
             if( superClass != null ) {
                 String superClassName = superClass.getName();
-                listStructFields( superClassName, functions, types, libraries, allNeededFields );
+                listStructFields( superClassName, functions, types, classFileLoader, allNeededFields );
             } else {
                 fields.add( new NamedStorageType( ValueType.i32, className, VTABLE ) );
             }

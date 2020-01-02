@@ -60,7 +60,7 @@ public class ModuleGenerator {
 
     private final JavaScriptWriter          javaScript;
 
-    private final URLClassLoader            libraries;
+    private final ClassFileLoader           classFileLoader;
 
     private final JavaMethodWasmCodeBuilder javaCodeBuilder;
 
@@ -93,12 +93,12 @@ public class ModuleGenerator {
         this.watParser = new WatParser();
         this.writer = writer;
         this.javaScript = new JavaScriptWriter( target );
-        this.libraries = new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) );
+        this.classFileLoader = new ClassFileLoader( new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) ) );
         WasmOptions options = writer.options;
         types.init( options );
         strings.init( functions );
-        javaCodeBuilder.init( types, functions, strings, options );
-        ((WasmCodeBuilder)watParser).init( types, functions, strings, options );
+        javaCodeBuilder.init( types, functions, strings, options, classFileLoader );
+        ((WasmCodeBuilder)watParser).init( types, functions, strings, options, classFileLoader );
         scanLibraries( libraries );
     }
 
@@ -173,7 +173,7 @@ public class ModuleGenerator {
         FunctionName next;
         NEXT:
         while( (next = functions.nextScannLater()) != null ) {
-            ClassFile classFile = ClassFile.get( next.className, libraries );
+            ClassFile classFile = classFileLoader.get( next.className );
             if( classFile == null ) {
                 if( next instanceof SyntheticFunctionName ) {
                     JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
@@ -213,7 +213,7 @@ public class ModuleGenerator {
                         continue NEXT; // we have found a super method
                     }
                     ConstantClass superClass = superClassFile.getSuperClass();
-                    superClassFile = superClass == null ? null : ClassFile.get( superClass.getName(), libraries );
+                    superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
                 }
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
@@ -257,7 +257,7 @@ public class ModuleGenerator {
         }
 
         JWebAssembly.LOGGER.fine( "scan finsih" );
-        types.prepareFinish( writer, functions, libraries );
+        types.prepareFinish( writer, functions, classFileLoader );
         prepareFunctions(); // prepare of types can add some override methods as needed
         functions.prepareFinish();
         strings.prepareFinish( writer );
@@ -304,7 +304,7 @@ public class ModuleGenerator {
             if( next instanceof SyntheticFunctionName ) {
                 writeMethodImpl( next, true, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
             } else {
-                ClassFile classFile = ClassFile.get( next.className, libraries );
+                ClassFile classFile = classFileLoader.get( next.className );
                 if( classFile == null ) {
                     throw new WasmException( "Missing function: " + next.signatureName, -1 );
                 } else {
