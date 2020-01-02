@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2019 Volker Berlin (i-net software)
+   Copyright 2011 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package de.inetsoftware.classparser;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -59,6 +61,8 @@ public class ClassFile {
     private String                thisSignature;
 
     private String                superSignature;
+
+    private Map<String,Map<String,Object>> annotations;
 
     /**
      * Get the ClassFile from cache or load it.
@@ -149,6 +153,28 @@ public class ClassFile {
      */
     public String getSourceFile() throws IOException {
         return attributes.getSourceFile();
+    }
+
+    /**
+     * Get a single annotation or null
+     * 
+     * @param annotation
+     *            the class name of the annotation
+     * @return the value or null if not exists
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    @Nullable
+    public Map<String, Object> getAnnotation( String annotation ) throws IOException {
+        if( annotations == null ) {
+            AttributeInfo data = attributes.get( "RuntimeInvisibleAnnotations" );
+            if( data != null ) {
+                annotations =  Annotations.read( data.getDataInputStream(), constantPool );
+            } else {
+                annotations = Collections.emptyMap();
+            }
+        }
+        return annotations.get( annotation );
     }
 
     public ConstantPool getConstantPool() {
