@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1202,7 +1202,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case IF:
                 codeStream.writeOpCode( IF );
-                codeStream.writeValueType( ((ValueType)data) );
+                codeStream.writeValueType( ((AnyType)data) );
                 break;
             case ELSE:
                 codeStream.writeOpCode( ELSE );
@@ -1215,7 +1215,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case BLOCK:
                 codeStream.writeOpCode( BLOCK );
-                codeStream.writeValueType( data == null ? ValueType.empty : (ValueType)data ); // void; the return type of the block. 
+                codeStream.writeValueType( data == null ? ValueType.empty : (AnyType)data ); // void; the return type of the block. 
                 break;
             case BR:
                 codeStream.writeOpCode( BR );
