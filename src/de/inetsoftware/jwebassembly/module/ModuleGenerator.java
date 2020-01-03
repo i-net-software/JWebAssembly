@@ -434,7 +434,7 @@ public class ModuleGenerator {
             return;
         }
         writeExport( name, method );
-        writeMethodImpl( name, method.isStatic(), codeBuilder );
+        writeMethodImpl( name, functions.isStatic( name ), codeBuilder );
     }
 
     /**
