@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Volker Berlin (i-net software)
+ * Copyright 2019 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class StringOperations extends AbstractBaseTest {
 
@@ -53,13 +54,13 @@ public class StringOperations extends AbstractBaseTest {
         @Export
         static String newFromChars() {
             char[] chars = {'ä','ö','ü'};
-            return new String( chars );
+            return JSObject.domString( new String( chars ) );
         }
 
         @Export
         static String newFromBytes() {
             byte[] bytes = {(byte)0xC3,(byte)0xA4};
-            return new String( bytes );
+            return JSObject.domString( new String( bytes ) );
         }
 
         @Export
@@ -68,7 +69,7 @@ public class StringOperations extends AbstractBaseTest {
             String constant  = "1234567890 äöüäöüß " // umlaute
                             + "𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡 𝒥𝒶𝓋𝒶𝓈𝒸𝓇𝒾𝓅𝓉 " // surrogate chars
                             + "abcdefghijklmnopqrstuvwxyz";
-            return constant;
+            return JSObject.domString( constant );
         }
 
     }
