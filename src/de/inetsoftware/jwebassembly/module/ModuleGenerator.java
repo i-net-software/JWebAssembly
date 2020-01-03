@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,8 +158,19 @@ public class ModuleGenerator {
      *            the class file
      * @throws WasmException
      *             if some Java code can't converted
+     * @throws IOException
+     *             if any I/O error occur
      */
-    public void prepare( ClassFile classFile ) {
+    public void prepare( ClassFile classFile ) throws IOException {
+        // check if this class replace another class
+        Map<String,Object> annotationValues;
+        if( (annotationValues = classFile.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
+            String signatureName = (String)annotationValues.get( "value" );
+            if( signatureName != null ) {
+                classFileLoader.replace( signatureName, classFile );
+            }
+        }
+
         iterateMethods( classFile, m -> prepareMethod( m ) );
     }
 

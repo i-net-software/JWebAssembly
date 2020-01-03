@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2019 Volker Berlin (i-net software)
+   Copyright 2011 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -146,5 +146,26 @@ public class ConstantPool {
      */
     public Object get( int index ) {
         return constantPool[index];
+    }
+
+    /**
+     * Set a value in the constant pool.
+     * 
+     * @param index
+     *            the index
+     * @param value
+     *            the new value
+     */
+    void set( int index, Object value ) {
+        constantPool[index] = value;
+    }
+
+    /**
+     * Get the count of entries in the pool.
+     * 
+     * @return the count
+     */
+    int size() {
+        return constantPool.length;
     }
 }

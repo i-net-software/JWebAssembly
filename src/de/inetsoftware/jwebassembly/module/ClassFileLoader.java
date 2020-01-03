@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 import javax.annotation.Nullable;
 
@@ -31,7 +32,9 @@ import de.inetsoftware.classparser.WeakValueCache;
  */
 public class ClassFileLoader {
 
-    private final WeakValueCache<String, ClassFile> CACHE = new WeakValueCache<>();
+    private final HashMap<String, ClassFile>        replace   = new HashMap<>();
+
+    private final WeakValueCache<String, ClassFile> weakCache = new WeakValueCache<>();
 
     private final ClassLoader                       loader;
 
@@ -56,16 +59,32 @@ public class ClassFileLoader {
      */
     @Nullable
     public ClassFile get( String className ) throws IOException {
-        ClassFile classFile = CACHE.get( className );
+        ClassFile classFile = replace.get( className );
+        if( classFile != null ) {
+            return classFile;
+        }
+        classFile = weakCache.get( className );
         if( classFile != null ) {
             return classFile;
         }
         InputStream stream = loader.getResourceAsStream( className + ".class" );
         if( stream != null ) {
             classFile = new ClassFile( stream );
-            CACHE.put( className, classFile );
+            weakCache.put( className, classFile );
         }
         return classFile;
     }
 
+    /**
+     * Replace the class in the cache with the given instance.
+     * 
+     * @param className
+     *            the name of the class to replace
+     * @param classFile
+     *            the replasing ClassFile
+     */
+    public void replace( String className, ClassFile classFile ) {
+        classFile = new ClassFile( className, classFile );
+        replace.put( className, classFile );
+    }
 }

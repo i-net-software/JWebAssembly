@@ -34,8 +34,6 @@ import de.inetsoftware.classparser.Attributes.AttributeInfo;
  */
 public class ClassFile {
 
-    private final DataInputStream input;
-
     private final int             minorVersion;
 
     private final int             majorVersion;
@@ -71,7 +69,7 @@ public class ClassFile {
      *             if this input stream reaches the end before reading the class file.
      */
     public ClassFile( InputStream stream ) throws IOException {
-        this.input = new DataInputStream( stream );
+        DataInputStream input = new DataInputStream( stream );
         int magic = input.readInt();
         if( magic != 0xCAFEBABE ) {
             throw new IOException( "Invalid class magic: " + Integer.toHexString( magic ) );
@@ -87,8 +85,8 @@ public class ClassFile {
         for( int i = 0; i < interfaces.length; i++ ) {
             interfaces[i] = (ConstantClass)constantPool.get( input.readUnsignedShort() );
         }
-        fields = readFields();
-        methods = readMethods();
+        fields = readFields( input );
+        methods = readMethods( input );
         attributes = new Attributes( input, constantPool );
 
         stream.close();
@@ -112,6 +110,45 @@ public class ClassFile {
                     thisSignature = signature.substring( 0, i );
                     superSignature = signature.substring( i );
                     break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Create a replaced instance.
+     * 
+     * @param className
+     *            the class name that should be replaced
+     * @param classFile
+     *            the replacing class file data
+     */
+    public ClassFile( String className, ClassFile classFile ) {
+        minorVersion = classFile.minorVersion;
+        majorVersion = classFile.majorVersion;
+
+        constantPool = classFile.constantPool;
+        accessFlags = classFile.accessFlags;
+        thisClass = new ConstantClass( className );
+        superClass = classFile.superClass;
+        interfaces = classFile.interfaces;
+        fields = classFile.fields;
+        methods = classFile.methods;
+        attributes = classFile.attributes;
+
+        // patch constant pool
+        String origClassName = classFile.thisClass.getName();
+        for( int i = 0; i < constantPool.size(); i++ ) {
+            Object obj = constantPool.get( i );
+            if( obj instanceof ConstantClass ) {
+                if( ((ConstantClass)obj).getName().equals( origClassName ) ) {
+                    constantPool.set( i, thisClass );
+                }
+            } else if( obj instanceof ConstantFieldRef ) {
+                ConstantFieldRef ref = (ConstantFieldRef)obj;
+                if( ref.getClassName().equals( origClassName ) ) {
+                    ConstantNameAndType nameAndType = new ConstantNameAndType( ref.getName(), ref.getType() );
+                    constantPool.set( i, new ConstantFieldRef( thisClass, nameAndType ) );
                 }
             }
         }
@@ -216,7 +253,7 @@ public class ClassFile {
         return accessFlags;
     }
 
-    private FieldInfo[] readFields() throws IOException {
+    private FieldInfo[] readFields( DataInputStream input ) throws IOException {
         FieldInfo[] fields = new FieldInfo[input.readUnsignedShort()];
         for( int i = 0; i < fields.length; i++ ) {
             fields[i] = new FieldInfo( input, constantPool );
@@ -224,7 +261,7 @@ public class ClassFile {
         return fields;
     }
 
-    private MethodInfo[] readMethods() throws IOException {
+    private MethodInfo[] readMethods( DataInputStream input ) throws IOException {
         MethodInfo[] methods = new MethodInfo[input.readUnsignedShort()];
         for( int i = 0; i < methods.length; i++ ) {
             methods[i] = new MethodInfo( input, constantPool, this );
