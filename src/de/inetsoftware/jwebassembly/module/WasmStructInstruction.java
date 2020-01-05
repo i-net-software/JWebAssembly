@@ -108,15 +108,24 @@ class WasmStructInstruction extends WasmInstruction {
                 break;
             case SET:
                 AnyType fieldType = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + fieldType, () -> "(a,v,i) => a[i]=v", ValueType.anyref, fieldType, ValueType.i32, null, null );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + validJsName( fieldType ), () -> "(a,v,i) => a[i]=v", ValueType.anyref, fieldType, ValueType.i32, null, null );
                 break;
             case GET:
                 fieldType = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + fieldType, () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, fieldType );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + validJsName( fieldType ), () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, fieldType );
                 break;
             default:
         }
         return functionName;
+    }
+
+    /**
+     * Get a valid JavaScript name.
+     * @param type the type
+     * @return the identifier that is valid 
+     */
+    private static String validJsName( AnyType type ) {
+        return type instanceof StructType ? "anyref" : type.toString();
     }
 
     /**
