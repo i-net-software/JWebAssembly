@@ -30,6 +30,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -174,10 +175,21 @@ public class WasmRule extends TemporaryFolder {
      */
     @Override
     protected void after() {
-        super.after();
         if( failed ) {
+            if( wasmFile != null ) {
+                File jsFile = new File( wasmFile.toString() + ".js" );
+                if( jsFile.isFile() ) {
+                    try {
+                        System.out.println( new String( Files.readAllBytes( jsFile.toPath() ), StandardCharsets.UTF_8 ) );
+                        System.out.println();
+                    } catch( IOException e ) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             System.out.println( textCompiled );
         }
+        super.after();
     }
 
     /**
