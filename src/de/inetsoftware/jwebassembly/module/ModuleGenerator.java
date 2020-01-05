@@ -514,6 +514,8 @@ public class ModuleGenerator {
                         switch( ((WasmBlockInstruction)instruction).getOperation() ) {
                             case TRY:
                             case CATCH:
+                            case THROW:
+                            case RETHROW:
                                 writer.writeException();
                                 break;
                             default:
