@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -111,6 +111,8 @@ class WasmBlockInstruction extends WasmInstruction {
             case IF:
             case BR_IF:
             case DROP:
+            case THROW:
+            case RETHROW:
                 return 1;
             default:
                 return 0;
