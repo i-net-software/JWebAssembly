@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -651,17 +651,24 @@ class BranchManger {
      *            the not consumed operations in the parent branch
      */
     private void calculateGoto ( BranchNode parent, ParsedBlock gotoBlock, List<ParsedBlock> parsedOperations ) {
-        int start = gotoBlock.endPosition;
-        int end = gotoBlock.startPosition;
-        if( end > start ) {
+        int jump = gotoBlock.endPosition; // jump position of the GOTO  
+        int start = gotoBlock.startPosition;
+        if( start > jump ) {
+            // back jump to a previous position like in loops
             int deep = 0;
             while( parent != null ) {
-                if( parent.startOp == WasmBlockOperator.LOOP && parent.startPos == start ) {
-                    parent.add( new BranchNode( end, end, WasmBlockOperator.BR, null, deep ) ); // continue to the start of the loop
+                if( parent.startOp == WasmBlockOperator.LOOP && parent.startPos == jump ) {
+                    parent.add( new BranchNode( start, start, WasmBlockOperator.BR, null, deep ) ); // continue to the start of the loop
                     return;
                 }
                 parent = parent.parent;
                 deep++;
+            }
+        } else {
+            if( gotoBlock.nextPosition == jump ) {
+                //A GOTO to the next position is like a NOP and can be ignored.
+                //Occur in java.lang.Integer.getChars(int, int, char[]) of Java 8
+                return;
             }
         }
         throw new WasmException( "GOTO code without target loop/block", null, null, gotoBlock.lineNumber );
