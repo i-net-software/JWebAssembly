@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ class WasmCallInstruction extends WasmInstruction {
      *            true, if the method is static
      */
     void markAsNeeded( @Nonnull FunctionManager functions, boolean isStatic ) {
-        name = functions.markAsNeeded( name, isStatic );
+        name = functions.markAsNeeded( name, isStatic && !name.methodName.equals( "<init>" ) ); // a constructor is like static call but has a hidden "this" parameter.
     }
 
     /**
