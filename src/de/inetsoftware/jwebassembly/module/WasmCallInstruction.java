@@ -119,7 +119,7 @@ class WasmCallInstruction extends WasmInstruction {
             return;
         }
         Iterator<AnyType> parser = name.getSignature( types );
-        paramCount = 0;
+        paramCount = name.methodName.equals( "<init>" ) ? 1 : 0;
         while( parser.next() != null ) {
             paramCount++;
         }
