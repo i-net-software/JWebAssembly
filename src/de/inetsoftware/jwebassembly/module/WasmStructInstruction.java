@@ -219,12 +219,12 @@ class WasmStructInstruction extends WasmInstruction {
     @Override
     int getPopCount() {
         switch( op ) {
-            case NEW:
-            case NEW_DEFAULT:
             case GET:
                 return 1;
             case SET:
                 return 2;
+            case NEW:
+            case NEW_DEFAULT:
             case NULL:
                 return 0;
             default:
