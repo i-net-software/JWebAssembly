@@ -162,6 +162,7 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     public void prepare( ClassFile classFile ) throws IOException {
+        classFileLoader.cache( classFile );
         // check if this class replace another class
         Map<String,Object> annotationValues;
         if( (annotationValues = classFile.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {

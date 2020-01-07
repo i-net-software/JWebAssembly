@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ClassFile;
@@ -38,6 +39,8 @@ public class ClassFileLoader {
 
     private final ClassLoader                       loader;
 
+    private final ClassLoader                       bootLoader;
+
     /**
      * Create a new instance
      * 
@@ -46,6 +49,15 @@ public class ClassFileLoader {
      */
     public ClassFileLoader( ClassLoader loader ) {
         this.loader = loader;
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+        do {
+            ClassLoader parent = cl.getParent();
+            if( parent == null ) {
+                bootLoader = cl;
+                break;
+            }
+            cl = parent;
+        } while( true );
     }
 
     /**
@@ -65,14 +77,36 @@ public class ClassFileLoader {
         }
         classFile = weakCache.get( className );
         if( classFile != null ) {
+            if( "java/lang/String".equals( className ) ) {
+                System.err.println( className + " from cache" );
+            }
             return classFile;
         }
         InputStream stream = loader.getResourceAsStream( className + ".class" );
         if( stream != null ) {
+            if( "java/lang/String".equals( className ) ) {
+                System.err.println( className + " from URL " + loader.getResource( className + ".class" ) );
+            }
             classFile = new ClassFile( stream );
             weakCache.put( className, classFile );
         }
         return classFile;
+    }
+
+    /**
+     * Add a class file to the weak cache.
+     * 
+     * @param classFile
+     *            the class file
+     */
+    public void cache( @Nonnull ClassFile classFile ) {
+        String name = classFile.getThisClass().getName();
+        if( bootLoader.getResource( name + ".class" ) != null ) {
+            // if the same resource is exist in the JVM self then we need to hold the reference permanently
+            replace.put( name, classFile );
+        } else {
+            weakCache.put( name, classFile );
+        }
     }
 
     /**
