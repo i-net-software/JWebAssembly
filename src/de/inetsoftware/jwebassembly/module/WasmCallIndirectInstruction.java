@@ -59,7 +59,7 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      *            compiler properties
      */
     WasmCallIndirectInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types, WasmOptions options ) {
-        super( name, javaCodePos, lineNumber, types );
+        super( name, javaCodePos, lineNumber, types, true );
         this.type = types.valueOf( name.className );
         this.options = options;
     }
@@ -127,13 +127,5 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
             writer.writeMemoryOperator( MemoryOperator.load, ValueType.i32, virtualFunctionIdx * 4, 2 );
             writer.writeVirtualFunctionCall( getFunctionName(), type );
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    int getPopCount() {
-        return super.getPopCount() + 1; // this -> +1
     }
 }

@@ -421,7 +421,8 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types );
+        boolean needThisParameter = functions.needThisParameter( name );
+        WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types, needThisParameter );
 
         if( "<init>".equals( name.methodName ) ) {
             // check if there a factory for the constructor in JavaScript then we need to do some more complex patching
@@ -459,7 +460,7 @@ public abstract class WasmCodeBuilder {
                     }
                 }
                 // the new instruction
-                instruction = new WasmCallInstruction( factoryName, javaCodePos, lineNumber, types );
+                instruction = new WasmCallInstruction( factoryName, javaCodePos, lineNumber, types, false );
             }
         }
 

@@ -31,13 +31,15 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 class WasmCallInstruction extends WasmInstruction {
 
-    private AnyType      valueType;
+    private AnyType           valueType;
 
-    private FunctionName name;
+    private FunctionName      name;
 
-    private int          paramCount = -1;
+    private int               paramCount = -1;
 
-    private TypeManager  types;
+    private final TypeManager types;
+
+    private final boolean     needThisParameter;
 
     /**
      * Create an instance of a function call instruction
@@ -50,11 +52,14 @@ class WasmCallInstruction extends WasmInstruction {
      *            the line number in the Java source code
      * @param types
      *            the type manager
+     * @param needThisParameter
+     *            true, if this function need additional to the parameter of the signature an extra "this" parameter
      */
-    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types ) {
+    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types, boolean needThisParameter ) {
         super( javaCodePos, lineNumber );
         this.name = name;
         this.types = types;
+        this.needThisParameter = needThisParameter;
     }
 
     /**
@@ -117,7 +122,7 @@ class WasmCallInstruction extends WasmInstruction {
             return;
         }
         Iterator<AnyType> parser = name.getSignature( types );
-        paramCount = name.methodName.equals( "<init>" ) ? 1 : 0;
+        paramCount = needThisParameter ? 1 : 0;
         while( parser.next() != null ) {
             paramCount++;
         }
