@@ -176,12 +176,12 @@ public class ModuleGenerator {
     }
 
     /**
-     * Prepare all needed methods/functions and scan the content for more needed stuff.
+     * Scan all needed methods/functions in a loop. If the scan find more needed content then the loop continue.
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    private void prepareFunctions() throws IOException {
+    private void scanFunctions() throws IOException {
         FunctionName next;
         NEXT:
         while( (next = functions.nextScannLater()) != null ) {
@@ -239,7 +239,7 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     public void prepareFinish() throws IOException {
-        prepareFunctions();
+        scanFunctions();
 
         // write only the needed imports to the output
         for( Iterator<FunctionName> iterator = functions.getNeededImports(); iterator.hasNext(); ) {
@@ -270,7 +270,7 @@ public class ModuleGenerator {
 
         JWebAssembly.LOGGER.fine( "scan finsih" );
         types.prepareFinish( writer, functions, classFileLoader );
-        prepareFunctions(); // prepare of types can add some override methods as needed
+        scanFunctions(); // prepare of types can add some override methods as needed
         functions.prepareFinish();
         strings.prepareFinish( writer );
         writer.prepareFinish();
