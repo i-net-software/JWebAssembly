@@ -105,7 +105,7 @@ public class FunctionManager {
      * @param name
      *            the function name
      * @param needThisParameter
-     *            if this function need additional to the signature a this parameter
+     *            if this function need additional to the parameter of the signature an extra "this" parameter
      */
     void markAsScanned( FunctionName name, boolean needThisParameter ) {
         FunctionState state = getOrCreate( name );
@@ -264,7 +264,7 @@ public class FunctionManager {
     }
 
     /**
-     * if the given function is static.
+     * If this function need additional to the parameter of the signature an extra "this" parameter.
      * 
      * @param name
      *            the function name
