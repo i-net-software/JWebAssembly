@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -269,7 +269,7 @@ public class TypeManager {
                     FunctionName func = methods.get( idx );
                     if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
                         methods.set( idx, funcName ); // use the override method
-                        functions.markAsNeeded( funcName, false ); // mark all overridden methods also as needed if the super method is used
+                        functions.markAsNeeded( funcName ); // mark all overridden methods also as needed if the super method is used
                         break;
                     }
                 }

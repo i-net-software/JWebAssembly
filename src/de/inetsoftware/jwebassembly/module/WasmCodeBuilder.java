@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,7 +391,7 @@ public abstract class WasmCodeBuilder {
         WasmNumericInstruction numeric = new WasmNumericInstruction( numOp, valueType, javaCodePos, lineNumber );
         instructions.add( numeric );
         if( !options.useGC() && numOp == NumericOperator.ref_eq ) {
-            functions.markAsNeeded( options.ref_eq = getNonGC( "ref_eq", lineNumber ), true );
+            functions.markAsNeeded( options.ref_eq = getNonGC( "ref_eq", lineNumber ) );
         }
         return numeric;
     }
@@ -496,7 +496,7 @@ public abstract class WasmCodeBuilder {
         virtualCall.setVariableIndexOfThis( varIndex );
         instructions.add( virtualCall );
         if( !options.useGC() ) {
-            functions.markAsNeeded( GET_I32, true );
+            functions.markAsNeeded( GET_I32 );
             functions.markAsImport( GET_I32, GET_I32.getAnnotation() );
         }
     }
@@ -595,7 +595,7 @@ public abstract class WasmCodeBuilder {
         if( !options.useGC() ) {
             SyntheticFunctionName name = structInst.createNonGcFunction();
             if( name != null ) {
-                functions.markAsNeeded( name, true );
+                functions.markAsNeeded( name );
                 functions.markAsImport( name, name.getAnnotation() );
             }
         }

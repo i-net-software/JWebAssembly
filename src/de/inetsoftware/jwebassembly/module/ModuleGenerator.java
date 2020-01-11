@@ -195,7 +195,7 @@ public class ModuleGenerator {
                     } else {
                         functions.markAsImport( synth, synth.getAnnotation() );
                     }
-                    functions.markAsScanned( next );
+                    functions.markAsScanned( next, false );
                 }
             } else {
                 JWebAssembly.LOGGER.fine( "scan class: " + next.className );
@@ -205,7 +205,8 @@ public class ModuleGenerator {
                         if( functions.needToScan( name ) ) {
                             JWebAssembly.LOGGER.fine( '\t' + name.methodName + name.signature );
                             scanMethod( createInstructions( functions.replace( name, method ) ) );
-                            functions.markAsScanned( name );
+                            boolean needThisParameter = !method.isStatic() || "<init>".equals( method.getName() );
+                            functions.markAsScanned( name, needThisParameter );
                         }
                     } catch (IOException ioex){
                         throw WasmException.create( ioex, sourceFile, className, -1 );
@@ -220,7 +221,7 @@ public class ModuleGenerator {
                     MethodInfo method = superClassFile.getMethod( next.methodName, next.signature );
                     if( method != null ) {
                         FunctionName name = new FunctionName( method );
-                        functions.markAsNeeded( name, method.isStatic() );
+                        functions.markAsNeeded( name );
                         functions.setAlias( next, name );
                         continue NEXT; // we have found a super method
                     }
@@ -258,14 +259,14 @@ public class ModuleGenerator {
                 importName = name.methodName;
             }
             writer.prepareImport( name, importModule, importName );
-            writeMethodSignature( name, true, null );
+            writeMethodSignature( name, null );
             javaScript.addImport( importModule, importName, importAnannotation );
         }
 
         // init/write the function types
         for( Iterator<FunctionName> iterator = functions.getNeededFunctions(); iterator.hasNext(); ) {
             FunctionName name = iterator.next();
-            writeMethodSignature( name, functions.isStatic( name ), null );
+            writeMethodSignature( name, null );
         }
 
         JWebAssembly.LOGGER.fine( "scan finsih" );
@@ -292,10 +293,8 @@ public class ModuleGenerator {
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Call:
-                    ((WasmCallInstruction)instruction).markAsNeeded( functions, true );
-                    break;
                 case CallIndirect:
-                    ((WasmCallInstruction)instruction).markAsNeeded( functions, false );
+                    ((WasmCallInstruction)instruction).markAsNeeded( functions );
                     break;
                 default:
             }
@@ -314,7 +313,7 @@ public class ModuleGenerator {
             className = null;
             FunctionName next = it.next();
             if( next instanceof SyntheticFunctionName ) {
-                writeMethodImpl( next, true, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
+                writeMethodImpl( next, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
             } else {
                 ClassFile classFile = classFileLoader.get( next.className );
                 if( classFile == null ) {
@@ -393,7 +392,7 @@ public class ModuleGenerator {
             }
             Map<String,Object> annotationValues;
             if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
-                functions.isStatic( name ); // register this class that process the annotation of this replacement function not a second time. iSKnown() returns true now.
+                functions.needThisParameter( name); // register this class that process the annotation of this replacement function not a second time. iSKnown() returns true now.
                 String signatureName = (String)annotationValues.get( "value" );
                 name = new FunctionName( signatureName );
                 functions.addReplacement( name, method );
@@ -409,7 +408,7 @@ public class ModuleGenerator {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Export method must be static: " + name.fullName, -1 );
                 }
-                functions.markAsNeeded( name, true );
+                functions.markAsNeeded( name );
                 return;
             }
         } catch( Exception ioex ) {
@@ -435,7 +434,7 @@ public class ModuleGenerator {
             return;
         }
         writeExport( name, method );
-        writeMethodImpl( name, functions.isStatic( name ), codeBuilder );
+        writeMethodImpl( name, codeBuilder );
     }
 
     /**
@@ -483,8 +482,6 @@ public class ModuleGenerator {
      * 
      * @param name
      *            the name of the function
-     * @param isStatic
-     *            if it is static
      * @param codeBuilder
      *            the code builder with instructions
      * @throws WasmException
@@ -492,10 +489,10 @@ public class ModuleGenerator {
      * @throws IOException
      *             if an i/O error occur
      */
-    private void writeMethodImpl( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
+    private void writeMethodImpl( FunctionName name, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
         writer.writeMethodStart( name, sourceFile );
         functions.markAsWritten( name );
-        writeMethodSignature( name, isStatic, codeBuilder );
+        writeMethodSignature( name, codeBuilder );
 
         List<WasmInstruction> instructions = codeBuilder.getInstructions();
         optimizer.optimze( instructions );
@@ -523,10 +520,8 @@ public class ModuleGenerator {
                         }
                         break;
                     case Call:
-                        ((WasmCallInstruction)instruction).markAsNeeded( functions, true );
-                        break;
                     case CallIndirect:
-                        ((WasmCallInstruction)instruction).markAsNeeded( functions, false );
+                        ((WasmCallInstruction)instruction).markAsNeeded( functions );
                         break;
                     case Struct:
                         if( !writer.options.useGC() ) {
@@ -583,8 +578,6 @@ public class ModuleGenerator {
      * 
      * @param name
      *            the Java signature, typical method.getType();
-     * @param isStatic
-     *            if method is static
      * @param codeBuilder
      *            the calculated variables 
      * @throws IOException
@@ -592,10 +585,10 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( FunctionName name, boolean isStatic, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+    private void writeMethodSignature( FunctionName name, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
         writer.writeMethodParamStart( name );
         int paramCount = 0;
-        if( !isStatic ) {
+        if( functions.needThisParameter( name ) ) {
             StructType instanceType = types.valueOf( name.className );
             writer.writeMethodParam( "param", instanceType, "this" );
             paramCount++;

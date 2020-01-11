@@ -80,11 +80,9 @@ class WasmCallInstruction extends WasmInstruction {
      * 
      * @param functions
      *            the function manager
-     * @param isStatic
-     *            true, if the method is static
      */
-    void markAsNeeded( @Nonnull FunctionManager functions, boolean isStatic ) {
-        name = functions.markAsNeeded( name, isStatic && !name.methodName.equals( "<init>" ) ); // a constructor is like static call but has a hidden "this" parameter.
+    void markAsNeeded( @Nonnull FunctionManager functions ) {
+        name = functions.markAsNeeded( name );
     }
 
     /**

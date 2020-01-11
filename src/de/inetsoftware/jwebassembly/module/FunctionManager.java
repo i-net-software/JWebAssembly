@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,9 +104,13 @@ public class FunctionManager {
      * 
      * @param name
      *            the function name
+     * @param needThisParameter
+     *            if this function need additional to the signature a this parameter
      */
-    void markAsScanned( FunctionName name ) {
-        getOrCreate( name ).state = State.Scanned;
+    void markAsScanned( FunctionName name, boolean needThisParameter ) {
+        FunctionState state = getOrCreate( name );
+        state.state = State.Scanned;
+        state.needThisParameter = needThisParameter;
     }
 
     /**
@@ -124,11 +128,9 @@ public class FunctionManager {
      * 
      * @param name
      *            the function name
-     * @param isStatic
-     *            true, if the method is static
      * @return the real function name
      */
-    FunctionName markAsNeeded( FunctionName name, boolean isStatic ) {
+    FunctionName markAsNeeded( FunctionName name ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
             if( isFinish ) {
@@ -136,7 +138,6 @@ public class FunctionManager {
             }
             state.state = State.Needed;
         }
-        state.isStatic = isStatic;
         return state.alias == null ? name : state.alias;
     }
 
@@ -269,8 +270,8 @@ public class FunctionManager {
      *            the function name
      * @return true, if the function is static
      */
-    boolean isStatic( FunctionName name ) {
-        return getOrCreate( name ).isStatic;
+    boolean needThisParameter( FunctionName name ) {
+        return getOrCreate( name ).needThisParameter;
     }
 
     /**
@@ -355,7 +356,7 @@ public class FunctionManager {
 
         private int                      functionIdx = -1;
 
-        private boolean                  isStatic;
+        private boolean                  needThisParameter;
     }
 
     private static enum State {
