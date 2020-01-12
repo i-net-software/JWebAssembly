@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
+import de.inetsoftware.classparser.ClassFile.Type;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.MethodInfo;
@@ -229,6 +230,11 @@ public class TypeManager {
             ClassFile classFile = classFileLoader.get( className );
             if( classFile == null ) {
                 throw new WasmException( "Missing class: " + className, -1 );
+            }
+
+            // interface does not need to resolve
+            if( classFile.getType() == Type.Interface ) {
+                return;
             }
 
             {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "callVirtualMethod" );
             addParam( list, script, "useGlobalObject" );
             addParam( list, script, "multipleAssign" );
+            addParam( list, script, "getDefaultValue" );
         }
         rule.setTestParameters( list );
         return list;
@@ -136,9 +137,21 @@ public class StructsNonGC extends AbstractBaseTest {
             }
             return val.a;
         }
+
+        @Export
+        static int getDefaultValue() {
+            Abc2 val = new Abc2();
+            return val.getDefault();
+        }
     }
 
-    static class Abc {
+    interface TestDefault {
+        default int getDefault() {
+            return 7;
+        }
+    }
+
+    static class Abc implements TestDefault {
         int  a;
 
         long b;

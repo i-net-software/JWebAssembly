@@ -228,6 +228,24 @@ public class ModuleGenerator {
                     ConstantClass superClass = superClassFile.getSuperClass();
                     superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
                 }
+
+                // search if there is a default implementation in an interface
+                superClassFile = classFile;
+                while( superClassFile != null ) {
+                    for( ConstantClass iface : superClassFile.getInterfaces() ) {
+                        ClassFile iClassFile = classFileLoader.get( iface.getName() );
+                        MethodInfo method = iClassFile.getMethod( next.methodName, next.signature );
+                        if( method != null ) {
+                            FunctionName name = new FunctionName( method );
+                            functions.markAsNeeded( name );
+                            functions.setAlias( next, name );
+                            continue NEXT; // we have found a super method
+                        }
+                    }
+                    ConstantClass superClass = superClassFile.getSuperClass();
+                    superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
+                }
+
                 throw new WasmException( "Missing function: " + next.signatureName, -1 );
             }
         }

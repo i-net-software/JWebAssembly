@@ -32,6 +32,7 @@ The project is currently not production ready but you can run already some tests
 * [x] invoke instance method calls
 * [ ] invoke interface method calls
 * [ ] invoke dynamic method calls (lambdas)
+* [x] invoke default method calls
 * [ ] String support
 * [ ] static constructors
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
