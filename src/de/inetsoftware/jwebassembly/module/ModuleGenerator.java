@@ -185,69 +185,66 @@ public class ModuleGenerator {
         FunctionName next;
         NEXT:
         while( (next = functions.nextScannLater()) != null ) {
-            ClassFile classFile = classFileLoader.get( next.className );
-            if( classFile == null ) {
-                if( next instanceof SyntheticFunctionName ) {
-                    JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
-                    SyntheticFunctionName synth = (SyntheticFunctionName)next;
-                    if( synth.hasWasmCode() ) {
-                        scanMethod( synth.getCodeBuilder( watParser ) );
-                    } else {
-                        functions.markAsImport( synth, synth.getAnnotation() );
-                    }
-                    functions.markAsScanned( next, false );
+            if( next instanceof SyntheticFunctionName ) {
+                JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
+                SyntheticFunctionName synth = (SyntheticFunctionName)next;
+                if( synth.hasWasmCode() ) {
+                    scanMethod( synth.getCodeBuilder( watParser ) );
+                } else {
+                    functions.markAsImport( synth, synth.getAnnotation() );
                 }
-            } else {
-                JWebAssembly.LOGGER.fine( "scan class: " + next.className );
-                iterateMethods( classFile, method -> {
-                    try {
-                        FunctionName name = new FunctionName( method );
-                        if( functions.needToScan( name ) ) {
-                            JWebAssembly.LOGGER.fine( '\t' + name.methodName + name.signature );
-                            scanMethod( createInstructions( functions.replace( name, method ) ) );
-                            boolean needThisParameter = !method.isStatic() || "<init>".equals( method.getName() );
-                            functions.markAsScanned( name, needThisParameter );
-                        }
-                    } catch (IOException ioex){
-                        throw WasmException.create( ioex, sourceFile, className, -1 );
-                    }
-                } );
+                functions.markAsScanned( next, false );
+                continue;
             }
 
-            if( functions.needToScan( next ) ) { // function was not found
-                // search if there is a super class with the same signature
-                ClassFile superClassFile = classFile;
-                while( superClassFile != null ) {
-                    MethodInfo method = superClassFile.getMethod( next.methodName, next.signature );
+            JWebAssembly.LOGGER.fine( "scan " + next.signatureName );
+            MethodInfo method = null;
+            ClassFile classFile = classFileLoader.get( next.className );
+            if( classFile != null ) {
+                method = classFile.getMethod( next.methodName, next.signature );
+            }
+            if( method == null ) {
+                method = functions.replace( next, null );
+            }
+            if( method != null ) {
+                scanMethod( createInstructions( functions.replace( next, method ) ) );
+                boolean needThisParameter = !method.isStatic() || "<init>".equals( method.getName() );
+                functions.markAsScanned( next, needThisParameter );
+                continue;
+            }
+
+            // search if there is a super class with the same signature
+            ClassFile superClassFile = classFile;
+            while( superClassFile != null ) {
+                method = superClassFile.getMethod( next.methodName, next.signature );
+                if( method != null ) {
+                    FunctionName name = new FunctionName( method );
+                    functions.markAsNeeded( name );
+                    functions.setAlias( next, name );
+                    continue NEXT; // we have found a super method
+                }
+                ConstantClass superClass = superClassFile.getSuperClass();
+                superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
+            }
+
+            // search if there is a default implementation in an interface
+            superClassFile = classFile;
+            while( superClassFile != null ) {
+                for( ConstantClass iface : superClassFile.getInterfaces() ) {
+                    ClassFile iClassFile = classFileLoader.get( iface.getName() );
+                    method = iClassFile.getMethod( next.methodName, next.signature );
                     if( method != null ) {
                         FunctionName name = new FunctionName( method );
                         functions.markAsNeeded( name );
                         functions.setAlias( next, name );
                         continue NEXT; // we have found a super method
                     }
-                    ConstantClass superClass = superClassFile.getSuperClass();
-                    superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
                 }
-
-                // search if there is a default implementation in an interface
-                superClassFile = classFile;
-                while( superClassFile != null ) {
-                    for( ConstantClass iface : superClassFile.getInterfaces() ) {
-                        ClassFile iClassFile = classFileLoader.get( iface.getName() );
-                        MethodInfo method = iClassFile.getMethod( next.methodName, next.signature );
-                        if( method != null ) {
-                            FunctionName name = new FunctionName( method );
-                            functions.markAsNeeded( name );
-                            functions.setAlias( next, name );
-                            continue NEXT; // we have found a super method
-                        }
-                    }
-                    ConstantClass superClass = superClassFile.getSuperClass();
-                    superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
-                }
-
-                throw new WasmException( "Missing function: " + next.signatureName, -1 );
+                ConstantClass superClass = superClassFile.getSuperClass();
+                superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
             }
+
+            throw new WasmException( "Missing function: " + next.signatureName, -1 );
         }
     }
 
