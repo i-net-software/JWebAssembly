@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 
 /**
@@ -137,6 +138,7 @@ public class FunctionManager {
                 throw new WasmException( "Prepare was already finish: " + name.signatureName, -1 );
             }
             state.state = State.Needed;
+            JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );
         }
         return state.alias == null ? name : state.alias;
     }
