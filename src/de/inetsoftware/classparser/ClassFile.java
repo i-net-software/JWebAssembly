@@ -285,12 +285,14 @@ public class ClassFile {
 
     /**
      * Get the type of class.
+     * 
+     * @return the type of the class
      */
     public Type getType() {
         if( (accessFlags & 0x0200) > 0 ) {
             return Type.Interface;
         }
-        if( superClass.getName().equals( "java/lang/Enum" ) ) {
+        if( superClass != null && superClass.getName().equals( "java/lang/Enum" ) ) {
             return Type.Enum;
         }
         return Type.Class;
