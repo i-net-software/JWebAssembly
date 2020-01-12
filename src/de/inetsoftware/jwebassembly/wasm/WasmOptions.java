@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ public class WasmOptions {
 
     private final boolean useGC;
 
+    private final boolean useEH;
+
     @Nonnull
     private final String  sourceMapBase;
 
@@ -50,6 +52,7 @@ public class WasmOptions {
     public WasmOptions( HashMap<String, String> properties ) {
         debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
+        useEH = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_EH, "false" ) );
         String base = properties.getOrDefault( JWebAssembly.SOURCE_MAP_BASE, "" );
         if( !base.isEmpty() && !base.endsWith( "/" ) ) {
             base += "/";
@@ -73,6 +76,15 @@ public class WasmOptions {
      */
     public boolean useGC() {
         return useGC;
+    }
+
+    /**
+     * If the exception handling feature of WASM should be use or an unreachable instruction.
+     * 
+     * @return true, use the EH instructions of WASM; false, generate an unreachable instruction
+     */
+    public boolean useEH() {
+        return useEH;
     }
 
     /**

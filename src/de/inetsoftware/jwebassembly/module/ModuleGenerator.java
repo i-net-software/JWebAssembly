@@ -514,7 +514,9 @@ public class ModuleGenerator {
                             case CATCH:
                             case THROW:
                             case RETHROW:
-                                writer.writeException();
+                                if( writer.options.useEH() ) {
+                                    writer.writeException();
+                                }
                                 break;
                             default:
                         }

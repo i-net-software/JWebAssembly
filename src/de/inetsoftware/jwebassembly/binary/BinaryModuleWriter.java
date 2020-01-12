@@ -1248,8 +1248,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.writeOpCode( CATCH );
                 break;
             case THROW:
-                codeStream.writeOpCode( THROW );
-                codeStream.writeVaruint32( 0 );             // event/exception ever 0 because currently there is only one with signature anyref
+                if( options.useEH() ) {
+                    codeStream.writeOpCode( THROW );
+                    codeStream.writeVaruint32( 0 );             // event/exception ever 0 because currently there is only one with signature anyref
+                } else {
+                    codeStream.writeOpCode( UNREACHABLE );
+                }
                 break;
             case RETHROW:
                 codeStream.writeOpCode( RETHROW );

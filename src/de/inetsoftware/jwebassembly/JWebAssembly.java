@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,6 +92,11 @@ public class JWebAssembly {
      * If the GC feature of WASM should be use or the GC of the JavaScript host. If true use the GC instructions of WASM.
      */
     public static final String WASM_USE_GC = "wasm.use_gc";
+
+    /**
+     * If the exception handling feature of WASM should be use or an unreachable instruction. If true use the exception instructions of WASM.
+     */
+    public static final String WASM_USE_EH = "wasm.use_eh";
 
     /**
      * The logger instance
