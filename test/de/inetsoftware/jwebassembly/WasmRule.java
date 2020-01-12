@@ -60,7 +60,7 @@ public class WasmRule extends TemporaryFolder {
 
     private final Class<?>[]          classes;
 
-    private JWebAssembly              compiler;
+    private final JWebAssembly        compiler;
 
     private File                      wasmFile;
 
@@ -99,6 +99,7 @@ public class WasmRule extends TemporaryFolder {
             throw new IllegalArgumentException( "You need to set minimum one test class" );
         }
         this.classes = classes;
+        compiler = new JWebAssembly();
     }
 
     /**
@@ -113,6 +114,18 @@ public class WasmRule extends TemporaryFolder {
             testData.put( (String)param[1], (Object[])param[2] );
         }
         testResults = new HashMap<>();
+    }
+
+    /**
+     * Set property to control the behavior of the compiler
+     * 
+     * @param key
+     *            the key
+     * @param value
+     *            the new value
+     */
+    public void setProperty( String key, String value ) {
+        compiler.setProperty( key, value );
     }
 
     /**
@@ -199,7 +212,6 @@ public class WasmRule extends TemporaryFolder {
      *             if the compiling is failing
      */
     public void compile() throws WasmException {
-        compiler = new JWebAssembly();
         for( Class<?> clazz : classes ) {
             URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
             compiler.addFile( url );
