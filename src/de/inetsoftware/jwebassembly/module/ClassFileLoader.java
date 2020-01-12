@@ -77,16 +77,10 @@ public class ClassFileLoader {
         }
         classFile = weakCache.get( className );
         if( classFile != null ) {
-            if( "java/lang/String".equals( className ) ) {
-                System.err.println( className + " from cache" );
-            }
             return classFile;
         }
         InputStream stream = loader.getResourceAsStream( className + ".class" );
         if( stream != null ) {
-            if( "java/lang/String".equals( className ) ) {
-                System.err.println( className + " from URL " + loader.getResource( className + ".class" ) );
-            }
             classFile = new ClassFile( stream );
             weakCache.put( className, classFile );
         }
