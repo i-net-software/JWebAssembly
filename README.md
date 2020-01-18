@@ -12,7 +12,7 @@ The difference to similar projects is that not a complete VM with GC and memory 
 
 Documentation
 ----
-The documentation can be found in the [wiki](wiki).
+The documentation can be found in the [wiki](https://github.com/i-net-software/JWebAssembly/wiki).
 
 Status of the project
 ----
