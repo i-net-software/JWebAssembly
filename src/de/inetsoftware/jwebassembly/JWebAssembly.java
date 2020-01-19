@@ -89,6 +89,11 @@ public class JWebAssembly {
     public static final String REPLACE_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.Replace";
 
     /**
+     * The name of the annotation for partial class another class of the Java runtime. 
+     */
+    public static final String PARTIAL_ANNOTATION =  "de.inetsoftware.jwebassembly.api.annotation.Partial";
+
+    /**
      * If the GC feature of WASM should be use or the GC of the JavaScript host. If true use the GC instructions of WASM.
      */
     public static final String WASM_USE_GC = "wasm.use_gc";

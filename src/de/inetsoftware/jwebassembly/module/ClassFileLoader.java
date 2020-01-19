@@ -104,15 +104,31 @@ public class ClassFileLoader {
     }
 
     /**
-     * Replace the class in the cache with the given instance.
+     * Replace the class in the cache with the given instance to the loader cache.
      * 
      * @param className
      *            the name of the class to replace
      * @param classFile
-     *            the replasing ClassFile
+     *            the replacing ClassFile
      */
-    public void replace( String className, ClassFile classFile ) {
+    void replace( String className, ClassFile classFile ) {
         classFile = new ClassFile( className, classFile );
         replace.put( className, classFile );
+    }
+
+    /**
+     * Add a partial class with the given instance to the loader cache.
+     * 
+     * @param className
+     *            the name of the class to replace
+     * @param partialClassFile
+     *            the partial ClassFile
+     * @throws IOException
+     *             If any I/O error occur
+     */
+    void partial( String className, ClassFile partialClassFile ) throws IOException {
+        ClassFile classFile = get( className );
+        replace.put( className, classFile );
+        classFile.partial( partialClassFile );
     }
 }

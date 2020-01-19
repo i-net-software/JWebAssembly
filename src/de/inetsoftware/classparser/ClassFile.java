@@ -19,6 +19,8 @@ package de.inetsoftware.classparser;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -48,9 +50,9 @@ public class ClassFile {
 
     private final ConstantClass[] interfaces;
 
-    private final FieldInfo[]     fields;
+    private FieldInfo[]           fields;
 
-    private final MethodInfo[]    methods;
+    private MethodInfo[]          methods;
 
     private final Attributes      attributes;
 
@@ -136,16 +138,27 @@ public class ClassFile {
         methods = classFile.methods;
         attributes = classFile.attributes;
 
+        patchConstantPool( classFile.thisClass.getName(), thisClass );
+    }
+
+    /**
+     * Replace the reference to the Class in the the constant pool.
+     * 
+     * @param origClassName
+     *            the class name that should be replaced.
+     * @param thisClass
+     *            the reference of the class that should be used.
+     */
+    private void patchConstantPool( String origClassName, ConstantClass thisClass ) {
         // patch constant pool
-        String origClassName = classFile.thisClass.getName();
         for( int i = 0; i < constantPool.size(); i++ ) {
             Object obj = constantPool.get( i );
             if( obj instanceof ConstantClass ) {
                 if( ((ConstantClass)obj).getName().equals( origClassName ) ) {
                     constantPool.set( i, thisClass );
                 }
-            } else if( obj instanceof ConstantFieldRef ) {
-                ConstantFieldRef ref = (ConstantFieldRef)obj;
+            } else if( obj instanceof ConstantRef ) {
+                ConstantRef ref = (ConstantRef)obj;
                 if( ref.getClassName().equals( origClassName ) ) {
                     ConstantNameAndType nameAndType = new ConstantNameAndType( ref.getName(), ref.getType() );
                     constantPool.set( i, new ConstantFieldRef( thisClass, nameAndType ) );
@@ -300,5 +313,32 @@ public class ClassFile {
 
     public static enum Type {
         Class, Interface, Enum;
+    }
+
+    /**
+     * Extends this class with the methods and fields of the partial class.
+     * 
+     * @param partialClassFile
+     *            extension of the class
+     */
+    public void partial( ClassFile partialClassFile ) {
+        ArrayList<MethodInfo> allMethods = new ArrayList<>( Arrays.asList( methods ) );
+        for( MethodInfo m : partialClassFile.methods ) {
+            if( getMethod( m.getName(), m.getType() ) == null ) {
+                m.setDeclaringClassFile( this );
+                allMethods.add( m );
+            }
+        }
+        methods = allMethods.toArray( methods );
+
+        ArrayList<FieldInfo> allFields = new ArrayList<>( Arrays.asList( fields ) );
+        for( FieldInfo field : partialClassFile.fields ) {
+            if( getField( field.getName() ) == null ) {
+                allFields.add( field );
+            }
+        }
+        fields = allFields.toArray( fields );
+
+        partialClassFile.patchConstantPool( partialClassFile.thisClass.getName(), thisClass );
     }
 }

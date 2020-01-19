@@ -172,6 +172,14 @@ public class ModuleGenerator {
             }
         }
 
+        // check if this class extends another class with partial code
+        if( (annotationValues = classFile.getAnnotation( JWebAssembly.PARTIAL_ANNOTATION )) != null ) {
+            String signatureName = (String)annotationValues.get( "value" );
+            if( signatureName != null ) {
+                classFileLoader.partial( signatureName, classFile );
+            }
+        }
+
         iterateMethods( classFile, m -> prepareMethod( m ) );
     }
 

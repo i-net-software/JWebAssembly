@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2019 Volker Berlin (i-net software)
+   Copyright 2011 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Attributes.AttributeInfo;
@@ -199,5 +200,15 @@ public class MethodInfo implements Member {
      */
     public ConstantPool getConstantPool() {
         return constantPool;
+    }
+
+    /**
+     * Replace the reference to the ClassFile
+     * 
+     * @param classFile
+     *            the new value
+     */
+    void setDeclaringClassFile( @Nonnull ClassFile classFile ) {
+        this.classFile = classFile;
     }
 }
