@@ -62,6 +62,8 @@ public class ClassFile {
 
     private Map<String,Map<String,Object>> annotations;
 
+    private BootstrapMethod[]     bootstrapMethods;
+
     /**
      * Load a class file and create a model of the class.
      *
@@ -198,6 +200,30 @@ public class ClassFile {
             }
         }
         return annotations.get( annotation );
+    }
+
+    /**
+     * Get the x-the BootstrapMethod. Bootstrap methods are used for creating an lambda object.
+     * 
+     * @param methodIdx
+     *            the index of the method
+     * @return the method
+     * @throws IOException
+     *             if any error occur
+     */
+    public BootstrapMethod getBootstrapMethod( int methodIdx ) throws IOException {
+        if( bootstrapMethods == null ) {
+            AttributeInfo data = attributes.get( "BootstrapMethods" );
+            if( data != null ) {
+                DataInputStream input = data.getDataInputStream();
+                int count = input.readUnsignedShort();
+                bootstrapMethods = new BootstrapMethod[count];
+                for( int i = 0; i < count; i++ ) {
+                    bootstrapMethods[i] = new BootstrapMethod( input, constantPool );
+                }
+            }
+        }
+        return bootstrapMethods[methodIdx];
     }
 
     public ConstantPool getConstantPool() {

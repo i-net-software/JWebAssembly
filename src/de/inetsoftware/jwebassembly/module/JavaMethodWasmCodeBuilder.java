@@ -19,9 +19,12 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.classparser.BootstrapMethod;
+import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantClass;
+import de.inetsoftware.classparser.ConstantInvokeDynamic;
 import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.classparser.MethodInfo;
@@ -62,7 +65,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
 
             byteCode = code.getByteCode();
             boolean hasReturn = !method.getType().endsWith( ")V" );
-            writeCode( byteCode, code.getConstantPool(), hasReturn );
+            writeCode( byteCode, code.getConstantPool(), method.getDeclaringClassFile(), hasReturn );
             calculateVariables();
         } catch( Exception ioex ) {
             int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
@@ -77,12 +80,14 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      *            a stream of byte code
      * @param constantPool
      *            the constant pool of the the current class
+     * @param classFile
+     *            the declaring class file
      * @param hasReturn
      *            if the method has a return value
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeCode( CodeInputStream byteCode, ConstantPool constantPool, boolean hasReturn ) throws WasmException {
+    private void writeCode( CodeInputStream byteCode, ConstantPool constantPool, ClassFile classFile, boolean hasReturn ) throws WasmException {
         int lineNumber = -1;
         try {
             boolean wide = false;
@@ -589,7 +594,14 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         }
                         break;
                     //TODO case 185: // invokeinterface
-                    //TODO case 186: // invokedynamic
+                    case 186: // invokedynamic
+                        idx = byteCode.readUnsignedShort();
+                        ConstantInvokeDynamic dynamic = (ConstantInvokeDynamic)constantPool.get( idx );
+                        idx = byteCode.readUnsignedShort(); // ever zero
+                        idx = dynamic.getBootstrapMethodIndex();
+                        BootstrapMethod method = classFile.getBootstrapMethod( idx );
+                        throw new WasmException( "InvokeDynamic/Lambda is not supported.", lineNumber );
+                        //TODO break;
                     case 187: // new
                         String name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
                         addStructInstruction( StructOperator.NEW_DEFAULT, name, null, codePos, lineNumber );

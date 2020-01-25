@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 Volker Berlin (i-net software)
+   Copyright 2019 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ package de.inetsoftware.classparser;
 /**
  * @author Volker Berlin
  */
-public class ConstantInvokeDynamic implements Member {
+public class ConstantInvokeDynamic {
 
     private final ConstantNameAndType nameAndType;
+
+    private final int                 bootstrapMethodIndex;
 
     /**
      * Invoke dynamic info in the constant pool.
@@ -33,31 +35,35 @@ public class ConstantInvokeDynamic implements Member {
      *            the name and type
      */
     ConstantInvokeDynamic( int bootstrapMethodAttrIndex, ConstantNameAndType nameAndType ) {
+        this.bootstrapMethodIndex = bootstrapMethodAttrIndex;
         this.nameAndType = nameAndType;
     }
 
     /**
-     * {@inheritDoc}
+     * The simple name of the generated method of the single function interface.
+     * 
+     * @return the name
      */
-    @Override
     public String getName() {
         return nameAndType.getName();
     }
 
     /**
-     * {@inheritDoc}
+     * Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lamba expression "Runnable
+     * run = () -> foo();"
+     * 
+     * @return the type
      */
-    @Override
-    public String getClassName() {
-        return null;
-    }
-
-    /**
-     * Get the type of the method. For example "(Ljava.lang.String;)I"
-     */
-    @Override
     public String getType() {
         return nameAndType.getType();
     }
 
+    /**
+     * Get the index to the bootstrap methods.
+     * 
+     * @return the index
+     */
+    public int getBootstrapMethodIndex() {
+        return bootstrapMethodIndex;
+    }
 }
