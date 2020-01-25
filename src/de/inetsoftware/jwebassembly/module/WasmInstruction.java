@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ abstract class WasmInstruction {
      * Type of instruction to faster differ as with instanceof.
      */
     static enum Type {
-        Const, Convert, Local, Global, Table, Memory, Block, Numeric, Nop, Call, CallIndirect, Array, Struct, Dup, DupThis;
+        Const, Convert, Local, Global, Table, Memory, Block, Numeric, Nop, Call, CallIndirect, CallInterface, Array, Struct, Dup, DupThis;
     }
 
     private int       javaCodePos;

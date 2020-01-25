@@ -503,6 +503,21 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Add interface function call
+     * @param name
+     *            the function name that should be called
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addCallInterfaceInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+        WasmCallInterfaceInstruction interfaceCall = new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types );
+
+        instructions.add( interfaceCall );
+    }
+
+    /**
      * Add a block operation.
      * 
      * @param op

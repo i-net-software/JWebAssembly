@@ -577,6 +577,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 182: // invokevirtual
                     case 183: // invokespecial, invoke a constructor
                     case 184: // invokestatic
+                    case 185: // invokeinterface
                         idx = byteCode.readUnsignedShort();
                         ref = (ConstantRef)constantPool.get( idx );
                         FunctionName funcName = new FunctionName( ref );
@@ -591,9 +592,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                             case 184:
                                 addCallInstruction( funcName, codePos, lineNumber );
                                 break;
+                            case 185:
+                                addCallInterfaceInstruction( funcName, codePos, lineNumber );
+                                break;
                         }
                         break;
-                    //TODO case 185: // invokeinterface
                     case 186: // invokedynamic
                         idx = byteCode.readUnsignedShort();
                         ConstantInvokeDynamic dynamic = (ConstantInvokeDynamic)constantPool.get( idx );
