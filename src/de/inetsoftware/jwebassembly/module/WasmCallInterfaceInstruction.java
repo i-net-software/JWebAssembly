@@ -58,6 +58,6 @@ class WasmCallInterfaceInstruction extends WasmCallInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        throw new WasmException( "Interface calls not supported", getLineNumber() );
+        throw new WasmException( "Interface calls are not supported.", getLineNumber() );
     }
 }

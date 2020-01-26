@@ -19,7 +19,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -109,6 +111,20 @@ public class RuntimeErrors {
         static void runnable() {
             Runnable run = () -> counter++;
             run.run();
+        }
+    }
+
+
+    @Test
+    public void interfaceCall() throws IOException {
+        compileErrorTest( "Interface calls are not supported.", InterfaceMethod.class );
+    }
+
+    static class InterfaceMethod {
+        @Export
+        static int runnable() {
+            List list = new ArrayList();
+            return list.size();
         }
     }
 }
