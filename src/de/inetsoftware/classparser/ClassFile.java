@@ -226,6 +226,11 @@ public class ClassFile {
         return bootstrapMethods[methodIdx];
     }
 
+    /**
+     * Get the constant pool of the the current class.
+     * 
+     * @return the constant pool
+     */
     public ConstantPool getConstantPool() {
         return constantPool;
     }

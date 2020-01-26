@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2019 Volker Berlin (i-net software)
+   Copyright 2011 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,30 +29,32 @@ import de.inetsoftware.classparser.Attributes.AttributeInfo;
  */
 public class Code {
 
-    private final ConstantPool constantPool;
+    private final ConstantPool      constantPool;
 
-    private final int maxStack;
+    private final int               maxStack;
 
-    private final int maxLocals;
+    private final int               maxLocals;
 
-    private final byte[] codeData;
+    private final byte[]            codeData;
 
     private final TryCatchFinally[] exceptionTable;
 
-    private final Attributes      attributes;
+    private final Attributes        attributes;
 
-    private LineNumberTable       lineNumberTable;
+    private LineNumberTable         lineNumberTable;
 
-    private LocalVariableTable    localVariableTable;
+    private LocalVariableTable      localVariableTable;
 
     /**
-     * The code of a method attribute.
-     * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.3
+     * The code of a method attribute. http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.3
      * http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#1546
      *
      * @param input
+     *            the stream of the code attribute
      * @param constantPool
+     *            the ConstantPool of the class
      * @throws IOException
+     *             if an I/O error occurs
      */
     Code( DataInputStream input, @Nonnull ConstantPool constantPool ) throws IOException {
         this.constantPool = constantPool;
@@ -68,19 +70,36 @@ public class Code {
         attributes = new Attributes( input, constantPool );
     }
 
+    /**
+     * Get the constant pool of this code.
+     * 
+     * @return the ConstantPool of the class
+     */
     @Nonnull
-    public ConstantPool getConstantPool(){
+    public ConstantPool getConstantPool() {
         return constantPool;
     }
 
+    /**
+     * Get exception table of this code block.
+     * 
+     * @return the table, can be empty
+     */
     @Nonnull
     public TryCatchFinally[] getExceptionTable() {
         return exceptionTable;
     }
 
+    /**
+     * Get the line number table. is null if the code was optimized.
+     * 
+     * @return the table or null
+     * @throws IOException
+     *             if any I/O error occur
+     */
     @Nullable
     public LineNumberTable getLineNumberTable() throws IOException {
-        if( lineNumberTable != null ){
+        if( lineNumberTable != null ) {
             return lineNumberTable;
         }
         AttributeInfo data = attributes.get( "LineNumberTable" );
@@ -98,8 +117,8 @@ public class Code {
      *             if any I/O error occur
      */
     @Nullable
-    public LocalVariableTable getLocalVariableTable() throws IOException{
-        if( localVariableTable != null ){
+    public LocalVariableTable getLocalVariableTable() throws IOException {
+        if( localVariableTable != null ) {
             return localVariableTable;
         }
         AttributeInfo data = attributes.get( "LocalVariableTable" );
@@ -116,24 +135,15 @@ public class Code {
 
     public int getFirstLineNr() throws IOException {
         LineNumberTable table = getLineNumberTable();
-        if( table == null ){
+        if( table == null ) {
             return -1;
         } else {
             return table.getMinLineNr();
         }
     }
 
-    public int getLastLineNr() throws IOException {
-        LineNumberTable table = getLineNumberTable();
-        if( table == null ){
-            return -1;
-        } else {
-            return table.getMaxLineNr();
-        }
-    }
-
     /**
-     * Get the stream of Java Byte code instruction of this method.  
+     * Get the stream of Java Byte code instruction of this method.
      * 
      * @return the stream
      */
@@ -141,39 +151,12 @@ public class Code {
         return new CodeInputStream( codeData, 0, codeData.length, this );
     }
 
-    public int getCodeSize(){
-        return codeData.length;
-    }
-
-    public boolean startWithSuperInit( ConstantClass superClass ){
-        if( codeData.length >= 4 && codeData[0] == 0x2a && codeData[1] == (byte)0xb7) {
-            int idx = ((codeData[2] & 0xFF << 8)) + (codeData[3] & 0xFF);
-            ConstantMethodRef method = (ConstantMethodRef)constantPool.get( idx );
-            return method.getConstantClass() == superClass;
-        }
-        return false;
-    }
-
     /**
-     * Check if the code only contains the default constructor code:
-     * <pre><code>
-     * super.&lt;init&gt;;
-     * return;
-     * </code></pre>
-     * In this case the constructor will not be printed
-     * @param superClass
-     * @return
+     * Get the last position of the code.
+     * 
+     * @return the size.
      */
-    public boolean isSuperInitReturn( ConstantClass superClass ) {
-        if( codeData.length == 5 && codeData[0] == 0x2a && codeData[1] == (byte)0xb7 && codeData[4] == (byte)0xb1 ) {
-            int idx = ((codeData[2] & 0xFF << 8)) + (codeData[3] & 0xFF);
-            ConstantMethodRef method = (ConstantMethodRef)constantPool.get( idx );
-            return method.getConstantClass() == superClass;
-        }
-        return false;
-    }
-
-    public byte[] getCodeData() {
-        return codeData;
+    public int getCodeSize() {
+        return codeData.length;
     }
 }
