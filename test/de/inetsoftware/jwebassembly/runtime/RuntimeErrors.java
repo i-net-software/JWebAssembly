@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2018 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,5 +95,20 @@ public class RuntimeErrors {
     static class NativeMethod {
         @Export
         native static float function();
+    }
+
+    @Test
+    public void lambdas() throws IOException {
+        compileErrorTest( "InvokeDynamic/Lambda is not supported.", LambdaMethod.class );
+    }
+
+    static class LambdaMethod {
+        private static int counter;
+
+        @Export
+        static void runnable() {
+            Runnable run = () -> counter++;
+            run.run();
+        }
     }
 }
