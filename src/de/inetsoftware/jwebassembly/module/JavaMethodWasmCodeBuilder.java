@@ -586,7 +586,6 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 addCallVirtualInstruction( funcName, codePos, lineNumber );
                                 break;
                             case 183:
-                                getTypeManager().valueOf( funcName.className ); // TODO pass this as first parameter
                                 addCallInstruction( funcName, codePos, lineNumber );
                                 break;
                             case 184:
