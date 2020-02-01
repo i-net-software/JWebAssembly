@@ -203,6 +203,7 @@ class WasmStructInstruction extends WasmInstruction {
                 return ValueType.anyref;
             case NEW:
             case NEW_DEFAULT:
+            case CAST:
                 return type;
             case GET:
                 return fieldName.getType();
@@ -223,6 +224,7 @@ class WasmStructInstruction extends WasmInstruction {
         switch( op ) {
             case GET:
             case INSTANCEOF:
+            case CAST:
                 return 1;
             case SET:
                 return 2;

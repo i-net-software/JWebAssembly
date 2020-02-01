@@ -27,5 +27,6 @@ public enum StructOperator {
     GET,
     SET,
     NULL,
+    CAST,
     INSTANCEOF,
 }

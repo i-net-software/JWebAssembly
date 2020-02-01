@@ -653,10 +653,12 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 191: // athrow
                         addBlockInstruction( WasmBlockOperator.THROW, null, codePos, lineNumber );
                         break;
-                    //TODO case 192: // checkcast
+                    case 192: // checkcast
+                        name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
+                        addStructInstruction( StructOperator.CAST, name, null, codePos, lineNumber );
+                        break;
                     case 193: // instanceof
-                        idx = byteCode.readUnsignedShort();
-                        name = ((ConstantClass)constantPool.get( idx )).getName();
+                        name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
                         addStructInstruction( StructOperator.INSTANCEOF, name, null, codePos, lineNumber );
                         break;
                     case 194: // monitorenter

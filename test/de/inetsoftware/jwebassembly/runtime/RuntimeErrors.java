@@ -76,7 +76,6 @@ public class RuntimeErrors {
         }
     }
 
-
     @Test
     public void nonStaticImport() throws IOException {
         compileErrorTest( "Import method must be static:", NonStaticImport.class );
@@ -127,7 +126,6 @@ public class RuntimeErrors {
         }
     }
 
-
     @Test
     public void instanceofCall() throws IOException {
         compileErrorTest( "Unknown operator: INSTANCEOF", InstanceofMethod.class );
@@ -138,6 +136,19 @@ public class RuntimeErrors {
         static boolean runnable() {
             Object obj = new Object();
             return obj instanceof Integer;
+        }
+    }
+
+    @Test
+    public void checkcast() throws IOException {
+        compileErrorTest( "Unknown operator: CAST", CheckcastMethod.class );
+    }
+
+    static class CheckcastMethod {
+        @Export
+        static Integer runnable() {
+            Object obj = new Integer(0);
+            return (Integer)obj;
         }
     }
 }
