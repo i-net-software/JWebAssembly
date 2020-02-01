@@ -208,6 +208,8 @@ class WasmStructInstruction extends WasmInstruction {
                 return fieldName.getType();
             case SET:
                 return null;
+            case INSTANCEOF:
+                return ValueType.i32; // a boolean value
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );
         }
@@ -220,6 +222,7 @@ class WasmStructInstruction extends WasmInstruction {
     int getPopCount() {
         switch( op ) {
             case GET:
+            case INSTANCEOF:
                 return 1;
             case SET:
                 return 2;

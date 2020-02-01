@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -654,7 +654,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addBlockInstruction( WasmBlockOperator.THROW, null, codePos, lineNumber );
                         break;
                     //TODO case 192: // checkcast
-                    //TODO case 193: // instanceof
+                    case 193: // instanceof
+                        idx = byteCode.readUnsignedShort();
+                        name = ((ConstantClass)constantPool.get( idx )).getName();
+                        addStructInstruction( StructOperator.INSTANCEOF, name, null, codePos, lineNumber );
+                        break;
                     case 194: // monitorenter
                         addBlockInstruction( WasmBlockOperator.MONITOR_ENTER, null, codePos, lineNumber );
                         break;

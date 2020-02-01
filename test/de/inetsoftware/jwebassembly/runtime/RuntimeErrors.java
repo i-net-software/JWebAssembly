@@ -114,7 +114,6 @@ public class RuntimeErrors {
         }
     }
 
-
     @Test
     public void interfaceCall() throws IOException {
         compileErrorTest( "Interface calls are not supported.", InterfaceMethod.class );
@@ -125,6 +124,20 @@ public class RuntimeErrors {
         static int runnable() {
             List list = new ArrayList();
             return list.size();
+        }
+    }
+
+
+    @Test
+    public void instanceofCall() throws IOException {
+        compileErrorTest( "Unknown operator: INSTANCEOF", InstanceofMethod.class );
+    }
+
+    static class InstanceofMethod {
+        @Export
+        static boolean runnable() {
+            Object obj = new Object();
+            return obj instanceof Integer;
         }
     }
 }
