@@ -29,11 +29,13 @@ import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.javascript.JavaScriptNewMultiArrayFunctionName;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
@@ -587,6 +589,28 @@ public abstract class WasmCodeBuilder {
             }
             String api = "array_" + op.toString().toLowerCase() + "_" + type;
             FunctionName name = getNonGC( api, lineNumber );
+            addCallInstruction( name, javaCodePos, lineNumber );
+        }
+    }
+
+    /**
+     * Add a new multi dimensional array instruction
+     * 
+     * @param dim
+     *            the dimension of the array >= 2
+     * @param typeName
+     *            the full type name
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addMultiNewArrayInstruction( int dim, String typeName, int javaCodePos, int lineNumber ) {
+        ArrayType type = (ArrayType)new ValueTypeParser( typeName, types ).next();
+        if( options.useGC() ) {
+            throw new WasmException( "multi new array is not supported", lineNumber );
+        } else {
+            FunctionName name = new JavaScriptNewMultiArrayFunctionName( dim, type );
             addCallInstruction( name, javaCodePos, lineNumber );
         }
     }

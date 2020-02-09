@@ -670,7 +670,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.wide
                         wide = true;
                         continue;
-                    //TODO case 197: // multianewarray
+                    case 197: // multianewarray
+                        name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
+                        idx = byteCode.readUnsignedByte();
+                        addMultiNewArrayInstruction( idx, name, codePos, lineNumber );
+                        break;
                     case 198: // ifnull
                         opIfCompareCondition( NumericOperator.ifnull, byteCode, codePos, lineNumber );
                         break;
