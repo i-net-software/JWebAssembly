@@ -126,8 +126,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeSection( SectionType.Function, functions.values() );
         writeTableSection();
         writeMemorySection();
-        writeSection( SectionType.Global, globals.values() );
         writeEventSection();
+        writeSection( SectionType.Global, globals.values() );
         writeSection( SectionType.Export, exports );
         writeElementSection();
         writeCodeSection();
