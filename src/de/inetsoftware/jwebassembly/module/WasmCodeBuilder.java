@@ -371,8 +371,11 @@ public abstract class WasmCodeBuilder {
             FunctionName name = strings.getStringConstantFunction();
             instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
             addCallInstruction( name, javaCodePos, lineNumber );
-        } else {
+        } else if( value instanceof Number ) {
             instructions.add( new WasmConstInstruction( (Number)value, javaCodePos, lineNumber ) );
+        } else {
+            //TODO There can be ConstantClass, MethodType and MethodHandle
+            throw new WasmException( "Class constants are not supported. : " + value, lineNumber );
         }
     }
 

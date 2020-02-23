@@ -151,4 +151,17 @@ public class RuntimeErrors {
             return (Integer)obj;
         }
     }
+
+    @Test
+    public void classConatnt() throws IOException {
+        compileErrorTest( "Class constants are not supported.", ClassConstant.class );
+    }
+
+    static class ClassConstant {
+        @Export
+        static Object runnable() {
+            Class elemtentType = Integer.class;
+            return java.lang.reflect.Array.newInstance(elemtentType, 42);
+        }
+    }
 }
