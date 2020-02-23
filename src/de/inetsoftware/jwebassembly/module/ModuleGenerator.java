@@ -193,6 +193,7 @@ public class ModuleGenerator {
         FunctionName next;
         NEXT:
         while( (next = functions.nextScannLater()) != null ) {
+            className = next.className;
             if( next instanceof SyntheticFunctionName ) {
                 JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
                 SyntheticFunctionName synth = (SyntheticFunctionName)next;
@@ -209,6 +210,8 @@ public class ModuleGenerator {
             MethodInfo method = null;
             ClassFile classFile = classFileLoader.get( next.className );
             if( classFile != null ) {
+                sourceFile = classFile.getSourceFile();
+                className = classFile.getThisClass().getName();
                 method = classFile.getMethod( next.methodName, next.signature );
             }
             if( method == null ) {
