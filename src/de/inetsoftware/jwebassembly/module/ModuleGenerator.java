@@ -335,9 +335,9 @@ public class ModuleGenerator {
      */
     public void finish() throws IOException {
         for( Iterator<FunctionName> it = functions.getWriteLater(); it.hasNext(); ) {
-            sourceFile = null; // clear previous value for the case an IO exception occur
-            className = null;
             FunctionName next = it.next();
+            sourceFile = null; // clear previous value for the case an IO exception occur
+            className = next.className;
             if( next instanceof SyntheticFunctionName ) {
                 writeMethodImpl( next, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
             } else {
@@ -363,8 +363,8 @@ public class ModuleGenerator {
                             if( functions.needToWrite( next ) ) {
                                 writeMethod( next, method );
                             }
-                        } catch (IOException ioex){
-                            throw WasmException.create( ioex, sourceFile, className, -1 );
+                        } catch (Throwable ex){
+                            throw WasmException.create( ex, sourceFile, className, -1 );
                         }
                     } else {
                         if( functions.needToWrite( next ) ) {
