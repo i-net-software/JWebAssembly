@@ -395,7 +395,7 @@ public abstract class WasmCodeBuilder {
     protected WasmNumericInstruction addNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos, int lineNumber ) {
         WasmNumericInstruction numeric = new WasmNumericInstruction( numOp, valueType, javaCodePos, lineNumber );
         instructions.add( numeric );
-        if( !options.useGC() && numOp == NumericOperator.ref_eq ) {
+        if( !options.useGC() && options.ref_eq == null && (numOp == NumericOperator.ref_eq || numOp == NumericOperator.ref_ne ) ) {
             functions.markAsNeeded( options.ref_eq = getNonGC( "ref_eq", lineNumber ) );
         }
         return numeric;
