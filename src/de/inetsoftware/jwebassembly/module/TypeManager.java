@@ -155,8 +155,14 @@ public class TypeManager {
             this.name = name;
         }
 
+        /**
+         * Mark that the field was used in any getter or setter.
+         * 
+         * @param fieldName
+         *            the name of the field
+         */
         void useFieldName( NamedStorageType fieldName ) {
-            neededFields.add( fieldName.getName());
+            neededFields.add( fieldName.getName() );
         }
 
         /**
