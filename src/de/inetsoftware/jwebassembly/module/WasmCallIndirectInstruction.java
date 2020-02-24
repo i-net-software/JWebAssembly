@@ -16,17 +16,7 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
-import java.io.IOException;
-
-import javax.annotation.Nonnull;
-
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
-import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
-import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
-import de.inetsoftware.jwebassembly.wasm.StructOperator;
-import de.inetsoftware.jwebassembly.wasm.ValueType;
-import de.inetsoftware.jwebassembly.wasm.VariableOperator;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * WasmInstruction for a function call.
@@ -34,15 +24,11 @@ import de.inetsoftware.jwebassembly.wasm.WasmOptions;
  * @author Volker Berlin
  *
  */
-class WasmCallIndirectInstruction extends WasmCallInstruction {
-
-    private int                         virtualFunctionIdx = -1;
+abstract class WasmCallIndirectInstruction extends WasmCallInstruction {
 
     private final StructType            type;
 
     private int                         tempVarIdx;
-
-    private final WasmOptions           options;
 
     /**
      * Create an instance of a function call instruction
@@ -55,21 +41,10 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      *            the line number in the Java source code
      * @param types
      *            the type manager
-     * @param options
-     *            compiler properties
      */
-    WasmCallIndirectInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types, WasmOptions options ) {
+    WasmCallIndirectInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types ) {
         super( name, javaCodePos, lineNumber, types, true );
         this.type = types.valueOf( name.className );
-        this.options = options;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Type getType() {
-        return Type.CallIndirect;
     }
 
     /**
@@ -90,12 +65,12 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
     }
 
     /**
-     * {@inheritDoc}
+     * Get the variable index on which this can be found.
+     * 
+     * @return the index of the variable
      */
-    @Override
-    void markAsNeeded( FunctionManager functions ) {
-        super.markAsNeeded( functions );
-        virtualFunctionIdx = functions.getFunctionIndex( getFunctionName() );
+    int getVariableIndexOfThis() {
+        return tempVarIdx;
     }
 
     /**
@@ -103,29 +78,5 @@ class WasmCallIndirectInstruction extends WasmCallInstruction {
      * 
      * @return true, virtual call
      */
-    boolean isVirtual() {
-        return virtualFunctionIdx > 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        if( virtualFunctionIdx < 0 ) {
-            super.writeTo( writer );
-        } else {
-            // duplicate this on the stack
-            writer.writeLocal( VariableOperator.get, tempVarIdx );
-
-            if( options.useGC() ) {
-                writer.writeStructOperator( StructOperator.GET, type, new NamedStorageType( type, "", "vtable" ), 0 ); // vtable is ever on position 0
-            } else {
-                writer.writeConst( 0, ValueType.i32 ); // vtable is ever on position 0
-                writer.writeFunctionCall( WasmCodeBuilder.GET_I32 );
-            }
-            writer.writeMemoryOperator( MemoryOperator.load, ValueType.i32, virtualFunctionIdx * 4, 2 );
-            writer.writeVirtualFunctionCall( getFunctionName(), type );
-        }
-    }
+    abstract boolean isVirtual();
 }

@@ -319,7 +319,7 @@ public class ModuleGenerator {
         for( WasmInstruction instruction : instructions ) {
             switch( instruction.getType() ) {
                 case Call:
-                case CallIndirect:
+                case CallVirtual:
                     ((WasmCallInstruction)instruction).markAsNeeded( functions );
                     break;
                 default:
@@ -548,7 +548,7 @@ public class ModuleGenerator {
                         }
                         break;
                     case Call:
-                    case CallIndirect:
+                    case CallVirtual:
                         ((WasmCallInstruction)instruction).markAsNeeded( functions );
                         break;
                     case Struct:

@@ -473,6 +473,43 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Add indirect call to the instruction.
+     * 
+     * @param indirectCall
+     *            the instruction
+     */
+    private void addCallIndirectInstruction( WasmCallIndirectInstruction indirectCall ) {
+        //  For access to the vtable the THIS parameter must be duplicated on stack before the function parameters 
+
+        // find the instruction that this push on stack 
+        int count = indirectCall.getPopCount();
+        int idx = findPushInstruction( count, false );
+        WasmInstruction instr = instructions.get( idx );
+        int varIndex = -1;
+        // if it is a GET to a local variable then we can use it
+        if( instr.getType() == Type.Local ) {
+            WasmLocalInstruction local1 = (WasmLocalInstruction)instr;
+            if( local1.getOperator() == VariableOperator.get ) {
+                varIndex = local1.getIndex();
+            }
+        }
+        //alternate we need to create a new locale variable
+        if( varIndex < 0 ) {
+            int javaCodePos = indirectCall.getCodePosition();
+            varIndex = getTempVariable( indirectCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
+            idx = count == 1 ? instructions.size() : findPushInstruction( count - 1, false );
+            instructions.add( idx, new DupThis( indirectCall, varIndex, javaCodePos ) );
+        }
+        indirectCall.setVariableIndexOfThis( varIndex );
+        instructions.add( indirectCall );
+        if( !options.useGC() ) {
+            // for later access of the vtable
+            functions.markAsNeeded( GET_I32 );
+            functions.markAsImport( GET_I32, GET_I32.getAnnotation() );
+        }
+    }
+
+    /**
      * Add a virtual/method function call.
      * 
      * @param name
@@ -483,28 +520,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        WasmCallIndirectInstruction virtualCall = new WasmCallIndirectInstruction( name, javaCodePos, lineNumber, types, options );
-        int count = virtualCall.getPopCount();
-        int idx = findPushInstruction( count, false );
-        WasmInstruction instr = instructions.get( idx );
-        int varIndex = -1; 
-        if( instr.getType() == Type.Local ) {
-            WasmLocalInstruction local1 = (WasmLocalInstruction)instr;
-            if( local1.getOperator() == VariableOperator.get ) {
-                varIndex = local1.getIndex();
-            }
-        }
-        if( varIndex < 0 ) {
-            varIndex = getTempVariable( virtualCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
-            idx = count == 1 ? instructions.size() : findPushInstruction( count - 1, false );
-            instructions.add( idx, new DupThis( virtualCall, varIndex, javaCodePos ) );
-        }
-        virtualCall.setVariableIndexOfThis( varIndex );
-        instructions.add( virtualCall );
-        if( !options.useGC() ) {
-            functions.markAsNeeded( GET_I32 );
-            functions.markAsImport( GET_I32, GET_I32.getAnnotation() );
-        }
+        addCallIndirectInstruction( new WasmCallVirtualInstruction( name, javaCodePos, lineNumber, types, options ) );
     }
 
     /**
@@ -517,9 +533,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInterfaceInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        WasmCallInterfaceInstruction interfaceCall = new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types );
-
-        instructions.add( interfaceCall );
+        addCallIndirectInstruction( new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types, options ) );
     }
 
     /**
