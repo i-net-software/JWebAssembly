@@ -18,13 +18,10 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ClassFile.Type;
@@ -84,31 +81,6 @@ public class TypeManager {
         for( StructType type : structTypes.values() ) {
             type.writeStructType( writer, functions, this, classFileLoader );
         }
-    }
-
-    /**
-     * Use the type in the output.
-     * 
-     * @param type
-     *            the reference to a type
-     * @param id
-     *            the id in the type section of the wasm
-     * @param fields
-     *            the fields of the type
-     */
-    void useType( StructType type, int id, List<NamedStorageType> fields ) {
-        type.code = id;
-        type.fields = fields;
-    }
-
-    /**
-     * Get the registered types in numeric order.
-     * 
-     * @return the types
-     */
-    @Nonnull
-    Collection<StructType> getTypes() {
-        return structTypes.values();
     }
 
     /**
