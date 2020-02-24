@@ -20,7 +20,11 @@ import java.util.HashMap;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.module.CodeOptimizer;
+import de.inetsoftware.jwebassembly.module.FunctionManager;
 import de.inetsoftware.jwebassembly.module.FunctionName;
+import de.inetsoftware.jwebassembly.module.StringManager;
+import de.inetsoftware.jwebassembly.module.TypeManager;
 
 /**
  * The option/properties for the behavior of the compiler.
@@ -28,6 +32,14 @@ import de.inetsoftware.jwebassembly.module.FunctionName;
  * @author Volker Berlin
  */
 public class WasmOptions {
+
+    public final FunctionManager functions = new FunctionManager();
+
+    public final TypeManager     types     = new TypeManager( this );
+
+    public final StringManager   strings   = new StringManager( this );
+
+    public final CodeOptimizer   optimizer = new CodeOptimizer();
 
     private final boolean debugNames;
 

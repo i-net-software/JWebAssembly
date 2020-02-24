@@ -75,20 +75,16 @@ public abstract class WasmCodeBuilder {
     /**
      * Initialize the code builder;
      * 
-     * @param types
-     *            the type manager
-     * @param functions
-     *            the function manager
-     * @param strings
-     *            the string manager
      * @param options
      *            compiler properties
+     * @param classFileLoader
+     *            for loading the class files
      */
-    void init( TypeManager types, FunctionManager functions, StringManager strings, WasmOptions options, ClassFileLoader classFileLoader ) {
-        this.localVariables.init( types );
-        this.types = types;
-        this.functions = functions;
-        this.strings = strings; 
+    void init( WasmOptions options, ClassFileLoader classFileLoader ) {
+        this.localVariables.init( options.types );
+        this.types = options.types;
+        this.functions = options.functions;
+        this.strings = options.strings; 
         this.options = options;
         this.classFileLoader = classFileLoader;
     }

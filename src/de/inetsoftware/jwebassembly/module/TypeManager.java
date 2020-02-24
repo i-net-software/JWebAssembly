@@ -52,7 +52,7 @@ public class TypeManager {
 
     private boolean                 isFinish;
 
-    private WasmOptions             options;
+    private final WasmOptions       options;
 
     /**
      * Initialize the type manager.
@@ -60,7 +60,7 @@ public class TypeManager {
      * @param options
      *            compiler properties
      */
-    void init( WasmOptions options ) {
+    public TypeManager( WasmOptions options ) {
         this.options = options;
     }
 

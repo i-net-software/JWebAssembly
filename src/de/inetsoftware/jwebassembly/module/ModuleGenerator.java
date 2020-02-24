@@ -70,13 +70,13 @@ public class ModuleGenerator {
 
     private String                          className;
 
-    private FunctionManager                 functions = new FunctionManager();
+    private final FunctionManager           functions;
 
-    private TypeManager                     types = new TypeManager();
+    private final TypeManager               types;
 
-    private StringManager                   strings = new StringManager();
+    private final StringManager             strings;
 
-    private CodeOptimizer                   optimizer = new CodeOptimizer();
+    private final CodeOptimizer             optimizer;
 
     /**
      * Create a new generator.
@@ -95,10 +95,12 @@ public class ModuleGenerator {
         this.javaScript = new JavaScriptWriter( target );
         this.classFileLoader = new ClassFileLoader( new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) ) );
         WasmOptions options = writer.options;
-        types.init( options );
-        strings.init( functions );
-        javaCodeBuilder.init( types, functions, strings, options, classFileLoader );
-        ((WasmCodeBuilder)watParser).init( types, functions, strings, options, classFileLoader );
+        functions = options.functions;
+        types = options.types;
+        strings = options.strings;
+        optimizer = options.optimizer;
+        javaCodeBuilder.init( options, classFileLoader );
+        ((WasmCodeBuilder)watParser).init( options, classFileLoader );
         scanLibraries( libraries );
     }
 

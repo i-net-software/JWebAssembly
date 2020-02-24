@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class WatParserTest {
         WasmOptions options = new WasmOptions( new HashMap<>() );
         WatParser parser = new WatParser();
         WasmCodeBuilder codeBuilder = parser;
-        codeBuilder.init( null, null, null, options, null );
+        codeBuilder.init( options, null );
         parser.parse( wat, null, 100 );
         StringBuilder builder = new StringBuilder();
         ModuleWriter writer = new TextModuleWriter( new WasmTarget( builder ), options );
