@@ -97,7 +97,7 @@ public class TypeManager {
             if( isFinish ) {
                 throw new WasmException( "Register needed type after scanning: " + name, -1 );
             }
-            type = new StructType( name );
+            type = new StructType( name, structTypes.size() );
             structTypes.put( name, type );
         }
         return type;
@@ -132,6 +132,8 @@ public class TypeManager {
 
         private final String           name;
 
+        private final int              classIndex;
+
         private int                    code = Integer.MAX_VALUE;
 
         private HashSet<String>        neededFields = new HashSet<>();
@@ -150,9 +152,12 @@ public class TypeManager {
          * 
          * @param name
          *            the Java class name
+         * @param classIndex
+         *            the running index of the class/type
          */
-        StructType( String name ) {
+        StructType( String name, int classIndex ) {
             this.name = name;
+            this.classIndex = classIndex;
         }
 
         /**
@@ -279,6 +284,15 @@ public class TypeManager {
          */
         public String getName() {
             return name;
+        }
+
+        /**
+         * The running index of the class/type for class meta data, instanceof and interface calls.
+         * 
+         * @return the unique index
+         */
+        public int getClassIndex() {
+            return classIndex;
         }
 
         /**

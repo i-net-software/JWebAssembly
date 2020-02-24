@@ -21,6 +21,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 
 /**
  * WasmInstruction for a function call.
@@ -58,6 +59,8 @@ class WasmCallInterfaceInstruction extends WasmCallInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        StructType type = getTypeManager().valueOf( getFunctionName().className );
+        int classIndex = type.getClassIndex();
         throw new WasmException( "Interface calls are not supported.", getLineNumber() );
     }
 }

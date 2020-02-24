@@ -37,6 +37,7 @@ class WasmCallInstruction extends WasmInstruction {
 
     private int               paramCount = -1;
 
+    @Nonnull
     private final TypeManager types;
 
     private final boolean     needThisParameter;
@@ -55,7 +56,7 @@ class WasmCallInstruction extends WasmInstruction {
      * @param needThisParameter
      *            true, if this function need additional to the parameter of the signature an extra "this" parameter
      */
-    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber, TypeManager types, boolean needThisParameter ) {
+    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber, @Nonnull TypeManager types, boolean needThisParameter ) {
         super( javaCodePos, lineNumber );
         this.name = name;
         this.types = types;
@@ -78,6 +79,14 @@ class WasmCallInstruction extends WasmInstruction {
     @Nonnull
     FunctionName getFunctionName() {
         return name;
+    }
+
+    /**
+     * Get the type manager.
+     * @return the manager
+     */
+    TypeManager getTypeManager() {
+        return types;
     }
 
     /**
