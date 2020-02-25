@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -202,15 +202,19 @@ public class WatParser extends WasmCodeBuilder {
                         addTableInstruction( false, getInt( tokens, ++i), javaCodePos, lineNumber );
                         break;
                     case "call":
-                        StringBuilder builder = new StringBuilder( get( tokens, ++i ) );
-                        String str;
-                        do {
-                            str = get( tokens, ++i );
-                            builder.append( str );
-                        } while ( !")".equals( str ) );
-                        builder.append( get( tokens, ++i ) );
-                        FunctionName name = new FunctionName( builder.substring( 1 ) );
-                        addCallInstruction( name, javaCodePos, lineNumber );
+                        try {
+                            StringBuilder builder = new StringBuilder( get( tokens, ++i ) );
+                            String str;
+                            do {
+                                str = get( tokens, ++i );
+                                builder.append( str );
+                            } while ( !")".equals( str ) );
+                            builder.append( get( tokens, ++i ) );
+                            FunctionName name = new FunctionName( builder.substring( 1 ) );
+                            addCallInstruction( name, javaCodePos, lineNumber );
+                        } catch( Exception ex ) {
+                            throw new WasmException( "The syntax for a function name is $package.ClassName.methodName(paramSignature)returnSignature", lineNumber );
+                        }
                         break;
                     case "return":
                         addBlockInstruction( WasmBlockOperator.RETURN, null, javaCodePos, lineNumber );
