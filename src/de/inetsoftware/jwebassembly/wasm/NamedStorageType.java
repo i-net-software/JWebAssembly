@@ -80,7 +80,7 @@ public class NamedStorageType {
      * @param type
      *            the type
      * @param className
-     *            the class name
+     *            the class name like java/lang/Object
      * @param name
      *            the name
      */
