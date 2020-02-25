@@ -34,7 +34,7 @@ import de.inetsoftware.jwebassembly.WasmException;
  * 
  * @author Volker Berlin
  */
-public class FunctionManager {
+class FunctionManager {
 
     private final Map<FunctionName, FunctionState> states = new LinkedHashMap<>();
 

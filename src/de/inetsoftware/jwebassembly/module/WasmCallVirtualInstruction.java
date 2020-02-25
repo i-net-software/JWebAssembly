@@ -26,7 +26,6 @@ import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * WasmInstruction for a function call.
@@ -96,14 +95,9 @@ class WasmCallVirtualInstruction extends WasmCallIndirectInstruction {
             // duplicate this on the stack
             writer.writeLocal( VariableOperator.get, getVariableIndexOfThis() );
 
+            writer.writeConst( virtualFunctionIdx * 4, ValueType.i32 );
+            writer.writeFunctionCall( options.getCallVirtual() );
             StructType type = getThisType();
-            if( options.useGC() ) {
-                writer.writeStructOperator( StructOperator.GET, type, new NamedStorageType( type, "", "vtable" ), 0 ); // vtable is ever on position 0
-            } else {
-                writer.writeConst( 0, ValueType.i32 ); // vtable is ever on position 0
-                writer.writeFunctionCall( WasmCodeBuilder.GET_I32 );
-            }
-            writer.writeMemoryOperator( MemoryOperator.load, ValueType.i32, virtualFunctionIdx * 4, 2 );
             writer.writeVirtualFunctionCall( getFunctionName(), type );
         }
     }

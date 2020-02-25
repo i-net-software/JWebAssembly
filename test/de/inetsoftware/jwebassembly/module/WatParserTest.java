@@ -28,7 +28,6 @@ import org.junit.Test;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.binary.BinaryModuleWriter;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**

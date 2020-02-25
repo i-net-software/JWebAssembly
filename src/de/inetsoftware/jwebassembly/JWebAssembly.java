@@ -40,9 +40,9 @@ import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.jwebassembly.binary.BinaryModuleWriter;
 import de.inetsoftware.jwebassembly.module.ModuleGenerator;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.WasmOptions;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.text.TextModuleWriter;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * The main class of the compiler.

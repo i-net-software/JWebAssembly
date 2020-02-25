@@ -33,7 +33,6 @@ import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Module Writer base class.

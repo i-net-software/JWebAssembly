@@ -27,14 +27,13 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Handle all the constant strings. The constant strings will be write into the data section.
  * 
  * @author Volker Berlin
  */
-public class StringManager extends LinkedHashMap<String, Integer> {
+class StringManager extends LinkedHashMap<String, Integer> {
 
     /**
      * Signature of method stringConstant.
@@ -54,7 +53,7 @@ public class StringManager extends LinkedHashMap<String, Integer> {
      * @param options
      *            compiler properties and shared managers
      */
-    public StringManager( WasmOptions options ) {
+    StringManager( WasmOptions options ) {
         this.functions = options.functions;
     }
 

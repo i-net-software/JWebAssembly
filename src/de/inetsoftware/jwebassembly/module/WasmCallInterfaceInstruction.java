@@ -22,12 +22,7 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
-import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
-import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
-import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
-import de.inetsoftware.jwebassembly.wasm.VariableOperator;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * WasmInstruction for a function call.

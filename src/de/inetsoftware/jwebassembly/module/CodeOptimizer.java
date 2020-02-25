@@ -25,7 +25,7 @@ import de.inetsoftware.jwebassembly.wasm.VariableOperator;
  * 
  * @author Volker Berlin
  */
-public class CodeOptimizer {
+class CodeOptimizer {
 
     /**
      * Optimize the code before writing.

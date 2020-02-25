@@ -28,8 +28,12 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -245,6 +249,24 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "i32.load8_u":
                         i = addMemoryInstruction( MemoryOperator.load8_u, ValueType.i32, tokens, i, lineNumber );
+                        break;
+                    case "struct.get":
+                        String typeName = get( tokens, ++i );
+                        String fieldName = get( tokens, ++i );
+                        NamedStorageType fieldNameType = null;
+                        List<NamedStorageType> fields = getTypeManager().valueOf( typeName ).getFields();
+                        if( fields != null ) { // field is null on prepare
+                            for( NamedStorageType namedStorageType : fields ) {
+                                if( namedStorageType.getName().equals( fieldName ) ) {
+                                    fieldNameType = namedStorageType;
+                                    break;
+                                }
+                            }
+                        }
+                        if( fieldNameType == null ) {
+                            fieldNameType = new NamedStorageType( ValueType.anyref, "", fieldName );
+                        }
+                        addStructInstruction( StructOperator.GET, typeName, fieldNameType, javaCodePos, lineNumber );
                         break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );

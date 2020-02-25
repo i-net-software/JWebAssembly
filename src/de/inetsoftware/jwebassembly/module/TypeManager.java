@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ClassFile.Type;
 import de.inetsoftware.classparser.ConstantClass;
@@ -34,7 +36,6 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Manage the written and to write types (classes)
@@ -60,7 +61,7 @@ public class TypeManager {
      * @param options
      *            compiler properties
      */
-    public TypeManager( WasmOptions options ) {
+    TypeManager( WasmOptions options ) {
         this.options = options;
     }
 
@@ -87,7 +88,7 @@ public class TypeManager {
      * Get the StructType. If needed an instance is created.
      * 
      * @param name
-     *            the type name
+     *            the type name like java/lang/Object
      * @return the struct type
      */
     public StructType valueOf( String name ) {
@@ -121,6 +122,24 @@ public class TypeManager {
             arrayTypes.put( arrayType, type );
         }
         return type;
+    }
+
+    /**
+     * Get the FunctionName for a virtual call and mark it as used. The function has 2 parameters (THIS,
+     * virtualfunctionIndex) and returns the index of the function.
+     * 
+     * @return the name
+     */
+    @Nonnull
+    WatCodeSyntheticFunctionName getCallVirtualGC() {
+        return new WatCodeSyntheticFunctionName( //
+                        "callVirtual", "local.get 0 " // THIS
+                                        + "struct.get java/lang/Object .vtable " // vtable is on index 0
+                                        + "local.get 1 " // virtualFunctionIndex
+                                        + "i32.add " //
+                                        + "i32.load offset=0 align=4 " //
+                                        + "return " //
+                        , valueOf( "java/lang/Object" ), ValueType.i32, null, ValueType.i32 ); //
     }
 
     /**

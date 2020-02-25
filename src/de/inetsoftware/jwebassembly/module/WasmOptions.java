@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.inetsoftware.jwebassembly.wasm;
+package de.inetsoftware.jwebassembly.module;
 
 import java.util.HashMap;
 
@@ -33,13 +33,13 @@ import de.inetsoftware.jwebassembly.module.TypeManager;
  */
 public class WasmOptions {
 
-    public final FunctionManager functions = new FunctionManager();
+    final FunctionManager functions = new FunctionManager();
 
-    public final TypeManager     types     = new TypeManager( this );
+    final TypeManager     types     = new TypeManager( this );
 
-    public final StringManager   strings   = new StringManager( this );
+    final StringManager   strings   = new StringManager( this );
 
-    public final CodeOptimizer   optimizer = new CodeOptimizer();
+    final CodeOptimizer   optimizer = new CodeOptimizer();
 
     private final boolean debugNames;
 
@@ -54,6 +54,9 @@ public class WasmOptions {
      * NonGC function for ref_eq polyfill.
      */
     public FunctionName ref_eq;
+
+
+    private FunctionName callVirtual;
 
     /**
      * Create a new instance of options
@@ -107,5 +110,21 @@ public class WasmOptions {
     @Nonnull
     public String getSourceMapBase() {
         return sourceMapBase;
+    }
+
+    /**
+     * Get the FunctionName for a virtual call and mark it as used. The function has 2 parameters (THIS,
+     * virtualfunctionIndex) and returns the index of the function.
+     * 
+     * @return the name
+     */
+    @Nonnull
+    FunctionName getCallVirtual() {
+        FunctionName name = callVirtual;
+        if( name == null ) {
+            callVirtual = name = types.getCallVirtualGC();
+            functions.markAsNeeded( name );
+        }
+        return name;
     }
 }

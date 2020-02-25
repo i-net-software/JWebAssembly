@@ -44,7 +44,6 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
-import de.inetsoftware.jwebassembly.wasm.WasmOptions;
 
 /**
  * Base class for Code Building.
@@ -517,6 +516,7 @@ public abstract class WasmCodeBuilder {
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
         addCallIndirectInstruction( new WasmCallVirtualInstruction( name, javaCodePos, lineNumber, types, options ) );
+        options.getCallVirtual(); // mark the function as needed
     }
 
     /**
@@ -629,7 +629,7 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
-     * Add an array operation to the instruction list as marker on the code position.
+     * Add a struct/object operation to the instruction list.
      * 
      * @param op
      *            the operation
