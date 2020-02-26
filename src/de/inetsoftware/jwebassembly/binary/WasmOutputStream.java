@@ -264,17 +264,4 @@ class WasmOutputStream extends LittleEndianOutputStream {
         writeVaruint32( size );
         baos.writeTo( this );
     }
-
-    /**
-     * Write the data of this stream to the output. Work only for in memory stream.
-     * 
-     * @param output
-     *            the target
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    void writeTo( OutputStream output ) throws IOException {
-        ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
-        baos.writeTo( output );
-    }
 }

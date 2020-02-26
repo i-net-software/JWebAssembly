@@ -80,6 +80,19 @@ public class LittleEndianOutputStream extends FilterOutputStream {
     }
 
     /**
+     * Write the data of this stream to the output. Work only for in memory stream.
+     * 
+     * @param output
+     *            the target
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    public void writeTo( OutputStream output ) throws IOException {
+        ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
+        baos.writeTo( output );
+    }
+
+    /**
      * The count of bytes in the stream.
      * 
      * @return the data size
