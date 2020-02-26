@@ -20,11 +20,13 @@ import java.util.HashMap;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.module.CodeOptimizer;
 import de.inetsoftware.jwebassembly.module.FunctionManager;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.StringManager;
 import de.inetsoftware.jwebassembly.module.TypeManager;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
  * The option/properties for the behavior of the compiler.
@@ -55,8 +57,11 @@ public class WasmOptions {
      */
     public FunctionName ref_eq;
 
+    private FunctionName get_i32;
 
     private FunctionName callVirtual;
+
+    private FunctionName instanceOf;
 
     /**
      * Create a new instance of options
@@ -113,6 +118,21 @@ public class WasmOptions {
     }
 
     /**
+     * Register FunctionName "NonGC.get_i32" for frequently access to vtable with non GC mode.
+     */
+    void registerGet_i32() {
+        if( useGC ) {
+            return;
+        }
+        if( get_i32 == null ) {
+            SyntheticFunctionName name;
+            get_i32 = name = new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, ValueType.i32 );
+            functions.markAsNeeded( name );
+            functions.markAsImport( name, name.getAnnotation() );
+        }
+    }
+
+    /**
      * Get the FunctionName for a virtual call and mark it as used. The function has 2 parameters (THIS,
      * virtualfunctionIndex) and returns the index of the function.
      * 
@@ -122,8 +142,26 @@ public class WasmOptions {
     FunctionName getCallVirtual() {
         FunctionName name = callVirtual;
         if( name == null ) {
-            callVirtual = name = types.getCallVirtualGC();
+            callVirtual = name = types.createCallVirtualGC();
             functions.markAsNeeded( name );
+            registerGet_i32();
+        }
+        return name;
+    }
+
+    /**
+     * Get the FunctionName for an INSTANCEOF check and mark it as used. The function has 2 parameters (THIS,
+     * classIndex) and returns true or false.
+     * 
+     * @return the name
+     */
+    @Nonnull
+    FunctionName getInstanceOf() {
+        FunctionName name = instanceOf;
+        if( name == null ) {
+            instanceOf = name = types.createInstanceOf();
+            functions.markAsNeeded( name );
+            registerGet_i32();
         }
         return name;
     }

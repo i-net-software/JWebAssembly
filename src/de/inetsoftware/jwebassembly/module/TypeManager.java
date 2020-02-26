@@ -52,6 +52,11 @@ public class TypeManager {
     /** name of virtual function table, start with a point for an invalid Java identifier  */
     static final String             VTABLE = ".vtable";
 
+    /**
+     * The reserved position on start of the vtable:
+     * <li>offset of interface call table (itable)
+     * <li>offset of instanceof list
+     */
     private static final int        VTABLE_FIRST_FUNCTION_INDEX = 2;
 
     private Map<String, StructType> structTypes = new LinkedHashMap<>();
@@ -132,19 +137,62 @@ public class TypeManager {
     }
 
     /**
-     * Get the FunctionName for a virtual call and mark it as used. The function has 2 parameters (THIS,
+     * Create the FunctionName for a virtual call and mark it as used. The function has 2 parameters (THIS,
      * virtualfunctionIndex) and returns the index of the function.
      * 
      * @return the name
      */
     @Nonnull
-    WatCodeSyntheticFunctionName getCallVirtualGC() {
+    WatCodeSyntheticFunctionName createCallVirtualGC() {
         return new WatCodeSyntheticFunctionName( //
                         "callVirtual", "local.get 0 " // THIS
                                         + "struct.get java/lang/Object .vtable " // vtable is on index 0
                                         + "local.get 1 " // virtualFunctionIndex
                                         + "i32.add " //
                                         + "i32.load offset=0 align=4 " //
+                                        + "return " //
+                        , valueOf( "java/lang/Object" ), ValueType.i32, null, ValueType.i32 ); //
+    }
+
+    /**
+     * Create the FunctionName for the INSTANCEOF operation and mark it as used. The function has 2 parameters (THIS,
+     * classIndex) and returns true if there is a match.
+     * 
+     * @return the name
+     */
+    WatCodeSyntheticFunctionName createInstanceOf() {
+        return new WatCodeSyntheticFunctionName( //
+                        "instanceof", "local.get 0 " // THIS
+                                        + "struct.get java/lang/Object .vtable " // vtable is on index 0
+                                        + "local.tee 2 " // save the vtable location
+                                        + "i32.load offset=4 align=4 " // get offset of instanceof inside vtable (int position 1, byte position 4)
+                                        + "local.get 2 " // get the vtable location
+                                        + "i32.add " //
+                                        + "local.tee 2 " // save the instanceof location
+                                        + "i32.load offset=0 align=4 " // count of instanceof entries
+                                        + "i32.const 4 " //
+                                        + "i32.mul " //
+                                        + "local.get 2 " // get the instanceof location
+                                        + "i32.add " //
+                                        + "local.set 3 " // save end position
+                                        + "loop" //
+                                        + "  local.get 2 " // get the instanceof location pointer
+                                        + "  local.get 3 " // get the end location
+                                        + "  i32.eq" //
+                                        + "  if" // current offset == end offset
+                                        + "    i32.const 0" // not found
+                                        + "    return" //
+                                        + "  end" //
+                                        + "  local.get 2" // get the instanceof location pointer
+                                        + "  i32.const 4" //
+                                        + "  i32.add" // increment offset
+                                        + "  local.tee 2" // save the instanceof location pointer
+                                        + "  i32.load offset=0 align=4" //
+                                        + "  local.get 1" // the class index that we search
+                                        + "  i32.ne" //
+                                        + "  br_if 0 " //
+                                        + "end " //
+                                        + "i32.const 1 " // class/interface found
                                         + "return " //
                         , valueOf( "java/lang/Object" ), ValueType.i32, null, ValueType.i32 ); //
     }
@@ -259,9 +307,9 @@ public class TypeManager {
                 }
             }
 
-            // add all interfaces to the instanceof
+            // add all interfaces to the instanceof set
             for(ConstantClass interClass : classFile.getInterfaces() ) {
-                StructType type = types.structTypes.get( className );
+                StructType type = types.structTypes.get( interClass.getName() );
                 if( type != null ) {
                     instanceOFs.add( type );
                 }

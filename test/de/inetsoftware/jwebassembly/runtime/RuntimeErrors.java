@@ -127,19 +127,6 @@ public class RuntimeErrors {
     }
 
     @Test
-    public void instanceofCall() throws IOException {
-        compileErrorTest( "Unknown operator: INSTANCEOF", InstanceofMethod.class );
-    }
-
-    static class InstanceofMethod {
-        @Export
-        static boolean runnable() {
-            Object obj = new Object();
-            return obj instanceof Integer;
-        }
-    }
-
-    @Test
     public void checkcast() throws IOException {
         compileErrorTest( "Unknown operator: CAST", CheckcastMethod.class );
     }

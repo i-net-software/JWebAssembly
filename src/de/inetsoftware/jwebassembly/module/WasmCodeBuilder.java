@@ -52,11 +52,6 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public abstract class WasmCodeBuilder {
 
-    /**
-     * declare for frequently use of virtual call with non GC mode.
-     */
-    static final SyntheticFunctionName GET_I32 = new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, ValueType.i32 );
-
     private final LocaleVariableManager localVariables = new LocaleVariableManager();
 
     private final List<WasmInstruction> instructions   = new ArrayList<>();
@@ -497,11 +492,7 @@ public abstract class WasmCodeBuilder {
         }
         indirectCall.setVariableIndexOfThis( varIndex );
         instructions.add( indirectCall );
-        if( !options.useGC() ) {
-            // for later access of the vtable
-            functions.markAsNeeded( GET_I32 );
-            functions.markAsImport( GET_I32, GET_I32.getAnnotation() );
-        }
+        options.registerGet_i32(); // for later access of the vtable
     }
 
     /**
@@ -643,6 +634,12 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addStructInstruction( StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
+        if( op == StructOperator.INSTANCEOF ) {
+            instructions.add( new WasmConstInstruction( types.valueOf( typeName ).getClassIndex(), javaCodePos, lineNumber ) );
+            FunctionName name = options.getInstanceOf();
+            instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types, false ) );
+            return;
+        }
         WasmStructInstruction structInst = new WasmStructInstruction( op, typeName, fieldName, javaCodePos, lineNumber, types );
         instructions.add( structInst );
         if( !options.useGC() ) {

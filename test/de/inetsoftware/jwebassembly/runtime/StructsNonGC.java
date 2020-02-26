@@ -17,6 +17,8 @@ package de.inetsoftware.jwebassembly.runtime;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.ClassRule;
 import org.junit.runners.Parameterized.Parameters;
@@ -50,6 +52,9 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "useGlobalObject" );
             addParam( list, script, "multipleAssign" );
             addParam( list, script, "getDefaultValue" );
+            addParam( list, script, "instanceof1" );
+            addParam( list, script, "instanceof2" );
+            addParam( list, script, "instanceof3" );
         }
         rule.setTestParameters( list );
         return list;
@@ -142,6 +147,24 @@ public class StructsNonGC extends AbstractBaseTest {
         static int getDefaultValue() {
             Abc2 val = new Abc2();
             return val.getDefault();
+        }
+
+        @Export
+        static boolean instanceof1() {
+            Object obj = new Object();
+            return obj instanceof Integer;
+        }
+
+        @Export
+        static boolean instanceof2() {
+            Object obj = new Object();
+            return obj instanceof Object;
+        }
+
+        @Export
+        static boolean instanceof3() {
+            Object obj = new LinkedList();
+            return obj instanceof List;
         }
     }
 
