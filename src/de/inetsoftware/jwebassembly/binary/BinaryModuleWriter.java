@@ -437,15 +437,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected int writeStructType( StructType type ) throws IOException {
-        type.setVTable( dataStream.size() );
-        for( FunctionName funcName : type.getMethods() ) {
-            int functIdx = getFunction( funcName ).id;
-            // little-endian byte order
-            dataStream.write( functIdx >>> 0 );
-            dataStream.write( functIdx >>> 8 );
-            dataStream.write( functIdx >>> 16 );
-            dataStream.write( functIdx >>> 24 );
-        }
+        type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id );
 
         if( !options.useGC() ) {
             return ValueType.anyref.getCode();

@@ -16,12 +16,16 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.ToIntFunction;
 
 import javax.annotation.Nonnull;
 
@@ -34,6 +38,7 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
+import de.inetsoftware.jwebassembly.wasm.LittleEndianOutputStream;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
@@ -46,6 +51,8 @@ public class TypeManager {
 
     /** name of virtual function table, start with a point for an invalid Java identifier  */
     static final String             VTABLE = ".vtable";
+
+    private static final int        VTABLE_FIRST_FUNCTION_INDEX = 2;
 
     private Map<String, StructType> structTypes = new LinkedHashMap<>();
 
@@ -161,6 +168,8 @@ public class TypeManager {
 
         private List<FunctionName>     methods;
 
+        private Set<StructType>        instanceOFs;
+
         /**
          * The offset to the vtable in the data section.
          */
@@ -207,6 +216,8 @@ public class TypeManager {
             JWebAssembly.LOGGER.fine( "write type: " + name );
             fields = new ArrayList<>();
             methods = new ArrayList<>();
+            instanceOFs = new LinkedHashSet<>(); // remembers the order from bottom to top class.
+            instanceOFs.add( this );
             HashSet<String> allNeededFields = new HashSet<>();
             listStructFields( name, functions, types, classFileLoader, allNeededFields );
             code = writer.writeStructType( this );
@@ -244,6 +255,15 @@ public class TypeManager {
                 StructType type = types.structTypes.get( className );
                 if( type != null ) {
                     allNeededFields.addAll( type.neededFields );
+                    instanceOFs.add( type );
+                }
+            }
+
+            // add all interfaces to the instanceof
+            for(ConstantClass interClass : classFile.getInterfaces() ) {
+                StructType type = types.structTypes.get( className );
+                if( type != null ) {
+                    instanceOFs.add( type );
                 }
             }
 
@@ -285,7 +305,7 @@ public class TypeManager {
                     // if a new needed method then add it
                     methods.add( funcName );
                 }
-                functions.setFunctionIndex( funcName, idx );
+                functions.setFunctionIndex( funcName, idx + VTABLE_FIRST_FUNCTION_INDEX );
             }
         }
 
@@ -332,13 +352,35 @@ public class TypeManager {
         }
 
         /**
-         * Set the offset of the vtable in the data section
+         * Write the struct/class meta data to the datastream and set the offset position.
          * 
-         * @param vtableOffset
-         *            the offset
+         * @param dataStream
+         *            the target stream
+         * @param getFunctionsID
+         *            source for function IDs
+         * @throws IOException
+         *            should never occur
          */
-        public void setVTable( int vtableOffset ) {
-            this.vtableOffset = vtableOffset;
+        public void writeToStream( ByteArrayOutputStream dataStream, ToIntFunction<FunctionName> getFunctionsID ) throws IOException {
+            this.vtableOffset = dataStream.size();
+
+            LittleEndianOutputStream header = new LittleEndianOutputStream( dataStream );
+            LittleEndianOutputStream data = new LittleEndianOutputStream();
+            for( FunctionName funcName : methods ) {
+                int functIdx = getFunctionsID.applyAsInt( funcName );
+                data.writeInt32( functIdx );
+            }
+
+            header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 ); // offset of interface calls
+            //TODO interface calls
+
+            header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 ); // offset of instanceeof list
+            data.writeInt32( instanceOFs.size() );
+            for( StructType type : instanceOFs ) {
+                data.writeInt32( type.getClassIndex() );
+            }
+
+            data.writeTo( dataStream );
         }
 
         /**
