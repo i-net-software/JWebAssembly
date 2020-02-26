@@ -82,11 +82,17 @@ public class WatParser extends WasmCodeBuilder {
                     case "i32.add":
                         addNumericInstruction( NumericOperator.add, ValueType.i32, javaCodePos, lineNumber );
                         break;
+                    case "i32.eq":
+                        addNumericInstruction( NumericOperator.eq, ValueType.i32, javaCodePos, lineNumber );
+                        break;
                     case "i32.eqz":
                         addNumericInstruction( NumericOperator.eqz, ValueType.i32, javaCodePos, lineNumber );
                         break;
                     case "i32.mul":
                         addNumericInstruction( NumericOperator.mul, ValueType.i32, javaCodePos, lineNumber );
+                        break;
+                    case "i32.ne":
+                        addNumericInstruction( NumericOperator.ne, ValueType.i32, javaCodePos, lineNumber );
                         break;
                     case "i32.reinterpret_f32":
                         addConvertInstruction( ValueTypeConvertion.f2i_re, javaCodePos, lineNumber );
@@ -243,6 +249,15 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "drop":
                         addBlockInstruction( WasmBlockOperator.DROP, null, javaCodePos, lineNumber );
+                        break;
+                    case "loop":
+                        addBlockInstruction( WasmBlockOperator.LOOP, null, javaCodePos, lineNumber );
+                        break;
+                    case "br":
+                        addBlockInstruction( WasmBlockOperator.BR, getInt( tokens, ++i ), javaCodePos, lineNumber );
+                        break;
+                    case "br_if":
+                        addBlockInstruction( WasmBlockOperator.BR_IF, getInt( tokens, ++i ), javaCodePos, lineNumber );
                         break;
                     case "i32.load":
                         i = addMemoryInstruction( MemoryOperator.load, ValueType.i32, tokens, i, lineNumber );
