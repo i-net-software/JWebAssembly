@@ -16,7 +16,6 @@
 package de.inetsoftware.jwebassembly.binary;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -26,20 +25,19 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.LittleEndianOutputStream;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
  * @author Volker Berlin
  */
-class WasmOutputStream extends FilterOutputStream {
-
-    private int count;
+class WasmOutputStream extends LittleEndianOutputStream {
 
     /**
      * Create a in memory stream.
      */
     WasmOutputStream() {
-        super( new ByteArrayOutputStream() );
+        super();
     }
 
     /**
@@ -50,24 +48,6 @@ class WasmOutputStream extends FilterOutputStream {
      */
     WasmOutputStream( OutputStream output ) {
         super( output );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void write( int b ) throws IOException {
-        out.write( b );
-        count++;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void write( byte[] b, int off, int len ) throws IOException {
-        out.write( b, off, len );
-        count += len;
     }
 
     /**
@@ -143,21 +123,6 @@ class WasmOutputStream extends FilterOutputStream {
         } else {
             writeOpCode( InstructionOpcodes.REF_NULL );
         }
-    }
-
-    /**
-     * Write a integer little endian (ever 4 bytes)
-     * 
-     * @param value
-     *            the value
-     * @throws IOException
-     *             if an I/O error occurs.
-     */
-    void writeInt32( int value ) throws IOException {
-        write( value >>> 0 );
-        write( value >>> 8 );
-        write( value >>> 16 );
-        write( value >>> 24 );
     }
 
     /**
@@ -311,23 +276,5 @@ class WasmOutputStream extends FilterOutputStream {
     void writeTo( OutputStream output ) throws IOException {
         ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
         baos.writeTo( output );
-    }
-
-    /**
-     * The count of bytes in the stream.
-     * 
-     * @return the data size
-     */
-    int size() {
-        return count;
-    }
-
-    /**
-     * Reset the stream. Work only for in memory stream.
-     */
-    void reset() {
-        ByteArrayOutputStream baos = (ByteArrayOutputStream)out;
-        baos.reset();
-        count = 0;
     }
 }
