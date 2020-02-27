@@ -34,7 +34,7 @@ public class JavaScriptNewMultiArrayFunctionName extends JavaScriptSyntheticFunc
      * Create a new instance
      * 
      * @param dim
-     *            the count of dimensions, should be >= 2
+     *            the count of dimensions, should be &gt;= 2
      * @param type
      *            the full type of the allocated array
      */

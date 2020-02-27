@@ -49,8 +49,8 @@ public class ConstantInvokeDynamic {
     }
 
     /**
-     * Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lamba expression "Runnable
-     * run = () -> foo();"
+     * Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lamba expression
+     * "<code>Runnable run = () -&gt; foo();</code>"
      * 
      * @return the type
      */

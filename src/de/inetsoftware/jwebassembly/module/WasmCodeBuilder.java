@@ -601,7 +601,7 @@ public abstract class WasmCodeBuilder {
      * Add a new multi dimensional array instruction
      * 
      * @param dim
-     *            the dimension of the array >= 2
+     *            the dimension of the array &gt;= 2
      * @param typeName
      *            the full type name
      * @param javaCodePos
