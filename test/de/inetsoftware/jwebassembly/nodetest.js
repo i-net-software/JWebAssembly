@@ -19,7 +19,7 @@ function callExport( instance, wasmImports ) {
         try{
             result[method] = String(instance.exports[method]( ...testData[method] ));
         }catch(err){
-            result[method] = err.toString();
+            result[method] = err.stack;
         }
     }
     saveResults(result);
