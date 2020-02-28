@@ -259,6 +259,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "br_if":
                         addBlockInstruction( WasmBlockOperator.BR_IF, getInt( tokens, ++i ), javaCodePos, lineNumber );
                         break;
+                    case "unreachable":
+                        addBlockInstruction( WasmBlockOperator.UNREACHABLE, null, javaCodePos, lineNumber );
+                        break;
                     case "i32.load":
                         i = addMemoryInstruction( MemoryOperator.load, ValueType.i32, tokens, i, lineNumber );
                         break;
