@@ -63,6 +63,8 @@ public class WasmOptions {
 
     private FunctionName instanceOf;
 
+    private FunctionName cast;
+
     /**
      * Create a new instance of options
      * 
@@ -162,6 +164,23 @@ public class WasmOptions {
             instanceOf = name = types.createInstanceOf();
             functions.markAsNeeded( name );
             registerGet_i32();
+        }
+        return name;
+    }
+
+    /**
+     * Get the FunctionName for a CAST operation and mark it as used. The function has 2 parameters (THIS, classIndex)
+     * and returns THIS or throw an exception.
+     * 
+     * @return the name
+     */
+    @Nonnull
+    FunctionName getCast() {
+        FunctionName name = cast;
+        if( name == null ) {
+            cast = name = types.createCast();
+            functions.markAsNeeded( name );
+            getInstanceOf();
         }
         return name;
     }

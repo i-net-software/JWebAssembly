@@ -127,19 +127,6 @@ public class RuntimeErrors {
     }
 
     @Test
-    public void checkcast() throws IOException {
-        compileErrorTest( "Unknown operator: CAST", CheckcastMethod.class );
-    }
-
-    static class CheckcastMethod {
-        @Export
-        static Integer runnable() {
-            Object obj = new Integer(0);
-            return (Integer)obj;
-        }
-    }
-
-    @Test
     public void classConatnt() throws IOException {
         compileErrorTest( "Class constants are not supported.", ClassConstant.class );
     }

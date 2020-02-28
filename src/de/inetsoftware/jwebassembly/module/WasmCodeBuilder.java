@@ -634,11 +634,17 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addStructInstruction( StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
-        if( op == StructOperator.INSTANCEOF ) {
-            instructions.add( new WasmConstInstruction( types.valueOf( typeName ).getClassIndex(), javaCodePos, lineNumber ) );
-            FunctionName name = options.getInstanceOf();
-            instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types, false ) );
-            return;
+        switch( op ) {
+            case INSTANCEOF:
+                instructions.add( new WasmConstInstruction( types.valueOf( typeName ).getClassIndex(), javaCodePos, lineNumber ) );
+                FunctionName name = options.getInstanceOf();
+                instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types, false ) );
+                return;
+            case CAST:
+                instructions.add( new WasmConstInstruction( types.valueOf( typeName ).getClassIndex(), javaCodePos, lineNumber ) );
+                name = options.getCast();
+                instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types, false ) );
+                return;
         }
         WasmStructInstruction structInst = new WasmStructInstruction( op, typeName, fieldName, javaCodePos, lineNumber, types );
         instructions.add( structInst );

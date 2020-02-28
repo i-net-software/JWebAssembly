@@ -55,6 +55,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "instanceof1" );
             addParam( list, script, "instanceof2" );
             addParam( list, script, "instanceof3" );
+            addParam( list, script, "cast" );
         }
         rule.setTestParameters( list );
         return list;
@@ -165,6 +166,13 @@ public class StructsNonGC extends AbstractBaseTest {
         static boolean instanceof3() {
             Object obj = new LinkedList();
             return obj instanceof List;
+        }
+
+        @Export
+        static int cast() {
+            Object obj = new Integer(42);
+            Integer val = (Integer)obj;
+            return val.intValue();
         }
     }
 

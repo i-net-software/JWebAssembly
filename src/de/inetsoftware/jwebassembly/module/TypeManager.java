@@ -198,6 +198,24 @@ public class TypeManager {
     }
 
     /**
+     * Create the FunctionName for the CAST operation and mark it as used. The function has 2 parameters (THIS,
+     * classIndex) and returns this if the type match else it throw an exception.
+     * 
+     * @return the name
+     */
+    WatCodeSyntheticFunctionName createCast() {
+        return new WatCodeSyntheticFunctionName( //
+                        "cast", "local.get 0 " // THIS
+                                        + "local.get 1 " // the class index that we search
+                                        + "call $.instanceof()V " // the synthetic signature of ArraySyntheticFunctionName
+                                        + "i32.eqz " //
+                                        + "local.get 0 " // THIS
+                                        + "return " //
+                                        + "unreachable " // TODO throw a ClassCastException if exception handling is supported
+                        , valueOf( "java/lang/Object" ), ValueType.i32, null, valueOf( "java/lang/Object" ) );
+    }
+
+    /**
      * A reference to a type.
      * 
      * @author Volker Berlin
