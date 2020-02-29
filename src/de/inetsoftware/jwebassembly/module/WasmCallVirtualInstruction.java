@@ -21,9 +21,6 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
-import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
-import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
-import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
@@ -34,8 +31,6 @@ import de.inetsoftware.jwebassembly.wasm.VariableOperator;
  *
  */
 class WasmCallVirtualInstruction extends WasmCallIndirectInstruction {
-
-    private int                         virtualFunctionIdx = -1;
 
     private final WasmOptions           options;
 
@@ -67,21 +62,12 @@ class WasmCallVirtualInstruction extends WasmCallIndirectInstruction {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    void markAsNeeded( FunctionManager functions ) {
-        super.markAsNeeded( functions );
-        virtualFunctionIdx = functions.getFunctionIndex( getFunctionName() );
-    }
-
-    /**
      * if this call is executed virtual or if is was optimized.
      * 
      * @return true, virtual call
      */
     boolean isVirtual() {
-        return virtualFunctionIdx > 0;
+        return options.functions.getFunctionIndex( getFunctionName() ) > 0;
     }
 
     /**
@@ -89,6 +75,7 @@ class WasmCallVirtualInstruction extends WasmCallIndirectInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        int virtualFunctionIdx =  options.functions.getFunctionIndex( getFunctionName() );
         if( virtualFunctionIdx < 0 ) {
             super.writeTo( writer );
         } else {

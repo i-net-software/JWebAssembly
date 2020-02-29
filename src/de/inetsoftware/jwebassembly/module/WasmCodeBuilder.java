@@ -30,7 +30,6 @@ import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptNewMultiArrayFunctionName;
-import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -416,6 +415,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+        name = functions.markAsNeeded( name );
         boolean needThisParameter = functions.needThisParameter( name );
         WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types, needThisParameter );
 
@@ -506,6 +506,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+        name = functions.markAsNeeded( name );
         addCallIndirectInstruction( new WasmCallVirtualInstruction( name, javaCodePos, lineNumber, types, options ) );
         options.getCallVirtual(); // mark the function as needed
     }
@@ -520,6 +521,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInterfaceInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
+        //TODO name = functions.markAsNeeded( name );
         addCallIndirectInstruction( new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types, options ) );
     }
 

@@ -199,7 +199,7 @@ public class ModuleGenerator {
                 JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
                 SyntheticFunctionName synth = (SyntheticFunctionName)next;
                 if( synth.hasWasmCode() ) {
-                    scanMethod( synth.getCodeBuilder( watParser ) );
+                    synth.getCodeBuilder( watParser );
                 } else {
                     functions.markAsImport( synth, synth.getAnnotation() );
                 }
@@ -219,7 +219,7 @@ public class ModuleGenerator {
                 method = functions.replace( next, null );
             }
             if( method != null ) {
-                scanMethod( createInstructions( functions.replace( next, method ) ) );
+                createInstructions( functions.replace( next, method ) );
                 boolean needThisParameter = !method.isStatic() || "<init>".equals( method.getName() );
                 functions.markAsScanned( next, needThisParameter );
                 continue;
@@ -302,30 +302,6 @@ public class ModuleGenerator {
         functions.prepareFinish();
         strings.prepareFinish( writer );
         writer.prepareFinish();
-    }
-
-    /**
-     * Scan the method and list all needed methods.
-     * 
-     * @param codeBuilder
-     *            the codeBuilder with instructions of the method
-     * @throws IOException
-     *             if any I/O error occur
-     */
-    private void scanMethod( WasmCodeBuilder codeBuilder ) throws IOException {
-        if( codeBuilder == null ) {
-            return;
-        }
-        List<WasmInstruction> instructions = codeBuilder.getInstructions();
-        for( WasmInstruction instruction : instructions ) {
-            switch( instruction.getType() ) {
-                case Call:
-                case CallVirtual:
-                    ((WasmCallInstruction)instruction).markAsNeeded( functions );
-                    break;
-                default:
-            }
-        }
     }
 
     /**
@@ -547,10 +523,6 @@ public class ModuleGenerator {
                                 break;
                             default:
                         }
-                        break;
-                    case Call:
-                    case CallVirtual:
-                        ((WasmCallInstruction)instruction).markAsNeeded( functions );
                         break;
                     case Struct:
                         if( !writer.options.useGC() ) {

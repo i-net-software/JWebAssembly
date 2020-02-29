@@ -90,16 +90,6 @@ class WasmCallInstruction extends WasmInstruction {
     }
 
     /**
-     * Mark the function as needed in the functions manager and replace the function name with a possible super name.
-     * 
-     * @param functions
-     *            the function manager
-     */
-    void markAsNeeded( @Nonnull FunctionManager functions ) {
-        name = functions.markAsNeeded( name );
-    }
-
-    /**
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
