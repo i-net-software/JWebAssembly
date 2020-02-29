@@ -684,7 +684,7 @@ public class TextModuleWriter extends ModuleWriter {
         if(spiderMonkey)
             methodOutput.append( "call_indirect $t" ).append( functions.get( name.signatureName ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
         else
-        methodOutput.append( "call_indirect (type $t" ).append( functions.get( name.signatureName ).typeId ).append( ')' );
+        methodOutput.append( "call_indirect (type $t" ).append( functions.get( name.signatureName ).typeId ).append( ")  ;; " + name.signatureName );
     }
 
     /**
