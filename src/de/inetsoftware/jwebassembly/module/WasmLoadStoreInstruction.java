@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 class WasmLoadStoreInstruction extends WasmLocalInstruction {
 
-    private LocaleVariableManager localVariables;
-
     /**
      * Create an instance of a load/store instruction
      * 
@@ -48,8 +46,7 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      *            the line number in the Java source code
      */
     WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
-        super( load ? get : set, idx, javaCodePos, lineNumber );
-        this.localVariables = localVariables;
+        super( load ? get : set, idx, localVariables, javaCodePos, lineNumber );
     }
 
     /**
@@ -58,12 +55,5 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
     @Override
     int getIndex() {
         return localVariables.get( super.getIndex(), getCodePosition() ); // translate slot index to position index
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    AnyType getPushValueType() {
-        return getPopCount() == 0 ? localVariables.getValueType( getIndex() ) : null;
     }
 }

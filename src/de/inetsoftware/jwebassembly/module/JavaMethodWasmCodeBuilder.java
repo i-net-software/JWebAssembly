@@ -723,7 +723,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             byteCode.skip( 4 - padding );
         }
         startPosition--;
-        int switchValuestartPosition = findPushInstructionCodePosition( 1 );
+        int switchValuestartPosition = findBlockStartCodePosition( 1 );
 
         int defaultPosition = startPosition + byteCode.readInt();
         int[] keys;

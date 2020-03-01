@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import javax.annotation.Nonnegative;
@@ -112,8 +113,8 @@ public abstract class WasmCodeBuilder {
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
      * @return the code position that push the last instruction
      */
-    int findPushInstructionCodePosition( int count ) {
-        return findPushInstruction( count, true );
+    int findBlockStartCodePosition( int count ) {
+        return findBlockStart( count, true );
     }
 
     /**
@@ -126,7 +127,7 @@ public abstract class WasmCodeBuilder {
      *            true, get the code position; false, get the index in the instructions
      * @return the code position that push the last instruction
      */
-    private int findPushInstruction( int count, boolean codePosition ) {
+    private int findBlockStart( int count, boolean codePosition ) {
         int valueCount = 0;
         List<WasmInstruction> instructions = this.instructions;
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
@@ -152,6 +153,32 @@ public abstract class WasmCodeBuilder {
      */
     @Nonnull
     AnyType findValueTypeFromStack( int count ) {
+        return findInstructionThatPushValue( count, (idx,instr ) -> instr.getPushValueType() );
+    }
+
+    /**
+     * Find the instruction that push the x-th value to the stack.
+     * 
+     * @param count
+     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
+     * @return the instruction
+     */
+    private WasmInstruction findInstructionThatPushValue( int count ) {
+        return findInstructionThatPushValue( count, (index,instruction) -> instruction );
+    }
+
+    /**
+     * Find the instruction that push the x-th value to the stack.
+     * 
+     * @param <T>
+     *            the return type
+     * @param count
+     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
+     * @param funct
+     *            the return value from the instruction
+     * @return the function value
+     */
+    <T> T findInstructionThatPushValue( int count, BiFunction<Integer, WasmInstruction, T> funct ) {
         int valueCount = 0;
         List<WasmInstruction> instructions = this.instructions;
         for( int i = instructions.size() - 1; i >= 0; i-- ) {
@@ -159,12 +186,12 @@ public abstract class WasmCodeBuilder {
             AnyType valueType = instr.getPushValueType();
             if( valueType != null ) {
                 if( ++valueCount == count ) {
-                    return valueType;
+                    return funct.apply( i, instr );
                 }
             }
             valueCount -= instr.getPopCount();
         }
-        throw new WasmException( "Push Value not found", -1 ); // should never occur
+        throw new WasmException( "Push instruction not found", -1 ); // should never occur
     }
 
     /**
@@ -271,7 +298,7 @@ public abstract class WasmCodeBuilder {
                 AnyType valueType = findValueTypeFromStack( 1 );
                 localVariables.useIndex( valueType, wasmIdx );
         }
-        instructions.add( new WasmLocalInstruction( op, wasmIdx, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLocalInstruction( op, wasmIdx, localVariables, javaCodePos, lineNumber ) );
     }
 
     /**
@@ -283,11 +310,25 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addDupInstruction( int javaCodePos, int lineNumber ) {
-        AnyType type = findValueTypeFromStack( 1 );
-        int idx = getTempVariable( type, javaCodePos, javaCodePos + 1 );
-        instructions.add( new WasmDupInstruction( idx, type, localVariables, javaCodePos, lineNumber ) );
-        // an alternative solution can be a function call with multiple return values but this seems to be slower
-        // new SyntheticFunctionName( "dup" + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber )
+        WasmInstruction instr = findInstructionThatPushValue( 1 );
+        AnyType type = instr.getPushValueType();
+        int varIndex = -1;
+        // if it is a GET to a local variable then we can use it
+        if( instr.getType() == Type.Local ) {
+            WasmLocalInstruction local1 = (WasmLocalInstruction)instr;
+            if( local1.getOperator() == VariableOperator.get ) {
+                varIndex = local1.getIndex();
+            }
+        }
+        //alternate we need to create a new locale variable
+        if( varIndex < 0 ) {
+            varIndex = getTempVariable( type, javaCodePos, javaCodePos + 1 );
+            instructions.add( new WasmDupInstruction( varIndex, type, localVariables, javaCodePos, lineNumber ) );
+            // an alternative solution can be a function call with multiple return values but this seems to be slower
+            // new SyntheticFunctionName( "dup" + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber )
+        } else {
+            instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex, localVariables, javaCodePos, lineNumber ) );
+        }
     }
 
     /**
@@ -473,8 +514,7 @@ public abstract class WasmCodeBuilder {
 
         // find the instruction that this push on stack 
         int count = indirectCall.getPopCount();
-        int idx = findPushInstruction( count, false );
-        WasmInstruction instr = instructions.get( idx );
+        WasmInstruction instr = findInstructionThatPushValue( count );
         int varIndex = -1;
         // if it is a GET to a local variable then we can use it
         if( instr.getType() == Type.Local ) {
@@ -487,7 +527,7 @@ public abstract class WasmCodeBuilder {
         if( varIndex < 0 ) {
             int javaCodePos = indirectCall.getCodePosition();
             varIndex = getTempVariable( indirectCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
-            idx = count == 1 ? instructions.size() : findPushInstruction( count - 1, false );
+            int idx = count == 1 ? instructions.size() : findBlockStart( count - 1, false );
             instructions.add( idx, new DupThis( indirectCall, varIndex, javaCodePos ) );
         }
         indirectCall.setVariableIndexOfThis( varIndex );
