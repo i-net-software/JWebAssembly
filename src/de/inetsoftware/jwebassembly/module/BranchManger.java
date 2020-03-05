@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -589,30 +590,81 @@ class BranchManger {
             switchCase.block = blockCount;
         }
 
-        // handle the GOTO (breaks) at the end of the CASE blocks. 
-        blockCount = 0;
-        BranchNode branch = blockNode;
-        while( branch.size() > 0 ) {
-            BranchNode node = branch.get( 0 );
-            blockCount++;
-
-            for( int p = 0; p < parsedOperations.size(); p++ ) {
-                ParsedBlock parsedBlock = parsedOperations.get( p );
-                if( parsedBlock.startPosition < node.endPos ) {
-                    continue;
-                }
-                if( parsedBlock.startPosition < lastPosition ) {
-                    if( parsedBlock.endPosition >= lastPosition && parsedBlock.op == JavaBlockOperator.GOTO ) {
-                        parsedOperations.remove( p );
-                        lastPosition = parsedBlock.endPosition;
-                        branch.add( new BranchNode( parsedBlock.startPosition, parsedBlock.startPosition, WasmBlockOperator.BR, null, blockCount ) );
-                        p--;
+        // add extra blocks for forward GOTO jumps like in SWITCH of Strings 
+        for( int p = 0; p < parsedOperations.size(); p++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( p );
+            int start = parsedBlock.startPosition;
+            if( startPosition >= lastPosition ) {
+                break;
+            }
+            if( parsedBlock.op != JavaBlockOperator.IF ) {
+                continue;
+            }
+            int end = parsedBlock.endPosition;
+            if( start < end ) {
+                BranchNode branch = blockNode;
+                while( branch.size() > 0 /*&& start < branch.endPos*/ ) {
+                    BranchNode node = branch.get( 0 );
+                    if( start > node.endPos ) {
+                        if( end > branch.endPos ) {
+                            BranchNode parentNode = branch;
+                            while( end > parentNode.endPos ) {
+                                parentNode = parentNode.parent;
+                            }
+                            BranchNode middleNode = new BranchNode( startPosition, parsedBlock.endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                            BranchNode child = parentNode.remove( 0 );
+                            parentNode.add( middleNode );
+                            middleNode.add( child );
+                            cases[posCount].block++;
+                        }
+                        break;
                     }
-                } else {
-                    break;
+                    branch = node;
                 }
             }
-            branch = node;
+        }
+
+        // handle the GOTO (breaks) at the end of the CASE blocks.
+        for( Iterator<ParsedBlock> it = parsedOperations.iterator(); it.hasNext(); ) {
+            ParsedBlock parsedBlock = it.next();
+            int start = parsedBlock.startPosition;
+            if( startPosition >= lastPosition ) {
+                break;
+            }
+            switch( parsedBlock.op ) {
+                case GOTO:
+                case IF:
+                    int end = parsedBlock.endPosition;
+                    if( start < end ) {
+                        BranchNode branch = blockNode;
+                        while( branch.size() > 0 ) {
+                            BranchNode node = branch.get( 0 );
+                            if( start > node.endPos ) {
+                                if( end >= branch.endPos ) {
+                                    blockCount = 0;
+                                    BranchNode parentNode = branch;
+                                    while( parentNode != null && end > parentNode.endPos ) {
+                                        parentNode = parentNode.parent;
+                                        blockCount++;
+                                    }
+                                    WasmBlockOperator startOp;
+                                    if( parsedBlock.op == JavaBlockOperator.GOTO ) {
+                                        startOp = WasmBlockOperator.BR;
+                                        lastPosition = end;
+                                    } else {
+                                        startOp = WasmBlockOperator.BR_IF;
+                                    }
+                                    start++;
+                                    branch.add( new BranchNode( start, start, startOp, null, blockCount ) );
+                                    it.remove();
+                                }
+                                break;
+                            }
+                            branch = node;
+                        }
+
+                    }
+            }
         }
 
         // Create the main block around the switch
