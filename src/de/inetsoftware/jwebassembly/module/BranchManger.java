@@ -608,13 +608,20 @@ class BranchManger {
                     if( start > node.endPos ) {
                         if( end > branch.endPos ) {
                             BranchNode parentNode = branch;
-                            while( end > parentNode.endPos ) {
+                            while( parentNode != null && end > parentNode.endPos ) {
                                 parentNode = parentNode.parent;
                             }
-                            BranchNode middleNode = new BranchNode( startPosition, parsedBlock.endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-                            BranchNode child = parentNode.remove( 0 );
-                            parentNode.add( middleNode );
-                            middleNode.add( child );
+                            BranchNode middleNode = new BranchNode( startPosition, end, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                            if( parentNode != null ) {
+                                BranchNode child = parentNode.remove( 0 );
+                                parentNode.add( middleNode );
+                                middleNode.add( child );
+                            } else {
+                                // occur if the default is not the last case in the switch
+                                middleNode.add( blockNode );
+                                blockNode = middleNode;
+                                lastPosition = end;
+                            }
                             cases[posCount].block++;
                         }
                         break;
@@ -650,7 +657,7 @@ class BranchManger {
                                     WasmBlockOperator startOp;
                                     if( parsedBlock.op == JavaBlockOperator.GOTO ) {
                                         startOp = WasmBlockOperator.BR;
-                                        lastPosition = end;
+                                        lastPosition = Math.max( lastPosition, end );
                                     } else {
                                         startOp = WasmBlockOperator.BR_IF;
                                     }
