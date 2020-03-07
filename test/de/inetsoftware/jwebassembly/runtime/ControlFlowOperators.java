@@ -71,6 +71,15 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifAndOr6" );
             addParam( list, script, "ifAndOr8" );
             addParam( list, script, "ifWithoutElseAndLoop" );
+            addParam( list, script, "stringSwitchNormalFoo" );
+            addParam( list, script, "stringSwitchNormalBar" );
+            addParam( list, script, "stringSwitchNormalDefault" );
+            addParam( list, script, "stringSwitchReverseFoo" );
+            addParam( list, script, "stringSwitchReverseBar" );
+            addParam( list, script, "stringSwitchReverseDefault" );
+            addParam( list, script, "stringSwitchContinue1" );
+            addParam( list, script, "stringSwitchContinue2" );
+            addParam( list, script, "stringSwitchContinueDefault" );
         }
         rule.setTestParameters( list );
         return list;
@@ -464,6 +473,95 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 ifWithoutElseAndLoop *= n++;
             }
             return ifWithoutElseAndLoop;
+        }
+
+        @Export
+        static int stringSwitchNormalFoo() {
+            return stringSwitchNormal( "foo" );
+        }
+
+        @Export
+        static int stringSwitchNormalBar() {
+            return stringSwitchNormal( "bar" );
+        }
+
+        @Export
+        static int stringSwitchNormalDefault() {
+            return stringSwitchNormal( "default" );
+        }
+
+        private static int stringSwitchNormal( String tagName ) {
+            switch( tagName ) {
+                case "foo":
+                    return 1;
+                case "bar":
+                    return 2;
+                default:
+                    return 3;
+            }
+        }
+
+        @Export
+        static int stringSwitchReverseFoo() {
+            return stringSwitchReverse( "foo" );
+        }
+
+        @Export
+        static int stringSwitchReverseBar() {
+            return stringSwitchReverse( "bar" );
+        }
+
+        @Export
+        static int stringSwitchReverseDefault() {
+            return stringSwitchReverse( "default" );
+        }
+
+        private static int stringSwitchReverse( String tagName ) {
+            switch( tagName ) {
+                default:
+                    return 3;
+                case "bar":
+                    return 2;
+                case "foo":
+                    return 1;
+            }
+        }
+
+        @Export
+        static int stringSwitchContinue1() {
+            return stringSwitchContinue( "1" );
+        }
+
+        @Export
+        static int stringSwitchContinue2() {
+            return stringSwitchContinue( "2" );
+        }
+
+        @Export
+        static int stringSwitchContinueDefault() {
+            return stringSwitchContinue( "8" );
+        }
+
+        /**
+         * Strings have continue hash codes that a compiler could use a tableswitch.
+         */
+        private static int stringSwitchContinue( String tagName ) {
+            switch( tagName ) {
+                case "1":
+                    return 1;
+                case "2":
+                    return 2;
+                case "3":
+                    return 3;
+                case "4":
+                    return 4;
+                case "5":
+                    return 5;
+                case "6":
+                    return 7;
+                default:
+                    return 8;
+            }
         }
     }
 }

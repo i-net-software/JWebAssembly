@@ -603,7 +603,7 @@ class BranchManger {
             int end = parsedBlock.endPosition;
             if( start < end ) {
                 BranchNode branch = blockNode;
-                while( branch.size() > 0 /*&& start < branch.endPos*/ ) {
+                while( branch.size() > 0 ) {
                     BranchNode node = branch.get( 0 );
                     if( start > node.endPos ) {
                         if( end > branch.endPos ) {
@@ -616,13 +616,13 @@ class BranchManger {
                                 BranchNode child = parentNode.remove( 0 );
                                 parentNode.add( middleNode );
                                 middleNode.add( child );
+                                patchBrDeep( middleNode );
                             } else {
                                 // occur if the default is not the last case in the switch
                                 middleNode.add( blockNode );
                                 blockNode = middleNode;
                                 lastPosition = end;
                             }
-                            cases[posCount].block++;
                         }
                         break;
                     }
@@ -679,14 +679,49 @@ class BranchManger {
         switchNode.add( blockNode );
         parent.add( switchNode );
 
-        // sort back in the natural order and create a br_table 
-        Arrays.sort( cases, ( a, b ) -> Long.compare( a.key, b.key ) );
-        int[] data = new int[cases.length];
-        for( int i = 0; i < data.length; i++ ) {
-            data[i] = cases[i].block;
-        }
         if( brTableNode != null ) {
+            // sort back in the natural order and create a br_table 
+            Arrays.sort( cases, ( a, b ) -> Long.compare( a.key, b.key ) );
+            int[] data = new int[cases.length];
+            for( int i = 0; i < data.length; i++ ) {
+                data[i] = cases[i].block;
+            }
             brTableNode.data = data;
+        }
+    }
+
+    /**
+     * Patch the existing BR instructions after a new BLOCK node was injected in the hierarchy. The break position must
+     * only increment if the old break position is outside of the new BLOCK.
+     * 
+     * @param newNode
+     *            the new node
+     */
+    private void patchBrDeep( BranchNode newNode ) {
+        for( WasmInstruction instr : instructions ) {
+            int codePos = instr.getCodePosition();
+            if( codePos < newNode.startPos ) {
+                continue;
+            }
+            if( codePos >= newNode.endPos ) {
+                break;
+            }
+            if( instr.getType() != Type.Block ) {
+                continue;
+            }
+            WasmBlockInstruction blockInstr = (WasmBlockInstruction)instr;
+            if( blockInstr.getOperation() != WasmBlockOperator.BR ) {
+                continue;
+            }
+            Integer data = (Integer)blockInstr.getData();
+            int blockCount = 0;
+            while( newNode.size() > 0 && newNode.endPos > codePos ) {
+                newNode = newNode.get( 0 );
+                blockCount++;
+            }
+            if( blockCount <= data ) { // old break position was outside of the new block
+                blockInstr.setData( data + 1 );
+            }
         }
     }
 

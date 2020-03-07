@@ -72,6 +72,15 @@ class WasmBlockInstruction extends WasmInstruction {
     }
 
     /**
+     * Get the current data vale of the instruction
+     * 
+     * @return the value
+     */
+    Object getData() {
+        return data;
+    }
+
+    /**
      * Set a new value for the data
      * 
      * @param data
