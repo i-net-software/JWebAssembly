@@ -57,7 +57,7 @@ public class TypeManager {
      * <li>offset of interface call table (itable)
      * <li>offset of instanceof list
      */
-    private static final int        VTABLE_FIRST_FUNCTION_INDEX = 2;
+    private static final int        VTABLE_FIRST_FUNCTION_INDEX = 3;
 
     private Map<String, StructType> structTypes = new LinkedHashMap<>();
 
@@ -220,7 +220,7 @@ public class TypeManager {
      * 
      * @author Volker Berlin
      */
-    public static class StructType implements AnyType {
+    public class StructType implements AnyType {
 
         private final String           name;
 
@@ -445,6 +445,9 @@ public class TypeManager {
             for( StructType type : instanceOFs ) {
                 data.writeInt32( type.getClassIndex() );
             }
+
+            int classNameIdx = options.strings.get( getName().replace( '/', '.' ) );
+            header.writeInt32( classNameIdx ); // string id of the className
 
             data.writeTo( dataStream );
         }

@@ -58,6 +58,21 @@ class StringManager extends LinkedHashMap<String, Integer> {
     }
 
     /**
+     * Get the positive id for the string.
+     * 
+     * @param str
+     *            the string
+     * @return the id
+     */
+    public Integer get( @Nonnull Object str ) {
+        Integer id = super.get( str );
+        if( id == null ) {
+            put( (String)str, id = size() );
+        }
+        return id;
+    }
+
+    /**
      * Get the function name object for the {@link #stringConstant(int)}.
      * 
      * @see #stringConstant(int)

@@ -395,9 +395,6 @@ public abstract class WasmCodeBuilder {
     protected void addConstInstruction( Object value, int javaCodePos, int lineNumber ) {
         if( value.getClass() == String.class ) {
             Integer id = strings.get( value );
-            if( id == null ) {
-                strings.put( (String)value, id = strings.size() );
-            }
             FunctionName name = strings.getStringConstantFunction();
             instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
             addCallInstruction( name, javaCodePos, lineNumber );
