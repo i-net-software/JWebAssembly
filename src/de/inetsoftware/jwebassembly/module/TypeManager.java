@@ -53,6 +53,11 @@ public class TypeManager {
     static final String             VTABLE = ".vtable";
 
     /**
+     * Name of field with system hash code, start with a point for an invalid Java identifier.
+     */
+    static final String             HASHCODE = ".hashcode";
+
+    /**
      * The reserved position on start of the vtable:
      * <li>offset of interface call table (itable)
      * <li>offset of instanceof list
@@ -339,6 +344,7 @@ public class TypeManager {
                 listStructFields( superClassName, functions, types, classFileLoader, allNeededFields );
             } else {
                 fields.add( new NamedStorageType( ValueType.i32, className, VTABLE ) );
+                fields.add( new NamedStorageType( ValueType.i32, className, HASHCODE ) );
             }
 
             for( FieldInfo field : classFile.getFields() ) {
