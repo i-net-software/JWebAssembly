@@ -69,5 +69,16 @@ public class DynamicValues {
         static long currentTimeMillis() {
             return System.currentTimeMillis();
         }
+
+        @Export
+        static int testHashCode() {
+            Object obj1 = new Object();
+            Object obj2 = new Object();
+            int result = 0;
+            result |= obj1.hashCode() != 0 ? 1 : 0;
+            result |= obj1.hashCode() != obj2.hashCode() ? 2 : 0;
+            result |= obj1.hashCode() == obj1.hashCode() ? 4 : 0;
+            return result;
+        }
     }
 }
