@@ -252,8 +252,6 @@ class StringManager extends LinkedHashMap<String, Integer> {
      * Placeholder for a synthetic function. Should be inlined from the optimizer.
      * @return the memory offset of the string data in the element section
      */
-    //TODO the annotation can be removed if ModuleGenerator.prepareFunctions() can detect Synthetic functions correctly
-    @WasmTextCode( "i32.const 0" )
     private static native int stringsMemoryOffset();
 
     /**
