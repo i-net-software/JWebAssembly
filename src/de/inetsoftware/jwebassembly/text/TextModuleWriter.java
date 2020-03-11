@@ -162,7 +162,7 @@ public class TextModuleWriter extends ModuleWriter {
             int pages = (dataSize + 0xFFFF) / 0x10000;
             newline( textOutput );
             String pagesStr = Integer.toString( pages );
-            textOutput.append( "(memory (export \"memory\") " ).append( pagesStr ).append( ' ' ).append( pagesStr ).append( ')' );
+            textOutput.append( "(memory " ).append( pagesStr ).append( ')' );
             newline( textOutput );
             textOutput.append( "(data (i32.const 0) \"" );
             byte[] data = dataStream.toByteArray();
