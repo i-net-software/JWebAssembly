@@ -169,16 +169,23 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     private void writeTableSection() throws IOException {
         int stringCount = getStringCount();
+        int typeCount = options.types.size();
         if( !callIndirect && stringCount == 0 ) {
             return;
         }
 
-        int elemCount = callIndirect ? imports.size() + functions.size() : 0;
         WasmOutputStream stream = new WasmOutputStream();
-        int count = stringCount == 0 ? 1 : 2;
+        int count = 1;
+        if( stringCount > 0 ) {
+            count++;
+        }
+        if( typeCount > 0 ) {
+            count++;
+        }
         stream.writeVaruint32( count ); // count of tables
 
         // indirect function table 
+        int elemCount = callIndirect ? imports.size() + functions.size() : 0;
         stream.writeValueType( ValueType.funcref ); // the type of elements
         stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
         stream.writeVaruint32( elemCount ); // initial length
@@ -189,6 +196,13 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             stream.writeValueType( ValueType.anyref ); // the type of elements
             stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( stringCount ); // initial length
+        }
+
+        // table with classes
+        if( count >= 3 ) {
+            stream.writeValueType( ValueType.anyref ); // the type of elements
+            stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
+            stream.writeVaruint32( typeCount ); // initial length
         }
 
         wasm.writeSection( SectionType.Table, stream );

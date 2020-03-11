@@ -37,7 +37,7 @@ public class WasmOptions {
 
     final FunctionManager functions = new FunctionManager();
 
-    final TypeManager     types     = new TypeManager( this );
+    public final TypeManager types  = new TypeManager( this );
 
     final StringManager   strings   = new StringManager( this );
 

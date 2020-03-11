@@ -157,6 +157,13 @@ public class TextModuleWriter extends ModuleWriter {
             textOutput.append( "(table " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
         }
 
+        // table with classes
+        int typeCount = options.types.size();
+        if( typeCount > 0 ) {
+            newline( textOutput );
+            textOutput.append( "(table " ).append( Integer.toString( typeCount ) ).append( " anyref)" );
+        }
+
         int dataSize = dataStream.size();
         if( dataSize > 0 ) {
             int pages = (dataSize + 0xFFFF) / 0x10000;

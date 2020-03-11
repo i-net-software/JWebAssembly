@@ -83,6 +83,15 @@ public class TypeManager {
     }
 
     /**
+     * Count of used types
+     * 
+     * @return the count
+     */
+    public int size() {
+        return structTypes.size();
+    }
+
+    /**
      * Finish the prepare and write the types. Now no new types and functions should be added.
      * 
      * @param writer
