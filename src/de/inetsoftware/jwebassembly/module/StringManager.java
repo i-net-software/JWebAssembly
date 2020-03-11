@@ -33,7 +33,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  * 
  * @author Volker Berlin
  */
-class StringManager extends LinkedHashMap<String, Integer> {
+public class StringManager extends LinkedHashMap<String, Integer> {
 
     /**
      * Signature of method stringConstant.
@@ -106,7 +106,6 @@ class StringManager extends LinkedHashMap<String, Integer> {
     void prepareFinish( ModuleWriter writer ) throws IOException {
         // inform the writer of string count that it can allocate a table of type anyref for the constant strings
         int size = size();
-        writer.setStringCount( size );
         if( size == 0 ) {
             // no strings, nothing to do
             return;

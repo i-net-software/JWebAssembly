@@ -168,7 +168,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      *             if any I/O error occur
      */
     private void writeTableSection() throws IOException {
-        int stringCount = getStringCount();
+        int stringCount = options.strings.size();
         int typeCount = options.types.size();
         if( !callIndirect && stringCount == 0 ) {
             return;

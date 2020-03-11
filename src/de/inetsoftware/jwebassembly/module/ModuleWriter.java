@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,6 @@ public abstract class ModuleWriter implements Closeable {
      */
     protected final ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
 
-    private int stringCount;
-
     /**
      * Create a instance with its options.
      * 
@@ -61,25 +59,6 @@ public abstract class ModuleWriter implements Closeable {
      */
     protected ModuleWriter( WasmOptions options ) {
         this.options = options;
-    }
-
-    /**
-     * Set the used string counts
-     * 
-     * @param count
-     *            the count
-     */
-    void setStringCount( int count ) {
-        this.stringCount = count;
-    }
-
-    /**
-     * Get the string count
-     * 
-     * @return the count
-     */
-    protected int getStringCount() {
-        return stringCount;
     }
 
     /**

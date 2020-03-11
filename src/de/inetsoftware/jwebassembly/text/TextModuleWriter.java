@@ -146,7 +146,7 @@ public class TextModuleWriter extends ModuleWriter {
         }
 
         // table for string constants
-        int stringCount = getStringCount();
+        int stringCount = options.strings.size();
         if( stringCount > 0 ) {
             if( !callIndirect ) {
                 // we need to create a placeholder table with index 0 if not exists

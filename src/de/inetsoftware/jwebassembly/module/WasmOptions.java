@@ -39,7 +39,7 @@ public class WasmOptions {
 
     public final TypeManager types  = new TypeManager( this );
 
-    final StringManager   strings   = new StringManager( this );
+    public final StringManager strings = new StringManager( this );
 
     final CodeOptimizer   optimizer = new CodeOptimizer();
 
