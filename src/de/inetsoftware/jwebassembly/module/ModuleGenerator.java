@@ -472,7 +472,11 @@ public class ModuleGenerator {
                 javaCodeBuilder.buildCode( code, method );
                 return javaCodeBuilder;
             } else {
-                throw new WasmException( "Abstract or native method can not be used: " + new FunctionName( method ).signatureName, -1 );
+                FunctionName name = new FunctionName( method );
+                if( "de/inetsoftware/jwebassembly/module/ReplacementForClass.typeTableMemoryOffset()I".equals( name.signatureName ) ) {
+                    return types.getTypeTableMemoryOffsetFunctionName().getCodeBuilder( watParser );
+                }
+                throw new WasmException( "Abstract or native method can not be used: " + name.signatureName, -1 );
             }
         } catch( Exception ioex ) {
             int lineNumber = code == null ? -1 : code.getFirstLineNr();
@@ -533,7 +537,7 @@ public class ModuleGenerator {
                             StructType structType = instr.getStructType();
                             List<NamedStorageType> list = structType.getFields();
                             for( NamedStorageType storageType : list ) {
-                                if( TypeManager.VTABLE == storageType.getName() ) {
+                                if( TypeManager.FIELD_VTABLE == storageType.getName() ) {
                                     writer.writeConst( structType.getVTable(), ValueType.i32 );
                                 } else {
                                     writer.writeDefaultValue( storageType.getType() );

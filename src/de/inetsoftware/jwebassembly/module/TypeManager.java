@@ -50,12 +50,27 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
 public class TypeManager {
 
     /** name of virtual function table, start with a point for an invalid Java identifier  */
-    static final String             VTABLE = ".vtable";
+    static final String             FIELD_VTABLE = ".vtable";
 
     /**
      * Name of field with system hash code, start with a point for an invalid Java identifier.
      */
-    static final String             HASHCODE = ".hashcode";
+    static final String             FIELD_HASHCODE = ".hashcode";
+
+    /**
+     * Byte position in the type description that contains the offset to the interfaces. Length 4 bytes.
+     */
+    static final int                TYPE_DESCRIPTION_INTERFACE_OFFSET = 0;
+
+    /**
+     * Byte position in the type description that contains the offset to the instanceof list. Length 4 bytes.
+     */
+    static final int                TYPE_DESCRIPTION_INSTANCEOF_OFFSET = 4;
+
+    /**
+     * Byte position in the type description that contains the offset to class name idx. Length 4 bytes.
+     */
+    static final int                TYPE_DESCRIPTION_TYPE_NAME = 8;
 
     /**
      * The reserved position on start of the vtable:
@@ -71,6 +86,8 @@ public class TypeManager {
     private boolean                 isFinish;
 
     private final WasmOptions       options;
+
+    private int                     typeTableOffset;
 
     /**
      * Initialize the type manager.
@@ -108,6 +125,29 @@ public class TypeManager {
         for( StructType type : structTypes.values() ) {
             type.writeStructType( writer, functions, this, classFileLoader );
         }
+
+        // write type table
+        ByteArrayOutputStream dataStream = writer.dataStream;
+        typeTableOffset = dataStream.size();
+        for( StructType type : structTypes.values() ) {
+            dataStream.write( type.vtableOffset );
+        }
+    }
+
+    /**
+     * Create an accessor for typeTableOffset and mark it.
+     * 
+     * @return the function name
+     */
+    WatCodeSyntheticFunctionName getTypeTableMemoryOffsetFunctionName() {
+        WatCodeSyntheticFunctionName offsetFunction =
+                        new WatCodeSyntheticFunctionName( "de/inetsoftware/jwebassembly/module/ReplacementForClass", "typeTableMemoryOffset", "()I", "", null, ValueType.i32 ) {
+                            protected String getCode() {
+                                return "i32.const " + typeTableOffset;
+                            }
+                        };
+        options.functions.markAsNeeded( offsetFunction );
+        return offsetFunction;
     }
 
     /**
@@ -352,8 +392,8 @@ public class TypeManager {
                 String superClassName = superClass.getName();
                 listStructFields( superClassName, functions, types, classFileLoader, allNeededFields );
             } else {
-                fields.add( new NamedStorageType( ValueType.i32, className, VTABLE ) );
-                fields.add( new NamedStorageType( ValueType.i32, className, HASHCODE ) );
+                fields.add( new NamedStorageType( ValueType.i32, className, FIELD_VTABLE ) );
+                fields.add( new NamedStorageType( ValueType.i32, className, FIELD_HASHCODE ) );
             }
 
             for( FieldInfo field : classFile.getFields() ) {
@@ -443,6 +483,23 @@ public class TypeManager {
          *            should never occur
          */
         public void writeToStream( ByteArrayOutputStream dataStream, ToIntFunction<FunctionName> getFunctionsID ) throws IOException {
+            /*
+                 ┌───────────────────────────────────────┐
+                 | Offset to the interfaces    (4 bytes) |
+                 ├───────────────────────────────────────┤
+                 | Offset to the instanceof    (4 bytes) |
+                 ├───────────────────────────────────────┤
+                 | String id of the class name (4 bytes) |
+                 ├───────────────────────────────────────┤
+                 | first vtable entry          (4 bytes) |
+                 ├───────────────────────────────────────┤
+                 | .....                                 |
+                 ├───────────────────────────────────────┤
+                 | interface calls (itable)              |
+                 ├───────────────────────────────────────┤
+                 | list of implemented interface         |
+                 └───────────────────────────────────────┘
+             */
             this.vtableOffset = dataStream.size();
 
             LittleEndianOutputStream header = new LittleEndianOutputStream( dataStream );
@@ -452,9 +509,11 @@ public class TypeManager {
                 data.writeInt32( functIdx );
             }
 
+            // header position TYPE_DESCRIPTION_INTERFACE_OFFSET
             header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 ); // offset of interface calls
             //TODO interface calls
 
+            // header position TYPE_DESCRIPTION_INSTANCEOF_OFFSET
             header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 ); // offset of instanceeof list
             data.writeInt32( instanceOFs.size() );
             for( StructType type : instanceOFs ) {
@@ -462,6 +521,7 @@ public class TypeManager {
             }
 
             int classNameIdx = options.strings.get( getName().replace( '/', '.' ) );
+            // header position TYPE_DESCRIPTION_TYPE_NAME
             header.writeInt32( classNameIdx ); // string id of the className
 
             data.writeTo( dataStream );

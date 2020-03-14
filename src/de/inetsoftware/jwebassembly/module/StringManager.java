@@ -190,7 +190,7 @@ public class StringManager extends LinkedHashMap<String, Integer> {
      * @return the string
      * @see #STRING_CONSTANT_FUNCTION
      */
-    private static String stringConstant( int strIdx ) {
+    static String stringConstant( int strIdx ) {
         String str = getStringFromTable( strIdx );
         if( str != null ) {
             return str;

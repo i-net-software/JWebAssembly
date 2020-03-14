@@ -91,7 +91,7 @@ class WasmStructInstruction extends WasmInstruction {
                         }
                         js.append( i ).append( ':' );
                         NamedStorageType storageType = list.get( i );
-                        if( TypeManager.VTABLE == storageType.getName() ) {
+                        if( TypeManager.FIELD_VTABLE == storageType.getName() ) {
                             js.append( type.getVTable() );
                         } else {
                             AnyType fieldType = storageType.getType();
