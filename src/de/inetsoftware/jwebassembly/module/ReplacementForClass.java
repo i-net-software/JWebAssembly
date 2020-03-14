@@ -57,7 +57,14 @@ class ReplacementForClass {
      */
     @WasmTextCode( "local.get 0 " // THIS
                     + "struct.get java/lang/Object .vtable " // vtable is on index 0
-                    + "call $de/inetsoftware/jwebassembly/module/ReplacementForClass.classConstant(I)Lde/inetsoftware/jwebassembly/module/ReplacementForClass; " //
+                    + "local.tee 1 " // save the vtable location
+                    + "i32.const " + TypeManager.TYPE_DESCRIPTION_INSTANCEOF_OFFSET + " " // vtable is on index 0
+                    + "i32.add " //
+                    + "call $java/lang/Class.getIntFromMemory(I)I " //
+                    + "local.get 1 " // get the vtable location
+                    + "i32.add " //
+                    + "call $java/lang/Class.getIntFromMemory(I)I " //
+                    + "call $java/lang/Class.classConstant(I)Lde/inetsoftware/jwebassembly/module/ReplacementForClass; " //
                     + "return " //
     )
     @Replace( "java/lang/Object.getClass()Ljava/lang/Class;" )
@@ -122,7 +129,7 @@ class ReplacementForClass {
      */
     @WasmTextCode( "local.get 0 " + //
                     "local.get 1 " + //
-                    "table.set 2 " + //
+                    "table.set 2 " + // table 2 is used for classes
                     "return" )
     private static native void setClassIntoTable( int strIdx, ReplacementForClass clazz );
 

@@ -473,7 +473,7 @@ public class ModuleGenerator {
                 return javaCodeBuilder;
             } else {
                 FunctionName name = new FunctionName( method );
-                if( "de/inetsoftware/jwebassembly/module/ReplacementForClass.typeTableMemoryOffset()I".equals( name.signatureName ) ) {
+                if( "java/lang/Class.typeTableMemoryOffset()I".equals( name.signatureName ) ) {
                     return types.getTypeTableMemoryOffsetFunctionName().getCodeBuilder( watParser );
                 }
                 throw new WasmException( "Abstract or native method can not be used: " + name.signatureName, -1 );

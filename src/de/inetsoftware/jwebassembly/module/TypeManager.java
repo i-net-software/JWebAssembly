@@ -127,10 +127,11 @@ public class TypeManager {
         }
 
         // write type table
-        ByteArrayOutputStream dataStream = writer.dataStream;
-        typeTableOffset = dataStream.size();
+        @SuppressWarnings( "resource" )
+        LittleEndianOutputStream dataStream = new LittleEndianOutputStream( writer.dataStream );
+        typeTableOffset = writer.dataStream.size();
         for( StructType type : structTypes.values() ) {
-            dataStream.write( type.vtableOffset );
+            dataStream.writeInt32( type.vtableOffset );
         }
     }
 
@@ -141,7 +142,7 @@ public class TypeManager {
      */
     WatCodeSyntheticFunctionName getTypeTableMemoryOffsetFunctionName() {
         WatCodeSyntheticFunctionName offsetFunction =
-                        new WatCodeSyntheticFunctionName( "de/inetsoftware/jwebassembly/module/ReplacementForClass", "typeTableMemoryOffset", "()I", "", null, ValueType.i32 ) {
+                        new WatCodeSyntheticFunctionName( "java/lang/Class", "typeTableMemoryOffset", "()I", "", null, ValueType.i32 ) {
                             protected String getCode() {
                                 return "i32.const " + typeTableOffset;
                             }
@@ -219,7 +220,7 @@ public class TypeManager {
                         "instanceof", "local.get 0 " // THIS
                                         + "struct.get java/lang/Object .vtable " // vtable is on index 0
                                         + "local.tee 2 " // save the vtable location
-                                        + "i32.load offset=4 align=4 " // get offset of instanceof inside vtable (int position 1, byte position 4)
+                                        + "i32.load offset=" + TYPE_DESCRIPTION_INSTANCEOF_OFFSET + " align=4 " // get offset of instanceof inside vtable (int position 1, byte position 4)
                                         + "local.get 2 " // get the vtable location
                                         + "i32.add " //
                                         + "local.tee 2 " // save the instanceof location
