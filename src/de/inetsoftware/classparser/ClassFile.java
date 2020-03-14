@@ -141,6 +141,10 @@ public class ClassFile {
         attributes = classFile.attributes;
 
         patchConstantPool( classFile.thisClass.getName(), thisClass );
+
+        for( MethodInfo m : methods ) {
+            m.setDeclaringClassFile( this );
+        }
     }
 
     /**
