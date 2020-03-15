@@ -49,7 +49,8 @@ class ReplacementForClass {
     }
 
     /**
-     * Replacement for {@link Object#getClass()}
+     * Replacement for {@link Object#getClass()}. The documentation of the memory of the type description is done in method:
+     * {@link TypeManager.StructType#writeToStream(java.io.ByteArrayOutputStream, java.util.function.ToIntFunction)}
      * 
      * @param obj
      *            the instance
@@ -63,7 +64,9 @@ class ReplacementForClass {
                     + "call $java/lang/Class.getIntFromMemory(I)I " //
                     + "local.get 1 " // get the vtable location
                     + "i32.add " //
-                    + "call $java/lang/Class.getIntFromMemory(I)I " //
+                    + "i32.const 4 " // length of instanceof
+                    + "i32.add " //
+                    + "call $java/lang/Class.getIntFromMemory(I)I " // first entry in instanceof is ever the id of the Class self
                     + "call $java/lang/Class.classConstant(I)Lde/inetsoftware/jwebassembly/module/ReplacementForClass; " //
                     + "return " //
     )
@@ -120,12 +123,12 @@ class ReplacementForClass {
     /**
      * WASM code
      * <p>
-     * Set a string from the string table. Should be inlined from the optimizer.
+     * Set a Class instance in the Class table. Should be inlined from the optimizer.
      * 
      * @param strIdx
      *            the id/index of the string.
-     * @param str
-     *            the string
+     * @param clazz
+     *            the Class instance
      */
     @WasmTextCode( "local.get 0 " + //
                     "local.get 1 " + //
