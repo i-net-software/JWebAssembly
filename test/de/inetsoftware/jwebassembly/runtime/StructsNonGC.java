@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class StructsNonGC extends AbstractBaseTest {
 
@@ -55,6 +56,9 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "instanceof2" );
             addParam( list, script, "instanceof3" );
             addParam( list, script, "cast" );
+            addParam( list, script, "objectClassName" );
+            addParam( list, script, "integerClassName" );
+            addParam( list, script, "classClassName" );
         }
         rule.setTestParameters( list );
         return list;
@@ -169,6 +173,27 @@ public class StructsNonGC extends AbstractBaseTest {
             Object obj = new Integer(42);
             Integer val = (Integer)obj;
             return val.intValue();
+        }
+
+        @Export
+        static String objectClassName() {
+            Object obj = new Object();
+            Class clazz = obj.getClass();
+            return JSObject.domString( clazz.getName() );
+        }
+
+        @Export
+        static String integerClassName() {
+            Object obj = new Integer(42);
+            Class clazz = obj.getClass();
+            return JSObject.domString( clazz.getName() );
+        }
+
+        @Export
+        static String classClassName() {
+            Object obj = new Object();
+            Class clazz = obj.getClass().getClass();
+            return JSObject.domString( clazz.getName() );
         }
     }
 
