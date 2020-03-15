@@ -474,6 +474,7 @@ public class ModuleGenerator {
             } else {
                 FunctionName name = new FunctionName( method );
                 if( "java/lang/Class.typeTableMemoryOffset()I".equals( name.signatureName ) ) {
+                    strings.getStringConstantFunction(); // we will need also the string constant function for the Class Name, in the other case a program with only new Object().getClass().getName() will fail to compile 
                     return types.getTypeTableMemoryOffsetFunctionName().getCodeBuilder( watParser );
                 }
                 throw new WasmException( "Abstract or native method can not be used: " + name.signatureName, -1 );

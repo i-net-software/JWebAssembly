@@ -125,6 +125,21 @@ class FunctionManager {
     }
 
     /**
+     * Same like markAsNeeded but it will replace the function name if already registered.
+     * 
+     * @param name
+     *            the function name
+     */
+    void markAsNeededAndReplaceIfExists( SyntheticFunctionName name ) {
+        FunctionState state = states.get( name );
+        if( state != null ) {
+            states.remove( name );
+            states.put( name, state );
+        }
+        markAsNeeded( name );
+    }
+
+    /**
      * Mark a function as used/called and return the real name if there is an alias.
      * 
      * @param name

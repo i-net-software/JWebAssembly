@@ -83,13 +83,13 @@ public class StringManager extends LinkedHashMap<String, Integer> {
         if( stringMemoryOffset < 0 ) {
             // register the function stringsMemoryOffset() as synthetic function
             stringMemoryOffset = 0;
-            FunctionName offsetFunction =
+            WatCodeSyntheticFunctionName offsetFunction =
                             new WatCodeSyntheticFunctionName( "de/inetsoftware/jwebassembly/module/StringManager", "stringsMemoryOffset", "()I", "", null, ValueType.i32 ) {
                                 protected String getCode() {
                                     return "i32.const " + stringMemoryOffset;
                                 }
                             };
-            functions.markAsNeeded( offsetFunction );
+            functions.markAsNeededAndReplaceIfExists( offsetFunction );
         }
 
         return STRING_CONSTANT_FUNCTION;
