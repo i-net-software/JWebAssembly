@@ -29,7 +29,7 @@ import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
- * Handle all the constant strings. The constant strings will be write into the data section.
+ * Handle all the constant strings. The constant strings will be write into the data section. At runtime the strings will be instantiate on the fly and hold in a table.
  * 
  * @author Volker Berlin
  */
@@ -233,7 +233,7 @@ public class StringManager extends LinkedHashMap<String, Integer> {
 
     /**
      * WASM code<p>
-     * Set a string from the string table. Should be inlined from the optimizer.
+     * Set a string in the string table. Should be inlined from the optimizer.
      * 
      * @param strIdx
      *            the id/index of the string.
@@ -249,7 +249,7 @@ public class StringManager extends LinkedHashMap<String, Integer> {
     /**
      * WASM code<p>
      * Placeholder for a synthetic function. Should be inlined from the optimizer.
-     * @return the memory offset of the string data in the element section
+     * @return the memory offset of the serialized string data in the element section
      */
     private static native int stringsMemoryOffset();
 

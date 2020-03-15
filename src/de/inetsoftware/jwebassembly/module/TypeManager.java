@@ -486,19 +486,25 @@ public class TypeManager {
         public void writeToStream( ByteArrayOutputStream dataStream, ToIntFunction<FunctionName> getFunctionsID ) throws IOException {
             /*
                  ┌───────────────────────────────────────┐
-                 | Offset to the interfaces    (4 bytes) |
+                 | Offset to the interfaces    [4 bytes] |
                  ├───────────────────────────────────────┤
-                 | Offset to the instanceof    (4 bytes) |
+                 | Offset to the instanceof    [4 bytes] |
                  ├───────────────────────────────────────┤
-                 | String id of the class name (4 bytes) |
+                 | String id of the class name [4 bytes] |
                  ├───────────────────────────────────────┤
-                 | first vtable entry          (4 bytes) |
+                 | first vtable entry          [4 bytes] |
                  ├───────────────────────────────────────┤
-                 | .....                                 |
+                 |     .....                             |
                  ├───────────────────────────────────────┤
                  | interface calls (itable)              |
                  ├───────────────────────────────────────┤
-                 | list of implemented interface         |
+                 | list of instanceof    [4*(n+1) bytes] |
+                 ├───────────────────────────────────────┤
+                 |     count of entries        [4 bytes] |
+                 ├───────────────────────────────────────┤
+                 |     own class id            [4 bytes] |
+                 ├───────────────────────────────────────┤
+                 |     .....             [4*(n-1) bytes] |
                  └───────────────────────────────────────┘
              */
             this.vtableOffset = dataStream.size();
