@@ -81,7 +81,7 @@ class ReplacementForClass {
      * @param classIdx
      *            the id/index of the Class.
      * @return the string
-     * @see #CLASS_CONSTANT_FUNCTION
+     * @see TypeManager#getClassConstantFunction()
      */
     private static ReplacementForClass classConstant( int classIdx ) {
         ReplacementForClass clazz = getClassFromTable( classIdx );

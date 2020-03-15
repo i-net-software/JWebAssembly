@@ -59,6 +59,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "objectClassName" );
             addParam( list, script, "integerClassName" );
             addParam( list, script, "classClassName" );
+            addParam( list, script, "classConst" );
         }
         rule.setTestParameters( list );
         return list;
@@ -193,6 +194,12 @@ public class StructsNonGC extends AbstractBaseTest {
         static String classClassName() {
             Object obj = new Object();
             Class clazz = obj.getClass().getClass();
+            return JSObject.domString( clazz.getName() );
+        }
+
+        @Export
+        static String classConst() {
+            Class clazz = Float.class;
             return JSObject.domString( clazz.getName() );
         }
     }

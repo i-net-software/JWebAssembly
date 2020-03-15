@@ -125,17 +125,4 @@ public class RuntimeErrors {
             return list.size();
         }
     }
-
-    @Test
-    public void classConatnt() throws IOException {
-        compileErrorTest( "Class constants are not supported.", ClassConstant.class );
-    }
-
-    static class ClassConstant {
-        @Export
-        static Object runnable() {
-            Class elemtentType = Integer.class;
-            return java.lang.reflect.Array.newInstance(elemtentType, 42);
-        }
-    }
 }

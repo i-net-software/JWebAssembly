@@ -79,6 +79,8 @@ public class TypeManager {
      */
     private static final int        VTABLE_FIRST_FUNCTION_INDEX = 3;
 
+    private static final FunctionName CLASS_CONSTANT_FUNCTION = new FunctionName( "java/lang/Class.classConstant(I)Lde/inetsoftware/jwebassembly/module/ReplacementForClass;" ); 
+
     private Map<String, StructType> structTypes = new LinkedHashMap<>();
 
     private Map<AnyType, ArrayType> arrayTypes  = new LinkedHashMap<>();
@@ -149,6 +151,10 @@ public class TypeManager {
                         };
         options.functions.markAsNeeded( offsetFunction );
         return offsetFunction;
+    }
+
+    FunctionName getClassConstantFunction() {
+        return CLASS_CONSTANT_FUNCTION;
     }
 
     /**

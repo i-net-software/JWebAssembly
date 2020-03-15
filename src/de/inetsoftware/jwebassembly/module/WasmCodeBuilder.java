@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ClassFile;
+import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
@@ -400,6 +401,12 @@ public abstract class WasmCodeBuilder {
             addCallInstruction( name, javaCodePos, lineNumber );
         } else if( value instanceof Number ) {
             instructions.add( new WasmConstInstruction( (Number)value, javaCodePos, lineNumber ) );
+        } else if( value instanceof ConstantClass ) {
+            String className = ((ConstantClass)value).getName();
+            Integer id = types.valueOf( className ).getClassIndex();
+            FunctionName name = types.getClassConstantFunction();
+            instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
+            addCallInstruction( name, javaCodePos, lineNumber );
         } else {
             //TODO There can be ConstantClass, MethodType and MethodHandle
             throw new WasmException( "Class constants are not supported. : " + value, lineNumber );
