@@ -64,6 +64,15 @@ class FunctionManager {
     }
 
     /**
+     * Get the count of known functions
+     * 
+     * @return the count
+     */
+    int size() {
+        return states.size();
+    }
+
+    /**
      * Check if this function is already known/registered.
      * 
      * @param name

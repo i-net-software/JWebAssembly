@@ -111,21 +111,33 @@ public class TypeManager {
     }
 
     /**
-     * Finish the prepare and write the types. Now no new types and functions should be added.
+     * Scan the hierarchy of the types.
      * 
-     * @param writer
-     *            the targets for the types
-     * @param functions
-     *            the used functions for the vtables of the types
      * @param classFileLoader
      *            for loading the class files
      * @throws IOException
      *             if any I/O error occur on loading or writing
      */
-    void prepareFinish( ModuleWriter writer, FunctionManager functions, ClassFileLoader classFileLoader ) throws IOException {
+    void scanTypeHierarchy( ClassFileLoader classFileLoader ) throws IOException {
+        for( StructType type : structTypes.values() ) {
+            type.scanTypeHierarchy( options.functions, this, classFileLoader );
+        }
+    }
+
+    /**
+     * Finish the prepare and write the types. Now no new types and functions should be added.
+     * 
+     * @param writer
+     *            the targets for the types
+     * @param classFileLoader
+     *            for loading the class files
+     * @throws IOException
+     *             if any I/O error occur on loading or writing
+     */
+    void prepareFinish( ModuleWriter writer, ClassFileLoader classFileLoader ) throws IOException {
         isFinish = true;
         for( StructType type : structTypes.values() ) {
-            type.writeStructType( writer, functions, this, classFileLoader );
+            type.writeStructType( writer, options.functions, this, classFileLoader );
         }
 
         // write type table
@@ -153,6 +165,11 @@ public class TypeManager {
         return offsetFunction;
     }
 
+    /**
+     * Get the function name to get a constant class.
+     * @return the function
+     */
+    @Nonnull
     FunctionName getClassConstantFunction() {
         return CLASS_CONSTANT_FUNCTION;
     }
@@ -339,14 +356,32 @@ public class TypeManager {
          * @throws IOException
          *             if any I/O error occur on loading or writing
          */
-        private void writeStructType( ModuleWriter writer, FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
-            JWebAssembly.LOGGER.fine( "write type: " + name );
+        private void scanTypeHierarchy( FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
+            JWebAssembly.LOGGER.fine( "scan type hierachy: " + name );
             fields = new ArrayList<>();
             methods = new ArrayList<>();
             instanceOFs = new LinkedHashSet<>(); // remembers the order from bottom to top class.
             instanceOFs.add( this );
             HashSet<String> allNeededFields = new HashSet<>();
             listStructFields( name, functions, types, classFileLoader, allNeededFields );
+        }
+
+        /**
+         * Write this struct type and initialize internal structures
+         * 
+         * @param writer
+         *            the targets for the types
+         * @param functions
+         *            the used functions for the vtables of the types
+         * @param types
+         *            for types of fields
+         * @param classFileLoader
+         *            for loading the class files
+         * @throws IOException
+         *             if any I/O error occur on loading or writing
+         */
+        private void writeStructType( ModuleWriter writer, FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
+            JWebAssembly.LOGGER.fine( "write type: " + name );
             code = writer.writeStructType( this );
         }
 

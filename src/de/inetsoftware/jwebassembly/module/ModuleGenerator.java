@@ -222,6 +222,9 @@ public class ModuleGenerator {
                 createInstructions( functions.replace( next, method ) );
                 boolean needThisParameter = !method.isStatic() || "<init>".equals( method.getName() );
                 functions.markAsScanned( next, needThisParameter );
+                if( needThisParameter ) {
+                    types.valueOf( next.className ); // for the case that the type unknown yet
+                }
                 continue;
             }
 
@@ -267,7 +270,12 @@ public class ModuleGenerator {
      *             if any I/O error occur
      */
     public void prepareFinish() throws IOException {
-        scanFunctions();
+        int functCount;
+        do {
+            scanFunctions();
+            functCount = functions.size();              // scan the functions can find new needed types
+            types.scanTypeHierarchy( classFileLoader ); // scan the type hierarchy can find new functions
+        } while( functCount < functions.size() );
 
         // write only the needed imports to the output
         for( Iterator<FunctionName> iterator = functions.getNeededImports(); iterator.hasNext(); ) {
@@ -297,8 +305,7 @@ public class ModuleGenerator {
         }
 
         JWebAssembly.LOGGER.fine( "scan finsih" );
-        types.prepareFinish( writer, functions, classFileLoader );
-        scanFunctions(); // prepare of types can add some override methods as needed
+        types.prepareFinish( writer, classFileLoader );
         functions.prepareFinish();
         strings.prepareFinish( writer );
         writer.prepareFinish();
