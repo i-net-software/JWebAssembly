@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
-import de.inetsoftware.jwebassembly.api.annotation.Import;
 
 public class StructsNonGC extends AbstractBaseTest {
 
@@ -104,9 +103,6 @@ public class StructsNonGC extends AbstractBaseTest {
             Abc2 val = new Abc2();
             val.foo();
             return val.a;
-        }
-        @Import( js = "(i) => {console.log('log ' + i)}" )
-        public static void print(int i) {
         }
 
         /**
