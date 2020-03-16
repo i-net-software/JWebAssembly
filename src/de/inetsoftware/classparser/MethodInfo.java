@@ -102,6 +102,15 @@ public class MethodInfo implements Member {
     }
 
     /**
+     * If the method is abstract
+     * 
+     * @return true, if abstract
+     */
+    public boolean isAbstract() {
+        return (accessFlags & 0x0400) > 0;
+    }
+
+    /**
      * @return the name
      */
     @Override
