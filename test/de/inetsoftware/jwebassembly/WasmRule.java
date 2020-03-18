@@ -485,6 +485,7 @@ public class WasmRule extends TemporaryFolder {
                 writeJsonTestData( Collections.singletonMap( methodName, params ) );
             }
 
+            compiler.setProperty( JWebAssembly.WASM_USE_GC, script.useGC );
             processBuilder = createCommand( script );
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
@@ -540,7 +541,6 @@ public class WasmRule extends TemporaryFolder {
                 if( binary ) {
                     if( spiderMonkeyScriptGC == null ) {
                         File file = newFile( "spiderMonkeyGC.wasm" );
-                        compiler.setProperty( JWebAssembly.WASM_USE_GC, "true" );
                         compiler.compileToBinary( file );
                         spiderMonkeyScriptGC = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
                     }
@@ -548,7 +548,6 @@ public class WasmRule extends TemporaryFolder {
                 } else {
                     if( spiderMonkeyScriptWatGC == null ) {
                         File file = newFile( "spiderMonkeyGC.wat" );
-                        compiler.setProperty( JWebAssembly.WASM_USE_GC, "true" );
                         compiler.compileToText( file );
                         spiderMonkeyScriptWatGC = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkeyGC" );
                     }
@@ -572,7 +571,6 @@ public class WasmRule extends TemporaryFolder {
                 }
             }
         } finally {
-            compiler.setProperty( JWebAssembly.WASM_USE_GC, null );
             System.clearProperty( "SpiderMonkey" );
         }
         ProcessBuilder process = new ProcessBuilder( spiderMonkey.getCommand(), script.getAbsolutePath() );

@@ -27,9 +27,19 @@ public enum ScriptEngine {
     NodeWat,
     SpiderMonkeyWat,
     Wat2Wasm,
-    SpiderMonkeyGC,
-    SpiderMonkeyWatGC,
+    SpiderMonkeyGC(true),
+    SpiderMonkeyWatGC(true),
     ;
+
+    public final String useGC;
+
+    private ScriptEngine() {
+        this.useGC = null;
+    }
+
+    private ScriptEngine( boolean useGC ) {
+        this.useGC = Boolean.toString( useGC );
+    }
 
     public static ScriptEngine[] testEngines() {
         ScriptEngine[] val = { //
