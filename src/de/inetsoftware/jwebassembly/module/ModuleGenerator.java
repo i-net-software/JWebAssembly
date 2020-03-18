@@ -299,9 +299,15 @@ public class ModuleGenerator {
         }
 
         // init/write the function types
-        for( Iterator<FunctionName> iterator = functions.getNeededFunctions(); iterator.hasNext(); ) {
+        for( Iterator<FunctionName> iterator = functions.getWriteLater(); iterator.hasNext(); ) {
             FunctionName name = iterator.next();
             writeMethodSignature( name, null );
+        }
+
+        // register types of abstract and interface methods
+        for( Iterator<FunctionName> iterator = functions.getAbstractedFunctions(); iterator.hasNext(); ) {
+            FunctionName name = iterator.next();
+            //writeMethodSignature( name, null );
         }
 
         JWebAssembly.LOGGER.fine( "scan finsih" );
@@ -478,6 +484,9 @@ public class ModuleGenerator {
             } else if( code != null ) { // abstract methods and interface methods does not have code
                 javaCodeBuilder.buildCode( code, method );
                 return javaCodeBuilder;
+            } else if( method.isAbstract() ) {
+                functions.markAsAbstract( new FunctionName( method ) ); // there is nothing to write for an abstract method
+                return null;
             } else {
                 FunctionName name = new FunctionName( method );
                 if( "java/lang/Class.typeTableMemoryOffset()I".equals( name.signatureName ) ) {

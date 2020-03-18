@@ -119,7 +119,12 @@ class FunctionManager {
      */
     void markAsScanned( FunctionName name, boolean needThisParameter ) {
         FunctionState state = getOrCreate( name );
-        state.state = State.Scanned;
+        switch( state.state ) {
+            case None:
+            case Needed:
+                state.state = State.Scanned;
+                break;
+        }
         state.needThisParameter = needThisParameter;
     }
 
@@ -131,6 +136,16 @@ class FunctionManager {
      */
     void markAsWritten( FunctionName name ) {
         getOrCreate( name ).state = State.Written;
+    }
+
+    /**
+     * Mark the a function as abstract or interface. This function can be called but will not be write to the wasm file.
+     * 
+     * @param name
+     *            the function name
+     */
+    void markAsAbstract( FunctionName name ) {
+        getOrCreate( name ).state = State.Abstract;
     }
 
     /**
@@ -230,14 +245,13 @@ class FunctionManager {
     }
 
     /**
-     * Get all FunctionNames that need imported
+     * Get all FunctionNames that are abstract and used.
      * 
      * @return an iterator
      */
-    Iterator<FunctionName> getNeededFunctions() {
+    Iterator<FunctionName> getAbstractedFunctions() {
         return iterator( entry -> {
-            FunctionState state = entry.getValue();
-            switch( state.state ) {
+            switch( entry.getValue().state ) {
                 case Needed:
                 case Scanned:
                     return true;
@@ -386,6 +400,6 @@ class FunctionManager {
     }
 
     private static enum State {
-        None, Needed, Scanned, Written;
+        None, Needed, Scanned, Written, Abstract;
     }
 }
