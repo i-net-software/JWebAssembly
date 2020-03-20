@@ -43,6 +43,7 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptWriter;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -294,20 +295,20 @@ public class ModuleGenerator {
                 importName = name.methodName;
             }
             writer.prepareImport( name, importModule, importName );
-            writeMethodSignature( name, null );
+            writeMethodSignature( name, FunctionType.Import, null );
             javaScript.addImport( importModule, importName, importAnannotation );
         }
 
         // init/write the function types
         for( Iterator<FunctionName> iterator = functions.getWriteLater(); iterator.hasNext(); ) {
             FunctionName name = iterator.next();
-            writeMethodSignature( name, null );
+            writeMethodSignature( name, FunctionType.Code, null );
         }
 
         // register types of abstract and interface methods
         for( Iterator<FunctionName> iterator = functions.getAbstractedFunctions(); iterator.hasNext(); ) {
             FunctionName name = iterator.next();
-            //writeMethodSignature( name, null );
+            writeMethodSignature( name, FunctionType.Abstract, null );
         }
 
         JWebAssembly.LOGGER.fine( "scan finsih" );
@@ -516,7 +517,7 @@ public class ModuleGenerator {
     private void writeMethodImpl( FunctionName name, WasmCodeBuilder codeBuilder ) throws WasmException, IOException {
         writer.writeMethodStart( name, sourceFile );
         functions.markAsWritten( name );
-        writeMethodSignature( name, codeBuilder );
+        writeMethodSignature( name, FunctionType.Code, codeBuilder );
 
         List<WasmInstruction> instructions = codeBuilder.getInstructions();
         optimizer.optimze( instructions );
@@ -600,6 +601,8 @@ public class ModuleGenerator {
      * 
      * @param name
      *            the Java signature, typical method.getType();
+     * @param funcType
+     *            the type of function
      * @param codeBuilder
      *            the calculated variables 
      * @throws IOException
@@ -607,8 +610,8 @@ public class ModuleGenerator {
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeMethodSignature( FunctionName name, WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
-        writer.writeMethodParamStart( name );
+    private void writeMethodSignature( @Nonnull FunctionName name, @Nonnull FunctionType funcType, @Nullable WasmCodeBuilder codeBuilder ) throws IOException, WasmException {
+        writer.writeMethodParamStart( name, funcType );
         int paramCount = 0;
         if( functions.needThisParameter( name ) ) {
             StructType instanceType = types.valueOf( name.className );

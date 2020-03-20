@@ -37,6 +37,7 @@ import de.inetsoftware.jwebassembly.module.WasmOptions;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
@@ -328,7 +329,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamStart( @Nonnull FunctionName name ) throws IOException {
+    protected void writeMethodParamStart( @Nonnull FunctionName name, FunctionType funcType ) throws IOException {
         typeOutput.setLength( 0 );
         methodParamNames.clear();
     }

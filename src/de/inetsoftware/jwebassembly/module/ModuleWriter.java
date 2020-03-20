@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
@@ -117,11 +118,13 @@ public abstract class ModuleWriter implements Closeable {
      * 
      * @param name
      *            the function name
+     * @param funcType
+     *            the type of function
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeMethodParamStart( @Nonnull FunctionName name ) throws IOException;
+    protected abstract void writeMethodParamStart( @Nonnull FunctionName name, @Nonnull FunctionType funcType ) throws IOException;
 
     /**
      * Write a method parameter.
@@ -149,13 +152,12 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void writeMethodParamFinish( @Nonnull FunctionName name ) throws IOException;
 
     /**
-     * Write the method header.
+     * Start the writing of method/function code.
      * 
      * @param name
      *            the function name
      * @param sourceFile
      *            the name of the source file
-     * 
      * @throws IOException
      *             if any I/O error occur
      */

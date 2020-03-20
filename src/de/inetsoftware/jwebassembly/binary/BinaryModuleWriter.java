@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.binary;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import de.inetsoftware.jwebassembly.sourcemap.SourceMapWriter;
 import de.inetsoftware.jwebassembly.sourcemap.SourceMapping;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
@@ -76,6 +78,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     private List<ExportEntry>           exports             = new ArrayList<>();
 
     private Map<String, ImportFunction> imports             = new LinkedHashMap<>();
+
+    private Map<String, Function>       abstracts           = new HashMap<>();
 
     private Function                    function;
 
@@ -513,8 +517,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeMethodParamStart( FunctionName name ) throws IOException {
-        function = getFunction( name );
+    protected void writeMethodParamStart( FunctionName name, FunctionType funcType ) throws IOException {
+        if( funcType == FunctionType.Abstract ) {
+            abstracts.put( name.signatureName, function = new Function() );
+        } else {
+            function = getFunction( name );
+        }
         functionType = new FunctionTypeEntry();
         locals.clear();
     }
@@ -1186,9 +1194,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( func == null ) {
             func = imports.get( signatureName );
             if( func == null ) {
-                func = new Function();
-                func.id = functions.size() + imports.size();
-                functions.put( signatureName, func );
+                func = abstracts.get( signatureName );
+                if( func == null ) {
+                    func = new Function();
+                    func.id = functions.size() + imports.size();
+                    functions.put( signatureName, func );
+                }
             }
         }
         return func;
