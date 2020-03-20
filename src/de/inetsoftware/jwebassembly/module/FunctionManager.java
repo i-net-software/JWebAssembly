@@ -252,8 +252,7 @@ class FunctionManager {
     Iterator<FunctionName> getAbstractedFunctions() {
         return iterator( entry -> {
             switch( entry.getValue().state ) {
-                case Needed:
-                case Scanned:
+                case Abstract:
                     return true;
                 default:
                     return false;
