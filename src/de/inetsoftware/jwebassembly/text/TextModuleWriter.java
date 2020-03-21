@@ -590,7 +590,7 @@ public class TextModuleWriter extends ModuleWriter {
             newline( methodOutput );
             methodOutput.append( op );
         } else {
-            writeFunctionCall( options.ref_eq );
+            writeFunctionCall( options.ref_eq, null );
         }
         if( negate ) {
             writeNumericOperator( NumericOperator.eqz, ValueType.i32 );
@@ -685,9 +685,12 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeFunctionCall( FunctionName name ) throws IOException {
+    protected void writeFunctionCall( FunctionName name, String comments ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "call $" ).append( normalizeName( name ) );
+        if( comments != null ) {
+            methodOutput.append( ")  ;; " ).append( comments );
+        }
     }
 
     /**
@@ -701,7 +704,7 @@ public class TextModuleWriter extends ModuleWriter {
         if(spiderMonkey)
             methodOutput.append( "call_indirect $t" ).append( getFunction( name ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
         else
-        methodOutput.append( "call_indirect (type $t" ).append( getFunction( name ).typeId ).append( ")  ;; " + name.signatureName );
+        methodOutput.append( "call_indirect (type $t" ).append( getFunction( name ).typeId ).append( ")  ;; " ).append( name.signatureName );
     }
 
     /**

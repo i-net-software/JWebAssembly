@@ -398,7 +398,7 @@ public abstract class WasmCodeBuilder {
             Integer id = strings.get( value );
             FunctionName name = strings.getStringConstantFunction();
             instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
-            addCallInstruction( name, javaCodePos, lineNumber );
+            instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types, false, "\"" + value + "\"" ) );
         } else if( value instanceof Number ) {
             instructions.add( new WasmConstInstruction( (Number)value, javaCodePos, lineNumber ) );
         } else if( value instanceof ConstantClass ) {

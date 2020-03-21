@@ -992,7 +992,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 if( options.useGC() ) {
                     op = REF_EQ;
                 } else {
-                    writeFunctionCall( options.ref_eq );
+                    writeFunctionCall( options.ref_eq, null );
                     return;
                 }
                 break;
@@ -1000,7 +1000,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 if( options.useGC() ) {
                     codeStream.writeOpCode( REF_EQ );
                 } else {
-                    writeFunctionCall( options.ref_eq );
+                    writeFunctionCall( options.ref_eq, null );
                 }
                 op = I32_EQZ;
                 break;
@@ -1161,7 +1161,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeFunctionCall( FunctionName name ) throws IOException {
+    protected void writeFunctionCall( FunctionName name, String comments ) throws IOException {
         Function func = getFunction( name );
         codeStream.writeOpCode( CALL );
         codeStream.writeVaruint32( func.id );

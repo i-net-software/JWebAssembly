@@ -83,7 +83,7 @@ class WasmCallVirtualInstruction extends WasmCallIndirectInstruction {
             writer.writeLocal( VariableOperator.get, getVariableIndexOfThis() );
 
             writer.writeConst( virtualFunctionIdx * 4, ValueType.i32 );
-            writer.writeFunctionCall( options.getCallVirtual() );
+            writer.writeFunctionCall( options.getCallVirtual(), null );
             StructType type = getThisType();
             writer.writeVirtualFunctionCall( getFunctionName(), type );
         }

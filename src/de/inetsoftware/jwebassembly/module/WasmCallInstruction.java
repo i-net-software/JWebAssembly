@@ -42,6 +42,8 @@ class WasmCallInstruction extends WasmInstruction {
 
     private final boolean     needThisParameter;
 
+    private final String      comment;
+
     /**
      * Create an instance of a function call instruction
      * 
@@ -57,10 +59,31 @@ class WasmCallInstruction extends WasmInstruction {
      *            true, if this function need additional to the parameter of the signature an extra "this" parameter
      */
     WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber, @Nonnull TypeManager types, boolean needThisParameter ) {
+        this( name, javaCodePos, lineNumber, types, needThisParameter, null );
+    }
+
+    /**
+     * Create an instance of a function call instruction
+     * 
+     * @param name
+     *            the function name that should be called
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     * @param types
+     *            the type manager
+     * @param needThisParameter
+     *            true, if this function need additional to the parameter of the signature an extra "this" parameter
+     * @param comment
+     *            optional comment for the text format
+     */
+    WasmCallInstruction( FunctionName name, int javaCodePos, int lineNumber, @Nonnull TypeManager types, boolean needThisParameter, String comment ) {
         super( javaCodePos, lineNumber );
         this.name = name;
         this.types = types;
         this.needThisParameter = needThisParameter;
+        this.comment = comment;
     }
 
     /**
@@ -93,7 +116,7 @@ class WasmCallInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeFunctionCall( name );
+        writer.writeFunctionCall( name, comment );
     }
 
     /**

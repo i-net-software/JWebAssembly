@@ -188,7 +188,7 @@ class WasmStructInstruction extends WasmInstruction {
             if( fieldName != null ) {
                 writer.writeConst( idx, ValueType.i32 );
             }
-            writer.writeFunctionCall( functionName );
+            writer.writeFunctionCall( functionName, null );
         } else {
             writer.writeStructOperator( op, type, fieldName, idx );
         }
