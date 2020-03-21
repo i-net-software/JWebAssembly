@@ -709,16 +709,20 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeBlockCode( @Nonnull WasmBlockOperator op, @Nullable Object data ) throws IOException {
-        String name;
+        CharSequence name;
         int insetAfter = 0;
         switch( op ) {
             case RETURN:
                 name = "return";
                 break;
             case IF:
-                name = "if";
-                if( data != ValueType.empty ) {
-                    name += " (result " + data + ")";
+                if( data == ValueType.empty ) {
+                    name = "if";
+                } else {
+                    StringBuilder builder = new StringBuilder("if (result ");
+                    writeTypeName( builder, (AnyType)data );
+                    builder.append( ")" );
+                    name = builder;
                 }
                 insetAfter++;
                 break;
@@ -735,9 +739,13 @@ public class TextModuleWriter extends ModuleWriter {
                 name = "drop";
                 break;
             case BLOCK:
-                name = "block";
-                if( data != null ) {
-                    name += " (result " + data + ")";
+                if( data == null ) {
+                    name = "block";
+                } else {
+                    StringBuilder builder = new StringBuilder("block (result ");
+                    writeTypeName( builder, (AnyType)data );
+                    builder.append( ")" );
+                    name = builder;
                 }
                 insetAfter++;
                 break;
