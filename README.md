@@ -34,7 +34,7 @@ The project is currently not production ready but you can run already some tests
 * [ ] invoke dynamic method calls (lambdas)
 * [x] invoke default method calls
 * [x] String support
-* [ ] Simple Class object support
+* [x] Simple Class object support
 * [ ] static constructors
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * [x] Hello World sample [(live)](https://i-net-software.github.io/JWebAssembly/samples/HelloWorld/HelloWorld.html), [(source code)](https://github.com/i-net-software/JWebAssembly/blob/master/docs/samples/HelloWorld/HelloWorld.java)
@@ -64,6 +64,7 @@ Importance: All with high marked features are required for a hello word sample. 
 #### Desired Features
 
 * [ ] Full featured [library for accessing the DOM](https://github.com/i-net-software/JWebAssembly-API/tree/master/src/de/inetsoftware/jwebassembly/web).
+* [ ] Resources (properties, images, etc.)
 
 ### Version 3.0 (Milestone 3)
 
