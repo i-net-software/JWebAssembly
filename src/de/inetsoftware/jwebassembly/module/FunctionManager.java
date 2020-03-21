@@ -55,7 +55,7 @@ class FunctionManager {
      * @return the state
      */
     @Nonnull
-    private FunctionState getOrCreate( FunctionName name ) {
+    private FunctionState getOrCreate( @Nonnull FunctionName name ) {
         FunctionState state = states.get( name );
         if( state == null ) {
             states.put( name, state = new FunctionState() );
@@ -79,7 +79,7 @@ class FunctionManager {
      *            the function name
      * @return true, if known
      */
-    boolean isKnown( FunctionName name ) {
+    boolean isKnown( @Nonnull FunctionName name ) {
         return states.get( name ) != null;
     }
 
@@ -92,7 +92,7 @@ class FunctionManager {
      * @param importAnannotation
      *            the annotation of the import
      */
-    void markAsImport( FunctionName name, Map<String,Object> importAnannotation ) {
+    void markAsImport( @Nonnull FunctionName name, Map<String,Object> importAnannotation ) {
         markAsImport( name, (key) -> importAnannotation.get( key ) );
     }
 
@@ -105,7 +105,7 @@ class FunctionManager {
      * @param importAnannotation
      *            the annotation of the import
      */
-    void markAsImport( FunctionName name, Function<String,Object> importAnannotation ) {
+    void markAsImport( @Nonnull FunctionName name, Function<String,Object> importAnannotation ) {
         getOrCreate( name ).importAnannotation = importAnannotation;
     }
 
@@ -117,7 +117,7 @@ class FunctionManager {
      * @param needThisParameter
      *            if this function need additional to the parameter of the signature an extra "this" parameter
      */
-    void markAsScanned( FunctionName name, boolean needThisParameter ) {
+    void markAsScanned( @Nonnull FunctionName name, boolean needThisParameter ) {
         FunctionState state = getOrCreate( name );
         switch( state.state ) {
             case None:
@@ -134,7 +134,7 @@ class FunctionManager {
      * @param name
      *            the function name
      */
-    void markAsWritten( FunctionName name ) {
+    void markAsWritten( @Nonnull FunctionName name ) {
         getOrCreate( name ).state = State.Written;
     }
 
@@ -144,7 +144,7 @@ class FunctionManager {
      * @param name
      *            the function name
      */
-    void markAsAbstract( FunctionName name ) {
+    void markAsAbstract( @Nonnull FunctionName name ) {
         getOrCreate( name ).state = State.Abstract;
     }
 
@@ -154,7 +154,7 @@ class FunctionManager {
      * @param name
      *            the function name
      */
-    void markAsNeededAndReplaceIfExists( SyntheticFunctionName name ) {
+    void markAsNeededAndReplaceIfExists( @Nonnull SyntheticFunctionName name ) {
         FunctionState state = states.get( name );
         if( state != null ) {
             states.remove( name );
@@ -170,7 +170,7 @@ class FunctionManager {
      *            the function name
      * @return the real function name
      */
-    FunctionName markAsNeeded( FunctionName name ) {
+    FunctionName markAsNeeded( @Nonnull FunctionName name ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
             if( isFinish ) {
@@ -276,7 +276,7 @@ class FunctionManager {
      *            the function name
      * @return true, if the function on the to do list
      */
-    boolean needToScan( FunctionName name ) {
+    boolean needToScan( @Nonnull FunctionName name ) {
         switch( getOrCreate( name ).state ) {
             case Needed:
                 return true;
@@ -292,7 +292,7 @@ class FunctionManager {
      *            the function name
      * @return true, if the function on the to do list
      */
-    boolean needToWrite( FunctionName name ) {
+    boolean needToWrite( @Nonnull FunctionName name ) {
         switch( getOrCreate( name ).state ) {
             case Needed:
             case Scanned:
@@ -303,13 +303,29 @@ class FunctionManager {
     }
 
     /**
+     * Test if the function is called anywhere.
+     * 
+     * @param name
+     *            the function name
+     * @return true, if used
+     */
+    boolean isUsed( @Nonnull FunctionName name ) {
+        switch( getOrCreate( name ).state ) {
+            case None:
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    /**
      * If this function need additional to the parameter of the signature an extra "this" parameter.
      * 
      * @param name
      *            the function name
      * @return true, if the function is static
      */
-    boolean needThisParameter( FunctionName name ) {
+    boolean needThisParameter( @Nonnull FunctionName name ) {
         return getOrCreate( name ).needThisParameter;
     }
 
@@ -321,7 +337,7 @@ class FunctionManager {
      * @param method
      *            the new implementation
      */
-    void addReplacement( FunctionName name, MethodInfo method ) {
+    void addReplacement( @Nonnull FunctionName name, MethodInfo method ) {
         FunctionState state = getOrCreate( name );
         if( state.method == null ) { // ignore redefinition replacements and use the first instance in the library path
             state.method = method;
@@ -337,7 +353,7 @@ class FunctionManager {
      * @param alias
      *            the new name.
      */
-    void setAlias( FunctionName name, FunctionName alias ) {
+    void setAlias( @Nonnull FunctionName name, FunctionName alias ) {
         FunctionState state = getOrCreate( name );
         state.alias = alias;
         state.state = State.Written;
@@ -353,7 +369,7 @@ class FunctionManager {
      * @return the method that should be write
      */
     @Nonnull
-    MethodInfo replace( FunctionName name, MethodInfo method ) {
+    MethodInfo replace( @Nonnull FunctionName name, MethodInfo method ) {
         MethodInfo newMethod = getOrCreate( name ).method;
         return newMethod != null ? newMethod : method;
     }
@@ -366,7 +382,7 @@ class FunctionManager {
      * @param functionIdx
      *            the index
      */
-    void setFunctionIndex( FunctionName name, int functionIdx ) {
+    void setFunctionIndex( @Nonnull FunctionName name, int functionIdx ) {
         getOrCreate( name ).functionIdx = functionIdx;
     }
 
@@ -377,7 +393,7 @@ class FunctionManager {
      *            the name
      * @return the index
      */
-    int getFunctionIndex( FunctionName name ) {
+    int getFunctionIndex( @Nonnull FunctionName name ) {
         return getOrCreate( name ).functionIdx;
     }
 

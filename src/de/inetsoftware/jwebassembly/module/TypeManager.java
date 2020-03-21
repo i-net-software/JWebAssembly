@@ -448,6 +448,7 @@ public class TypeManager {
                 fields.add( new NamedStorageType( className, field, types ) );
             }
 
+            // calculate the vtable (the function indexes of the virtual methods)
             for( MethodInfo method : classFile.getMethods() ) {
                 if( method.isStatic() || "<init>".equals( method.getName() ) ) {
                     continue;
@@ -464,7 +465,7 @@ public class TypeManager {
                         break;
                     }
                 }
-                if( idx == methods.size() && functions.needToWrite( funcName ) ) {
+                if( idx == methods.size() && functions.isUsed( funcName ) ) {
                     // if a new needed method then add it
                     methods.add( funcName );
                 }
