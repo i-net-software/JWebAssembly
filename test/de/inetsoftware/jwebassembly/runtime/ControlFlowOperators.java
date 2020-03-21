@@ -54,6 +54,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "whileLoop" );
             addParam( list, script, "forLoop" );
             addParam( list, script, "conditionalOperator" );
+            addParam( list, script, "conditionalOperator2" );
             addParam( list, script, "redifineVariable" );
             addParam( list, script, "ifAnd_0" );
             addParam( list, script, "ifAnd_3" );
@@ -329,6 +330,13 @@ public class ControlFlowOperators extends AbstractBaseTest {
         static int conditionalOperator () {
             int condition = 4;
             return condition >= 4 ? condition < 4 ? 1 : 2 : condition == 4 ? 3 : 4;
+        }
+
+        @Export
+        static int conditionalOperator2() {
+            int val = 42;
+            int result = 3 + (val == 1 ? 1 : (val == 2 ? 2 : (val == 3 ? 3 : 4)));
+            return result;
         }
 
         @Export

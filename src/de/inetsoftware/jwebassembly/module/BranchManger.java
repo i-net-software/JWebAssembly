@@ -463,7 +463,7 @@ class BranchManger {
     }
 
     /**
-     * Calculate the deep of a break.
+     * Calculate the deep of a break. A GOTO or IF in Java can jump out multiple loops. We need to calculate how many levels we need to jump.
      * 
      * @param parent
      *            the current parent node.
@@ -473,11 +473,13 @@ class BranchManger {
      */
     private int calculateBreakDeep( BranchNode parent, int endPos ) {
         int deep = -1;
+        boolean wasLoop = false;
         while( parent != null && parent.endPos == endPos && parent.data == null ) {
             deep++;
+            wasLoop |= parent.startOp == WasmBlockOperator.LOOP; // only in a loop we need to jump for exit
             parent = parent.parent;
         }
-        return deep;
+        return wasLoop ? deep : -1;
     }
 
     /**
