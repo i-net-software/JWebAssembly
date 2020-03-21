@@ -54,35 +54,37 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public class TextModuleWriter extends ModuleWriter {
 
-    private final boolean               spiderMonkey     = Boolean.getBoolean( "SpiderMonkey" );
+    private final boolean                  spiderMonkey     = Boolean.getBoolean( "SpiderMonkey" );
 
-    private final WasmTarget            target;
+    private final WasmTarget               target;
 
-    private StringBuilder               output           = new StringBuilder();
+    private final StringBuilder            output           = new StringBuilder();
 
-    private final ArrayList<String>     methodParamNames = new ArrayList<>();
+    private final ArrayList<String>        methodParamNames = new ArrayList<>();
 
-    private StringBuilder               typeOutput       = new StringBuilder();
+    private final StringBuilder            typeOutput       = new StringBuilder();
 
-    private ArrayList<String>           types            = new ArrayList<>();
+    private final ArrayList<String>        types            = new ArrayList<>();
 
-    private StringBuilder               methodOutput;
+    private StringBuilder                  methodOutput;
 
-    private StringBuilder               imports          = new StringBuilder();
+    private final StringBuilder            imports          = new StringBuilder();
 
-    private Map<String, Function>       functions        = new LinkedHashMap<>();
+    private final Map<String, Function>    functions        = new LinkedHashMap<>();
 
-    private final Set<String>           functionNames    = new HashSet<>();
+    private final Map<String, Function>    abstracts        = new HashMap<>();
 
-    private int                         inset;
+    private final Set<String>              functionNames    = new HashSet<>();
 
-    private boolean                     isImport;
+    private int                            inset;
 
-    private HashMap<String,AnyType>     globals          = new HashMap<>();
+    private boolean                        isImport;
 
-    private boolean                     useExceptions;
+    private final HashMap<String, AnyType> globals          = new HashMap<>();
 
-    private boolean                     callIndirect;
+    private boolean                        useExceptions;
+
+    private boolean                        callIndirect;
 
     /**
      * Create a new instance.
@@ -330,6 +332,9 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodParamStart( @Nonnull FunctionName name, FunctionType funcType ) throws IOException {
+        if( funcType == FunctionType.Abstract ) {
+            abstracts.put( name.signatureName, new Function() );
+        }
         typeOutput.setLength( 0 );
         methodParamNames.clear();
     }
@@ -382,11 +387,15 @@ public class TextModuleWriter extends ModuleWriter {
     }
 
     private Function getFunction( FunctionName name ) {
-        Function func = functions.get( name.signatureName );
+        String signatureName = name.signatureName;
+        Function func = functions.get( signatureName );
         if( func == null ) {
-            func = new Function();
-            func.id = functions.size();
-            functions.put( name.signatureName, func );
+            func = abstracts.get( signatureName );
+            if( func == null ) {
+                func = new Function();
+                func.id = functions.size();
+                functions.put( name.signatureName, func );
+            }
         }
         return func;
     }
@@ -690,9 +699,9 @@ public class TextModuleWriter extends ModuleWriter {
 
         newline( methodOutput );
         if(spiderMonkey)
-            methodOutput.append( "call_indirect $t" ).append( functions.get( name.signatureName ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
+            methodOutput.append( "call_indirect $t" ).append( getFunction( name ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
         else
-        methodOutput.append( "call_indirect (type $t" ).append( functions.get( name.signatureName ).typeId ).append( ")  ;; " + name.signatureName );
+        methodOutput.append( "call_indirect (type $t" ).append( getFunction( name ).typeId ).append( ")  ;; " + name.signatureName );
     }
 
     /**
