@@ -328,9 +328,18 @@ class BranchManger {
         int startPos = startBlock.nextPosition;
         if( startPos > endPos ) {
             // the condition in a do while(condition) loop
-            parent.add( new BranchNode( startPos, startPos, WasmBlockOperator.BR_IF, null, 0 ) );
+            int breakDeep = calculateContinueDeep( parent, endPos );
+            for( int idx = 0; idx < instructions.size(); idx++ ) {
+                WasmInstruction instr = instructions.get( idx );
+                int codePos = instr.getCodePosition();
+                if( codePos >= startPos ) {
+                    instructions.add( idx, new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, startPos - 1, startBlock.lineNumber ) );
+                    break;
+                }
+            }
             return;
         }
+
         BranchNode branch = null;
         for( ; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
@@ -460,6 +469,24 @@ class BranchManger {
                 break;
             }
         }
+    }
+
+    /**
+     * Calculate the break deep for a continue in a do while(condition) loop.
+     * 
+     * @param parent
+     *            current branch
+     * @param startPos
+     *            the start position of the loop
+     * @return the deep count
+     */
+    private int calculateContinueDeep( BranchNode parent, int startPos ) {
+        int deep = 0;
+        while( parent != null && parent.startPos > startPos ) {
+            deep++;
+            parent = parent.parent;
+        }
+        return deep;
     }
 
     /**
