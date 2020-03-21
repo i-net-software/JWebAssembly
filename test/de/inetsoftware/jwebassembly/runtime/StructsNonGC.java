@@ -52,6 +52,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "useGlobalObject" );
             addParam( list, script, "multipleAssign" );
             addParam( list, script, "getDefaultValue" );
+            addParam( list, script, "callAbstractMethod" );
             addParam( list, script, "instanceof1" );
             addParam( list, script, "instanceof2" );
             addParam( list, script, "instanceof3" );
@@ -152,6 +153,12 @@ public class StructsNonGC extends AbstractBaseTest {
         }
 
         @Export
+        static int callAbstractMethod() {
+            Ab val = new Abc2();
+            return val.abstractBar();
+        }
+
+        @Export
         static boolean instanceof1() {
             Object obj = new Object();
             return obj instanceof Integer;
@@ -210,7 +217,11 @@ public class StructsNonGC extends AbstractBaseTest {
         }
     }
 
-    static class Abc implements TestDefault {
+    static abstract class Ab {
+        abstract int abstractBar();
+    }
+
+    static class Abc extends Ab implements TestDefault {
         int  a;
 
         long b;
@@ -222,6 +233,11 @@ public class StructsNonGC extends AbstractBaseTest {
         void bar() {
             a = 2;
         }
+
+        @Override
+        int abstractBar() {
+            return 2;
+        }
     }
 
     static class Abc2 extends Abc {
@@ -229,6 +245,11 @@ public class StructsNonGC extends AbstractBaseTest {
 
         void bar() {
             a = 3;
+        }
+
+        @Override
+        int abstractBar() {
+            return 3;
         }
     }
 }
