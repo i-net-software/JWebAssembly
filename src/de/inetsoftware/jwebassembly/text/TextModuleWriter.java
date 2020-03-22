@@ -685,11 +685,11 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeFunctionCall( FunctionName name, String comments ) throws IOException {
+    protected void writeFunctionCall( FunctionName name, String comment ) throws IOException {
         newline( methodOutput );
         methodOutput.append( "call $" ).append( normalizeName( name ) );
-        if( comments != null ) {
-            methodOutput.append( ")  ;; " ).append( comments );
+        if( comment != null ) {
+            methodOutput.append( "  ;; \"" ).append( comment.replace( "\n", "\\n" ).replace( "\r", "\\r" ) ).append( '"' );
         }
     }
 

@@ -90,6 +90,7 @@ public class StringManager extends LinkedHashMap<String, Integer> {
                                 }
                             };
             functions.markAsNeededAndReplaceIfExists( offsetFunction );
+            functions.markAsNeeded( STRING_CONSTANT_FUNCTION );
         }
 
         return STRING_CONSTANT_FUNCTION;
