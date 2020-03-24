@@ -292,9 +292,6 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Nonnull
     private String normalizeName( String name ) {
-        if( spiderMonkey ) {
-            name = name.replace( '/', '.' ).replace( '<', '_' ).replace( '>', '_' ); // TODO HACK for https://bugzilla.mozilla.org/show_bug.cgi?id=1511485
-        }
         return name;
     }
 
@@ -701,9 +698,6 @@ public class TextModuleWriter extends ModuleWriter {
         callIndirect = true;
 
         newline( methodOutput );
-        if(spiderMonkey)
-            methodOutput.append( "call_indirect $t" ).append( getFunction( name ).typeId ); // https://bugzilla.mozilla.org/show_bug.cgi?id=1556779
-        else
         methodOutput.append( "call_indirect (type $t" ).append( getFunction( name ).typeId ).append( ")  ;; " ).append( name.signatureName );
     }
 
