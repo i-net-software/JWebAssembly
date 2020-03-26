@@ -110,7 +110,9 @@ class BranchManger {
      *            the compare instruction
      */
     void addIfOperator( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
-        allParsedOperations.add( new IfParsedBlock( startPosition, offset, lineNumber, instr ) );
+        JumpInstruction jump = new JumpInstruction( startPosition + offset, 1, startPosition, lineNumber );
+        instructions.add( jump );
+        allParsedOperations.add( new IfParsedBlock( startPosition, offset, lineNumber, instr, jump ) );
     }
 
     /**
@@ -299,11 +301,13 @@ class BranchManger {
      *            the not consumed operations in the parent branch
      */
     private void calculateIf( BranchNode parent, IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+        instructions.remove( startBlock.jump );
         IfPositions positions = searchElsePosition( startBlock, parsedOperations );
 
         BranchNode main = parent;
         for( int i = 0; i < positions.ifCount; i++ ) {
             IfParsedBlock parsedBlock = (IfParsedBlock)parsedOperations.remove( 0 );
+            instructions.remove( parsedBlock.jump );
             if( startBlock.endPosition < positions.thenPos || startBlock.endPosition == positions.elsePos ) {
                 // AND concatenation (&& operator)
                 int pos = parsedBlock.startPosition + 1; 
@@ -988,6 +992,8 @@ class BranchManger {
 
         private WasmNumericInstruction instr;
 
+        private JumpInstruction        jump;
+
         /**
          * Create new instance
          * 
@@ -1000,9 +1006,10 @@ class BranchManger {
          * @param instr
          *            the compare instruction
          */
-        private IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
+        private IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr, JumpInstruction jump ) {
             super( JavaBlockOperator.IF, startPosition, offset, startPosition + 3, lineNumber );
             this.instr = instr;
+            this.jump = jump;
         }
 
         /**

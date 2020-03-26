@@ -521,7 +521,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 167: // goto
                         int offset = byteCode.readShort();
                         branchManager.addGotoOperator( codePos, offset, byteCode.getCodePosition(), lineNumber );
-                        addNopInstruction( codePos, lineNumber ); // marker of the line number for the branch manager
+                        addJumpPlaceholder( codePos + offset, 0, codePos, lineNumber ); // marker of the line number for the branch manager
                         break;
                     case 168: // jsr
                     case 169: // ret
@@ -891,9 +891,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 throw new WasmException( "Unexpected compare sub operation: " + nextOp, -1 );
         }
         int offset = byteCode.readShort();
-        WasmNumericInstruction compare = new WasmNumericInstruction( numOp, valueType, codePos, lineNumber );
+        WasmNumericInstruction compare = addNumericInstruction( numOp, valueType, codePos, lineNumber );
         branchManager.addIfOperator( codePos, offset, byteCode.getLineNumber(), compare );
-        getInstructions().add( compare );
     }
 
 }

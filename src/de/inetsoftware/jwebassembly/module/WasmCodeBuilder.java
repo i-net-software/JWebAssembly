@@ -599,6 +599,22 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Add a Jump instruction for later stack inspection
+     * 
+     * @param jumpPos
+     *            the position of the jump
+     * @param popCount
+     *            the the count of values that are removed from the stack.
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addJumpPlaceholder( int jumpPos, int popCount, int javaCodePos, int lineNumber ) {
+        instructions.add( new JumpInstruction( jumpPos, popCount, javaCodePos, lineNumber ) );
+    }
+
+    /**
      * Get a non GC polyfill function.
      * @param name the function name
      * @param lineNumber the line number for a possible error
