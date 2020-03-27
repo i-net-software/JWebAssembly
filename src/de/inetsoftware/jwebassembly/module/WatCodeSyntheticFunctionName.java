@@ -87,7 +87,7 @@ class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
      */
     @Override
     protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
-        watParser.parse( getCode(), null, -1 );
+        watParser.parse( getCode(), null, getSignature( null ), -1 );
         return watParser;
     }
 }

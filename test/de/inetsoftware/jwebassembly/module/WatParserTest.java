@@ -40,7 +40,7 @@ public class WatParserTest {
         WatParser parser = new WatParser();
         WasmCodeBuilder codeBuilder = parser;
         codeBuilder.init( options, null );
-        parser.parse( wat, null, 100 );
+        parser.parse( wat, null, null, 100 );
         StringBuilder builder = new StringBuilder();
         ModuleWriter writer = new TextModuleWriter( new WasmTarget( builder ), options );
         writer.writeMethodStart( new FunctionName( "A.a()V" ), null );

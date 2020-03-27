@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -247,11 +248,13 @@ public abstract class WasmCodeBuilder {
      * @param variableTable
      *            variable table of the Java method.
      * @param method
-     *            the method with signature as fallback for a missing variable table
+     *            the method with signature as fallback for a missing variable table. If null signature is used and the method must be static.
+     * @param signature
+     *            alternative for method signature, can be null if method is set
      */
-    protected void reset( LocalVariableTable variableTable, MethodInfo method ) {
+    protected void reset( LocalVariableTable variableTable, MethodInfo method, Iterator<AnyType> signature ) {
         instructions.clear();
-        localVariables.reset( variableTable, method );
+        localVariables.reset( variableTable, method, signature );
     }
 
     /**

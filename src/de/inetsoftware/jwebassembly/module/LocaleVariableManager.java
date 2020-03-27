@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -74,14 +75,16 @@ class LocaleVariableManager {
     }
 
     /**
-     * Reset the manager to an initial state
+     * Reset the manager to an initial state.
      * 
      * @param variableTable
      *            variable table of the Java method.
      * @param method
-     *            the method with signature as fallback for a missing variable table
+     *            the method with signature as fallback for a missing variable table. If null signature is used and the method must be static.
+     * @param signature
+     *            alternative for method signature, can be null if method is set
      */
-    void reset( LocalVariableTable variableTable, MethodInfo method ) {
+    void reset( LocalVariableTable variableTable, MethodInfo method, Iterator<AnyType> signature ) {
         size = 0;
 
         int maxLocals;
@@ -157,9 +160,9 @@ class LocaleVariableManager {
         }
 
         // add missing slots from signature
-        if( (maxLocals > 0 || variableTable == null) && size == 0 && method != null ) {
-            ValueTypeParser parser = new ValueTypeParser( method.getType(), types );
-            if( !method.isStatic() ) {
+        if( (maxLocals > 0 || variableTable == null) && size == 0 && (method != null || signature != null )) {
+            Iterator<AnyType> parser = signature == null ? new ValueTypeParser( method.getType(), types ) : signature;
+            if( method != null && !method.isStatic() ) {
                 resetAddVar( ValueType.anyref, size );
             }
             while( true ) {

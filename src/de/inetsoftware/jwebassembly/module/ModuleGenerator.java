@@ -480,7 +480,7 @@ public class ModuleGenerator {
                 if( signature == null ) {
                     signature = method.getType();
                 }
-                watParser.parse( watCode, method, code == null ? -1 : code.getFirstLineNr() );
+                watParser.parse( watCode, method, null, code == null ? -1 : code.getFirstLineNr() );
                 return watParser;
             } else if( code != null ) { // abstract methods and interface methods does not have code
                 javaCodeBuilder.buildCode( code, method );

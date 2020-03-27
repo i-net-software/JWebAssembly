@@ -17,6 +17,7 @@
 package de.inetsoftware.jwebassembly.watparser;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnegative;
@@ -50,14 +51,16 @@ public class WatParser extends WasmCodeBuilder {
      * 
      * @param wat
      *            the text format content of a function
-     * @param lineNumber
-     *            the line number for an error message
      * @param method
      *            the method with signature as fallback for a missing variable table
+     * @param signature
+     *            alternative for method signature, can be null if method is set
+     * @param lineNumber
+     *            the line number for an error message
      */
-    public void parse( String wat, MethodInfo method, int lineNumber ) {
+    public void parse( String wat, MethodInfo method, Iterator<AnyType> signature, int lineNumber ) {
         try {
-            reset( null, method );
+            reset( null, method, signature );
 
             List<String> tokens = splitTokens( wat );
             for( int i = 0; i < tokens.size(); i++ ) {
