@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,18 @@ interface InstructionOpcodes {
     static final int RETURN_CALL          = 0x12; // tail call
 
     static final int RETURN_CALL_INDIRECT = 0x13; // tail call
+
+    /** calling a function through a ref */
+    static final int CALL_REF             = 0x14;
+
+    /** tail calling a function through a ref */
+    static final int RETURN_CALL_REF      = 0x15;
+
+    /** create a closure */
+    static final int FUNC_BIND            = 0x16;
+
+    /** locals with block scope, in order to handle reference types without default initialisation values */
+    static final int LET                  = 0x17;
 
     static final int DROP      = 0x1A;
 
@@ -440,6 +452,12 @@ interface InstructionOpcodes {
     static final int REF_NULL               = 0xD0;
 
     static final int REF_ISNULL             = 0xD1;
+
+    /** converts a nullable reference to a non-nullable one or traps if null */
+    static final int REF_AS_NON_NULL        = 0xD3;
+
+    /** converts a nullable reference to a non-nullable one or branches if null */
+    static final int BR_ON_NULL             = 0xD4;
 
     static final int REF_EQ                 = 0xF0;
 
