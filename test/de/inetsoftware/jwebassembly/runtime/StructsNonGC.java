@@ -218,6 +218,15 @@ public class StructsNonGC extends AbstractBaseTest {
             Integer val = val1 == val2 ? val1 : val2;
             return val;
         }
+
+        /**
+         * To find the instruction that push the object of the method call we need to consider an IF THEN ELSE when analyzing the stack. 
+         */
+        @Export
+        static int callParameterFromCondition() {
+            Abc abc = new Abc();
+            return abc.add( 42, abc == null ? 7 : 13 );
+        }
     }
 
     interface TestDefault {
@@ -246,6 +255,10 @@ public class StructsNonGC extends AbstractBaseTest {
         @Override
         int abstractBar() {
             return 2;
+        }
+
+        int add( int a, int b ) {
+            return a + b;
         }
     }
 

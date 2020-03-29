@@ -151,11 +151,13 @@ public abstract class WasmCodeBuilder {
      * 
      * @param count
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
+     * @param javaCodePos
+     *            current code position for which the stack is inspected
      * @return the type of the last push value
      */
     @Nonnull
-    AnyType findValueTypeFromStack( int count ) {
-        return findInstructionThatPushValue( count, (idx,instr ) -> instr.getPushValueType() );
+    AnyType findValueTypeFromStack( int count, int javaCodePos ) {
+        return StackInspector.findInstructionThatPushValue( instructions, count, javaCodePos ).instr.getPushValueType();
     }
 
     /**
@@ -163,37 +165,12 @@ public abstract class WasmCodeBuilder {
      * 
      * @param count
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
+     * @param javaCodePos
+     *            current code position for which the stack is inspected
      * @return the instruction
      */
-    private WasmInstruction findInstructionThatPushValue( int count ) {
-        return findInstructionThatPushValue( count, (index,instruction) -> instruction );
-    }
-
-    /**
-     * Find the instruction that push the x-th value to the stack.
-     * 
-     * @param <T>
-     *            the return type
-     * @param count
-     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
-     * @param funct
-     *            the return value from the instruction
-     * @return the function value
-     */
-    <T> T findInstructionThatPushValue( int count, BiFunction<Integer, WasmInstruction, T> funct ) {
-        int valueCount = 0;
-        List<WasmInstruction> instructions = this.instructions;
-        for( int i = instructions.size() - 1; i >= 0; i-- ) {
-            WasmInstruction instr = instructions.get( i );
-            AnyType valueType = instr.getPushValueType();
-            if( valueType != null ) {
-                if( ++valueCount == count ) {
-                    return funct.apply( i, instr );
-                }
-            }
-            valueCount -= instr.getPopCount();
-        }
-        throw new WasmException( "Push instruction not found", -1 ); // should never occur
+    private WasmInstruction findInstructionThatPushValue( int count, int javaCodePos ) {
+        return StackInspector.findInstructionThatPushValue( instructions, count, javaCodePos ).instr;
     }
 
     /**
@@ -299,7 +276,7 @@ public abstract class WasmCodeBuilder {
         switch( op ) {
             case set:
             case tee:
-                AnyType valueType = findValueTypeFromStack( 1 );
+                AnyType valueType = findValueTypeFromStack( 1, javaCodePos );
                 localVariables.useIndex( valueType, wasmIdx );
         }
         instructions.add( new WasmLocalInstruction( op, wasmIdx, localVariables, javaCodePos, lineNumber ) );
@@ -314,7 +291,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addDupInstruction( int javaCodePos, int lineNumber ) {
-        WasmInstruction instr = findInstructionThatPushValue( 1 );
+        WasmInstruction instr = findInstructionThatPushValue( 1, javaCodePos );
         AnyType type = instr.getPushValueType();
         int varIndex = -1;
         // if it is a GET to a local variable then we can use it
@@ -521,7 +498,7 @@ public abstract class WasmCodeBuilder {
 
         // find the instruction that this push on stack 
         int count = indirectCall.getPopCount();
-        WasmInstruction instr = findInstructionThatPushValue( count );
+        WasmInstruction instr = findInstructionThatPushValue( count, indirectCall.getCodePosition() );
         int varIndex = -1;
         // if it is a GET to a local variable then we can use it
         if( instr.getType() == Type.Local ) {

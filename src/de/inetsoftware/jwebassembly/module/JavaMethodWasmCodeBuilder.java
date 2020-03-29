@@ -194,7 +194,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.GET, ValueType.f64, codePos, lineNumber );
                         break;
                     case 50: // aaload
-                        AnyType storeType = findValueTypeFromStack( 2 );
+                        AnyType storeType = findValueTypeFromStack( 2, codePos );
                         addArrayInstruction( ArrayOperator.GET, storeType, codePos, lineNumber );
                         break;
                     case 51: // baload
@@ -252,7 +252,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         if( branchManager.isCatch( codePos ) ) {
                             storeType = ValueType.anyref; // for the catch there are no previous instructions
                         } else {
-                            storeType = findValueTypeFromStack( 1 );
+                            storeType = findValueTypeFromStack( 1, codePos );
                         }
                         addLoadStoreInstruction( storeType, false, op - 75, codePos, lineNumber );
                         break;
@@ -269,7 +269,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.SET, ValueType.f64, codePos, lineNumber );
                         break;
                     case 83: // aastore
-                        storeType = findValueTypeFromStack( 1 );
+                        storeType = findValueTypeFromStack( 1, codePos );
                         addArrayInstruction( ArrayOperator.SET, storeType, codePos, lineNumber );
                         break;
                     case 84: // bastore
@@ -646,7 +646,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.NEW, type, codePos, lineNumber );
                         break;
                     case 190: // arraylength
-                        type = ((ArrayType)findValueTypeFromStack( 1 )).getArrayType();
+                        type = ((ArrayType)findValueTypeFromStack( 1, codePos )).getArrayType();
                         addArrayInstruction( ArrayOperator.LEN, type, codePos, lineNumber );
                         break;
                     case 191: // athrow
