@@ -77,10 +77,10 @@ class StackInspector {
         }
 
         try {
-            StackValue stackValue = null;
-            for( int p = 0; p < count; p++ ) {
+            StackValue stackValue;
+            do {
                 stackValue = stack.pop();
-            }
+            } while( --count > 0 );
             return stackValue;
         } catch( NoSuchElementException ex ) {
             throw new WasmException( "Push instruction not found", -1 ); // should never occur
