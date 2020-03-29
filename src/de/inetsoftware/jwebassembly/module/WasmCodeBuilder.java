@@ -34,6 +34,7 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptNewMultiArrayFunctionName;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
+import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -496,9 +497,11 @@ public abstract class WasmCodeBuilder {
     private void addCallIndirectInstruction( WasmCallIndirectInstruction indirectCall ) {
         //  For access to the vtable the THIS parameter must be duplicated on stack before the function parameters 
 
-        // find the instruction that this push on stack 
+        // find the instruction that THIS push on the stack 
         int count = indirectCall.getPopCount();
-        WasmInstruction instr = findInstructionThatPushValue( count, indirectCall.getCodePosition() );
+        int javaCodePos = indirectCall.getCodePosition();
+        StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions, count, javaCodePos );
+        WasmInstruction instr = stackValue.instr;
         int varIndex = -1;
         // if it is a GET to a local variable then we can use it
         if( instr.getType() == Type.Local ) {
@@ -509,10 +512,9 @@ public abstract class WasmCodeBuilder {
         }
         //alternate we need to create a new locale variable
         if( varIndex < 0 ) {
-            int javaCodePos = indirectCall.getCodePosition();
             varIndex = getTempVariable( indirectCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
-            int idx = count == 1 ? instructions.size() : findBlockStart( count - 1, false );
-            instructions.add( idx, new DupThis( indirectCall, varIndex, javaCodePos ) );
+            int idx = count == 1 ? instructions.size() : stackValue.idx + 1;
+            instructions.add( idx, new DupThis( indirectCall, varIndex, instr.getCodePosition() + 1 ) );
         }
         indirectCall.setVariableIndexOfThis( varIndex );
         instructions.add( indirectCall );
