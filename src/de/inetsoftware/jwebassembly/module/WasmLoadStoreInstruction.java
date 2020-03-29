@@ -21,7 +21,7 @@ import static de.inetsoftware.jwebassembly.wasm.VariableOperator.set;
 
 import javax.annotation.Nonnegative;
 
-import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
 /**
  * WasmInstruction for load and store local variables.
@@ -34,8 +34,8 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
     /**
      * Create an instance of a load/store instruction
      * 
-     * @param load
-     *            true: if load
+     * @param op
+     *            the operation
      * @param idx
      *            the memory/slot idx of the variable
      * @param localVariables
@@ -45,8 +45,8 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmLoadStoreInstruction( boolean load, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
-        super( load ? get : set, idx, localVariables, javaCodePos, lineNumber );
+    WasmLoadStoreInstruction( VariableOperator op, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
+        super( op, idx, localVariables, javaCodePos, lineNumber );
     }
 
     /**

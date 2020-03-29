@@ -112,7 +112,7 @@ class WasmLocalInstruction extends WasmInstruction {
      */
     @Override
     AnyType getPushValueType() {
-        return op == get ? localVariables.getValueType( getIndex() ) : null;
+        return op != set ? localVariables.getValueType( getIndex() ) : null;
     }
 
     /**
