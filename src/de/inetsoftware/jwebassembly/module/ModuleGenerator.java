@@ -404,6 +404,9 @@ public class ModuleGenerator {
     private void prepareMethod( MethodInfo method ) throws WasmException {
         try {
             FunctionName name = new FunctionName( method );
+            if( "<clinit>".equals( name.methodName ) ) {
+                functions.markClassWithCInit( name );
+            }
             if( functions.isKnown( name ) ) {
                 return;
             }

@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,7 +37,9 @@ import de.inetsoftware.jwebassembly.WasmException;
  */
 class FunctionManager {
 
-    private final Map<FunctionName, FunctionState> states = new LinkedHashMap<>();
+    private final Map<FunctionName, FunctionState> states           = new LinkedHashMap<>();
+
+    private final Map<String, FunctionName>        classesWithCInit = new HashMap<>();
 
     private boolean isFinish;
 
@@ -84,6 +87,16 @@ class FunctionManager {
     }
 
     /**
+     * Mark that a class has static initializer.
+     * 
+     * @param name
+     *            the function name
+     */
+    void markClassWithCInit( FunctionName name ) {
+        classesWithCInit.put( name.className, name );
+    }
+
+    /**
      * Mark the a function as a import function. Only if the function is also needed then it will imported from
      * compiler.
      * 
@@ -107,6 +120,44 @@ class FunctionManager {
      */
     void markAsImport( @Nonnull FunctionName name, Function<String,Object> importAnannotation ) {
         getOrCreate( name ).importAnannotation = importAnannotation;
+    }
+
+    /**
+     * Same like markAsNeeded but it will replace the function name if already registered.
+     * 
+     * @param name
+     *            the function name
+     */
+    void markAsNeededAndReplaceIfExists( @Nonnull SyntheticFunctionName name ) {
+        FunctionState state = states.get( name );
+        if( state != null ) {
+            states.remove( name );
+            states.put( name, state );
+        }
+        markAsNeeded( name );
+    }
+
+    /**
+     * Mark a function as used/called and return the real name if there is an alias.
+     * 
+     * @param name
+     *            the function name
+     * @return the real function name
+     */
+    FunctionName markAsNeeded( @Nonnull FunctionName name ) {
+        FunctionState state = getOrCreate( name );
+        if( state.state == State.None ) {
+            if( isFinish ) {
+                throw new WasmException( "Prepare was already finish: " + name.signatureName, -1 );
+            }
+            state.state = State.Needed;
+            JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );
+            FunctionName cInit = classesWithCInit.get( name.className );
+            if( cInit != null ) {
+                markAsNeeded( cInit );
+            }
+        }
+        return state.alias == null ? name : state.alias;
     }
 
     /**
@@ -146,40 +197,6 @@ class FunctionManager {
      */
     void markAsAbstract( @Nonnull FunctionName name ) {
         getOrCreate( name ).state = State.Abstract;
-    }
-
-    /**
-     * Same like markAsNeeded but it will replace the function name if already registered.
-     * 
-     * @param name
-     *            the function name
-     */
-    void markAsNeededAndReplaceIfExists( @Nonnull SyntheticFunctionName name ) {
-        FunctionState state = states.get( name );
-        if( state != null ) {
-            states.remove( name );
-            states.put( name, state );
-        }
-        markAsNeeded( name );
-    }
-
-    /**
-     * Mark a function as used/called and return the real name if there is an alias.
-     * 
-     * @param name
-     *            the function name
-     * @return the real function name
-     */
-    FunctionName markAsNeeded( @Nonnull FunctionName name ) {
-        FunctionState state = getOrCreate( name );
-        if( state.state == State.None ) {
-            if( isFinish ) {
-                throw new WasmException( "Prepare was already finish: " + name.signatureName, -1 );
-            }
-            state.state = State.Needed;
-            JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );
-        }
-        return state.alias == null ? name : state.alias;
     }
 
     /**
