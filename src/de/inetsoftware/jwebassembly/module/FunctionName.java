@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 public class FunctionName {
 
     /**
-     * The Java class name.
+     * The Java class name like "java/lang/String".
      */
     @Nonnull
     public final String className;
