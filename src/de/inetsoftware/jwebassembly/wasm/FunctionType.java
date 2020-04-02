@@ -26,5 +26,7 @@ public enum FunctionType {
     /** has real code */
     Code,
     /** abstract or interface, only used for indirrect call */
-    Abstract;
+    Abstract,
+    /** the function of start section, should occur only once */
+    Start,
 }

@@ -91,6 +91,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private boolean                     callIndirect;
 
+    private FunctionName                startFunction;
+
     /**
      * Create new instance.
      * 
@@ -133,6 +135,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeEventSection();
         writeSection( SectionType.Global, globals.values() );
         writeSection( SectionType.Export, exports );
+        writeStartSection();
         writeElementSection();
         writeCodeSection();
         writeDataSection();
@@ -251,6 +254,22 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
             wasm.writeSection( SectionType.Event, stream );
         }
+    }
+
+    /**
+     * Write a start section. The id of the function that should be automatically executed.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeStartSection() throws IOException {
+        if( startFunction == null ) {
+            return;
+        }
+        int id = getFunction( startFunction ).id;
+        WasmOutputStream stream = new WasmOutputStream();
+        stream.writeVaruint32( id );
+        wasm.writeSection( SectionType.Start, stream );
     }
 
     /**
@@ -518,10 +537,15 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeMethodParamStart( FunctionName name, FunctionType funcType ) throws IOException {
-        if( funcType == FunctionType.Abstract ) {
-            abstracts.put( name.signatureName, function = new Function() );
-        } else {
-            function = getFunction( name );
+        switch( funcType ) {
+            case Abstract:
+                abstracts.put( name.signatureName, function = new Function() );
+                break;
+            case Start:
+                startFunction = name;
+                //$FALL-THROUGH$
+            default:
+                function = getFunction( name );
         }
         functionType = new FunctionTypeEntry();
         locals.clear();

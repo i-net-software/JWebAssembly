@@ -37,9 +37,9 @@ import de.inetsoftware.jwebassembly.WasmException;
  */
 class FunctionManager {
 
-    private final Map<FunctionName, FunctionState> states           = new LinkedHashMap<>();
+    private final Map<FunctionName, FunctionState> states            = new LinkedHashMap<>();
 
-    private final Map<String, FunctionName>        classesWithCInit = new HashMap<>();
+    private final Map<String, FunctionName>        classesWithClinit = new HashMap<>();
 
     private boolean isFinish;
 
@@ -90,10 +90,10 @@ class FunctionManager {
      * Mark that a class has static initializer.
      * 
      * @param name
-     *            the function name
+     *            the "&lt;clinit&gt;" function name
      */
-    void markClassWithCInit( FunctionName name ) {
-        classesWithCInit.put( name.className, name );
+    void markClassWithClinit( FunctionName name ) {
+        classesWithClinit.put( name.className, name );
     }
 
     /**
@@ -152,7 +152,7 @@ class FunctionManager {
             }
             state.state = State.Needed;
             JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );
-            FunctionName cInit = classesWithCInit.get( name.className );
+            FunctionName cInit = classesWithClinit.get( name.className );
             if( cInit != null ) {
                 markAsNeeded( cInit );
             }
@@ -244,9 +244,22 @@ class FunctionManager {
     }
 
     /**
+     * Get all static constructor FunctionName of used classes.
+     * 
+     * @return an iterator
+     */
+    @Nullable
+    Iterator<FunctionName> getWriteLaterClinit() {
+        return classesWithClinit.values().stream().filter( ( name ) -> {
+            FunctionState state = states.get( name );
+            return state != null && (state.state == State.Needed || state.state == State.Scanned);
+        } ).iterator();
+    }
+
+    /**
      * Get all FunctionName that is required but was not written.
      * 
-     * @return the FunctionName or null
+     * @return an iterator
      */
     @Nullable
     Iterator<FunctionName> getWriteLater() {

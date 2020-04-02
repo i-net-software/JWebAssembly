@@ -299,6 +299,9 @@ public class ModuleGenerator {
             javaScript.addImport( importModule, importName, importAnannotation );
         }
 
+        // add a start method for the static class constructors
+        prepareStartFunction();
+
         // init/write the function types
         for( Iterator<FunctionName> iterator = functions.getWriteLater(); iterator.hasNext(); ) {
             FunctionName name = iterator.next();
@@ -316,6 +319,39 @@ public class ModuleGenerator {
         functions.prepareFinish();
         strings.prepareFinish( writer );
         writer.prepareFinish();
+    }
+
+    /**
+     * Add a start method for the static class constructors
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void prepareStartFunction() throws IOException {
+        // add the start function/section only if there are static code
+        Iterator<FunctionName> iterator = functions.getWriteLaterClinit();
+        if( iterator.hasNext() ) {
+            FunctionName cinit = new SyntheticFunctionName( "", "<clinit>", "()V" ) {
+                @Override
+                protected boolean hasWasmCode() {
+                    return true;
+                }
+
+                @Override
+                protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
+                    watParser.reset( null, null, getSignature( null ) );
+
+                    while( iterator.hasNext() ) {
+                        FunctionName name = iterator.next();
+                        //TODO if not in the debug mode then inlining would produce smaller output and should be faster
+                        watParser.addCallInstruction( name, 0, -1 );
+                    }
+                    return watParser;
+                }
+            };
+            functions.markAsNeeded( cinit );
+            writeMethodSignature( cinit, FunctionType.Start, null );
+        }
     }
 
     /**
@@ -405,7 +441,7 @@ public class ModuleGenerator {
         try {
             FunctionName name = new FunctionName( method );
             if( "<clinit>".equals( name.methodName ) ) {
-                functions.markClassWithCInit( name );
+                functions.markClassWithClinit( name );
             }
             if( functions.isKnown( name ) ) {
                 return;

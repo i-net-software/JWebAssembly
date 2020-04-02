@@ -329,8 +329,14 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodParamStart( @Nonnull FunctionName name, FunctionType funcType ) throws IOException {
-        if( funcType == FunctionType.Abstract ) {
-            abstracts.put( name.signatureName, new Function() );
+        switch( funcType ) {
+            case Abstract:
+                abstracts.put( name.signatureName, new Function() );
+                break;
+            case Start:
+                newline( imports );
+                imports.append( "(start $" ).append( normalizeName( name ) ).append( ")" );
+                break;
         }
         typeOutput.setLength( 0 );
         methodParamNames.clear();

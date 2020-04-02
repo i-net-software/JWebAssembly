@@ -35,7 +35,7 @@ The project is currently not production ready but you can run already some tests
 * [x] invoke default method calls
 * [x] String support
 * [x] Simple Class object support
-* [ ] static constructors
+* [x] static constructors
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * [x] Hello World sample [(live)](https://i-net-software.github.io/JWebAssembly/samples/HelloWorld/HelloWorld.html), [(source code)](https://github.com/i-net-software/JWebAssembly/blob/master/docs/samples/HelloWorld/HelloWorld.java)
 
