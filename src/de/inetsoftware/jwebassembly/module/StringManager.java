@@ -35,17 +35,11 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 public class StringManager extends LinkedHashMap<String, Integer> {
 
-    /**
-     * Signature of method stringConstant.
-     * 
-     * @see #stringConstant(int)
-     */
-    private static final FunctionName STRING_CONSTANT_FUNCTION =
-                    new FunctionName( "de/inetsoftware/jwebassembly/module/StringManager.stringConstant(I)Ljava/lang/String;" );
+    private FunctionName    stringConstantFunction;
 
-    private FunctionManager           functions;
+    private FunctionManager functions;
 
-    private int                       stringMemoryOffset       = -1;
+    private int             stringMemoryOffset;
 
     /**
      * Create a new instance.
@@ -80,9 +74,9 @@ public class StringManager extends LinkedHashMap<String, Integer> {
      */
     @Nonnull
     FunctionName getStringConstantFunction() {
-        if( stringMemoryOffset < 0 ) {
+        if( stringConstantFunction == null ) {
+            stringConstantFunction = new FunctionName( "de/inetsoftware/jwebassembly/module/StringManager.stringConstant(I)Ljava/lang/String;" );
             // register the function stringsMemoryOffset() as synthetic function
-            stringMemoryOffset = 0;
             WatCodeSyntheticFunctionName offsetFunction =
                             new WatCodeSyntheticFunctionName( "de/inetsoftware/jwebassembly/module/StringManager", "stringsMemoryOffset", "()I", "", null, ValueType.i32 ) {
                                 protected String getCode() {
@@ -90,10 +84,10 @@ public class StringManager extends LinkedHashMap<String, Integer> {
                                 }
                             };
             functions.markAsNeededAndReplaceIfExists( offsetFunction );
-            functions.markAsNeeded( STRING_CONSTANT_FUNCTION );
+            functions.markAsNeeded( stringConstantFunction );
         }
 
-        return STRING_CONSTANT_FUNCTION;
+        return stringConstantFunction;
     }
 
     /**
