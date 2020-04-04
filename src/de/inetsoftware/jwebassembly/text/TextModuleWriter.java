@@ -54,8 +54,6 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public class TextModuleWriter extends ModuleWriter {
 
-    private final boolean                  spiderMonkey     = Boolean.getBoolean( "SpiderMonkey" );
-
     private final WasmTarget               target;
 
     private final StringBuilder            output           = new StringBuilder();
@@ -109,9 +107,6 @@ public class TextModuleWriter extends ModuleWriter {
     public void close() throws IOException {
         Appendable textOutput = target.getTextOutput();
         textOutput.append( "(module" );
-        if( spiderMonkey && options.useGC() ) {
-            textOutput.append( " (gc_feature_opt_in 3)" ); // enable GcFeatureOptIn for SpiderMonkey https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
-        }
 
         for( int i = 0; i < types.size(); i++ ) {
             newline( textOutput );
@@ -318,7 +313,7 @@ public class TextModuleWriter extends ModuleWriter {
         if( type instanceof ValueType ) {
             output.append( type.toString() );
         } else if( options.useGC() ) {
-            output.append( "(ref " ).append( normalizeName( type.toString() ) ).append( ')' );
+            output.append( "(optref " ).append( normalizeName( type.toString() ) ).append( ')' );
         } else {
             output.append( ValueType.anyref.toString() );
         }

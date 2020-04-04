@@ -535,44 +535,40 @@ public class WasmRule extends TemporaryFolder {
      */
     private ProcessBuilder spiderMonkeyCommand( boolean binary, boolean gc ) throws IOException {
         File script;
-        try {
-            System.setProperty( "SpiderMonkey", "true" );
-            if( gc ) {
-                if( binary ) {
-                    if( spiderMonkeyScriptGC == null ) {
-                        File file = newFile( "spiderMonkeyGC.wasm" );
-                        compiler.compileToBinary( file );
-                        spiderMonkeyScriptGC = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
-                    }
-                    script = spiderMonkeyScriptGC;
-                } else {
-                    if( spiderMonkeyScriptWatGC == null ) {
-                        File file = newFile( "spiderMonkeyGC.wat" );
-                        compiler.compileToText( file );
-                        spiderMonkeyScriptWatGC = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkeyGC" );
-                    }
-                    script = spiderMonkeyScriptWatGC;
+        if( gc ) {
+            if( binary ) {
+                if( spiderMonkeyScriptGC == null ) {
+                    File file = newFile( "spiderMonkeyGC.wasm" );
+                    compiler.compileToBinary( file );
+                    spiderMonkeyScriptGC = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
                 }
+                script = spiderMonkeyScriptGC;
             } else {
-                if( binary ) {
-                    if( spiderMonkeyScript == null ) {
-                        File file = newFile( "spiderMonkey.wasm" );
-                        compiler.compileToBinary( file );
-                        spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
-                    }
-                    script = spiderMonkeyScript;
-                } else {
-                    if( spiderMonkeyWatScript == null ) {
-                        File file = newFile( "spiderMonkey.wat" );
-                        compiler.compileToText( file );
-                        spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkey" );
-                    }
-                    script = spiderMonkeyWatScript;
+                if( spiderMonkeyScriptWatGC == null ) {
+                    File file = newFile( "spiderMonkeyGC.wat" );
+                    compiler.compileToText( file );
+                    spiderMonkeyScriptWatGC = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkeyGC" );
                 }
+                script = spiderMonkeyScriptWatGC;
             }
-        } finally {
-            System.clearProperty( "SpiderMonkey" );
+        } else {
+            if( binary ) {
+                if( spiderMonkeyScript == null ) {
+                    File file = newFile( "spiderMonkey.wasm" );
+                    compiler.compileToBinary( file );
+                    spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                }
+                script = spiderMonkeyScript;
+            } else {
+                if( spiderMonkeyWatScript == null ) {
+                    File file = newFile( "spiderMonkey.wat" );
+                    compiler.compileToText( file );
+                    spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkey" );
+                }
+                script = spiderMonkeyWatScript;
+            }
         }
+
         ProcessBuilder process = new ProcessBuilder( spiderMonkey.getCommand(), script.getAbsolutePath() );
         if( gc ) {
             process.command().add( 1, "--wasm-gc" );
