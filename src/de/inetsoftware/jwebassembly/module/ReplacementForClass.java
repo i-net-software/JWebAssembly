@@ -158,4 +158,44 @@ class ReplacementForClass {
                     "i32.load offset=0 align=4 " + //
                     "return" )
     private static native int getIntFromMemory( int pos );
+
+
+    /**
+     * Replacement of the native Java methods
+     * 
+     * @param name
+     *            the class name
+     * @return the class
+     * @see TypeManager#PRIMITIVE_CLASSES
+     */
+    static ReplacementForClass getPrimitiveClass( String name ) {
+        switch( name ) {
+            case "boolean":
+                return classConstant( 0 );
+            case "byte":
+                return classConstant( 1 );
+            case "char":
+                return classConstant( 2 );
+            case "double":
+                return classConstant( 3 );
+            case "float":
+                return classConstant( 4 );
+            case "int":
+                return classConstant( 5 );
+            case "long":
+                return classConstant( 6 );
+            case "short":
+                return classConstant( 7 );
+            case "void":
+                return classConstant( 8 );
+        }
+        return null;
+    }
+
+    /**
+     * Replacement of the native Java methods.
+     */
+    public boolean desiredAssertionStatus() {
+        return false;
+    }
 }

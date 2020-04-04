@@ -81,6 +81,13 @@ public class TypeManager {
 
     private static final FunctionName CLASS_CONSTANT_FUNCTION = new FunctionName( "java/lang/Class.classConstant(I)Ljava/lang/Class;" ); 
 
+    /**
+     * the list of primitive types. The order is important and must correlate with getPrimitiveClass.
+     * 
+     * @see ReplacementForClass#getPrimitiveClass(String)
+     */
+    private static final String[]     PRIMITIVE_CLASSES                  = { "boolean", "byte", "char", "double", "float", "int", "long", "short", "void" };
+
     private Map<String, StructType> structTypes = new LinkedHashMap<>();
 
     private Map<AnyType, ArrayType> arrayTypes  = new LinkedHashMap<>();
@@ -188,6 +195,13 @@ public class TypeManager {
             if( isFinish ) {
                 throw new WasmException( "Register needed type after scanning: " + name, -1 );
             }
+
+            if( structTypes.size() == 0 ) {
+                for( String primitiveTypeName : PRIMITIVE_CLASSES ) {
+                    structTypes.put( primitiveTypeName, new StructType( primitiveTypeName, structTypes.size() ) );
+                }
+            }
+
             type = new StructType( name, structTypes.size() );
             structTypes.put( name, type );
         }
@@ -363,7 +377,9 @@ public class TypeManager {
             instanceOFs = new LinkedHashSet<>(); // remembers the order from bottom to top class.
             instanceOFs.add( this );
             HashSet<String> allNeededFields = new HashSet<>();
-            listStructFields( name, functions, types, classFileLoader, allNeededFields );
+            if( classIndex >= PRIMITIVE_CLASSES.length ) {
+                listStructFields( name, functions, types, classFileLoader, allNeededFields );
+            }
         }
 
         /**
