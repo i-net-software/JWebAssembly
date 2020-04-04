@@ -79,7 +79,7 @@ public class TypeManager {
      */
     private static final int        VTABLE_FIRST_FUNCTION_INDEX = 3;
 
-    private static final FunctionName CLASS_CONSTANT_FUNCTION = new FunctionName( "java/lang/Class.classConstant(I)Lde/inetsoftware/jwebassembly/module/ReplacementForClass;" ); 
+    private static final FunctionName CLASS_CONSTANT_FUNCTION = new FunctionName( "java/lang/Class.classConstant(I)Ljava/lang/Class;" ); 
 
     private Map<String, StructType> structTypes = new LinkedHashMap<>();
 

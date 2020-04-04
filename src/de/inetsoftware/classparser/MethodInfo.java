@@ -35,7 +35,7 @@ public class MethodInfo implements Member {
 
     private final String       name;
 
-    private final String       description;
+    private String             description;
 
     private final Attributes   attributes;
 
@@ -214,10 +214,13 @@ public class MethodInfo implements Member {
     /**
      * Replace the reference to the ClassFile
      * 
+     * @param origClassName
+     *            the class name that should be replaced.
      * @param classFile
      *            the new value
      */
-    void setDeclaringClassFile( @Nonnull ClassFile classFile ) {
+    void setDeclaringClassFile( @Nonnull String origClassName, @Nonnull ClassFile classFile ) {
+        description = description.replace( 'L' + origClassName + ';', 'L' + classFile.getThisClass().getName() + ';' );
         this.classFile = classFile;
     }
 }

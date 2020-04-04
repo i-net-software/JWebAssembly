@@ -140,10 +140,11 @@ public class ClassFile {
         methods = classFile.methods;
         attributes = classFile.attributes;
 
+        String origClassName = classFile.thisClass.getName();
         patchConstantPool( classFile.thisClass.getName(), thisClass );
 
         for( MethodInfo m : methods ) {
-            m.setDeclaringClassFile( this );
+            m.setDeclaringClassFile( origClassName, this );
         }
     }
 
@@ -156,6 +157,8 @@ public class ClassFile {
      *            the reference of the class that should be used.
      */
     private void patchConstantPool( String origClassName, ConstantClass thisClass ) {
+        String origSignature = 'L' + origClassName + ';';
+        String thisSignature = 'L' + thisClass.getName() + ';';
         // patch constant pool
         for( int i = 0; i < constantPool.size(); i++ ) {
             Object obj = constantPool.get( i );
@@ -166,7 +169,8 @@ public class ClassFile {
             } else if( obj instanceof ConstantRef ) {
                 ConstantRef ref = (ConstantRef)obj;
                 if( ref.getClassName().equals( origClassName ) ) {
-                    ConstantNameAndType nameAndType = new ConstantNameAndType( ref.getName(), ref.getType() );
+                    String type = ref.getType().replace( origSignature, thisSignature );
+                    ConstantNameAndType nameAndType = new ConstantNameAndType( ref.getName(), type );
                     constantPool.set( i, new ConstantFieldRef( thisClass, nameAndType ) );
                 }
             }
@@ -357,10 +361,11 @@ public class ClassFile {
      *            extension of the class
      */
     public void partial( ClassFile partialClassFile ) {
+        String origClassName = partialClassFile.thisClass.getName();
         ArrayList<MethodInfo> allMethods = new ArrayList<>( Arrays.asList( methods ) );
         for( MethodInfo m : partialClassFile.methods ) {
             if( getMethod( m.getName(), m.getType() ) == null ) {
-                m.setDeclaringClassFile( this );
+                m.setDeclaringClassFile( origClassName, this );
                 allMethods.add( m );
             }
         }
@@ -374,6 +379,6 @@ public class ClassFile {
         }
         fields = allFields.toArray( fields );
 
-        partialClassFile.patchConstantPool( partialClassFile.thisClass.getName(), thisClass );
+        partialClassFile.patchConstantPool( origClassName, thisClass );
     }
 }

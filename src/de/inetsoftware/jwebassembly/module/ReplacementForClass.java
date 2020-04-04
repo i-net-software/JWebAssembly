@@ -67,7 +67,7 @@ class ReplacementForClass {
                     + "i32.const 4 " // length of instanceof
                     + "i32.add " //
                     + "call $java/lang/Class.getIntFromMemory(I)I " // first entry in instanceof is ever the id of the Class self
-                    + "call $java/lang/Class.classConstant(I)Lde/inetsoftware/jwebassembly/module/ReplacementForClass; " //
+                    + "call $java/lang/Class.classConstant(I)Ljava/lang/Class; " //
                     + "return " //
     )
     @Replace( "java/lang/Object.getClass()Ljava/lang/Class;" )
