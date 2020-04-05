@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -358,7 +359,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     }
 
     /**
-     * Write optional the debug names into the name section
+     * Write optional the debug names into the custom "name" section.
      * 
      * @throws IOException
      *             if any I/O error occur
@@ -373,21 +374,55 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         // write function names
         stream.write( 1 ); // 1 - Function name
         WasmOutputStream section = new WasmOutputStream();
-        section.writeVaruint32( functions.size() );
-        for( Entry<String, Function> entry : functions.entrySet() ) {
-            section.writeVaruint32( entry.getValue().id ); // function index
-            String functionName = entry.getKey();
-            functionName = functionName.substring( 0, functionName.indexOf( '(' ) );
-            section.writeString( functionName );
-        }
+        section.writeVaruint32( imports.size() + functions.size() );
+        writeDebugFunctionNames( imports.entrySet(), section );
+        writeDebugFunctionNames( functions.entrySet(), section );
         stream.writeVaruint32( section.size() );
         section.writeTo( stream );
 
         // write function parameter names
         stream.write( 2 ); // 2 - Local names
         section.reset();
-        section.writeVaruint32( functions.size() );
-        for( Entry<String, Function> entry : functions.entrySet() ) {
+        section.writeVaruint32( imports.size() + functions.size() );
+        writeDebugParameternNames( imports.entrySet(), section );
+        writeDebugParameternNames( functions.entrySet(), section );
+        stream.writeVaruint32( section.size() );
+        section.writeTo( stream );
+
+        wasm.writeSection( SectionType.Custom, stream );
+    }
+
+    /**
+     * Write function names to the custom "name" section.
+     * 
+     * @param entries
+     *            the functions
+     * @param section
+     *            the target
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeDebugFunctionNames( Set<? extends Entry<String, ? extends Function>> entries, WasmOutputStream section ) throws IOException {
+        for( Entry<String, ? extends Function> entry : entries ) {
+            section.writeVaruint32( entry.getValue().id ); // function index
+            String functionName = entry.getKey();
+            functionName = functionName.substring( 0, functionName.indexOf( '(' ) );
+            section.writeString( functionName );
+        }
+    }
+
+    /**
+     * Write parameter names to the custom "name" section.
+     * 
+     * @param entries
+     *            the functions
+     * @param section
+     *            the target
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeDebugParameternNames( Set<? extends Entry<String, ? extends Function>> entries, WasmOutputStream section ) throws IOException {
+        for( Entry<String, ? extends Function> entry : entries ) {
             Function func = entry.getValue();
             section.writeVaruint32( func.id ); // function index
             List<String> paramNames = func.paramNames;
@@ -398,10 +433,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 section.writeString( paramNames.get( i ) );
             }
         }
-        stream.writeVaruint32( section.size() );
-        section.writeTo( stream );
-
-        wasm.writeSection( SectionType.Custom, stream );
     }
 
     /**
