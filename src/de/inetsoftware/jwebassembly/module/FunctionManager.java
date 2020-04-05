@@ -15,11 +15,12 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -37,9 +38,9 @@ import de.inetsoftware.jwebassembly.WasmException;
  */
 class FunctionManager {
 
-    private final Map<FunctionName, FunctionState> states            = new LinkedHashMap<>();
+    private final Map<FunctionName, FunctionState> states      = new LinkedHashMap<>();
 
-    private final Map<String, FunctionName>        classesWithClinit = new HashMap<>();
+    private final Set<String>                      usedClasses = new LinkedHashSet<>();
 
     private boolean isFinish;
 
@@ -87,13 +88,13 @@ class FunctionManager {
     }
 
     /**
-     * Mark that a class has static initializer.
+     * Mark a class as used. This means the static initializer must be used.
      * 
-     * @param name
-     *            the "&lt;clinit&gt;" function name
+     * @param className
+     *            the name of the class like "java/lang/Object"
      */
-    void markClassWithClinit( FunctionName name ) {
-        classesWithClinit.put( name.className, name );
+    void markClassAsUsed( String className ) {
+        usedClasses.add( className );
     }
 
     /**
@@ -152,10 +153,7 @@ class FunctionManager {
             }
             state.state = State.Needed;
             JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );
-            FunctionName cInit = classesWithClinit.get( name.className );
-            if( cInit != null ) {
-                markAsNeeded( cInit );
-            }
+            usedClasses.add( name.className );
         }
         return state.alias == null ? name : state.alias;
     }
@@ -244,16 +242,23 @@ class FunctionManager {
     }
 
     /**
+     * Get all used classes.
+     * 
+     * @return an iterator
+     */
+    @Nullable
+    Iterator<String> getUsedClasses() {
+        return usedClasses.iterator();
+    }
+
+    /**
      * Get all static constructor FunctionName of used classes.
      * 
      * @return an iterator
      */
     @Nullable
     Iterator<FunctionName> getWriteLaterClinit() {
-        return classesWithClinit.values().stream().filter( ( name ) -> {
-            FunctionState state = states.get( name );
-            return state != null && (state.state == State.Needed || state.state == State.Scanned);
-        } ).iterator();
+        return iterator( entry -> entry.getKey().methodName.equals( "<clinit>" ) );
     }
 
     /**

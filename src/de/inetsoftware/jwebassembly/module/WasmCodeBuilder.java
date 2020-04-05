@@ -329,6 +329,7 @@ public abstract class WasmCodeBuilder {
         FunctionName name = new FunctionName( ref );
         AnyType type = new ValueTypeParser( ref.getType(), types ).next();
         instructions.add( new WasmGlobalInstruction( load, name, type, javaCodePos, lineNumber ) );
+        functions.markClassAsUsed( name.className );
     }
 
     /**
@@ -486,6 +487,7 @@ public abstract class WasmCodeBuilder {
         }
 
         instructions.add( instruction );
+        functions.markClassAsUsed( name.className );
     }
 
     /**
@@ -535,6 +537,7 @@ public abstract class WasmCodeBuilder {
         name = functions.markAsNeeded( name );
         addCallIndirectInstruction( new WasmCallVirtualInstruction( name, javaCodePos, lineNumber, types, options ) );
         options.getCallVirtual(); // mark the function as needed
+        functions.markClassAsUsed( name.className );
     }
 
     /**
@@ -549,6 +552,7 @@ public abstract class WasmCodeBuilder {
     protected void addCallInterfaceInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
         //TODO name = functions.markAsNeeded( name );
         addCallIndirectInstruction( new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types, options ) );
+        functions.markClassAsUsed( name.className );
     }
 
     /**

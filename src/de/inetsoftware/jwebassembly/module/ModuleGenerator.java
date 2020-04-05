@@ -196,8 +196,8 @@ public class ModuleGenerator {
         NEXT:
         while( (next = functions.nextScannLater()) != null ) {
             className = next.className;
+            JWebAssembly.LOGGER.fine( "scan " + next.signatureName );
             if( next instanceof SyntheticFunctionName ) {
-                JWebAssembly.LOGGER.fine( '\t' + next.methodName + next.signature );
                 SyntheticFunctionName synth = (SyntheticFunctionName)next;
                 if( synth.hasWasmCode() ) {
                     synth.getCodeBuilder( watParser );
@@ -208,7 +208,6 @@ public class ModuleGenerator {
                 continue;
             }
 
-            JWebAssembly.LOGGER.fine( "scan " + next.signatureName );
             MethodInfo method = null;
             ClassFile classFile = classFileLoader.get( next.className );
             if( classFile != null ) {
@@ -275,6 +274,7 @@ public class ModuleGenerator {
         do {
             scanFunctions();
             functCount = functions.size();              // scan the functions can find new needed types
+            //TODO static code disabled: scanForClinit();
             types.scanTypeHierarchy( classFileLoader ); // scan the type hierarchy can find new functions
         } while( functCount < functions.size() );
 
@@ -322,6 +322,26 @@ public class ModuleGenerator {
     }
 
     /**
+     * Scan for needed static constructors. The static code of all classes that used in any form must be executed.
+     * 
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void scanForClinit() throws IOException {
+        JWebAssembly.LOGGER.fine( "scan for needed <clinit>" );
+        for( Iterator<String> iterator = functions.getUsedClasses(); iterator.hasNext(); ) {
+            String className = iterator.next();
+            ClassFile classFile = classFileLoader.get( className );
+            if( classFile != null ) {
+                MethodInfo method = classFile.getMethod( "<clinit>", "()V" );
+                if( method != null ) {
+                    functions.markAsNeeded( new FunctionName( method ) );
+                }
+            }
+        }
+    }
+
+    /**
      * Add a start method for the static class constructors
      * 
      * @throws IOException
@@ -329,8 +349,7 @@ public class ModuleGenerator {
      */
     private void prepareStartFunction() throws IOException {
         // add the start function/section only if there are static code
-        Iterator<FunctionName> iterator = functions.getWriteLaterClinit();
-        if( iterator.hasNext() ) {
+        if( functions.getWriteLaterClinit().hasNext() ) {
             FunctionName cinit = new SyntheticFunctionName( "", "<clinit>", "()V" ) {
                 @Override
                 protected boolean hasWasmCode() {
@@ -341,6 +360,7 @@ public class ModuleGenerator {
                 protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
                     watParser.reset( null, null, getSignature( null ) );
 
+                    Iterator<FunctionName> iterator = functions.getWriteLaterClinit();
                     while( iterator.hasNext() ) {
                         FunctionName name = iterator.next();
                         //TODO if not in the debug mode then inlining would produce smaller output and should be faster
@@ -440,9 +460,6 @@ public class ModuleGenerator {
     private void prepareMethod( MethodInfo method ) throws WasmException {
         try {
             FunctionName name = new FunctionName( method );
-            if( "<clinit>".equals( name.methodName ) ) {
-                functions.markClassWithClinit( name );
-            }
             if( functions.isKnown( name ) ) {
                 return;
             }
@@ -532,6 +549,10 @@ public class ModuleGenerator {
                 if( "java/lang/Class.typeTableMemoryOffset()I".equals( name.signatureName ) ) {
                     strings.getStringConstantFunction(); // we will need also the string constant function for the Class Name, in the other case a program with only new Object().getClass().getName() will fail to compile 
                     return types.getTypeTableMemoryOffsetFunctionName().getCodeBuilder( watParser );
+                }
+                if( "de/inetsoftware/jwebassembly/module/StringManager.stringsMemoryOffset()I".equals( name.signatureName ) ) {
+                    strings.getStringConstantFunction();
+                    return null;
                 }
                 throw new WasmException( "Abstract or native method can not be used: " + name.signatureName, -1 );
             }
