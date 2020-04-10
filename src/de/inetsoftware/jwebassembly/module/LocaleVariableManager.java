@@ -240,22 +240,29 @@ class LocaleVariableManager {
      */
     void use( AnyType valueType, int slot, int javaCodePos ) {
         int idx = get( slot, javaCodePos );
-        useImpl( valueType, idx );
+        useImpl( valueType, idx, javaCodePos );
     }
 
-    private void useImpl( AnyType valueType, int idx ) {
+    private void useImpl( AnyType valueType, int idx, int javaCodePos ) {
         Variable var = variables[idx];
         if( var.valueType != null && var.valueType != valueType ) {
-            if( var.valueType.getCode() >= 0 && valueType == ValueType.anyref ) {
+            if( var.valueType.isSubTypeOf( valueType ) ) {
                 return;
             }
-            if( valueType.getCode() >= 0 && var.valueType == ValueType.anyref ) {
+            if( valueType.isSubTypeOf( var.valueType ) ) {
                 // set the more specific type
+            } else if( var.endPos == Integer.MAX_VALUE && javaCodePos > 0 ) {
+                // seems the slot was reused with a different type, in WASM we need to use 2 variables in this case
+                var.endPos = javaCodePos - 1;
+                idx = size;
+                resetAddVar( valueType, var.idx );
+                var = variables[idx];
+                var.startPos = javaCodePos;
+            } else if( types.isFinish() ) {
+                throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot " + var.idx
+                                + ". Compile the Java code with debug information to correct this problem.", null, null, -1 );
             } else {
-return;// TODO we need a better check
-//                throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot "
-//                                + slot + ". Compile the Java code with debug information to correct this problem.", null, null, -1 );
-
+                return; // in the scan phase not all types are known
             }
         }
         var.valueType = valueType;
@@ -265,7 +272,7 @@ return;// TODO we need a better check
         while( size <= wasmIdx ) {
             resetAddVar( null, size );
         }
-        useImpl( valueType, wasmIdx );
+        useImpl( valueType, wasmIdx, 0 );
     }
 
     /**

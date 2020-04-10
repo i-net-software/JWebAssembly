@@ -118,6 +118,15 @@ public class TypeManager {
     }
 
     /**
+     * If the scan phase is finish
+     * 
+     * @return true, if scan phase is finish
+     */
+    boolean isFinish() {
+        return isFinish;
+    }
+
+    /**
      * Scan the hierarchy of the types.
      * 
      * @param classFileLoader
@@ -495,6 +504,14 @@ public class TypeManager {
         @Override
         public int getCode() {
             return code;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isSubTypeOf( AnyType type ) {
+            return type == this || type == ValueType.anyref;
         }
 
         /**
