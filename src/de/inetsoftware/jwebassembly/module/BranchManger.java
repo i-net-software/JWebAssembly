@@ -841,7 +841,7 @@ class BranchManger {
      * code3
      * </pre>
      *
-     * Should be converted to the follow Wasm code for tableswitch:
+     * Should be converted to the follow Wasm code for try/catch:
      * 
      * <pre>
      * block
@@ -1098,12 +1098,21 @@ class BranchManger {
 
         private WasmBlockOperator       endOp;
 
+        /**
+         * Extra data depending of the operator. For example the return type of a block.
+         */
         private Object                  data;
 
         private BranchNode              parent;
 
+        /**
+         * A instruction for which the return type must be calculated.
+         */
         private WasmBlockInstruction    startBlock;
 
+        /**
+         * The position of the startBlock in the instructions
+         */
         private int                     startIdx;
 
         /**
