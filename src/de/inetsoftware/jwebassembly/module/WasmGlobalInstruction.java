@@ -50,7 +50,7 @@ class WasmGlobalInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmGlobalInstruction( boolean load, FunctionName name, AnyType type, int javaCodePos, int lineNumber ) {
+    WasmGlobalInstruction( boolean load, @Nonnull FunctionName name, AnyType type, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.load = load;
         this.name = name;
@@ -63,6 +63,16 @@ class WasmGlobalInstruction extends WasmInstruction {
     @Override
     Type getType() {
         return Type.Global;
+    }
+
+    /**
+     * The name of the field
+     * 
+     * @return the field
+     */
+    @Nonnull
+    FunctionName getFieldName() {
+        return name;
     }
 
     /**

@@ -350,27 +350,9 @@ public class ModuleGenerator {
     private void prepareStartFunction() throws IOException {
         // add the start function/section only if there are static code
         if( functions.getWriteLaterClinit().hasNext() ) {
-            FunctionName cinit = new SyntheticFunctionName( "", "<clinit>", "()V" ) {
-                @Override
-                protected boolean hasWasmCode() {
-                    return true;
-                }
-
-                @Override
-                protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
-                    watParser.reset( null, null, getSignature( null ) );
-
-                    Iterator<FunctionName> iterator = functions.getWriteLaterClinit();
-                    while( iterator.hasNext() ) {
-                        FunctionName name = iterator.next();
-                        //TODO if not in the debug mode then inlining would produce smaller output and should be faster
-                        watParser.addCallInstruction( name, 0, -1 );
-                    }
-                    return watParser;
-                }
-            };
-            functions.markAsNeeded( cinit );
-            writeMethodSignature( cinit, FunctionType.Start, null );
+            FunctionName start = new StaticCodeBuilder( writer.options, classFileLoader, javaCodeBuilder ).createStartFunction();
+            functions.markAsNeeded( start );
+            writeMethodSignature( start, FunctionType.Start, null );
         }
     }
 
