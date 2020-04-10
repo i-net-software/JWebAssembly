@@ -1197,42 +1197,45 @@ class BranchManger {
             }
 
             if( startBlock != null && startBlock.getOperation() == WasmBlockOperator.IF ) {
-                ArrayDeque<AnyType> stack = new ArrayDeque<>();
-                stack.push( ValueType.empty );
-                INSTRUCTIONS:
-                for( int i = startIdx; i < instructions.size(); i++ ) {
-                    WasmInstruction instr = instructions.get( i );
-                    int codePos = instr.getCodePosition();
-                    if( codePos >= endPos ) {
-                        break;
-                    }
-                    int popCount = instr.getPopCount();
-                    for( int p = 0; p < popCount; p++ ) {
-                        stack.pop();
-                    }
-                    AnyType pushValue = instr.getPushValueType();
-                    if( pushValue != null ) {
-                        stack.push( pushValue );
-                    }
+                try {
+                    ArrayDeque<AnyType> stack = new ArrayDeque<>();
+                    stack.push( ValueType.empty );
+                    INSTRUCTIONS: for( int i = startIdx; i < instructions.size(); i++ ) {
+                        WasmInstruction instr = instructions.get( i );
+                        int codePos = instr.getCodePosition();
+                        if( codePos >= endPos ) {
+                            break;
+                        }
+                        int popCount = instr.getPopCount();
+                        for( int p = 0; p < popCount; p++ ) {
+                            stack.pop();
+                        }
+                        AnyType pushValue = instr.getPushValueType();
+                        if( pushValue != null ) {
+                            stack.push( pushValue );
+                        }
 
-                    if( instr.getType() == Type.Block ) {
-                        switch( ((WasmBlockInstruction)instr).getOperation() ) {
-                            case RETURN:
-                                // set "empty" block type
-                                while( stack.size() > 1 ) {
-                                    stack.pop();
-                                }
-                                break INSTRUCTIONS;
-                            case IF:
-                            case BLOCK:
-                            case LOOP:
-                                // skip the content of the block, important to not count ELSE blocks
-                                i = findEndInstruction( instructions, i );
-                                break;
+                        if( instr.getType() == Type.Block ) {
+                            switch( ((WasmBlockInstruction)instr).getOperation() ) {
+                                case RETURN:
+                                    // set "empty" block type
+                                    while( stack.size() > 1 ) {
+                                        stack.pop();
+                                    }
+                                    break INSTRUCTIONS;
+                                case IF:
+                                case BLOCK:
+                                case LOOP:
+                                    // skip the content of the block, important to not count ELSE blocks
+                                    i = findEndInstruction( instructions, i );
+                                    break;
+                            }
                         }
                     }
+                    startBlock.setData( stack.pop() );
+                } catch( Throwable th ) {
+                    throw WasmException.create( th, startBlock.getLineNumber() );
                 }
-                startBlock.setData( stack.pop() );
             }
         }
 
