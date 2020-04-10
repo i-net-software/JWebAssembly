@@ -636,8 +636,8 @@ public abstract class WasmCodeBuilder {
         if( options.useGC() ) {
             instructions.add( new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber ) );
         } else {
-            if( type.getCode() >= 0 ) {
-                type = ValueType.anyref;
+            if( type.getCode() >= 0 || type.getCode() == ValueType.anyref.getCode() ) {
+                type = ValueType.anyref; // handle all not native types as anyref 
             }
             String api = "array_" + op.toString().toLowerCase() + "_" + type;
             FunctionName name = getNonGC( api, lineNumber );
