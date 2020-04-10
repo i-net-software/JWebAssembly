@@ -1235,6 +1235,7 @@ class BranchManger {
                                 case IF:
                                 case BLOCK:
                                 case LOOP:
+                                case TRY:
                                     // skip the content of the block, important to not count ELSE blocks
                                     i = findEndInstruction( instructions, i );
                                     break;
@@ -1266,6 +1267,7 @@ class BranchManger {
                         case IF:
                         case BLOCK:
                         case LOOP:
+                        case TRY:
                             count++;
                             break;
                         case END:
