@@ -57,4 +57,12 @@ public enum ValueType implements AnyType {
     public int getCode() {
         return code;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isSubTypeOf( AnyType type ) {
+        return type == this;
+    }
 }

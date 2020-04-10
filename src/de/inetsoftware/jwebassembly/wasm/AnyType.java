@@ -15,6 +15,8 @@
  */
 package de.inetsoftware.jwebassembly.wasm;
 
+import javax.annotation.Nonnull;
+
 /**
  * Interface of all possible types in WebAssembly. This are predefined (native) types and custom types in the type section.
  * <pre><code>
@@ -36,4 +38,13 @@ public interface AnyType {
      * @return the code
      */
     public int getCode();
+
+    /**
+     * Check if this is a sub type of given type.
+     * 
+     * @param type
+     *            type to check
+     * @return true, if both are identical or the type is a sub type
+     */
+    public boolean isSubTypeOf( @Nonnull AnyType type );
 }

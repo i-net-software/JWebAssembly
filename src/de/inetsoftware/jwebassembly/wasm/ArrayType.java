@@ -54,6 +54,14 @@ public class ArrayType implements AnyType {
      * {@inheritDoc}
      */
     @Override
+    public boolean isSubTypeOf( AnyType type ) {
+        return type == this || type == ValueType.anyref;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String toString() {
         // until there is a real type definition we will define write it as anyref
         return ValueType.anyref.toString();
