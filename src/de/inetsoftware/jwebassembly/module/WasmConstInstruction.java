@@ -95,7 +95,7 @@ class WasmConstInstruction extends WasmInstruction {
         } else if( clazz == Double.class ) {
             return ValueType.f64;
         } else {
-            throw new WasmException( "Not supported constant type: " + clazz, null, null, -1 );
+            throw new WasmException( "Not supported constant type: " + clazz, -1 );
         }
 
     }

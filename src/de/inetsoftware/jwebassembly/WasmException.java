@@ -29,6 +29,8 @@ public class WasmException extends RuntimeException {
 
     private String className;
 
+    private String methodName;
+
     /**
      * Create a new instance.
      * 
@@ -94,7 +96,7 @@ public class WasmException extends RuntimeException {
      * @return a new instance
      */
     public static WasmException create( Throwable cause, int lineNumber ) {
-        return create( cause, null, null, lineNumber );
+        return create( cause, null, null, null, lineNumber );
     }
 
     /**
@@ -110,13 +112,16 @@ public class WasmException extends RuntimeException {
      *            the line number in Java Code
      * @return a new instance
      */
-    public static WasmException create( Throwable cause, String sourceFile, String className, int lineNumber ) {
+    public static WasmException create( Throwable cause, String sourceFile, String className, String methodName, int lineNumber ) {
         WasmException wasmEx = create( cause );
         if( wasmEx.sourceFile == null ) {
             wasmEx.sourceFile = sourceFile;
         }
         if( wasmEx.className == null ) {
             wasmEx.className = className;
+        }
+        if( wasmEx.methodName == null ) {
+            wasmEx.methodName = methodName;
         }
         if( wasmEx.lineNumber < 0 ) {
             wasmEx.lineNumber = lineNumber;
@@ -173,6 +178,10 @@ public class WasmException extends RuntimeException {
             str += "\n\tat ";
             if( className != null ) {
                 str += className.replace( '/', '.' ).replace( '$', '.' );
+                str += '.';
+            }
+            if( methodName != null ) {
+                str += methodName;
             }
             str += "(";
             str += (sourceFile != null ? sourceFile : "line");

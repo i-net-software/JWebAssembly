@@ -70,6 +70,8 @@ public class ModuleGenerator {
 
     private String                          className;
 
+    private String                          methodName;
+
     private final FunctionManager           functions;
 
     private final TypeManager               types;
@@ -196,6 +198,7 @@ public class ModuleGenerator {
         NEXT:
         while( (next = functions.nextScannLater()) != null ) {
             className = next.className;
+            methodName = next.methodName;
             JWebAssembly.LOGGER.fine( "scan " + next.signatureName );
             if( next instanceof SyntheticFunctionName ) {
                 SyntheticFunctionName synth = (SyntheticFunctionName)next;
@@ -367,6 +370,7 @@ public class ModuleGenerator {
             FunctionName next = it.next();
             sourceFile = null; // clear previous value for the case an IO exception occur
             className = next.className;
+            methodName = next.methodName;
             if( next instanceof SyntheticFunctionName ) {
                 writeMethodImpl( next, ((SyntheticFunctionName)next).getCodeBuilder( watParser ) );
             } else {
@@ -393,7 +397,7 @@ public class ModuleGenerator {
                                 writeMethod( next, method );
                             }
                         } catch (Throwable ex){
-                            throw WasmException.create( ex, sourceFile, className, -1 );
+                            throw WasmException.create( ex, sourceFile, className, methodName, -1 );
                         }
                     } else {
                         if( functions.needToWrite( next ) ) {
@@ -427,7 +431,7 @@ public class ModuleGenerator {
                 handler.accept( method );
             }
         } catch( IOException ioex ) {
-            throw WasmException.create( ioex, sourceFile, className, -1 );
+            throw WasmException.create( ioex, sourceFile, className, methodName, -1 );
         }
     }
 
@@ -442,6 +446,7 @@ public class ModuleGenerator {
     private void prepareMethod( MethodInfo method ) throws WasmException {
         try {
             FunctionName name = new FunctionName( method );
+            methodName = name.methodName;
             if( functions.isKnown( name ) ) {
                 return;
             }
@@ -467,7 +472,7 @@ public class ModuleGenerator {
                 return;
             }
         } catch( Exception ioex ) {
-            throw WasmException.create( ioex, sourceFile, className, -1 );
+            throw WasmException.create( ioex, sourceFile, className, methodName, -1 );
         }
     }
 
@@ -540,7 +545,7 @@ public class ModuleGenerator {
             }
         } catch( Exception ioex ) {
             int lineNumber = code == null ? -1 : code.getFirstLineNr();
-            throw WasmException.create( ioex, sourceFile, className, lineNumber );
+            throw WasmException.create( ioex, sourceFile, className, methodName, lineNumber );
         }
     }
 

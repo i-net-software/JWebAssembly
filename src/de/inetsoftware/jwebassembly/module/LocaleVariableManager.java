@@ -260,7 +260,7 @@ class LocaleVariableManager {
                 var.startPos = javaCodePos;
             } else if( types.isFinish() ) {
                 throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot " + var.idx
-                                + ". Compile the Java code with debug information to correct this problem.", null, null, -1 );
+                                + ". Compile the Java code with debug information to correct this problem.", -1 );
             } else {
                 return; // in the scan phase not all types are known
             }

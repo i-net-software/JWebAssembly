@@ -150,7 +150,7 @@ class StaticCodeBuilder {
                 } );
             }
         } catch( IOException ex ) {
-            throw WasmException.create( ex, sourceFile, className, instr == null ? -1 : instr.getLineNumber() );
+            throw WasmException.create( ex, sourceFile, className, name.methodName, instr == null ? -1 : instr.getLineNumber() );
         }
 
     }

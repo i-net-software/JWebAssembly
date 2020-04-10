@@ -164,7 +164,7 @@ class BranchManger {
                         loop.endPosition = parsedBlock.nextPosition;
                         break;
                     default:
-                        throw new WasmException( "Unimplemented loop code operation: " + parsedBlock.op, null, null, parsedBlock.lineNumber );
+                        throw new WasmException( "Unimplemented loop code operation: " + parsedBlock.op, parsedBlock.lineNumber );
                 }
             } else {
                 switch ( parsedBlock.op ) {
@@ -285,7 +285,7 @@ class BranchManger {
                     calculateTry( parent, (TryCatchParsedBlock)parsedBlock, parsedOperations );
                     break;
                 default:
-                    throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, null, null, parsedBlock.lineNumber );
+                    throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, parsedBlock.lineNumber );
             }
         }
     }
@@ -798,7 +798,7 @@ class BranchManger {
                 return;
             }
         }
-        throw new WasmException( "GOTO code without target loop/block", null, null, gotoBlock.lineNumber );
+        throw new WasmException( "GOTO code without target loop/block", gotoBlock.lineNumber );
     }
 
     /**
@@ -879,7 +879,7 @@ class BranchManger {
             if( parsedBlock.op == JavaBlockOperator.TRY ) {
                 TryCatchFinally tryCatch2 = ((TryCatchParsedBlock)parsedBlock).tryCatch;
                 if( tryCatch.getStart() == tryCatch2.getStart() && tryCatch.getEnd() == tryCatch2.getEnd() ) {
-                    throw new WasmException( "Try with multiple catch blocks can't compile currently.", null, null, tryBlock.lineNumber );
+                    throw new WasmException( "Try with multiple catch blocks can't compile currently.", tryBlock.lineNumber );
                 }
             }
 
@@ -1049,7 +1049,7 @@ class BranchManger {
                     newOp = NumericOperator.ref_eq;
                     break;
                 default:
-                    throw new WasmException( "Not a compare operation: " + instr.numOp, null, null, lineNumber );
+                    throw new WasmException( "Not a compare operation: " + instr.numOp, lineNumber );
             }
             instr.numOp = newOp;
         }
