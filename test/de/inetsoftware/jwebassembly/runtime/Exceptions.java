@@ -46,6 +46,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "rethrow" );
             addParam( list, script, "tryFinally" );
             addParam( list, script, "complex" );
+            addParam( list, script, "emptyCatch" );
         }
         rule.setTestParameters( list );
         rule.setProperty( JWebAssembly.WASM_USE_EH, "true" );
@@ -130,6 +131,17 @@ public class Exceptions extends AbstractBaseTest {
                 v++;
             }
             return v;
+        }
+
+        @Export
+        static int emptyCatch() {
+            int h = 127; // variable slot 0
+            try {
+                int i = h + 1; // variable slot 1
+            } catch( NumberFormatException nfe ) { // reuse variable slot 1
+                // nothing
+            }
+            return h;
         }
 
 //        @Export
