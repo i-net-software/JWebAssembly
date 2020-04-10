@@ -783,7 +783,7 @@ public class TextModuleWriter extends ModuleWriter {
                 name = "rethrow";
                 break;
             case BR_ON_EXN:
-                name = "br_on_exn " + data + " 0"; // br_on_exn, break depth, event; // currently there is only one event/exception with anyref
+                name = options.useEH() ? "br_on_exn " + data + " 0" : "unreachable"; // br_on_exn, break depth, event; // currently there is only one event/exception with anyref
                 break;
             case MONITOR_ENTER:
             case MONITOR_EXIT:
