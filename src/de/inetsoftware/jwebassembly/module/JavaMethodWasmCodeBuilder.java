@@ -45,7 +45,16 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
 
-    private BranchManger branchManager = new BranchManger( getInstructions() );
+    private BranchManger branchManager;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void init( WasmOptions options, ClassFileLoader classFileLoader ) {
+        super.init( options, classFileLoader );
+        this.branchManager = new BranchManger( options, getInstructions() );
+    }
 
     /**
      * Build the wasm instructions

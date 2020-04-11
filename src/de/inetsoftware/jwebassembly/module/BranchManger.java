@@ -30,10 +30,12 @@ import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
@@ -50,6 +52,8 @@ class BranchManger {
 
     private final HashMap<Integer, ParsedBlock> loops               = new HashMap<>();
 
+    private final WasmOptions                   options;
+
     private final List<WasmInstruction>         instructions;
 
     private TryCatchFinally[]                   exceptionTable;
@@ -57,11 +61,14 @@ class BranchManger {
     /**
      * Create a branch manager.
      * 
+     * @param options
+     *            compiler option/properties
      * @param instructions
      *            the target for instructions
      */
-    public BranchManger( List<WasmInstruction> instructions ) {
+    public BranchManger( WasmOptions options, List<WasmInstruction> instructions ) {
         this.instructions = instructions;
+        this.options = options;
     }
 
     /**
@@ -333,14 +340,7 @@ class BranchManger {
         if( startPos > endPos ) {
             // the condition in a do while(condition) loop
             int breakDeep = calculateContinueDeep( parent, endPos );
-            for( int idx = 0; idx < instructions.size(); idx++ ) {
-                WasmInstruction instr = instructions.get( idx );
-                int codePos = instr.getCodePosition();
-                if( codePos >= startPos ) {
-                    instructions.add( idx, new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, startPos - 1, startBlock.lineNumber ) );
-                    break;
-                }
-            }
+            instructions.add( findIdxOfCodePos( startPos ), new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, startPos - 1, startBlock.lineNumber ) );
             return;
         }
 
@@ -466,13 +466,24 @@ class BranchManger {
      *            the line number for possible error messages
      */
     private void insertConstBeforePosition( int constant, int pos, int lineNumber ) {
-        for( int k = 0; k < instructions.size(); k++ ) {
-            WasmInstruction instr = instructions.get( k );
-            if( instr.getCodePosition() >= pos ) {
-                instructions.add( k, new WasmConstInstruction( constant, pos - 1, lineNumber ) );
-                break;
+        instructions.add( findIdxOfCodePos( pos ), new WasmConstInstruction( constant, pos - 1, lineNumber ) );
+    }
+
+    /**
+     * Find the index of the instruction with the given code position.
+     * 
+     * @param codePosition
+     *            the java position
+     * @return the index
+     */
+    private int findIdxOfCodePos( int codePosition ) {
+        int size = instructions.size();
+        for( int i = 0; i < size; i++ ) {
+            if( instructions.get( i ).getCodePosition() >= codePosition ) {
+                return i;
             }
         }
+        return size;
     }
 
     /**
@@ -867,7 +878,7 @@ class BranchManger {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void calculateTry( BranchNode parent, TryCatchParsedBlock tryBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateTry( final BranchNode parent, TryCatchParsedBlock tryBlock, List<ParsedBlock> parsedOperations ) {
         TryCatchFinally tryCatch = tryBlock.tryCatch;
 
         int gotoPos = tryCatch.getHandler()-3; //tryCatch.getEnd() points some time bevore and some time after the goto 
@@ -894,29 +905,42 @@ class BranchManger {
         }
         int startPos = tryBlock.startPosition;
         int catchPos = tryCatch.getHandler();
-        BranchNode node = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-        parent.add( node );
-        parent = node;
+        BranchNode outerBlock = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        parent.add( outerBlock );
 
-        node = new BranchNode( startPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, ValueType.anyref );
-        parent.add( node );
-        parent = node;
+        BranchNode innerBlock = new BranchNode( startPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, ValueType.anyref );
+        outerBlock.add( innerBlock );
 
         BranchNode tryNode = new BranchNode( startPos, catchPos, WasmBlockOperator.TRY, null );
-        parent.add( tryNode );
+        innerBlock.add( tryNode );
         calculate( tryNode, parsedOperations.subList( 0, idx ) );
 
         BranchNode catchNode = new BranchNode( catchPos, catchPos, WasmBlockOperator.CATCH, WasmBlockOperator.END );
-        parent.add( catchNode );
+        innerBlock.add( catchNode );
 
         if( tryCatch.isFinally() ) {
             catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.DROP, null ) );
         } else {
             catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 1 ) );
             catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
+
+            // add a "if $exception instanceof type" check to the WASM code
+            StructType type = options.types.valueOf( tryCatch.getType().getName() );
+            FunctionName instanceOf = options.getInstanceOf();
+            int instrPos = findIdxOfCodePos( catchPos );
+            WasmLoadStoreInstruction storeException = (WasmLoadStoreInstruction)instructions.get( instrPos );
+            int lineNumber = storeException.getLineNumber();
+
+            instructions.add( ++instrPos, storeException.create( VariableOperator.get ) );
+            instructions.add( ++instrPos, new WasmConstInstruction( type.getCode(), catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmCallInstruction( instanceOf, catchPos, lineNumber, options.types, false ) );
+            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.IF, ValueType.empty, catchPos, lineNumber ) );
+            instructions.add( ++instrPos, storeException.create( VariableOperator.get ) );
+            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.THROW, null, catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.END, null, catchPos, lineNumber ) );
         }
 
-        parent.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR, null, 1 ) );
+        innerBlock.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR, null, 1 ) );
     }
 
     /**

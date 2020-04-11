@@ -16,10 +16,8 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
-import static de.inetsoftware.jwebassembly.wasm.VariableOperator.get;
-import static de.inetsoftware.jwebassembly.wasm.VariableOperator.set;
-
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
@@ -47,6 +45,18 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      */
     WasmLoadStoreInstruction( VariableOperator op, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
         super( op, idx, localVariables, javaCodePos, lineNumber );
+    }
+
+    /**
+     * Create a derived instruction for the same slot
+     * 
+     * @param op
+     *            the operation
+     * @return the new instruction
+     */
+    @Nonnull
+    WasmLoadStoreInstruction create( VariableOperator op ) {
+        return new WasmLoadStoreInstruction( op, super.getIndex(), localVariables, getCodePosition(), getLineNumber() );
     }
 
     /**
