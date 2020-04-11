@@ -134,7 +134,7 @@ public class TextModuleWriter extends ModuleWriter {
             int count = functions.size();
             String countStr = Integer.toString( count );
             newline( textOutput );
-            textOutput.append( "(table " ).append( countStr ).append( " funcref)" );
+            textOutput.append( "(table $functions " ).append( countStr ).append( " funcref)" );
             newline( textOutput );
             textOutput.append( "(elem (i32.const 0) " );
             for( int i = 0; i < count; i++ ) {
@@ -149,17 +149,17 @@ public class TextModuleWriter extends ModuleWriter {
             if( !callIndirect ) {
                 // we need to create a placeholder table with index 0 if not exists
                 newline( textOutput );
-                textOutput.append( "(table 0 funcref)" );
+                textOutput.append( "(table $functions 0 funcref)" );
             }
             newline( textOutput );
-            textOutput.append( "(table " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
+            textOutput.append( "(table $strings " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
         }
 
         // table with classes
         int typeCount = options.types.size();
         if( typeCount > 0 ) {
             newline( textOutput );
-            textOutput.append( "(table " ).append( Integer.toString( typeCount ) ).append( " anyref)" );
+            textOutput.append( "(table $classes " ).append( Integer.toString( typeCount ) ).append( " anyref)" );
         }
 
         int dataSize = dataStream.size();
