@@ -932,8 +932,9 @@ class BranchManger {
             int lineNumber = storeException.getLineNumber();
 
             instructions.add( ++instrPos, storeException.create( VariableOperator.get ) );
-            instructions.add( ++instrPos, new WasmConstInstruction( type.getCode(), catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmConstInstruction( type.getClassIndex(), catchPos, lineNumber ) );
             instructions.add( ++instrPos, new WasmCallInstruction( instanceOf, catchPos, lineNumber, options.types, false ) );
+            instructions.add( ++instrPos, new WasmNumericInstruction( NumericOperator.eqz, ValueType.i32, catchPos, lineNumber ) );
             instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.IF, ValueType.empty, catchPos, lineNumber ) );
             instructions.add( ++instrPos, storeException.create( VariableOperator.get ) );
             instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.THROW, null, catchPos, lineNumber ) );
