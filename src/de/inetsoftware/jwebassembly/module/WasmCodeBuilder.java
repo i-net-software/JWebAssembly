@@ -591,13 +591,15 @@ public abstract class WasmCodeBuilder {
      *            the position of the jump
      * @param popCount
      *            the the count of values that are removed from the stack.
+     * @param pushValueType
+     *            optional type of a push value
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addJumpPlaceholder( int jumpPos, int popCount, int javaCodePos, int lineNumber ) {
-        instructions.add( new JumpInstruction( jumpPos, popCount, javaCodePos, lineNumber ) );
+    protected void addJumpPlaceholder( int jumpPos, int popCount, AnyType pushValueType, int javaCodePos, int lineNumber ) {
+        instructions.add( new JumpInstruction( jumpPos, popCount, pushValueType, javaCodePos, lineNumber ) );
     }
 
     /**

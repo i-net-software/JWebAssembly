@@ -117,7 +117,7 @@ class BranchManger {
      *            the compare instruction
      */
     void addIfOperator( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
-        JumpInstruction jump = new JumpInstruction( startPosition + offset, 1, startPosition, lineNumber );
+        JumpInstruction jump = new JumpInstruction( startPosition + offset, 1, null, startPosition, lineNumber );
         instructions.add( jump );
         allParsedOperations.add( new IfParsedBlock( startPosition, offset, lineNumber, instr, jump ) );
     }
@@ -927,7 +927,7 @@ class BranchManger {
             // add a "if $exception instanceof type" check to the WASM code
             StructType type = options.types.valueOf( tryCatch.getType().getName() );
             FunctionName instanceOf = options.getInstanceOf();
-            int instrPos = findIdxOfCodePos( catchPos );
+            int instrPos = findIdxOfCodePos( catchPos ) + 1;
             WasmLoadStoreInstruction storeException = (WasmLoadStoreInstruction)instructions.get( instrPos );
             int lineNumber = storeException.getLineNumber();
 

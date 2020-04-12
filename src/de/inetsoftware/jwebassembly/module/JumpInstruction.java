@@ -30,9 +30,11 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 class JumpInstruction extends WasmInstruction {
 
-    private int jumpPos;
+    private int     jumpPos;
 
-    private int popCount;
+    private int     popCount;
+
+    private AnyType pushValueType;
 
     /**
      * Create an instance of a nop instruction
@@ -41,15 +43,18 @@ class JumpInstruction extends WasmInstruction {
      *            the position of the jump
      * @param popCount
      *            the the count of values that are removed from the stack.
+     * @param pushValueType
+     *            optional type of a push value
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
      */
-    JumpInstruction( int jumpPos, int popCount, int javaCodePos, int lineNumber ) {
+    JumpInstruction( int jumpPos, int popCount, AnyType pushValueType, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.jumpPos = jumpPos;
         this.popCount = popCount;
+        this.pushValueType = pushValueType;
     }
 
     /**
@@ -71,7 +76,7 @@ class JumpInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     AnyType getPushValueType() {
-        return null;
+        return pushValueType;
     }
 
     /**

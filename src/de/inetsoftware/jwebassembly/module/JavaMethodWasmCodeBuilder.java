@@ -228,7 +228,13 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addLoadStoreInstruction( ValueType.f64, false, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
                         break;
                     case 58: // astore
-                        addLoadStoreInstruction( ValueType.anyref, false, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
+                        if( branchManager.isCatch( codePos ) ) {
+                            addJumpPlaceholder( codePos, 0, ValueType.anyref, codePos, lineNumber );
+                            storeType = ValueType.anyref; // for the catch there are no previous instructions
+                        } else {
+                            storeType = findValueTypeFromStack( 1, codePos );
+                        }
+                        addLoadStoreInstruction( storeType, false, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
                         break;
                     case 59: // istore_0
                     case 60: // istore_1
@@ -259,6 +265,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 77: // astore_2
                     case 78: // astore_3
                         if( branchManager.isCatch( codePos ) ) {
+                            addJumpPlaceholder( codePos, 0, ValueType.anyref, codePos, lineNumber );
                             storeType = ValueType.anyref; // for the catch there are no previous instructions
                         } else {
                             storeType = findValueTypeFromStack( 1, codePos );
@@ -530,7 +537,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 167: // goto
                         int offset = byteCode.readShort();
                         branchManager.addGotoOperator( codePos, offset, byteCode.getCodePosition(), lineNumber );
-                        addJumpPlaceholder( codePos + offset, 0, codePos, lineNumber ); // marker of the line number for the branch manager
+                        addJumpPlaceholder( codePos + offset, 0, null, codePos, lineNumber ); // marker of the line number for the branch manager
                         break;
                     case 168: // jsr
                     case 169: // ret
