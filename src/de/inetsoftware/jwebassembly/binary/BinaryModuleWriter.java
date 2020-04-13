@@ -1302,11 +1302,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 codeStream.writeOpCode( UNREACHABLE );
                 break;
             case TRY:
-                codeStream.writeOpCode( TRY );
+                codeStream.writeOpCode( options.useEH() ? TRY : BLOCK );
                 codeStream.writeValueType( ValueType.empty ); // void; the return type of the try. currently we does not use it
                 break;
             case CATCH:
-                codeStream.writeOpCode( CATCH );
+                if( options.useEH() ) {
+                    codeStream.writeOpCode( CATCH );
+                } else {
+                    codeStream.writeOpCode( BR );
+                    codeStream.writeVaruint32( 0 );
+                }
                 break;
             case THROW:
                 if( options.useEH() ) {

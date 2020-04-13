@@ -768,12 +768,12 @@ public class TextModuleWriter extends ModuleWriter {
                 name = "unreachable";
                 break;
             case TRY:
-                name = "try";
+                name = options.useEH() ? "try" : "block";
                 insetAfter++;
                 break;
             case CATCH:
                 inset--;
-                name = "catch";
+                name = options.useEH() ? "catch" : "br 0";
                 insetAfter++;
                 break;
             case THROW:
