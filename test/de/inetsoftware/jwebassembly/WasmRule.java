@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,7 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
@@ -489,11 +490,21 @@ public class WasmRule extends TemporaryFolder {
             processBuilder = createCommand( script );
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();
-            String result = readStream( process.getInputStream() ).trim();
-            int exitCode = process.waitFor();
-            if( exitCode != 0 || !result.isEmpty() ) {
-                String errorMessage = readStream( process.getErrorStream() );
-                fail( result + '\n' + errorMessage + "\nExit code: " + exitCode );
+
+            String stdoutMessage = "";
+            String errorMessage = "";
+            do {
+                stdoutMessage += readStream( process.getInputStream() );
+                errorMessage += readStream( process.getErrorStream() );
+            }
+            while( !process.waitFor( 10, TimeUnit.MILLISECONDS ) );
+            stdoutMessage += readStream( process.getInputStream() );
+            errorMessage += readStream( process.getErrorStream() );
+            int exitCode = process.exitValue();
+            if( exitCode != 0 || !stdoutMessage.isEmpty() || !errorMessage.isEmpty() ) {
+                System.err.println( stdoutMessage );
+                System.err.println( errorMessage );
+                fail( stdoutMessage + '\n' + errorMessage + "\nExit code: " + exitCode );
             }
 
             // read the result from file
@@ -628,11 +639,21 @@ public class WasmRule extends TemporaryFolder {
      * @param input
      *            the InputStream
      * @return the string
+     * @throws IOException
+     *             if an I/O error occurs.
      */
     @SuppressWarnings( "resource" )
-    public static String readStream( InputStream input ) {
-        try (Scanner scanner = new Scanner( input ).useDelimiter( "\\A" )) {
-            return scanner.hasNext() ? scanner.next() : "";
+    public static String readStream( InputStream input ) throws IOException {
+        if( input.available() > 0 ) {
+            byte[] bytes = new byte[ 8192 ];
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            while( input.available() > 0 ) {
+                int count = input.read( bytes );
+                stream.write( bytes, 0, count );
+            }
+            return new String( stream.toByteArray() );
+        } else {
+            return "";
         }
     }
 
