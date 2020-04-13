@@ -90,8 +90,18 @@ public abstract class WasmCodeBuilder {
      * 
      * @return the list
      */
+    @Nonnull
     List<WasmInstruction> getInstructions() {
         return instructions;
+    }
+
+    /**
+     * Get the manager of local variables
+     * @return the manager
+     */
+    @Nonnull
+    LocaleVariableManager getLocalVariables() {
+        return localVariables;
     }
 
     /**

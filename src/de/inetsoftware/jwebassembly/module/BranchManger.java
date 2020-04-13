@@ -56,6 +56,8 @@ class BranchManger {
 
     private final List<WasmInstruction>         instructions;
 
+    private final LocaleVariableManager         localVariables;
+
     private TryCatchFinally[]                   exceptionTable;
 
     /**
@@ -65,10 +67,13 @@ class BranchManger {
      *            compiler option/properties
      * @param instructions
      *            the target for instructions
+     * @param localVariables
+     *            the local variables
      */
-    public BranchManger( WasmOptions options, List<WasmInstruction> instructions ) {
-        this.instructions = instructions;
+    public BranchManger( WasmOptions options, List<WasmInstruction> instructions, LocaleVariableManager localVariables ) {
         this.options = options;
+        this.instructions = instructions;
+        this.localVariables = localVariables;
     }
 
     /**
@@ -921,6 +926,7 @@ class BranchManger {
         if( tryCatch.isFinally() ) {
             catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.DROP, null ) );
         } else {
+            //TODO localVariables.getTempVariable( ValueType.exnref, catchPos, endPos ); https://github.com/WebAssembly/wabt/issues/1388
             catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 1 ) );
             catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
 

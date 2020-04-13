@@ -53,7 +53,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
     @Override
     void init( WasmOptions options, ClassFileLoader classFileLoader ) {
         super.init( options, classFileLoader );
-        this.branchManager = new BranchManger( options, getInstructions() );
+        this.branchManager = new BranchManger( options, getInstructions(), getLocalVariables() );
     }
 
     /**
