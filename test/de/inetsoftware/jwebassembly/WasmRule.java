@@ -619,8 +619,6 @@ public class WasmRule extends TemporaryFolder {
         // details see with command: node --v8-options
         ProcessBuilder processBuilder = new ProcessBuilder( command, //
                         "--experimental-wasm-mv", // multi value
-                        "--experimental-wasm-se", // sign extension
-                        "--experimental-wasm-sat-f2i-conversions", // saturating float conversion
                         "--experimental-wasm-eh", // exception handling
                         "--experimental-wasm-anyref", //
                         "--experimental-wasm-bigint", //
