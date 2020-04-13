@@ -642,17 +642,13 @@ public class WasmRule extends TemporaryFolder {
      */
     @SuppressWarnings( "resource" )
     public static String readStream( InputStream input ) throws IOException {
-        if( input.available() > 0 ) {
-            byte[] bytes = new byte[ 8192 ];
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            while( input.available() > 0 ) {
-                int count = input.read( bytes );
-                stream.write( bytes, 0, count );
-            }
-            return new String( stream.toByteArray() );
-        } else {
-            return "";
+        byte[] bytes = new byte[8192];
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        int count;
+        while( (count = input.read( bytes )) > 0 ) {
+            stream.write( bytes, 0, count );
         }
+        return new String( stream.toByteArray() );
     }
 
     /**
