@@ -494,8 +494,12 @@ public class WasmRule extends TemporaryFolder {
             String stdoutMessage = "";
             String errorMessage = "";
             do {
-                stdoutMessage += readStream( process.getInputStream() );
-                errorMessage += readStream( process.getErrorStream() );
+                if( process.getInputStream().available() > 0 ) {
+                    stdoutMessage += readStream( process.getInputStream() );
+                }
+                if( process.getErrorStream().available() > 0 ) {
+                    errorMessage += readStream( process.getErrorStream() );
+                }
             }
             while( !process.waitFor( 10, TimeUnit.MILLISECONDS ) );
             stdoutMessage += readStream( process.getInputStream() );
