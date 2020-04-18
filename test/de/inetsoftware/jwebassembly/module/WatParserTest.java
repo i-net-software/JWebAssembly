@@ -336,7 +336,7 @@ public class WatParserTest {
 
     @Test
     public void ifElseEndI32() throws IOException {
-        test( "if (result i32) else end" );
+        test( "if(result i32) else end" );
     }
 
     @Test

@@ -860,17 +860,21 @@ class BranchManger {
      * Should be converted to the follow Wasm code for try/catch:
      * 
      * <pre>
-     * block
-     *   block (result anyref)
-     *     try
-     *       code1
-     *     catch
-     *       br_on_exn 1 0
-     *       rethrow
-     *     end
-     *     br 1
+     * try
+     *   code1
+     * catch
+     *   block (param exnref)(result anyref)
+     *     br_on_exn 0 0
+     *     rethrow
      *   end
-     *   local.set x
+     *   local.tee $ex
+     *   i32.const classIndex(Exception)
+     *   call $.instanceof
+     *   i32.eqz
+     *   if
+     *     local.get $ex
+     *     throw 0
+     *   end
      *   code2
      * end
      * code3
@@ -910,25 +914,24 @@ class BranchManger {
         }
         int startPos = tryBlock.startPosition;
         int catchPos = tryCatch.getHandler();
-        BranchNode outerBlock = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-        parent.add( outerBlock );
-
-        BranchNode innerBlock = new BranchNode( startPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, ValueType.anyref );
-        outerBlock.add( innerBlock );
 
         BranchNode tryNode = new BranchNode( startPos, catchPos, WasmBlockOperator.TRY, null );
-        innerBlock.add( tryNode );
+        parent.add( tryNode );
         calculate( tryNode, parsedOperations.subList( 0, idx ) );
 
-        BranchNode catchNode = new BranchNode( catchPos, catchPos, WasmBlockOperator.CATCH, WasmBlockOperator.END );
-        innerBlock.add( catchNode );
+        BranchNode catchNode = new BranchNode( catchPos, endPos, WasmBlockOperator.CATCH, WasmBlockOperator.END );
+        parent.add( catchNode );
 
         if( tryCatch.isFinally() ) {
             catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.DROP, null ) );
         } else {
+            // unboxing the exnref on the stack to a reference of the exception
+            BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, options.getCatchType() );
+            catchNode.add( unBoxing );
+
             //TODO localVariables.getTempVariable( ValueType.exnref, catchPos, endPos ); https://github.com/WebAssembly/wabt/issues/1388
-            catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 1 ) );
-            catchNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
+            unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 0 ) );
+            unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
 
             // add a "if $exception instanceof type" check to the WASM code
             StructType type = options.types.valueOf( tryCatch.getType().getName() );
@@ -946,8 +949,6 @@ class BranchManger {
             instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.THROW, null, catchPos, lineNumber ) );
             instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.END, null, catchPos, lineNumber ) );
         }
-
-        innerBlock.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR, null, 1 ) );
     }
 
     /**

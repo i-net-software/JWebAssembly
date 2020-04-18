@@ -21,11 +21,7 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
-import de.inetsoftware.jwebassembly.module.CodeOptimizer;
-import de.inetsoftware.jwebassembly.module.FunctionManager;
-import de.inetsoftware.jwebassembly.module.FunctionName;
-import de.inetsoftware.jwebassembly.module.StringManager;
-import de.inetsoftware.jwebassembly.module.TypeManager;
+import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -64,6 +60,30 @@ public class WasmOptions {
     private FunctionName instanceOf;
 
     private FunctionName cast;
+
+    private int catchTypeCode;
+
+    private AnyType catchType = new AnyType() {
+        @Override
+        public int getCode() {
+            return catchTypeCode;
+        }
+
+        @Override
+        public boolean isRefType() {
+            return false;
+        }
+
+        @Override
+        public boolean isSubTypeOf( AnyType type ) {
+            return type == this;
+        }
+
+        @Override
+        public String toString() {
+            return "(param exnref)(result anyref)";
+        }
+    };
 
     /**
      * Create a new instance of options
@@ -183,5 +203,24 @@ public class WasmOptions {
             getInstanceOf();
         }
         return name;
+    }
+
+    /**
+     * The type for a catch block to unboxing the exnref into a anyref
+     * 
+     * @return the type
+     */
+    public AnyType getCatchType() {
+        return catchType;
+    }
+
+    /**
+     * Set the dynamic type id for the catch type
+     * 
+     * @param catchTypeCode
+     *            the positive id
+     */
+    public void setCatchType( int catchTypeCode ) {
+        this.catchTypeCode = catchTypeCode;
     }
 }

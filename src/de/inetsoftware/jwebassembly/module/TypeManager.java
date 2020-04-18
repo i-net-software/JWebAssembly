@@ -510,6 +510,14 @@ public class TypeManager {
          * {@inheritDoc}
          */
         @Override
+        public boolean isRefType() {
+            return true;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public boolean isSubTypeOf( AnyType type ) {
             return type == this || type == ValueType.anyref;
         }

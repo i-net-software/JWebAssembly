@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,13 @@ public interface AnyType {
      * @return the code
      */
     public int getCode();
+
+    /**
+     * If the type is a reference type. A GC reference to the heap.
+     * 
+     * @return true, is GC type
+     */
+    public boolean isRefType();
 
     /**
      * Check if this is a sub type of given type.

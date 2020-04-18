@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.WasmOptions;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.LittleEndianOutputStream;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -33,11 +34,17 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmOutputStream extends LittleEndianOutputStream {
 
+    private final WasmOptions options;
+
     /**
      * Create a in memory stream.
+     * 
+     * @param options
+     *            compiler properties
      */
-    WasmOutputStream() {
+    WasmOutputStream( WasmOptions options ) {
         super();
+        this.options = options;
     }
 
     /**
@@ -45,9 +52,12 @@ class WasmOutputStream extends LittleEndianOutputStream {
      * 
      * @param output
      *            the target of data
+     * @param options
+     *            compiler properties
      */
-    WasmOutputStream( OutputStream output ) {
+    WasmOutputStream( WasmOptions options, OutputStream output ) {
         super( output );
+        this.options = options;
     }
 
     /**
@@ -86,8 +96,12 @@ class WasmOutputStream extends LittleEndianOutputStream {
      *             if an I/O error occurs.
      */
     public void writeRefValueType( AnyType type ) throws IOException {
-        if( type.getCode() >= 0 ) {
-            writeValueType( ValueType.ref_type );
+        if( type.isRefType() ) {
+            if( options.useGC() ) {
+                writeValueType( ValueType.ref_type );
+            } else {
+                type = ValueType.anyref;
+            }
         }
         writeValueType( type );
     }
@@ -192,7 +206,7 @@ class WasmOutputStream extends LittleEndianOutputStream {
      *             if an I/O error occurs.
      */
     void writeDouble( double value ) throws IOException {
-        long l = Double.doubleToLongBits(value);
+        long l = Double.doubleToLongBits( value );
         writeInt32( (int)l );
         writeInt32( (int)(l >>> 32) );
     }

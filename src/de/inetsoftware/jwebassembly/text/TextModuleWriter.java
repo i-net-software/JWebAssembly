@@ -232,6 +232,9 @@ public class TextModuleWriter extends ModuleWriter {
             newline( output );
             output.append( "(event (param anyref))" );
             inset = oldInset;
+
+            options.setCatchType( types.size() );
+            types.add( options.getCatchType().toString() );
         }
     }
 
@@ -310,7 +313,7 @@ public class TextModuleWriter extends ModuleWriter {
      *             if any I/O error occur
      */
     private void writeTypeName( Appendable output, AnyType type ) throws IOException {
-        if( type instanceof ValueType ) {
+        if( !type.isRefType() ) {
             output.append( type.toString() );
         } else if( options.useGC() ) {
             output.append( "(optref " ).append( normalizeName( type.toString() ) ).append( ')' );
@@ -714,14 +717,7 @@ public class TextModuleWriter extends ModuleWriter {
                 name = "return";
                 break;
             case IF:
-                if( data == ValueType.empty ) {
-                    name = "if";
-                } else {
-                    StringBuilder builder = new StringBuilder("if (result ");
-                    writeTypeName( builder, (AnyType)data );
-                    builder.append( ")" );
-                    name = builder;
-                }
+                name = blockWithResult( "if", (AnyType)data );
                 insetAfter++;
                 break;
             case ELSE:
@@ -737,14 +733,7 @@ public class TextModuleWriter extends ModuleWriter {
                 name = "drop";
                 break;
             case BLOCK:
-                if( data == null ) {
-                    name = "block";
-                } else {
-                    StringBuilder builder = new StringBuilder("block (result ");
-                    writeTypeName( builder, (AnyType)data );
-                    builder.append( ")" );
-                    name = builder;
-                }
+                name = blockWithResult( "block", (AnyType)data );
                 insetAfter++;
                 break;
             case BR:
@@ -795,6 +784,34 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         methodOutput.append( name );
         inset += insetAfter;
+    }
+
+    /**
+     * Create a the result type for a block instruction
+     * 
+     * @param blockName
+     *            the name of the block for example "if" or "block"
+     * @param result
+     *            the result type of the block
+     * @return the block with result type
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    @Nonnull
+    private CharSequence blockWithResult( String blockName, AnyType result ) throws IOException {
+        if( result == null || result == ValueType.empty ) {
+            return blockName;
+        } else {
+            StringBuilder builder = new StringBuilder( blockName );
+            if( result.toString().contains( "(" ) ) {
+                builder.append( result );
+            } else {
+                builder.append( "(result " );
+                writeTypeName( builder, result );
+                builder.append( ")" );
+            }
+            return builder;
+        }
     }
 
     /**

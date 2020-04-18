@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Volker Berlin (i-net software)
+ * Copyright 2019 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,14 @@ public class ArrayType implements AnyType {
     public int getCode() {
         // until there is a real type definition we will define write it as anyref
         return ValueType.anyref.getCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isRefType() {
+        return true;
     }
 
     /**

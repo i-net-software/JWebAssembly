@@ -66,7 +66,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private final boolean               createSourceMap;
 
-    private WasmOutputStream            codeStream          = new WasmOutputStream();
+    private WasmOutputStream            codeStream          = new WasmOutputStream( options );
 
     private List<TypeEntry>             functionTypes       = new ArrayList<>();
 
@@ -116,7 +116,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     public void close() throws IOException {
-        wasm = new WasmOutputStream( target.getWasmOutput() );
+        wasm = new WasmOutputStream( options, target.getWasmOutput() );
         wasm.write( WASM_BINARY_MAGIC );
         wasm.writeInt32( WASM_BINARY_VERSION );
 
@@ -152,7 +152,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     private void writeSection( SectionType type, Collection<? extends SectionEntry> entries ) throws IOException {
         int count = entries.size();
         if( count > 0 ) {
-            WasmOutputStream stream = new WasmOutputStream();
+            WasmOutputStream stream = new WasmOutputStream( options );
             stream.writeVaruint32( count );
             for( SectionEntry entry : entries ) {
                 entry.writeSectionEntry( stream );
@@ -174,7 +174,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             return;
         }
 
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         int count = 1;
         if( stringCount > 0 ) {
             count++;
@@ -217,7 +217,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     private void writeMemorySection() throws IOException {
         int dataSize = dataStream.size();
         if( dataSize > 0 ) {
-            WasmOutputStream stream = new WasmOutputStream();
+            WasmOutputStream stream = new WasmOutputStream( options );
             int pages = (dataSize + 0xFFFF) / 0x10000; // a page is defined with a size of 64KiB
             int count = 1;
             stream.writeVaruint32( count );
@@ -238,7 +238,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     private void writeEventSection() throws IOException {
         if( exceptionSignatureIndex >= 0 ) {
-            WasmOutputStream stream = new WasmOutputStream();
+            WasmOutputStream stream = new WasmOutputStream( options );
             stream.writeVaruint32( 1 );
 
             // event declaration
@@ -260,7 +260,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             return;
         }
         int id = getFunction( startFunction ).id;
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         stream.writeVaruint32( id );
         wasm.writeSection( SectionType.Start, stream );
     }
@@ -277,7 +277,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
 
         int elemCount = imports.size() + functions.size();
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         stream.writeVaruint32( 1 ); // count of element segments to follow
 
         // element_segment
@@ -305,7 +305,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
 
         int start = wasm.size();
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         stream.writeVaruint32( size );
         for( Entry<String, Function> entry : functions.entrySet() ) {
             try {
@@ -345,7 +345,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             return;
         }
 
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         stream.writeVaruint32( 1 ); // count, we use one large segment
 
         // one data segment
@@ -368,12 +368,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( !options.debugNames() ) {
             return;
         }
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         stream.writeString( "name" ); // Custom Section name "name", content is part of the section length
 
         // write function names
         stream.write( 1 ); // 1 - Function name
-        WasmOutputStream section = new WasmOutputStream();
+        WasmOutputStream section = new WasmOutputStream( options );
         section.writeVaruint32( imports.size() + functions.size() );
         writeDebugFunctionNames( imports.entrySet(), section );
         writeDebugFunctionNames( functions.entrySet(), section );
@@ -449,7 +449,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( url == null ) {
             return;
         }
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         stream.writeString( "sourceMappingURL" ); // Custom Section name "sourceMappingURL", content is part of the section length
         stream.writeString( url );
         wasm.writeSection( SectionType.Custom, stream );
@@ -465,7 +465,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         Package pack = getClass().getPackage();
         String version = pack == null ? null : pack.getImplementationVersion();
 
-        WasmOutputStream stream = new WasmOutputStream();
+        WasmOutputStream stream = new WasmOutputStream( options );
         stream.writeString( "producers" ); // Custom Section name "producers", content is part of the section length
 
         stream.writeVaruint32( 2 ); // field_count; number of fields that follow (language and processed-by)
@@ -511,13 +511,20 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void writeException() throws IOException {
         if( exceptionSignatureIndex <= 0 ) {
-            FunctionTypeEntry exceptionType = new FunctionTypeEntry();
-            exceptionType.params.add( ValueType.anyref );
-            exceptionSignatureIndex = functionTypes.indexOf( exceptionType );
+            FunctionTypeEntry type = new FunctionTypeEntry();
+            type.params.add( ValueType.anyref );
+            exceptionSignatureIndex = functionTypes.indexOf( type );
             if( exceptionSignatureIndex < 0 ) {
                 exceptionSignatureIndex = functionTypes.size();
-                functionTypes.add( exceptionType );
+                functionTypes.add( type );
             }
+
+            // result type of catch block for unboxing
+            type = new FunctionTypeEntry();
+            type.params.add( ValueType.exnref );
+            type.results.add( ValueType.anyref );
+            options.setCatchType( functionTypes.size() );
+            functionTypes.add( type );
         }
     }
 
@@ -639,7 +646,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected void writeMethodFinish() throws IOException {
         @SuppressWarnings( "resource" )
-        WasmOutputStream localsTypeStream = new WasmOutputStream();
+        WasmOutputStream localsTypeStream = new WasmOutputStream( options );
         int localEntryCount = 0;      // number of local entries in output
         int varCount = locals.size();
         for( int i = 0; i < varCount; ) {
@@ -655,10 +662,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
 
         @SuppressWarnings( "resource" )
-        WasmOutputStream localsStream = new WasmOutputStream();
+        WasmOutputStream localsStream = new WasmOutputStream( options );
         localsStream.writeVaruint32( localEntryCount );
 
-        WasmOutputStream functionsStream = function.functionsStream = new WasmOutputStream();
+        WasmOutputStream functionsStream = function.functionsStream = new WasmOutputStream( options );
         functionsStream.writeVaruint32( localsStream.size() + localsTypeStream.size() + codeStream.size() + 1 );
         localsStream.writeTo( functionsStream );
         localsTypeStream.writeTo( functionsStream );

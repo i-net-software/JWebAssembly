@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,14 @@ public enum ValueType implements AnyType {
     @Override
     public int getCode() {
         return code;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isRefType() {
+        return false;
     }
 
     /**
