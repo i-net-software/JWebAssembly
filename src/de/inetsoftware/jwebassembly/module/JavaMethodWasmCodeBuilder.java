@@ -350,10 +350,18 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addNumericInstruction( NumericOperator.mul, ValueType.f64, codePos, lineNumber );
                         break;
                     case 108: // idiv
-                        addNumericInstruction( NumericOperator.div, ValueType.i32, codePos, lineNumber );
+                        if( getOptions().useEH() ) {
+                            addCallInstruction( new FunctionName( "de/inetsoftware/jwebassembly/module/WasmEmbbeddedCode", "idiv", "(II)I" ), codePos, lineNumber );
+                        } else {
+                            addNumericInstruction( NumericOperator.div, ValueType.i32, codePos, lineNumber );
+                        }
                         break;
                     case 109: // ldiv
-                        addNumericInstruction( NumericOperator.div, ValueType.i64, codePos, lineNumber );
+                        if( getOptions().useEH() ) {
+                            addCallInstruction( new FunctionName( "de/inetsoftware/jwebassembly/module/WasmEmbbeddedCode", "ldiv", "(JJ)J" ), codePos, lineNumber );
+                        } else {
+                            addNumericInstruction( NumericOperator.div, ValueType.i64, codePos, lineNumber );
+                        }
                         break;
                     case 110: // fdiv
                         addNumericInstruction( NumericOperator.div, ValueType.f32, codePos, lineNumber );

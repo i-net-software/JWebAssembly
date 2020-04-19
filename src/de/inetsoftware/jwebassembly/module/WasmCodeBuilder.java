@@ -105,6 +105,16 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Get the compiler settings
+     * 
+     * @return the settings
+     */
+    @Nonnull
+    WasmOptions getOptions() {
+        return options;
+    }
+
+    /**
      * Check if the last instruction is a return instruction
      * 
      * @return true, if a return
