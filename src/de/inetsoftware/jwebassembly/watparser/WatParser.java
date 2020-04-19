@@ -29,7 +29,6 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
-import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -88,6 +87,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "i32.eq":
                         addNumericInstruction( NumericOperator.eq, ValueType.i32, javaCodePos, lineNumber );
                         break;
+                    case "i32.div_s":
+                        addNumericInstruction( NumericOperator.div, ValueType.i32, javaCodePos, lineNumber );
+                        break;
                     case "i32.eqz":
                         addNumericInstruction( NumericOperator.eqz, ValueType.i32, javaCodePos, lineNumber );
                         break;
@@ -105,6 +107,12 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "i64.const":
                         addConstInstruction( Long.parseLong( get( tokens, ++i ) ), ValueType.i64, javaCodePos, lineNumber );
+                        break;
+                    case "i64.div_s":
+                        addNumericInstruction( NumericOperator.div, ValueType.i64, javaCodePos, lineNumber );
+                        break;
+                    case "i64.eqz":
+                        addNumericInstruction( NumericOperator.eqz, ValueType.i64, javaCodePos, lineNumber );
                         break;
                     case "i64.extend_i32_s":
                         addConvertInstruction( ValueTypeConvertion.i2l, javaCodePos, lineNumber );
@@ -226,7 +234,7 @@ public class WatParser extends WasmCodeBuilder {
                             FunctionName name = new FunctionName( builder.substring( 1 ) );
                             addCallInstruction( name, javaCodePos, lineNumber );
                         } catch( Exception ex ) {
-                            throw new WasmException( "The syntax for a function name is $package.ClassName.methodName(paramSignature)returnSignature", lineNumber );
+                            throw WasmException.create( "The syntax for a function name is $package.ClassName.methodName(paramSignature)returnSignature", ex );
                         }
                         break;
                     case "return":
@@ -261,6 +269,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "br_if":
                         addBlockInstruction( WasmBlockOperator.BR_IF, getInt( tokens, ++i ), javaCodePos, lineNumber );
+                        break;
+                    case "throw":
+                        addBlockInstruction( WasmBlockOperator.THROW, null, javaCodePos, lineNumber );
                         break;
                     case "unreachable":
                         addBlockInstruction( WasmBlockOperator.UNREACHABLE, null, javaCodePos, lineNumber );
