@@ -54,10 +54,10 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      *            the operation
      * @return the new instruction
      */
-    @Nonnull
-    WasmLoadStoreInstruction create( VariableOperator op ) {
-        return new WasmLoadStoreInstruction( op, super.getIndex(), localVariables, getCodePosition(), getLineNumber() );
-    }
+//    @Nonnull
+//    WasmLoadStoreInstruction create( VariableOperator op ) {
+//        return new WasmLoadStoreInstruction( op, super.getIndex(), localVariables, getCodePosition(), getLineNumber() );
+//    }
 
     /**
      * {@inheritDoc}
@@ -65,5 +65,14 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
     @Override
     int getIndex() {
         return localVariables.get( super.getIndex(), getCodePosition() ); // translate slot index to position index
+    }
+
+    /**
+     * Get the slot of this variable from Java
+     * 
+     * @return the slot
+     */
+    int getSlot() {
+        return super.getIndex();
     }
 }
