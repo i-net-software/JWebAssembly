@@ -15,11 +15,12 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
+import static org.junit.Assume.assumeFalse;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
@@ -27,6 +28,7 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class Exceptions extends AbstractBaseTest {
 
@@ -42,10 +44,13 @@ public class Exceptions extends AbstractBaseTest {
         ArrayList<Object[]> list = new ArrayList<>();
         for( ScriptEngine script : ScriptEngine.testEngines() ) {
             addParam( list, script, "simple" );
+            addParam( list, script, "simpleLong" );
             addParam( list, script, "direct" );
             addParam( list, script, "rethrow" );
             addParam( list, script, "tryFinally" );
+            addParam( list, script, "tryFinally2" );
             addParam( list, script, "complex" );
+            addParam( list, script, "sync" );
             addParam( list, script, "emptyCatch" );
         }
         rule.setTestParameters( list );
@@ -53,9 +58,10 @@ public class Exceptions extends AbstractBaseTest {
         return list;
     }
 
-    @Ignore
     @Test
     public void test() {
+        assumeFalse( getScriptEngine().name().startsWith( "SpiderMonkey" ) ); //TODO https://bugzilla.mozilla.org/show_bug.cgi?id=1335652
+        assumeFalse( getScriptEngine().name().contains( "Wat" ) );            //TODO Current Node version 8.1 has the wrong order of Event section but Wabt has already the right version
         super.test();
     }
 
@@ -73,6 +79,17 @@ public class Exceptions extends AbstractBaseTest {
         }
 
         @Export
+        static long simpleLong() {
+            long r;
+            try {
+                r = 5L / 0L;
+            } catch(Exception ex ) {
+                r = 2L;
+            }
+            return r;
+        }
+
+        @Export
         static int direct() {
             try {
                 return 5 / 0;
@@ -82,7 +99,17 @@ public class Exceptions extends AbstractBaseTest {
         }
 
         @Export
-        static int rethrow() {
+        static String rethrow() {
+            String msg = "ok";
+            try {
+                rethrowImpl();
+            } catch(Exception ex ) {
+                msg = ex.getMessage();
+            }
+            return JSObject.domString( msg );
+        }
+
+        private static int rethrowImpl() {
             try {
                 return 5 / 0;
             } catch(Exception ex ) {
@@ -100,6 +127,17 @@ public class Exceptions extends AbstractBaseTest {
                 v++;
                 return v;
             }
+        }
+
+        @Export
+        static int tryFinally2() {
+            int v = 1;
+            try {
+                v++;
+            } finally {
+                v++;
+            }
+            return v;
         }
 
         @Export
