@@ -997,15 +997,14 @@ class BranchManger {
             WasmLoadStoreInstruction ex = (WasmLoadStoreInstruction)instructions.get( instrPos );
             int lineNumber = ex.getLineNumber();
 
-            int pos = catchPos + 1;
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.BLOCK, null, pos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, pos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmConstInstruction( type.getClassIndex(), pos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmCallInstruction( instanceOf, pos, lineNumber, options.types, false ) );
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 0, pos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, pos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.THROW, null, pos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.END, null, pos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.BLOCK, null, catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmConstInstruction( type.getClassIndex(), catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmCallInstruction( instanceOf, catchPos, lineNumber, options.types, false ) );
+            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 0, catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.THROW, null, catchPos, lineNumber ) );
+            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.END, null, catchPos, lineNumber ) );
         }
     }
 
