@@ -91,6 +91,7 @@ task nodeVersion(type: NodeTask) {
     test.dependsOn it
     options = ['-v']
     script = file("$buildDir/tmp/scriptDoesNotExists.js")
+    script.parentFile.mkdirs()
     script.text = ''
     doLast {
         if( node.download ) {
