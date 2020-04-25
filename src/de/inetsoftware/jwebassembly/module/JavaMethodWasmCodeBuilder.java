@@ -306,8 +306,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addDupInstruction( codePos, lineNumber );
                         break;
                     case 90: // dup_x1
-                    case 91: // dup_x2
                     case 93: // dup2_x1
+                        addDupX1Instruction( codePos, lineNumber );
+                        break;
+                    case 91: // dup_x2
                     case 94: // dup2_x2
                     case 95: // swap
                         // can be do with functions with more as one return value in future WASM standard

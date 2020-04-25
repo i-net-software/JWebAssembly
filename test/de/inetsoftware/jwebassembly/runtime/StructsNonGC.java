@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.runtime.StructsGC.Abc2;
 import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class StructsNonGC extends AbstractBaseTest {
@@ -140,9 +141,8 @@ public class StructsNonGC extends AbstractBaseTest {
         static int multipleAssign() {
             Abc2 val = new Abc2();
             for( int i = 0; i < 1_000; i++ ) {
-                val.a = 42;
-                // TODO
-                //val = val.abc = new Abc2();
+                val = val.abc = new Abc2();
+                val.a = i;
             }
             return val.a;
         }

@@ -132,9 +132,8 @@ public class StructsGC extends AbstractBaseTest {
         static int multipleAssign() {
             Abc2 val = new Abc2();
             for( int i = 0; i < 1_000; i++ ) {
-                val.a = 42;
-                // TODO
-                //val = val.abc = new Abc2();
+                val = val.abc = new Abc2();
+                val.a = i;
             }
             return val.a;
         }
