@@ -47,6 +47,7 @@ import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
@@ -512,7 +513,13 @@ public class ModuleGenerator {
         try {
             Map<String,Object> annotationValues;
             if( (annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION )) != null ) {
-                functions.markAsImport( new FunctionName( method ), annotationValues );
+                FunctionName name = new FunctionName( method );
+                functions.markAsImport( name, annotationValues );
+
+                // Scan also the types of used imports
+                for( Iterator<AnyType> it = new ValueTypeParser( name.signature, types ); it.hasNext(); ) {
+                    it.next();
+                }
                 return null;
             }
             code = method.getCode();
