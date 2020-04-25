@@ -311,9 +311,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 91: // dup_x2
                     case 94: // dup2_x2
+                        addDupX2Instruction( codePos, lineNumber );
+                        break;
                     case 95: // swap
-                        // can be do with functions with more as one return value in future WASM standard
-                        throw new WasmException( "Stack duplicate is not supported in current WASM. try to save immediate values in a local variable: "
+                        throw new WasmException( "Stack swap is not supported in current WASM. try to save immediate values in a local variable: "
                                         + op, lineNumber );
                     case 96: // iadd
                         addNumericInstruction( NumericOperator.add, ValueType.i32, codePos, lineNumber );

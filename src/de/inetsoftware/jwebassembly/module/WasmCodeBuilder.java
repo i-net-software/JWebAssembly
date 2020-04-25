@@ -348,7 +348,7 @@ public abstract class WasmCodeBuilder {
         AnyType type2 = findValueTypeFromStack( 2, javaCodePos );
 
         int varIndex1 = getTempVariable( type1, javaCodePos, javaCodePos + 1 );
-        int varIndex2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );;
+        int varIndex2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );
 
         // save in temp variables
         instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex1, localVariables, javaCodePos, lineNumber ) );
@@ -356,6 +356,37 @@ public abstract class WasmCodeBuilder {
 
         // and restore it in new order on the stack
         instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex2, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
+    }
+
+    /**
+     * Simulate the dup_x2 Java byte code instruction.<p>
+     * 
+     * ..., value3, value2, value1 → ..., value1, value3, value2, value1
+     * 
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addDupX2Instruction( int javaCodePos, int lineNumber ) {
+        AnyType type1 = findValueTypeFromStack( 1, javaCodePos );
+        AnyType type2 = findValueTypeFromStack( 2, javaCodePos );
+        AnyType type3 = findValueTypeFromStack( 3, javaCodePos );
+
+        int varIndex1 = getTempVariable( type1, javaCodePos, javaCodePos + 1 );
+        int varIndex2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );
+        int varIndex3 = getTempVariable( type3, javaCodePos, javaCodePos + 1 );
+
+        // save in temp variables
+        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex2, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex3, localVariables, javaCodePos, lineNumber ) );
+
+        // and restore it in new order on the stack
+        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex3, localVariables, javaCodePos, lineNumber ) );
         instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex2, localVariables, javaCodePos, lineNumber ) );
         instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
     }

@@ -59,6 +59,7 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "loopObject" );
             addParam( list, script, "copyBack2Front" );
             addParam( list, script, "copyFront2Back" );
+            addParam( list, script, "dup_x2" );
         }
         rule.setTestParameters( list );
         return list;
@@ -182,6 +183,19 @@ public class ArrayOperations extends AbstractBaseTest {
             CRC32 crc = new CRC32();
             crc.update( a );
             return crc.getValue();
+        }
+
+        @Export
+        static int dup_x2() {
+            Object[] data = {null,null,null};
+            int index = 1;
+            Object value = null;
+
+            if ((data[index] = value) != null) { // test for instruction dup_x2
+                return 1;
+            } else {
+                return 2;
+            }
         }
     }
 }
