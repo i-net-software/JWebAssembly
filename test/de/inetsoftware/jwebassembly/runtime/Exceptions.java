@@ -52,6 +52,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "complex" );
             addParam( list, script, "sync" );
             addParam( list, script, "emptyCatch" );
+            addParam( list, script, "multiCatch" );
         }
         rule.setTestParameters( list );
         rule.setProperty( JWebAssembly.WASM_USE_EH, "true" );
@@ -182,18 +183,18 @@ public class Exceptions extends AbstractBaseTest {
             return h;
         }
 
-//        @Export
-//        static int multiCatch() {
-//            int r;
-//            try {
-//                r = 5 / 0;
-//            } catch(RuntimeException ex ) {
-//                r = 1;
-//            } catch(Exception ex ) {
-//                r = 2;
-//            }
-//            return r;
-//        }
+        @Export
+        static int multiCatch() {
+            int r;
+            try {
+                r = 5 / 0;
+            } catch(RuntimeException ex ) {
+                r = 1;
+            } catch(Exception ex ) {
+                r = 2;
+            }
+            return r;
+        }
 
 //        @Export
 //        static int npe() {

@@ -953,7 +953,8 @@ class BranchManger {
             }
 
             BranchNode block = new BranchNode( catchPos + 1, tryCat.getHandler(), WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-            node.add( block );
+            block.add( new BranchNode( tryCat.getHandler(), tryCat.getHandler(), WasmBlockOperator.BR, null, catches.size() - i ) );
+            node.add( 0, block );
             node = block;
 
             int instrPos = findIdxOfCodePos( tryCat.getHandler() ) + 1;
@@ -961,21 +962,7 @@ class BranchManger {
         }
 
         // calculate branch operations inside the CATCH/FINALLY blocks
-        do {
-            for( idx = 0; idx < parsedOperations.size(); idx++ ) {
-                ParsedBlock parsedBlock = parsedOperations.get( idx );
-                if( parsedBlock.startPosition > node.endPos ) {
-                    break;
-                }
-            }
-            if( idx > 0 ) {
-                calculate( node, parsedOperations.subList( 0, idx ) );
-            }
-            if( node == catchNode ) {
-                break;
-            }
-            node = node.parent;
-        } while( node != catchNode );
+        calculateTrySubOperations( catchNode, node, parsedOperations );
 
         // Create the unboxing and the type check of the exceptions from the catch blocks 
         if( tryCatch.isFinally() ) {
@@ -991,21 +978,61 @@ class BranchManger {
             addUnboxExnref( catchNode );
 
             // add a "if $exception instanceof type" check to the WASM code
-            StructType type = options.types.valueOf( tryCatch.getType().getName() );
-            FunctionName instanceOf = options.getInstanceOf();
             int instrPos = findIdxOfCodePos( catchPos ) + 1;
             WasmLoadStoreInstruction ex = (WasmLoadStoreInstruction)instructions.get( instrPos );
-            int lineNumber = ex.getLineNumber();
 
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.BLOCK, null, catchPos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmConstInstruction( type.getClassIndex(), catchPos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmCallInstruction( instanceOf, catchPos, lineNumber, options.types, false ) );
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 0, catchPos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.THROW, null, catchPos, lineNumber ) );
-            instructions.add( ++instrPos, new WasmBlockInstruction( WasmBlockOperator.END, null, catchPos, lineNumber ) );
+            node.add( new BranchNode( 0, 0, null, null ) {
+                int handle(int codePosition, java.util.List<WasmInstruction> instructions, int idx, int lineNumber) {
+                    if( codePosition == catchPos + 1 ) {
+                        FunctionName instanceOf = options.getInstanceOf();
+
+                        instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.BLOCK, null, catchPos, lineNumber ) );
+                        for( int i = 0; i < catches.size(); i++ ) {
+                            TryCatchFinally tryCat = catches.get( i );
+                            String exceptionTypeName = tryCat.getType().getName();
+                            StructType type = options.types.valueOf( exceptionTypeName );
+                            instructions.add( idx++, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
+                            instructions.add( idx++, new WasmConstInstruction( type.getClassIndex(), catchPos, lineNumber ) );
+                            instructions.add( idx++, new WasmCallInstruction( instanceOf, catchPos, lineNumber, options.types, false, exceptionTypeName ) );
+                            instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, i, catchPos, lineNumber ) );
+                        }
+                        instructions.add( idx++, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
+                        instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.THROW, null, catchPos, lineNumber ) );
+                        instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.END, null, catchPos, lineNumber ) );
+                    }
+                    return idx;
+                }
+            } );
         }
+    }
+
+    /**
+     * Calculate branch operations inside the CATCH/FINALLY blocks.
+     * 
+     * @param catchNode
+     *            the parent node
+     * @param node
+     *            the most inner node
+     * @param parsedOperations
+     *            the not consumed operations in the parent branch
+     */
+    private void calculateTrySubOperations( BranchNode catchNode, BranchNode node, List<ParsedBlock> parsedOperations ) {
+        int idx;
+        do {
+            for( idx = 0; idx < parsedOperations.size(); idx++ ) {
+                ParsedBlock parsedBlock = parsedOperations.get( idx );
+                if( parsedBlock.startPosition > node.endPos ) {
+                    break;
+                }
+            }
+            if( idx > 0 ) {
+                calculate( node, parsedOperations.subList( 0, idx ) );
+            }
+            if( node == catchNode ) {
+                break;
+            }
+            node = node.parent;
+        } while( node != catchNode );
     }
 
     /**
@@ -1263,9 +1290,18 @@ class BranchManger {
          * {@inheritDoc}
          */
         @Override
-        public boolean add( BranchNode e ) {
-            e.parent = this;
-            return super.add( e );
+        public boolean add( BranchNode node ) {
+            node.parent = this;
+            return super.add( node );
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void add( int index, BranchNode node ) {
+            node.parent = this;
+            super.add( index, node );
         }
 
         /**
