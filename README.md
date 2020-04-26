@@ -125,6 +125,7 @@ This is state of JWebAssembly 0.1. With version 0.2 you can use Objects via Java
 
 ### Alternatives
 * [TeaVM](https://github.com/konsoletyper/teavm)
+* [CheerpJ](https://www.leaningtech.com/pages/cheerpj.html)
 
 ## For Tool Developer
 
