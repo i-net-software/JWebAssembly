@@ -286,7 +286,7 @@ public class WasmRule extends TemporaryFolder {
             File wat2WasmFile = new File( getRoot(), "wat2Wasm.wasm" );
             // the wat2wasm tool
             ProcessBuilder processBuilder =
-                            new ProcessBuilder( cmd, watFile.toString(), "-o", wat2WasmFile.toString(), "--enable-saturating-float-to-int", "--enable-sign-extension", "--enable-multi-value", "--enable-exceptions", "--enable-reference-types" );
+                            new ProcessBuilder( cmd, watFile.toString(), "-o", wat2WasmFile.toString(), "--debug-names", "--enable-all" );
             execute( processBuilder );
 
             // create the node script
