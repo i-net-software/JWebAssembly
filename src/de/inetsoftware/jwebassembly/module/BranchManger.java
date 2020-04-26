@@ -1044,6 +1044,11 @@ class BranchManger {
     private void addUnboxExnref( BranchNode catchNode ) {
         // unboxing the exnref on the stack to a reference of the exception
         int catchPos = catchNode.startPos;
+        if( !options.useEH() ) {
+            BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.UNREACHABLE, null );
+            catchNode.add( 0, unBoxing );
+            return;
+        }
         BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, options.getCatchType() );
         catchNode.add( 0, unBoxing );
 
