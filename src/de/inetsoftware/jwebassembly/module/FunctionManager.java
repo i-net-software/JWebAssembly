@@ -258,7 +258,7 @@ class FunctionManager {
      */
     @Nullable
     Iterator<FunctionName> getWriteLaterClinit() {
-        return iterator( entry -> entry.getKey().methodName.equals( "<clinit>" ) );
+        return iterator( entry -> entry.getKey().methodName.equals( "<clinit>" ) && entry.getValue().state != State.None );
     }
 
     /**
