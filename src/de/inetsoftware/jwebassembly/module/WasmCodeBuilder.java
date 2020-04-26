@@ -458,7 +458,11 @@ public abstract class WasmCodeBuilder {
             Integer id = strings.get( value );
             FunctionName name = strings.getStringConstantFunction();
             instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
-            instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types, false, (String)value ) );
+            String comment = (String)value;
+            if( !isAscii( comment ) ) {
+                comment = null;
+            }
+            instructions.add( new WasmCallInstruction( name, javaCodePos, lineNumber, types, false, comment ) );
         } else if( value instanceof Number ) {
             instructions.add( new WasmConstInstruction( (Number)value, javaCodePos, lineNumber ) );
         } else if( value instanceof ConstantClass ) {
@@ -471,6 +475,25 @@ public abstract class WasmCodeBuilder {
             //TODO There can be ConstantClass, MethodType and MethodHandle
             throw new WasmException( "Class constants are not supported. : " + value, lineNumber );
         }
+    }
+
+    /**
+     * if the string contains only ASCCI characters
+     * 
+     * @param str
+     *            the staring
+     * @return true, if only ASCII
+     */
+    private static boolean isAscii( String str ) {
+        int length = str.length();
+        for( int i = 0; i < length; i++ ) {
+            int c = str.charAt( i );
+            if( c >= 0x20 && c < 0x7F ) {
+                continue;
+            }
+            return false;
+        }
+        return true;
     }
 
     /**
