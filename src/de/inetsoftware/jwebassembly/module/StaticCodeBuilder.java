@@ -93,6 +93,13 @@ class StaticCodeBuilder {
         };
     }
 
+    /**
+     * Scan a class initializer (static constructor). If it reference to another class with has class initializer which
+     * was not call then it patch the code and call it before the other class is access.
+     * 
+     * @param name
+     *            name of the static constuctor
+     */
     private void scanAndPatchIfNeeded( FunctionName name ) {
         String className = name.className;
         String sourceFile = null;
@@ -101,6 +108,7 @@ class StaticCodeBuilder {
             ClassFile classFile = classFileLoader.get( className );
             sourceFile = classFile.getSourceFile();
             MethodInfo method = classFile.getMethod( name.methodName, name.signature );
+            method = options.functions.replace( name, method );
 
             Code code = method.getCode();
             javaCodeBuilder.buildCode( code, method );
@@ -134,10 +142,8 @@ class StaticCodeBuilder {
 
             if( patched ) {
                 options.functions.markAsNeededAndReplaceIfExists( new SyntheticFunctionName( className, name.methodName, name.signature ) {
-
                     @Override
                     protected boolean hasWasmCode() {
-                        // TODO Auto-generated method stub
                         return true;
                     }
 
