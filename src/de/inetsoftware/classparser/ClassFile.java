@@ -173,6 +173,9 @@ public class ClassFile {
                     ConstantNameAndType nameAndType = new ConstantNameAndType( ref.getName(), type );
                     constantPool.set( i, new ConstantFieldRef( thisClass, nameAndType ) );
                 }
+            } else if( obj instanceof String ) {
+                String str = ((String)obj).replace( origSignature, thisSignature );
+                constantPool.set( i, str );
             }
         }
     }
