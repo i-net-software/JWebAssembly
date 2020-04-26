@@ -278,7 +278,7 @@ public class ModuleGenerator {
         do {
             scanFunctions();
             functCount = functions.size();              // scan the functions can find new needed types
-            //TODO static code disabled: scanForClinit();
+            scanForClinit();
             types.scanTypeHierarchy( classFileLoader ); // scan the type hierarchy can find new functions
         } while( functCount < functions.size() );
 
