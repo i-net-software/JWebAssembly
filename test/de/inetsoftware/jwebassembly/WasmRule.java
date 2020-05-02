@@ -61,6 +61,8 @@ public class WasmRule extends TemporaryFolder {
 
     private static boolean            npmWabtNightly;
 
+    private static String             nodeModulePath;
+
     private final Class<?>[]          classes;
 
     private final JWebAssembly        compiler;
@@ -268,14 +270,30 @@ public class WasmRule extends TemporaryFolder {
                 }
                 execute( processBuilder );
             }
+        }
+    }
 
-            ProcessBuilder processBuilder = new ProcessBuilder( "npm", "link", "wabt" );
+    /**
+     * Get the path of the global installed module pathes.
+     * 
+     * @return the path
+     * @throws Exception
+     *             if any error occur.
+     */
+    private static String getNodeModulePath() throws Exception {
+        if( nodeModulePath == null ) {
+            ProcessBuilder processBuilder = new ProcessBuilder( "npm", "root", "-g" );
             if( IS_WINDOWS ) {
                 processBuilder.command().add( 0, "cmd" );
                 processBuilder.command().add( 1, "/C" );
             }
-            execute( processBuilder );
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+            nodeModulePath = readStream( process.getInputStream() ).trim(); // module install path
+            System.out.println( "node global module path: " + nodeModulePath );
+
         }
+        return nodeModulePath;
     }
 
     /**
@@ -456,7 +474,9 @@ public class WasmRule extends TemporaryFolder {
                 return nodeJsCommand( nodeScript );
             case NodeWat:
                 prepareNodeWat();
-                return nodeJsCommand( nodeWatScript );
+                ProcessBuilder processBuilder = nodeJsCommand( nodeWatScript );
+                processBuilder.environment().put( "NODE_PATH", getNodeModulePath() );
+                return processBuilder;
             case Wat2Wasm:
                 prepareWat2Wasm();
                 return nodeJsCommand( wat2WasmScript );
