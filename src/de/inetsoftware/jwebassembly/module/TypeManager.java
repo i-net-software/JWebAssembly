@@ -494,7 +494,9 @@ public class TypeManager {
                     // if a new needed method then add it
                     methods.add( funcName );
                 }
-                functions.setFunctionIndex( funcName, idx + VTABLE_FIRST_FUNCTION_INDEX );
+                if( idx < methods.size() ) {
+                    functions.setFunctionIndex( funcName, idx + VTABLE_FIRST_FUNCTION_INDEX );
+                }
             }
         }
 
@@ -564,7 +566,10 @@ public class TypeManager {
          * @param getFunctionsID
          *            source for function IDs
          * @throws IOException
-         *            should never occur
+         *             should never occur
+         * @see TypeManager#TYPE_DESCRIPTION_INTERFACE_OFFSET
+         * @see TypeManager#TYPE_DESCRIPTION_INSTANCEOF_OFFSET
+         * @see TypeManager#TYPE_DESCRIPTION_TYPE_NAME
          */
         public void writeToStream( ByteArrayOutputStream dataStream, ToIntFunction<FunctionName> getFunctionsID ) throws IOException {
             /*
