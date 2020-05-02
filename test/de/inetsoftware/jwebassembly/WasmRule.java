@@ -59,6 +59,8 @@ public class WasmRule extends TemporaryFolder {
 
     private static final Wat2Wasm     wat2Wasm = new Wat2Wasm();
 
+    private static boolean            npmWabtNightly;
+
     private final Class<?>[]          classes;
 
     private final JWebAssembly        compiler;
@@ -257,15 +259,17 @@ public class WasmRule extends TemporaryFolder {
         if( nodeWatScript == null ) {
             nodeWatScript = createScript( "WatTest.js", "{test.wat}", watFile.getName() );
 
-            //create dummy files to prevent error messages
-            FileOutputStream jsonPackage = new FileOutputStream( new File( getRoot(), "package.json" ) );
-            jsonPackage.write( "{\"name\":\"test\",  \"description\": \"description\", \"license\": \"Apache-2.0\", \"repository\": {}}".getBytes() );
-            jsonPackage.close();
-            jsonPackage = new FileOutputStream( new File( getRoot(), "package-lock.json" ) );
-            jsonPackage.write( "{\"lockfileVersion\": 1}".getBytes() );
-            jsonPackage.close();
+            if( !npmWabtNightly ) {
+                npmWabtNightly = true;
+                ProcessBuilder processBuilder = new ProcessBuilder( "npm", "install", "-g", "wabt@nightly" );
+                if( IS_WINDOWS ) {
+                    processBuilder.command().add( 0, "cmd" );
+                    processBuilder.command().add( 1, "/C" );
+                }
+                execute( processBuilder );
+            }
 
-            ProcessBuilder processBuilder = new ProcessBuilder( "npm", "install", "wabt@nightly" );
+            ProcessBuilder processBuilder = new ProcessBuilder( "npm", "link", "wabt" );
             if( IS_WINDOWS ) {
                 processBuilder.command().add( 0, "cmd" );
                 processBuilder.command().add( 1, "/C" );
