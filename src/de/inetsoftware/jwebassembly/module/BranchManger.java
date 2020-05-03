@@ -805,6 +805,7 @@ class BranchManger {
             int deep = 0;
             while( parent != null ) {
                 if( parent.startOp == WasmBlockOperator.LOOP && parent.startPos == jump ) {
+                    // the loop instruction itself doesn’t result in an iteration, instead a br 0 instruction causes the loop to repeat
                     parent.add( new BranchNode( start, start, WasmBlockOperator.BR, null, deep ) ); // continue to the start of the loop
                     return;
                 }
