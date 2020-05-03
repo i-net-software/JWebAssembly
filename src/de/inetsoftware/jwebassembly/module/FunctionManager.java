@@ -345,12 +345,8 @@ class FunctionManager {
      * @return true, if used
      */
     boolean isUsed( @Nonnull FunctionName name ) {
-        switch( getOrCreate( name ).state ) {
-            case None:
-                return false;
-            default:
-                return true;
-        }
+        FunctionState state = states.get( name );
+        return state != null && state.state != State.None;
     }
 
     /**
