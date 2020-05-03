@@ -651,7 +651,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInterfaceInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        //TODO name = functions.markAsNeeded( name );
+        name = functions.markAsNeeded( name );
         addCallIndirectInstruction( new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types, options ) );
         functions.markClassAsUsed( name.className );
     }

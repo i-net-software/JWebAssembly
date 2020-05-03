@@ -447,13 +447,9 @@ public class TypeManager {
             }
 
             // add all interfaces to the instanceof set
-            for(ConstantClass interClass : classFile.getInterfaces() ) {
-                StructType type = types.structTypes.get( interClass.getName() );
-                if( type != null ) {
-                    instanceOFs.add( type );
-                }
-            }
+            listInterface( classFile, functions, types, classFileLoader );
 
+            // List stuff of super class
             ConstantClass superClass = classFile.getSuperClass();
             if( superClass != null ) {
                 String superClassName = superClass.getName();
@@ -463,6 +459,7 @@ public class TypeManager {
                 fields.add( new NamedStorageType( ValueType.i32, className, FIELD_HASHCODE ) );
             }
 
+            // list all fields
             for( FieldInfo field : classFile.getFields() ) {
                 if( field.isStatic() ) {
                     continue;
@@ -496,6 +493,41 @@ public class TypeManager {
                 }
                 if( idx < methods.size() ) {
                     functions.setFunctionIndex( funcName, idx + VTABLE_FIRST_FUNCTION_INDEX );
+                }
+            }
+        }
+
+        /**
+         * List all interfaces and and mark all instance methods of used interfaces.
+         * 
+         * @param classFile
+         *            the class file
+         * @param functions
+         *            the used functions for the vtables of the types
+         * @param types
+         *            for types of fields
+         * @param classFileLoader
+         *            for loading the class files
+         * @throws IOException
+         *             if any I/O error occur on loading or writing
+         */
+        private void listInterface( ClassFile classFile, FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
+            for( ConstantClass interClass : classFile.getInterfaces() ) {
+                String interName = interClass.getName();
+                StructType type = types.structTypes.get( interName );
+                if( type != null ) {
+                    // add all interfaces to the instanceof set
+                    instanceOFs.add( type );
+                }
+                ClassFile interClassFile = classFileLoader.get( interName );
+                for( MethodInfo interMethod : interClassFile.getMethods() ) {
+                    FunctionName funcName = new FunctionName( interMethod );
+                    if( functions.isUsed( funcName ) ) {
+                        MethodInfo method = classFile.getMethod( funcName.methodName, funcName.signature );
+                        if( method != null ) {
+                            functions.markAsNeeded( new FunctionName( method ) );
+                        }
+                    }
                 }
             }
         }
