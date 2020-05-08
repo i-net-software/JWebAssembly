@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.ToIntFunction;
 
@@ -315,6 +316,7 @@ public class TypeManager {
                                         + "  local.set 3" // set $table
                                         + "  br 0 " //
                                         + "end " //
+                                        + "unreachable" // should never reach
                         , valueOf( "java/lang/Object" ), ValueType.i32, ValueType.i32, null, ValueType.i32 ); // THIS, classIndex, virtualfunctionIndex, returns functionIndex
     }
 
@@ -400,6 +402,8 @@ public class TypeManager {
 
         private Set<StructType>        instanceOFs;
 
+        private Map<StructType,List<FunctionName>> interfaceMethods;
+
         /**
          * The offset to the vtable in the data section.
          */
@@ -448,8 +452,9 @@ public class TypeManager {
             methods = new ArrayList<>();
             instanceOFs = new LinkedHashSet<>(); // remembers the order from bottom to top class.
             instanceOFs.add( this );
-            HashSet<String> allNeededFields = new HashSet<>();
+            interfaceMethods = new LinkedHashMap<>();
             if( classIndex >= PRIMITIVE_CLASSES.length ) {
+                HashSet<String> allNeededFields = new HashSet<>();
                 listStructFields( name, functions, types, classFileLoader, allNeededFields );
             }
         }
@@ -578,17 +583,25 @@ public class TypeManager {
             for( ConstantClass interClass : classFile.getInterfaces() ) {
                 String interName = interClass.getName();
                 StructType type = types.structTypes.get( interName );
-                if( type != null ) {
-                    // add all interfaces to the instanceof set
-                    instanceOFs.add( type );
+                if( type == null ) {
+                    continue;
                 }
+                // add all used interfaces to the instanceof set
+                instanceOFs.add( type );
+
+                List<FunctionName> iMethods = interfaceMethods.get( type );
                 ClassFile interClassFile = classFileLoader.get( interName );
                 for( MethodInfo interMethod : interClassFile.getMethods() ) {
                     FunctionName funcName = new FunctionName( interMethod );
                     if( functions.isUsed( funcName ) ) {
                         MethodInfo method = classFile.getMethod( funcName.methodName, funcName.signature );
                         if( method != null ) {
-                            functions.markAsNeeded( new FunctionName( method ) );
+                            FunctionName methodName = new FunctionName( method );
+                            functions.markAsNeeded( methodName );
+                            if( iMethods == null ) {
+                                interfaceMethods.put( type, iMethods = new ArrayList<>() );
+                            }
+                            iMethods.add( methodName );
                         }
                     }
                 }
@@ -701,7 +714,16 @@ public class TypeManager {
 
             // header position TYPE_DESCRIPTION_INTERFACE_OFFSET
             header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 ); // offset of interface calls
-            //TODO interface calls
+            for( Entry<StructType, List<FunctionName>> entry : interfaceMethods.entrySet() ) {
+                data.writeInt32( entry.getKey().getClassIndex() );
+                List<FunctionName> iMethods = entry.getValue();
+                int nextClassPosition = data.size() + 4 * (1 + iMethods.size());
+                data.writeInt32( nextClassPosition );
+                for( FunctionName funcName : iMethods ) {
+                    int functIdx = getFunctionsID.applyAsInt( funcName );
+                    data.writeInt32( functIdx );
+                }
+            }
             data.writeInt32( 0 ); // no more interface in itable
 
             // header position TYPE_DESCRIPTION_INSTANCEOF_OFFSET

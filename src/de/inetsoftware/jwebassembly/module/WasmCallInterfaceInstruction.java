@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
 /**
  * WasmInstruction for a function call.
@@ -76,13 +77,15 @@ class WasmCallInterfaceInstruction extends WasmCallIndirectInstruction {
         FunctionName name = getFunctionName();
         StructType type = getThisType();
         int classIndex = type.getClassIndex();
+        int interfaceFunctionIdx =  options.functions.getFunctionIndex( name );
 
-        //writer.writeLocal( VariableOperator.get, tempVarIdx ); // duplicate this on the stack
+        // duplicate this on the stack
+        writer.writeLocal( VariableOperator.get, getVariableIndexOfThis() );
         writer.writeConst( classIndex, ValueType.i32 );
-        //writer.writeConst( functionIndex, ValueType.i32 );
-        //writer.writeFunctionCall( callInterface ); // parameters: this, classIndex, functionIndex
+        writer.writeConst( interfaceFunctionIdx * 4, ValueType.i32 );
+        writer.writeFunctionCall( options.getCallInterface(), null ); // parameters: this, classIndex, functionIndex
 
-        //writer.writeVirtualFunctionCall( name, type );
+        writer.writeVirtualFunctionCall( name, type );
         throw new WasmException( "Interface calls are not supported.", getLineNumber() );
     }
 }
