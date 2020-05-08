@@ -620,6 +620,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 break;
                             case 185:
                                 addCallInterfaceInstruction( funcName, codePos, lineNumber );
+                                byteCode.read(); // count
+                                byteCode.read(); // 0
                                 break;
                         }
                         break;
