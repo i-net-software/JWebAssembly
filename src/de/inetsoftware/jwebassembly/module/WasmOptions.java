@@ -57,6 +57,8 @@ public class WasmOptions {
 
     private FunctionName callVirtual;
 
+    private FunctionName callInterface;
+    
     private FunctionName instanceOf;
 
     private FunctionName cast;
@@ -164,7 +166,24 @@ public class WasmOptions {
     FunctionName getCallVirtual() {
         FunctionName name = callVirtual;
         if( name == null ) {
-            callVirtual = name = types.createCallVirtualGC();
+            callVirtual = name = types.createCallVirtual();
+            functions.markAsNeeded( name );
+            registerGet_i32();
+        }
+        return name;
+    }
+
+    /**
+     * Get the FunctionName for a virtual call and mark it as used. The function has 2 parameters (THIS,
+     * virtualfunctionIndex) and returns the index of the function.
+     * 
+     * @return the name
+     */
+    @Nonnull
+    FunctionName getCallInterface() {
+        FunctionName name = callInterface;
+        if( name == null ) {
+            callInterface = name = types.createCallInterface();
             functions.markAsNeeded( name );
             registerGet_i32();
         }

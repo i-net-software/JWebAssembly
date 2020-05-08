@@ -238,13 +238,13 @@ public class TypeManager {
     }
 
     /**
-     * Create the FunctionName for a virtual call and mark it as used. The function has 2 parameters (THIS,
+     * Create the FunctionName for a virtual call. The function has 2 parameters (THIS,
      * virtualfunctionIndex) and returns the index of the function.
      * 
      * @return the name
      */
     @Nonnull
-    WatCodeSyntheticFunctionName createCallVirtualGC() {
+    WatCodeSyntheticFunctionName createCallVirtual() {
         return new WatCodeSyntheticFunctionName( //
                         "callVirtual", "local.get 0 " // THIS
                                         + "struct.get java/lang/Object .vtable " // vtable is on index 0
@@ -252,7 +252,70 @@ public class TypeManager {
                                         + "i32.add " //
                                         + "i32.load offset=0 align=4 " //
                                         + "return " //
-                        , valueOf( "java/lang/Object" ), ValueType.i32, null, ValueType.i32 ); //
+                        , valueOf( "java/lang/Object" ), ValueType.i32, null, ValueType.i32 ); // THIS, virtualfunctionIndex, returns functionIndex
+    }
+
+    /**
+     * Create the FunctionName for a interface call. The function has 3 parameters (THIS,classIndex,
+     * virtualfunctionIndex) and returns the index of the function.
+     * 
+     * @return the name
+     */
+    @Nonnull
+    WatCodeSyntheticFunctionName createCallInterface() {
+        /*
+        static int callInterface( OBJECT THIS, int classIndex, int virtualfunctionIndex ) {
+            int table = THIS.vtable;
+            table += i32_load[table];
+
+            do {
+                int nextClass = i32_load[table];
+                if( nextClass == classIndex ) {
+                    return i32_load[table + virtualfunctionIndex];
+                }
+                if( nextClass == 0 ) {
+                    return -1;//throw new NoSuchMethodError();
+                }
+                table += i32_load[table + 4];
+            } while( true );
+        }
+         */
+        return new WatCodeSyntheticFunctionName( //
+                        "callInterface", "local.get 0 " // $THIS
+                                        + "struct.get java/lang/Object .vtable " // vtable is on index 0
+                                        + "local.tee 3 " // save $table
+                                        + "i32.load offset=" + TYPE_DESCRIPTION_INTERFACE_OFFSET + " align=4 " // get offset of itable (int position 0, byte position 0)
+                                        + "local.get 3 " // save $table
+                                        + "i32.add " // $table += i32_load[$table]
+                                        + "local.set 3 " // save $table, the itable start location
+                                        + "loop" //
+                                        + "  local.get 3" // get $table
+                                        + "  i32.load offset=0 align=4"
+                                        + "  local.tee 4" // save $nextClass
+                                        + "  local.get 1" // get $classIndex
+                                        + "  i32.eq" //
+                                        + "  if" // $nextClass == $classIndex
+                                        + "    local.get 3" // get $table
+                                        + "    local.get 2" // get $virtualfunctionIndex
+                                        + "    i32.add" // $table + $virtualfunctionIndex
+                                        + "    i32.load offset=0 align=4" // get the functionIndex
+                                        + "    return" //
+                                        + "  end" //
+                                        + "  local.get 4" // save $nextClass
+                                        + "  i32.eqz" //
+                                        + "  if" // current offset == end offset
+                                        + "    unreachable" // TODO throw a ClassCastException if exception handling is supported
+                                        + "  end" //
+                                        + "  local.get 3" // get $table
+                                        + "  i32.const 4" //
+                                        + "  i32.add" // $table + 4
+                                        + "  i32.load offset=0 align=4" // get the functionIndex
+                                        + "  local.get 3" // $table
+                                        + "  i32.add" // $table += i32_load[table + 4];
+                                        + "  local.set 3" // set $table
+                                        + "  br 0 " //
+                                        + "end " //
+                        , valueOf( "java/lang/Object" ), ValueType.i32, ValueType.i32, null, ValueType.i32 ); // THIS, classIndex, virtualfunctionIndex, returns functionIndex
     }
 
     /**
@@ -295,7 +358,7 @@ public class TypeManager {
                                         + "end " //
                                         + "i32.const 1 " // class/interface found
                                         + "return " //
-                        , valueOf( "java/lang/Object" ), ValueType.i32, null, ValueType.i32 ); //
+                        , valueOf( "java/lang/Object" ), ValueType.i32, null, ValueType.i32 ); // THIS, classIndex, returns boolean
     }
 
     /**
@@ -639,6 +702,7 @@ public class TypeManager {
             // header position TYPE_DESCRIPTION_INTERFACE_OFFSET
             header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 ); // offset of interface calls
             //TODO interface calls
+            data.writeInt32( 0 ); // no more interface in itable
 
             // header position TYPE_DESCRIPTION_INSTANCEOF_OFFSET
             header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 ); // offset of instanceeof list

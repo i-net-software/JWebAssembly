@@ -653,6 +653,7 @@ public abstract class WasmCodeBuilder {
     protected void addCallInterfaceInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
         name = functions.markAsNeeded( name );
         addCallIndirectInstruction( new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types, options ) );
+        options.getCallInterface(); // mark the function as needed
         functions.markClassAsUsed( name.className );
     }
 
