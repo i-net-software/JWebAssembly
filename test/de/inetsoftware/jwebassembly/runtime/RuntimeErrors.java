@@ -112,17 +112,4 @@ public class RuntimeErrors {
             run.run();
         }
     }
-
-    @Test
-    public void interfaceCall() throws IOException {
-        compileErrorTest( "Interface calls are not supported.", InterfaceMethod.class );
-    }
-
-    static class InterfaceMethod {
-        @Export
-        static int runnable() {
-            List list = new ArrayList();
-            return list.size();
-        }
-    }
 }

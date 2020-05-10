@@ -67,7 +67,7 @@ class WasmCallVirtualInstruction extends WasmCallIndirectInstruction {
      * @return true, virtual call
      */
     boolean isVirtual() {
-        return options.functions.getFunctionIndex( getFunctionName() ) > 0;
+        return options.functions.getVTableIndex( getFunctionName() ) > 0;
     }
 
     /**
@@ -75,7 +75,7 @@ class WasmCallVirtualInstruction extends WasmCallIndirectInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        int virtualFunctionIdx =  options.functions.getFunctionIndex( getFunctionName() );
+        int virtualFunctionIdx =  options.functions.getVTableIndex( getFunctionName() );
         if( virtualFunctionIdx < 0 ) {
             super.writeTo( writer );
         } else {

@@ -398,7 +398,7 @@ public class TypeManager {
 
         private List<NamedStorageType> fields;
 
-        private List<FunctionName>     methods;
+        private List<FunctionName>     vtable;
 
         private Set<StructType>        instanceOFs;
 
@@ -435,8 +435,6 @@ public class TypeManager {
         /**
          * Write this struct type and initialize internal structures
          * 
-         * @param writer
-         *            the targets for the types
          * @param functions
          *            the used functions for the vtables of the types
          * @param types
@@ -449,11 +447,14 @@ public class TypeManager {
         private void scanTypeHierarchy( FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
             JWebAssembly.LOGGER.fine( "scan type hierachy: " + name );
             fields = new ArrayList<>();
-            methods = new ArrayList<>();
+            vtable = new ArrayList<>();
             instanceOFs = new LinkedHashSet<>(); // remembers the order from bottom to top class.
             instanceOFs.add( this );
             interfaceMethods = new LinkedHashMap<>();
             if( classIndex >= PRIMITIVE_CLASSES.length ) {
+                // add all interfaces to the instanceof set
+                listInterfaces( functions, types, classFileLoader );
+
                 HashSet<String> allNeededFields = new HashSet<>();
                 listStructFields( name, functions, types, classFileLoader, allNeededFields );
             }
@@ -514,9 +515,6 @@ public class TypeManager {
                 }
             }
 
-            // add all interfaces to the instanceof set
-            listInterface( classFile, functions, types, classFileLoader );
-
             // List stuff of super class
             ConstantClass superClass = classFile.getSuperClass();
             if( superClass != null ) {
@@ -545,31 +543,64 @@ public class TypeManager {
                 }
                 FunctionName funcName = new FunctionName( method );
 
-                int idx = 0;
-                // search if the method is already in our list
-                for( ; idx < methods.size(); idx++ ) {
-                    FunctionName func = methods.get( idx );
-                    if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
-                        methods.set( idx, funcName ); // use the override method
-                        functions.markAsNeeded( funcName ); // mark all overridden methods also as needed if the super method is used
-                        break;
+                addOrUpdateVTable( functions, funcName, false );
+            }
+
+            // search if there is a default implementation in an interface
+            for( ConstantClass interClass : classFile.getInterfaces() ) {
+                String interName = interClass.getName();
+                ClassFile interClassFile = classFileLoader.get( interName );
+                for( MethodInfo interMethod : interClassFile.getMethods() ) {
+                    FunctionName funcName = new FunctionName( interMethod );
+                    if( functions.isUsed( funcName ) ) {
+                        addOrUpdateVTable( functions, funcName, true );
                     }
-                }
-                if( idx == methods.size() && functions.isUsed( funcName ) ) {
-                    // if a new needed method then add it
-                    methods.add( funcName );
-                }
-                if( idx < methods.size() ) {
-                    functions.setFunctionIndex( funcName, idx + VTABLE_FIRST_FUNCTION_INDEX );
                 }
             }
         }
 
         /**
-         * List all interfaces and and mark all instance methods of used interfaces.
+         * Add the function to the vtable or replace if already exists
          * 
-         * @param classFile
-         *            the class file
+         * @param functions
+         *            the function manager
+         * @param funcName
+         *            the function to added
+         * @param isDefault
+         *            true, if the function is a default implementation of a interface
+         */
+        private void addOrUpdateVTable( FunctionManager functions, FunctionName funcName, boolean isDefault ) {
+            int idx = 0;
+            // search if the method is already in our list
+            for( ; idx < vtable.size(); idx++ ) {
+                FunctionName func = vtable.get( idx );
+                if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
+                    if( !isDefault ) {
+                        vtable.set( idx, funcName ); // use the override method
+                        functions.markAsNeeded( funcName ); // mark all overridden methods also as needed if the super method is used
+                    }
+                    break;
+                }
+            }
+            if( idx == vtable.size() && functions.isUsed( funcName ) ) {
+                // if a new needed method then add it
+                vtable.add( funcName );
+            }
+            if( idx < vtable.size() ) {
+                functions.setVTableIndex( funcName, idx + VTABLE_FIRST_FUNCTION_INDEX );
+            }
+        }
+
+        /**
+         * List all interfaces of this StructType and and mark all instance methods of used interface methods.
+         * 
+         * <li>Add all used interfaces to the instanceOf set.</li>
+         * <li>Create the itable for every interface. A list of real functions that should be called if the interface
+         * method is called for this type.</li>
+         * <li>mark all implementations of used interface method in this type as used. For example if
+         * "java/util/List.size()I" is used anywhere and this StructType implements "java/util/List" then the "size()I"
+         * method of this StrucType must also compiled.</li>
+         * 
          * @param functions
          *            the used functions for the vtables of the types
          * @param types
@@ -579,22 +610,65 @@ public class TypeManager {
          * @throws IOException
          *             if any I/O error occur on loading or writing
          */
-        private void listInterface( ClassFile classFile, FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
-            for( ConstantClass interClass : classFile.getInterfaces() ) {
-                String interName = interClass.getName();
-                StructType type = types.structTypes.get( interName );
-                if( type == null ) {
-                    continue;
-                }
-                // add all used interfaces to the instanceof set
-                instanceOFs.add( type );
+        private void listInterfaces( FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
+            // all implemented interfaces in the hierarchy
+            Set<StructType> interfaceTypes = new LinkedHashSet<>();
+            // all classes in the hierarchy
+            ArrayList<ClassFile> classFiles = new ArrayList<>();
 
-                List<FunctionName> iMethods = interfaceMethods.get( type );
+            for( ClassFile classFile = classFileLoader.get( name );; ) {
+                classFiles.add( classFile );
+                for( ConstantClass interClass : classFile.getInterfaces() ) {
+                    String interName = interClass.getName();
+                    StructType type = types.structTypes.get( interName );
+                    if( type == null ) {
+                        continue;
+                    }
+                    interfaceTypes.add( type );
+                    // add all used interfaces to the instanceof set
+                    instanceOFs.add( type );
+                }
+
+                ConstantClass superClass = classFile.getSuperClass();
+                if( superClass == null ) {
+                    break;
+                }
+                classFile = classFileLoader.get( superClass.getName() );
+            }
+
+            // if the top most class abstract then there can be no instance. A itable we need only for an instance
+            if( classFiles.get( 0 ).isAbstract() ) {
+                return;
+            }
+
+            // create the itables for all interfaces of this type
+            for( StructType type : interfaceTypes ) {
+                String interName = type.name;
                 ClassFile interClassFile = classFileLoader.get( interName );
+                List<FunctionName> iMethods = null;
+
                 for( MethodInfo interMethod : interClassFile.getMethods() ) {
-                    FunctionName funcName = new FunctionName( interMethod );
-                    if( functions.isUsed( funcName ) ) {
-                        MethodInfo method = classFile.getMethod( funcName.methodName, funcName.signature );
+                    FunctionName iName = new FunctionName( interMethod );
+                    if( functions.isUsed( iName ) ) {
+                        MethodInfo method = null;
+                        for( ClassFile classFile : classFiles ) {
+                            method = classFile.getMethod( iName.methodName, iName.signature );
+                            if( method != null ) {
+                                break;
+                            }
+                        }
+
+                        if( method == null ) {
+                            // search if there is a default implementation in an interface
+                            for( StructType iType : interfaceTypes ) {
+                                ClassFile iClassFile = classFileLoader.get( iType.name );
+                                method = iClassFile.getMethod( iName.methodName, iName.signature );
+                                if( method != null ) {
+                                    break;
+                                }
+                            }
+                        }
+
                         if( method != null ) {
                             FunctionName methodName = new FunctionName( method );
                             functions.markAsNeeded( methodName );
@@ -602,6 +676,9 @@ public class TypeManager {
                                 interfaceMethods.put( type, iMethods = new ArrayList<>() );
                             }
                             iMethods.add( methodName );
+                            functions.setITableIndex( iName, iMethods.size() + 1 ); // on the first two place the classIndex and the next position is saved
+                        } else {
+                            throw new WasmException( "No implementation of used interface method " + iName.signatureName + " for type " + name, -1 );
                         }
                     }
                 }
@@ -629,6 +706,7 @@ public class TypeManager {
          */
         @Override
         public boolean isSubTypeOf( AnyType type ) {
+            //TODO if type is StructType (class or interface)
             return type == this || type == ValueType.anyref;
         }
 
@@ -655,15 +733,6 @@ public class TypeManager {
          */
         public List<NamedStorageType> getFields() {
             return fields;
-        }
-
-        /**
-         * Get the virtual function/methods
-         * 
-         * @return the methods
-         */
-        public List<FunctionName> getMethods() {
-            return methods;
         }
 
         /**
@@ -707,7 +776,7 @@ public class TypeManager {
 
             LittleEndianOutputStream header = new LittleEndianOutputStream( dataStream );
             LittleEndianOutputStream data = new LittleEndianOutputStream();
-            for( FunctionName funcName : methods ) {
+            for( FunctionName funcName : vtable ) {
                 int functIdx = getFunctionsID.applyAsInt( funcName );
                 data.writeInt32( functIdx );
             }

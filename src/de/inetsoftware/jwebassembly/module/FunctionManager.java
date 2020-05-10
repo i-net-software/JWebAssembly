@@ -406,26 +406,49 @@ class FunctionManager {
     }
 
     /**
-     * Set the index of a virtual function in a a type
+     * Set the index of a virtual function in a type.
      * 
      * @param name
      *            the name
-     * @param functionIdx
-     *            the index
+     * @param vtableIdx
+     *            the index in the vtable
      */
-    void setFunctionIndex( @Nonnull FunctionName name, int functionIdx ) {
-        getOrCreate( name ).functionIdx = functionIdx;
+    void setVTableIndex( @Nonnull FunctionName name, int vtableIdx ) {
+        getOrCreate( name ).vtableIdx = vtableIdx;
     }
 
     /**
-     * Get the index of a virtual function in a a type
+     * Get the index of a virtual function in a type.
      * 
      * @param name
      *            the name
      * @return the index
      */
-    int getFunctionIndex( @Nonnull FunctionName name ) {
-        return getOrCreate( name ).functionIdx;
+    int getVTableIndex( @Nonnull FunctionName name ) {
+        return getOrCreate( name ).vtableIdx;
+    }
+
+    /**
+     * Set the index of a function in an interface.
+     * 
+     * @param name
+     *            the name
+     * @param itableIdx
+     *            the index in the itable
+     */
+    void setITableIndex( @Nonnull FunctionName name, int itableIdx ) {
+        getOrCreate( name ).itableIdx = itableIdx;
+    }
+
+    /**
+     * Get the index of a function in an interface.
+     * 
+     * @param name
+     *            the name
+     * @return the index  in the itable
+     */
+    int getITableIndex( @Nonnull FunctionName name ) {
+        return getOrCreate( name ).itableIdx;
     }
 
     /**
@@ -440,7 +463,9 @@ class FunctionManager {
 
         private Function<String, Object> importAnannotation;
 
-        private int                      functionIdx = -1;
+        private int                      vtableIdx = -1;
+
+        private int                      itableIdx = -1;
 
         private boolean                  needThisParameter;
     }
