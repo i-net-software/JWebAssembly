@@ -308,6 +308,15 @@ public class ClassFile {
         return accessFlags;
     }
 
+    /**
+     * If the class is abstract
+     * 
+     * @return true, if abstract class
+     */
+    public boolean isAbstract() {
+        return (accessFlags & 0x0400) > 0;
+    }
+
     private FieldInfo[] readFields( DataInputStream input ) throws IOException {
         FieldInfo[] fields = new FieldInfo[input.readUnsignedShort()];
         for( int i = 0; i < fields.length; i++ ) {
