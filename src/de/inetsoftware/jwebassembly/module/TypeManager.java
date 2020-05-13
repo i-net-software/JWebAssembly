@@ -575,7 +575,7 @@ public class TypeManager {
             for( ; idx < vtable.size(); idx++ ) {
                 FunctionName func = vtable.get( idx );
                 if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
-                    if( !isDefault ) {
+                    if( !isDefault || functions.getITableIndex( func ) >= 0 ) {
                         vtable.set( idx, funcName ); // use the override method
                         functions.markAsNeeded( funcName ); // mark all overridden methods also as needed if the super method is used
                     }
@@ -616,18 +616,11 @@ public class TypeManager {
             // all classes in the hierarchy
             ArrayList<ClassFile> classFiles = new ArrayList<>();
 
+            // list classes of the hierarchy and its interfaces
+            Set<String> interfaceNames = new LinkedHashSet<>();
             for( ClassFile classFile = classFileLoader.get( name );; ) {
                 classFiles.add( classFile );
-                for( ConstantClass interClass : classFile.getInterfaces() ) {
-                    String interName = interClass.getName();
-                    StructType type = types.structTypes.get( interName );
-                    if( type == null ) {
-                        continue;
-                    }
-                    interfaceTypes.add( type );
-                    // add all used interfaces to the instanceof set
-                    instanceOFs.add( type );
-                }
+                listInterfaceTypes( classFile, types, classFileLoader, interfaceTypes, interfaceNames );
 
                 ConstantClass superClass = classFile.getSuperClass();
                 if( superClass == null ) {
@@ -660,8 +653,8 @@ public class TypeManager {
 
                         if( method == null ) {
                             // search if there is a default implementation in an interface
-                            for( StructType iType : interfaceTypes ) {
-                                ClassFile iClassFile = classFileLoader.get( iType.name );
+                            for( String iClassName : interfaceNames ) {
+                                ClassFile iClassFile = classFileLoader.get( iClassName );
                                 method = iClassFile.getMethod( iName.methodName, iName.signature );
                                 if( method != null ) {
                                     break;
@@ -680,6 +673,40 @@ public class TypeManager {
                         } else {
                             throw new WasmException( "No implementation of used interface method " + iName.signatureName + " for type " + name, -1 );
                         }
+                    }
+                }
+            }
+        }
+
+        /**
+         * List all interface StrucTypes recursively.
+         * 
+         * @param classFile
+         *            The class from which the interfaces should listed
+         * @param types
+         *            the type manager with references to the types
+         * @param classFileLoader
+         *            for loading the class files
+         * @param interfaceTypes
+         *            the target
+         * @param interfaceNames
+         *            already listed interfaces to prevent a endless loop
+         * @throws IOException
+         *             if any I/O error occur on loading or writing
+         */
+        private void listInterfaceTypes( ClassFile classFile, TypeManager types, ClassFileLoader classFileLoader, Set<StructType> interfaceTypes, Set<String> interfaceNames ) throws IOException {
+            for( ConstantClass interClass : classFile.getInterfaces() ) {
+                String interName = interClass.getName();
+                if( interfaceNames.add( interName ) ) {
+                    StructType type = types.structTypes.get( interName );
+                    if( type != null ) {
+                        interfaceTypes.add( type );
+                        // add all used interfaces to the instanceof set
+                        instanceOFs.add( type );
+                    }
+                    ClassFile interClassFile = classFileLoader.get( interName );
+                    if( interClassFile != null ) {
+                        listInterfaceTypes( interClassFile, types, classFileLoader, interfaceTypes, interfaceNames );
                     }
                 }
             }
@@ -786,7 +813,7 @@ public class TypeManager {
             for( Entry<StructType, List<FunctionName>> entry : interfaceMethods.entrySet() ) {
                 data.writeInt32( entry.getKey().getClassIndex() );
                 List<FunctionName> iMethods = entry.getValue();
-                int nextClassPosition = data.size() + 4 * (1 + iMethods.size());
+                int nextClassPosition = 4 * (2 + iMethods.size());
                 data.writeInt32( nextClassPosition );
                 for( FunctionName funcName : iMethods ) {
                     int functIdx = getFunctionsID.applyAsInt( funcName );

@@ -45,6 +45,7 @@ public class InterfaceOperations extends AbstractBaseTest {
             addParam( list, script, "getDefaultOverride2" );
             addParam( list, script, "getDefaultExtends" );
             addParam( list, script, "getDefaultReimplement" );
+            addParam( list, script, "getDefaultRedefinied" );
             addParam( list, script, "abstractParent" );
         }
         rule.setTestParameters( list );
@@ -89,6 +90,12 @@ public class InterfaceOperations extends AbstractBaseTest {
             return bar.getDefaultValue();
         }
 
+        @Export
+        static int getDefaultRedefinied() {
+            Bar bar = new Bar2() {};
+            return bar.getDefaultValue();
+        }
+
         interface Bar {
             default int getDefaultValue() {
                 return 7;
@@ -112,6 +119,12 @@ public class InterfaceOperations extends AbstractBaseTest {
         }
 
         static class BarReimplement extends BarExtends implements Bar {
+        }
+
+        interface Bar2 extends Bar {
+            default int getDefaultValue() {
+                return 99;
+            }
         }
 
         @Export
