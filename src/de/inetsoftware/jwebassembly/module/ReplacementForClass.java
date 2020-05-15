@@ -159,6 +159,12 @@ class ReplacementForClass {
                     "return" )
     private static native int getIntFromMemory( int pos );
 
+    /**
+     * Replacement of the Java methods
+     */
+    ClassLoader getClassLoader() {
+        return null;
+    }
 
     /**
      * Replacement of the native Java methods
@@ -195,7 +201,7 @@ class ReplacementForClass {
     /**
      * Replacement of the native Java methods.
      */
-    public boolean desiredAssertionStatus() {
+    boolean desiredAssertionStatus() {
         return false;
     }
 }
