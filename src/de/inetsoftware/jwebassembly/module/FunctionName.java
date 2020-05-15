@@ -21,6 +21,7 @@ import java.util.Iterator;
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.classparser.Member;
+import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
@@ -109,13 +110,17 @@ public class FunctionName {
      *            the full Java method signature like "com/foo/Bar.method()V"
      */
     public FunctionName( String signatureName ) {
-        int idx1 = signatureName.indexOf( '.' );
-        this.className = signatureName.substring( 0, idx1 );
-        int idx2 = signatureName.indexOf( '(', idx1 );
-        this.methodName = signatureName.substring( idx1 + 1, idx2 );
-        this.fullName = signatureName.substring( 0, idx2 );
-        this.signatureName = signatureName;
-        this.signature = signatureName.substring( idx2 );
+        try {
+            int idx1 = signatureName.indexOf( '.' );
+            this.className = signatureName.substring( 0, idx1 );
+            int idx2 = signatureName.indexOf( '(', idx1 );
+            this.methodName = signatureName.substring( idx1 + 1, idx2 );
+            this.fullName = signatureName.substring( 0, idx2 );
+            this.signatureName = signatureName;
+            this.signature = signatureName.substring( idx2 );
+        } catch( IndexOutOfBoundsException ex ) {
+            throw WasmException.create( "Invalid method signature: " + signatureName, ex );
+        }
     }
 
     /**
