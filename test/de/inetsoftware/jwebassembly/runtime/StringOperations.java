@@ -44,6 +44,7 @@ public class StringOperations extends AbstractBaseTest {
             addParam( list, script, "newFromChars" );
             addParam( list, script, "newFromBytes" );
             addParam( list, script, "constant" );
+            addParam( list, script, "objToString" );
         }
         rule.setTestParameters( list );
         return list;
@@ -70,6 +71,12 @@ public class StringOperations extends AbstractBaseTest {
                             + "𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡 𝒥𝒶𝓋𝒶𝓈𝒸𝓇𝒾𝓅𝓉 " // surrogate chars
                             + "abcdefghijklmnopqrstuvwxyz";
             return JSObject.domString( constant );
+        }
+
+        @Export
+        static String objToString() {
+            Object obj = new Object();
+            return JSObject.domString( obj.toString().substring( 0, 17 ) );
         }
 
     }
