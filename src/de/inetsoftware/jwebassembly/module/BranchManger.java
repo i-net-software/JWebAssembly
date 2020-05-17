@@ -433,10 +433,21 @@ class BranchManger {
         // first search for first GOTO, any IF that point after the GOTO can not be part of the primary IF condition.
         // This occur with a second IF inside of the THEN. This can jump directly to the end of the ELSE.
         int maxElse = Integer.MAX_VALUE;
-        for( int i = 0; i < parsedOperations.size(); i++ ) {
+        int parsedOpCount = parsedOperations.size();
+        for( int i = 0; i < parsedOpCount; i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
             if( parsedBlock.op == JavaBlockOperator.GOTO ) {
-                maxElse = parsedBlock.nextPosition;
+                maxElse = parsedBlock.endPosition;
+
+                // find the last IF that point to this GOTO
+                int gotoNext = parsedBlock.nextPosition;
+                for( ; i > 0; i-- ) {
+                    parsedBlock = parsedOperations.get( i-1 );
+                    if( parsedBlock.endPosition == gotoNext ) {
+                        break;
+                    }
+                }
+                parsedOpCount = i;
                 break;
             }
         }
@@ -444,7 +455,7 @@ class BranchManger {
         int ifCount = 0;
         int thenPos = startBlock.nextPosition;
         int elsePos = startBlock.endPosition;
-        for( ; ifCount < parsedOperations.size(); ifCount++ ) {
+        for( ; ifCount < parsedOpCount; ifCount++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( ifCount );
             if( parsedBlock.op != JavaBlockOperator.IF || parsedBlock.endPosition < elsePos || parsedBlock.endPosition > maxElse ) {
                 // seems a second IF inside the THEN part.

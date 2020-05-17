@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2020 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifAndOr6" );
             addParam( list, script, "ifAndOr8" );
             addParam( list, script, "ifWithoutElseAndLoop" );
+            addParam( list, script, "ifOrWithMulti" );
             addParam( list, script, "stringSwitchNormalFoo" );
             addParam( list, script, "stringSwitchNormalBar" );
             addParam( list, script, "stringSwitchNormalDefault" );
@@ -493,6 +494,21 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 ifWithoutElseAndLoop *= n++;
             }
             return ifWithoutElseAndLoop;
+        }
+
+        @Export
+        static int ifOrWithMulti() {
+            int len = 4;
+
+            // the GOTO before the ELSE is not related to the main IF condition 
+            if( (len == 4 || len == 9) ) {
+                if( len == 9 ) {
+                    len = 13;
+                } else {
+                    len = 42;
+                }
+            }
+            return len;
         }
 
         @Export
