@@ -51,6 +51,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "tryFinally2" );
             addParam( list, script, "complex" );
             addParam( list, script, "sync" );
+            addParam( list, script, "syncWithInnerTryCatch" );
             addParam( list, script, "emptyCatch" );
             addParam( list, script, "multiCatch" );
         }
@@ -170,6 +171,20 @@ public class Exceptions extends AbstractBaseTest {
                 v++;
             }
             return v;
+        }
+
+        @Export
+        static int syncWithInnerTryCatch() {
+            int result;
+            Object obj = new Object();
+            synchronized( obj ) {
+                try {
+                    result = 13;
+                } catch( Exception x ) {
+                    result = 42;
+                }
+            }
+            return result;
         }
 
         @Export

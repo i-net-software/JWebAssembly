@@ -156,7 +156,7 @@ class BranchManger {
      */
     void calculate() {
         addLoops();
-        Collections.sort( allParsedOperations, (a,b) -> Integer.compare( a.startPosition, b.startPosition ) );
+        Collections.sort( allParsedOperations );
         calculate( root, allParsedOperations );
     }
 
@@ -1115,7 +1115,7 @@ class BranchManger {
     /**
      * Description of single block/branch from the parsed Java byte code. The parsed branches are plain.
      */
-    private static class ParsedBlock {
+    private static class ParsedBlock implements Comparable<ParsedBlock> {
         private JavaBlockOperator op;
 
         int                       startPosition;
@@ -1132,6 +1132,15 @@ class BranchManger {
             this.endPosition = startPosition + offset;
             this.nextPosition = nextPosition;
             this.lineNumber = lineNumber;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int compareTo( ParsedBlock o ) {
+            return startPosition < o.startPosition ? -1 : startPosition > o.startPosition ? 1 : // first order on the start position
+                            -Integer.compare( endPosition, o.endPosition ); // then reverse on the end position that outer blocks occur first
         }
     }
 
@@ -1230,7 +1239,7 @@ class BranchManger {
         private final TryCatchFinally tryCatch;
 
         TryCatchParsedBlock( TryCatchFinally tryCatch ) {
-            super( JavaBlockOperator.TRY, tryCatch.getStart(), 0, tryCatch.getStart(), -1 );
+            super( JavaBlockOperator.TRY, tryCatch.getStart(), tryCatch.getEnd() - tryCatch.getStart(), tryCatch.getStart(), -1 );
             this.tryCatch = tryCatch;
         }
     }
