@@ -167,6 +167,13 @@ class ReplacementForClass {
     }
 
     /**
+     * Replacement of the Java methods
+     */
+    ClassLoader getClassLoader0() {
+        return null;
+    }
+
+    /**
      * Replacement of the native Java methods
      * 
      * @param name
