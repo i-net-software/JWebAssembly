@@ -30,7 +30,7 @@ The project is currently not production ready but you can run already some tests
 * [x] Memory Management - currently with a polyfill on JavaScript side
 * [x] invoke static method calls
 * [x] invoke instance method calls
-* [ ] invoke interface method calls
+* [x] invoke interface method calls
 * [ ] invoke dynamic method calls (lambdas)
 * [x] invoke default method calls
 * [x] String support
