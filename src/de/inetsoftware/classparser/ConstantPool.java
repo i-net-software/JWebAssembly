@@ -25,7 +25,22 @@ import java.io.IOException;
 public class ConstantPool {
 
     private final Object[] constantPool;
-
+    public static final int CONSTANT_Utf8 = 1;
+    public static final int CONSTANT_Integer = 3;
+    public static final int CONSTANT_Float = 4;
+    public static final int CONSTANT_Long = 5;
+    public static final int CONSTANT_Double = 6;
+    public static final int CONSTANT_Class = 7;
+    public static final int CONSTANT_String = 8;
+    public static final int CONSTANT_Fieldref = 9;
+    public static final int CONSTANT_Methodref = 10;
+    public static final int CONSTANT_InterfaceMethodref = 11;
+    public static final int CONSTANT_NameAndType = 12;
+    public static final int CONSTANT_MethodHandle = 15;
+    public static final int CONSTANT_MethodType = 16;
+    public static final int CONSTANT_InvokeDynamic = 18;
+    public static final int CONSTANT_Module = 19;
+    public static final int CONSTANT_Package = 20;
     /**
      * https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.4
      *
@@ -40,38 +55,38 @@ public class ConstantPool {
         for( int i = 1; i < count; i++ ) {
             byte type = input.readByte();
             switch( type ) {
-                case 1: //CONSTANT_Utf8
+                case CONSTANT_Utf8:
                     pool[i] = input.readUTF();
                     break;
-                case 3: //CONSTANT_Integer
-                    pool[i] = new Integer( input.readInt() );
+                case CONSTANT_Integer:
+                    pool[i] = Integer.valueOf( input.readInt() );
                     break;
-                case 4: //CONSTANT_Float
-                    pool[i] = new Float( input.readFloat() );
+                case CONSTANT_Float:
+                    pool[i] = Float.valueOf( input.readFloat() );
                     break;
-                case 5: //CONSTANT_Long
-                    pool[i] = new Long( input.readLong() );
+                case CONSTANT_Long:
+                    pool[i] = Long.valueOf( input.readLong() );
                     i++;
                     break;
-                case 6: //CONSTANT_Double
-                    pool[i] = new Double( input.readDouble() );
+                case CONSTANT_Double:
+                    pool[i] = Double.valueOf( input.readDouble() );
                     i++;
                     break;
-                case 7: //CONSTANT_Class
-                case 8: //CONSTANT_String
-                case 16: // CONSTANT_MethodType
-                case 19: // CONSTANT_Module
-                case 20: // CONSTANT_Package
+                case CONSTANT_Class:
+                case CONSTANT_String:
+                case CONSTANT_MethodType:
+                case CONSTANT_Module:
+                case CONSTANT_Package:
                     pool[i] = new int[] { type, input.readUnsignedShort() };
                     break;
-                case 9: //CONSTANT_Fieldref
-                case 10: //CONSTANT_Methodref
-                case 11: //CONSTANT_InterfaceMethodref
-                case 12: //CONSTANT_NameAndType
-                case 18: // CONSTANT_InvokeDynamic
+                case CONSTANT_Fieldref:
+                case CONSTANT_Methodref:
+                case CONSTANT_InterfaceMethodref:
+                case CONSTANT_NameAndType:
+                case CONSTANT_InvokeDynamic:
                     pool[i] = new int[] { type, input.readUnsignedShort(), input.readUnsignedShort() };
                     break;
-                case 15: // CONSTANT_MethodHandle
+                case CONSTANT_MethodHandle:
                     pool[i] = new int[] { type, input.readUnsignedByte(), input.readUnsignedShort() };
                     break;
                 default:
@@ -86,43 +101,43 @@ public class ConstantPool {
                 if( pool[i] instanceof int[] ) {
                     int[] data = (int[])pool[i];
                     switch( data[0] ) {
-                        case 7: //CONSTANT_Class
+                        case CONSTANT_Class:
                             pool[i] = new ConstantClass( (String)pool[data[1]] );
                             break;
-                        case 8: // CONSTANT_String
-                        case 16: // CONSTANT_MethodType
-                        case 19: // CONSTANT_Module
-                        case 20: // CONSTANT_Package
+                        case CONSTANT_String:
+                        case CONSTANT_MethodType:
+                        case CONSTANT_Module:
+                        case CONSTANT_Package:
                             pool[i] = pool[data[1]];
                             break;
-                        case 9: //CONSTANT_Fieldref
+                        case CONSTANT_Fieldref:
                             if( pool[data[1]] instanceof int[] || pool[data[2]] instanceof int[] ) {
                                 repeat = true;
                             } else {
                                 pool[i] = new ConstantFieldRef( (ConstantClass)pool[data[1]], (ConstantNameAndType)pool[data[2]] );
                             }
                             break;
-                        case 10: //CONSTANT_Methodref
+                        case CONSTANT_Methodref:
                             if( pool[data[1]] instanceof int[] || pool[data[2]] instanceof int[] ) {
                                 repeat = true;
                             } else {
                                 pool[i] = new ConstantMethodRef( (ConstantClass)pool[data[1]], (ConstantNameAndType)pool[data[2]] );
                             }
                             break;
-                        case 11: //CONSTANT_InterfaceMethodref
+                        case CONSTANT_InterfaceMethodref:
                             if( pool[data[1]] instanceof int[] || pool[data[2]] instanceof int[] ) {
                                 repeat = true;
                             } else {
                                 pool[i] = new ConstantInterfaceRef( (ConstantClass)pool[data[1]], (ConstantNameAndType)pool[data[2]] );
                             }
                             break;
-                        case 12: //CONSTANT_NameAndType
+                        case CONSTANT_NameAndType:
                             pool[i] = new ConstantNameAndType( (String)pool[data[1]], (String)pool[data[2]] );
                             break;
-                        case 15: // CONSTANT_MethodHandle
+                        case CONSTANT_MethodHandle:
                             pool[i] = pool[data[2]];
                             break;
-                        case 18: // CONSTANT_InvokeDynamic
+                        case CONSTANT_InvokeDynamic:
                             if( pool[data[2]] instanceof int[] ) {
                                 repeat = true;
                             } else {

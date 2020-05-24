@@ -50,7 +50,9 @@ sourceSets {
 }
 
 compileJava.options.encoding = 'UTF-8'
+compileJava.options.compilerArgs << '-Xlint:all'
 compileTestJava.options.encoding = 'UTF-8'
+compileTestJava.options.compilerArgs << '-Xlint:all'
 javadoc.options.encoding = 'UTF-8'
 
 jar {
