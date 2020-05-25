@@ -33,7 +33,7 @@ class CodeOptimizer {
      * @param instructions
      *            the list of instructions
      */
-    void optimze( List<WasmInstruction> instructions ) {
+    void optimize( List<WasmInstruction> instructions ) {
         for( int i = instructions.size()-1; i >= 0; i-- ) {
             WasmInstruction instr = instructions.get( i );
             switch( instr.getType() ) {
