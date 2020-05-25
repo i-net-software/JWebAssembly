@@ -74,6 +74,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifAndOr8" );
             addParam( list, script, "ifWithoutElseAndLoop" );
             addParam( list, script, "ifOrWithMulti" );
+            addParam( list, script, "ifMultipleInsideThen" );
             addParam( list, script, "stringSwitchNormalFoo" );
             addParam( list, script, "stringSwitchNormalBar" );
             addParam( list, script, "stringSwitchNormalDefault" );
@@ -509,6 +510,26 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 }
             }
             return len;
+        }
+
+        @Export
+        static int ifMultipleInsideThen() {
+            int result = 0;
+            if( (result == 7) || (result == 13) ) {
+                // multiple IF inside the primary IF
+                if( result == -1 ) {
+                    result = 1;
+                } else {
+                    result = 2;
+                }
+
+                if( result > result ) {
+                    result = 3;
+                }
+            } else {
+                result = 4;
+            }
+            return result;
         }
 
         @Export

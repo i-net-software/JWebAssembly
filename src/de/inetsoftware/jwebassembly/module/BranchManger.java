@@ -156,8 +156,27 @@ class BranchManger {
      */
     void calculate() {
         addLoops();
-        Collections.sort( allParsedOperations );
-        calculate( root, allParsedOperations );
+        List<ParsedBlock> parsedOperations = allParsedOperations;
+        Collections.sort( parsedOperations );
+//
+//        int parsedOpCount = parsedOperations.size();
+//        for( int i = 0; i < parsedOpCount; i++ ) {
+//            ParsedBlock startBlock = parsedOperations.get( i );
+//            if( startBlock.op == JavaBlockOperator.IF ) {
+//                int jumpPos = startBlock.endPosition;
+//                for( int k = i + 1; k < parsedOpCount; k++ ) {
+//                    ParsedBlock parsedBlock = parsedOperations.get( k );
+//                    if( parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
+//                        if( jumpPos == parsedBlock.endPosition ) {
+//                            startBlock.endPosition = parsedBlock.startPosition;
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        calculate( root, parsedOperations );
     }
 
     /**
@@ -430,15 +449,30 @@ class BranchManger {
      * @return the calculated positions
      */
     private IfPositions searchElsePosition( IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
-        // first search for first GOTO, any IF that point after the GOTO can not be part of the primary IF condition.
-        // This occur with a second IF inside of the THEN. This can jump directly to the end of the ELSE.
-        int maxElse = Integer.MAX_VALUE;
+        // find the end position of the else block
+        int endElse = startBlock.endPosition;
         int parsedOpCount = parsedOperations.size();
         for( int i = 0; i < parsedOpCount; i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.op == JavaBlockOperator.GOTO ) {
-                maxElse = parsedBlock.endPosition;
+            switch( parsedBlock.op ) {
+                case IF:
+                case GOTO:
+                    if( parsedBlock.startPosition < endElse ) {
+                        endElse = Math.max( endElse, parsedBlock.endPosition );
+                    }
+                    break;
+            }
+            if( parsedBlock.startPosition > endElse ) {
+                parsedOpCount = i;
+                break;
+            }
+        }
 
+        // first search for the first GOTO, any IF that point after the GOTO can not be part of the primary IF condition.
+        // This occur with a second IF inside of the THEN. This can jump directly to the end of the ELSE.
+        for( int i = 0; i < parsedOpCount; i++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( i );
+            if( parsedBlock.op == JavaBlockOperator.GOTO ) {
                 // find the last IF that point to this GOTO
                 int gotoNext = parsedBlock.nextPosition;
                 for( ; i > 0; i-- ) {
@@ -457,7 +491,7 @@ class BranchManger {
         int elsePos = startBlock.endPosition;
         for( ; ifCount < parsedOpCount; ifCount++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( ifCount );
-            if( parsedBlock.op != JavaBlockOperator.IF || parsedBlock.endPosition < elsePos || parsedBlock.endPosition > maxElse ) {
+            if( parsedBlock.op != JavaBlockOperator.IF || parsedBlock.endPosition < elsePos || parsedBlock.endPosition > endElse ) {
                 // seems a second IF inside the THEN part.
                 break;
             }
@@ -1455,13 +1489,13 @@ class BranchManger {
      * Positions inside a IF control structure.
      */
     private static class IfPositions {
-        /** Count of boolean operations in the IF condition  */
+        /** Count of boolean operations in the IF top level condition. This can be (&&) or (||) operations.  */
         private int ifCount;
 
-        /** The position of the first instruction in the THEN part */
+        /** The position of the first instruction in the THEN part. */
         private int thenPos;
 
-        /** The position of the first instruction in the ELSE part */
+        /** The position of the first instruction in the ELSE part. */
         private int elsePos;
     }
 }
