@@ -574,7 +574,7 @@ public class ModuleGenerator {
         writeMethodSignature( name, FunctionType.Code, codeBuilder );
 
         List<WasmInstruction> instructions = codeBuilder.getInstructions();
-        optimizer.optimze( instructions );
+        optimizer.optimize( instructions );
 
         int lastJavaSourceLine = -1;
         for( WasmInstruction instruction : instructions ) {
