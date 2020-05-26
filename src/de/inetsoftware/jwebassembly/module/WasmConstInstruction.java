@@ -34,6 +34,9 @@ class WasmConstInstruction extends WasmInstruction {
 
     private final Number    value;
 
+    public Number getValue() {
+        return value;
+    }
     private final ValueType valueType;
 
     /**
@@ -84,7 +87,7 @@ class WasmConstInstruction extends WasmInstruction {
      * @return the ValueType
      */
     @Nonnull
-    private static ValueType getValueType( Number value ) {
+    static ValueType getValueType( Number value ) {
         Class<?> clazz = value.getClass();
         if( clazz == Integer.class ) {
             return ValueType.i32;
@@ -120,5 +123,8 @@ class WasmConstInstruction extends WasmInstruction {
     @Override
     int getPopCount() {
         return 0;
+    }
+    ValueType getValueType() {
+        return valueType;
     }
 }

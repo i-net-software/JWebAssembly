@@ -33,23 +33,20 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmNumericInstruction extends WasmInstruction {
 
-    NumericOperator         numOp;
+    NumericOperator numOp;
 
     private final ValueType valueType;
 
     /**
      * Create an instance of numeric operation.
      * 
-     * @param numOp
-     *            the numeric operation
-     * @param valueType
-     *            the type of the parameters
-     * @param javaCodePos
-     *            the code position/offset in the Java method
-     * @param lineNumber
-     *            the line number in the Java source code
+     * @param numOp       the numeric operation
+     * @param valueType   the type of the parameters
+     * @param javaCodePos the code position/offset in the Java method
+     * @param lineNumber  the line number in the Java source code
      */
-    WasmNumericInstruction( @Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos, int lineNumber ) {
+    WasmNumericInstruction(@Nullable NumericOperator numOp, @Nullable ValueType valueType, int javaCodePos,
+            int lineNumber) {
         super( javaCodePos, lineNumber );
         this.numOp = numOp;
         this.valueType = valueType;
@@ -66,7 +63,7 @@ class WasmNumericInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
-    public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+    public void writeTo(@Nonnull ModuleWriter writer) throws IOException {
         writer.writeNumericOperator( numOp, valueType );
     }
 
@@ -74,18 +71,19 @@ class WasmNumericInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     AnyType getPushValueType() {
-        switch( numOp ) {
-            case eq:
-            case ne:
-            case gt:
-            case lt:
-            case le:
-            case ge:
-            case ifnull:
-            case ifnonnull:
-                return ValueType.i32;
-            default:
-                return valueType;
+        switch (numOp) {
+        case eq:
+        case eqz:
+        case ne:
+        case gt:
+        case lt:
+        case le:
+        case ge:
+        case ifnull:
+        case ifnonnull:
+            return ValueType.i32;
+        default:
+            return valueType;
         }
     }
 
@@ -94,19 +92,20 @@ class WasmNumericInstruction extends WasmInstruction {
      */
     @Override
     int getPopCount() {
-        switch( numOp ) {
-            case ifnull:
-            case ifnonnull:
-            case neg:
-            case sqrt:
-            case abs:
-            case ceil:
-            case floor:
-            case trunc:
-            case nearest:
-                return 1;
-            default:
-                return 2;
+        switch (numOp) {
+        case eqz:
+        case ifnull:
+        case ifnonnull:
+        case neg:
+        case sqrt:
+        case abs:
+        case ceil:
+        case floor:
+        case trunc:
+        case nearest:
+            return 1;
+        default:
+            return 2;
         }
     }
 }
