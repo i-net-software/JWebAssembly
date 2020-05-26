@@ -36,7 +36,10 @@ class CodeOptimizer {
      * @param instructions the list of instructions
      */
     void optimize(List<WasmInstruction> instructions) {
-        while (true) {
+		int maxPasses=instructions.size();
+		int cnter=0;
+        while (cnter<maxPasses) {
+			cnter++;
             int oldSize = instructions.size();
             optimize0( instructions );
             int newSize = instructions.size();
