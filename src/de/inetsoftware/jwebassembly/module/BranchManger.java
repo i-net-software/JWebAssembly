@@ -158,24 +158,6 @@ class BranchManger {
         addLoops();
         List<ParsedBlock> parsedOperations = allParsedOperations;
         Collections.sort( parsedOperations );
-//
-//        int parsedOpCount = parsedOperations.size();
-//        for( int i = 0; i < parsedOpCount; i++ ) {
-//            ParsedBlock startBlock = parsedOperations.get( i );
-//            if( startBlock.op == JavaBlockOperator.IF ) {
-//                int jumpPos = startBlock.endPosition;
-//                for( int k = i + 1; k < parsedOpCount; k++ ) {
-//                    ParsedBlock parsedBlock = parsedOperations.get( k );
-//                    if( parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
-//                        if( jumpPos == parsedBlock.endPosition ) {
-//                            startBlock.endPosition = parsedBlock.startPosition;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         calculate( root, parsedOperations );
     }
 
