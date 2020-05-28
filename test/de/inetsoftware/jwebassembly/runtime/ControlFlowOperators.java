@@ -15,13 +15,10 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
-import static org.junit.Assume.assumeFalse;
-
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
@@ -72,6 +69,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifAndOr4" );
             addParam( list, script, "ifAndOr6" );
             addParam( list, script, "ifAndOr8" );
+            addParam( list, script, "ifAndOrComplex" );
             addParam( list, script, "ifWithoutElseAndLoop" );
             addParam( list, script, "ifOrWithMulti" );
             addParam( list, script, "ifMultipleInsideThen" );
@@ -478,6 +476,21 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 result = 42;
             } else {
                 result = 76;
+            }
+            return result;
+        }
+
+        @Export
+        private static int ifAndOrComplex() {
+            int b1 = 0;
+            int b2 = 0;
+            int result;
+            if( (b1 == 0xf0 && (b2  < 0x90 || b2 > 0xbf)) ||
+                   (b1 == 0xf4 && (b2 & 0xf0) != 0x80) ||
+                   (b2 & 0xc0) != 0x80) {
+                result = 13;
+            } else {
+                result = 42;
             }
             return result;
         }

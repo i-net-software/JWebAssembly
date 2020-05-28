@@ -158,24 +158,6 @@ class BranchManger {
         addLoops();
         List<ParsedBlock> parsedOperations = allParsedOperations;
         Collections.sort( parsedOperations );
-//
-//        int parsedOpCount = parsedOperations.size();
-//        for( int i = 0; i < parsedOpCount; i++ ) {
-//            ParsedBlock startBlock = parsedOperations.get( i );
-//            if( startBlock.op == JavaBlockOperator.IF ) {
-//                int jumpPos = startBlock.endPosition;
-//                for( int k = i + 1; k < parsedOpCount; k++ ) {
-//                    ParsedBlock parsedBlock = parsedOperations.get( k );
-//                    if( parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
-//                        if( jumpPos == parsedBlock.endPosition ) {
-//                            startBlock.endPosition = parsedBlock.startPosition;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         calculate( root, parsedOperations );
     }
 
@@ -491,9 +473,24 @@ class BranchManger {
         int elsePos = startBlock.endPosition;
         for( ; ifCount < parsedOpCount; ifCount++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( ifCount );
-            if( parsedBlock.op != JavaBlockOperator.IF || parsedBlock.endPosition < elsePos || parsedBlock.endPosition > endElse ) {
+            if( parsedBlock.op != JavaBlockOperator.IF || parsedBlock.endPosition > endElse ) {
                 // seems a second IF inside the THEN part.
                 break;
+            }
+            if( parsedBlock.endPosition < elsePos ) {
+                // The IF jumps not to ELSE part. This can be an inner IF or it is a combination of (||) and (&&) operation
+                boolean isContinue = false;
+                for( int i = ifCount + 1; i < parsedOpCount; i++ ) {
+                    ParsedBlock op = parsedOperations.get( i );
+                    if( op.endPosition >= elsePos ) {
+                        isContinue = true;
+                        break;
+                    }
+                }
+                if( !isContinue ) {
+                    // really seems a second IF within the THEN part.
+                    break;
+                }
             }
             if( parsedBlock.nextPosition > elsePos ) {
                 // occur if there are 2 IF blocks without ELSE behind the other, this IF is the second that we can cancel the analyze at this point
