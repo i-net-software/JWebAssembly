@@ -36,10 +36,8 @@ class CodeOptimizer {
      * @param instructions the list of instructions
      */
     void optimize(List<WasmInstruction> instructions) {
-		int maxPasses=instructions.size();
-		int cnter=0;
-        while (cnter<maxPasses) {
-			cnter++;
+        int maxPasses=instructions.size();
+        for (int i=0;i<maxPasses;i++) {
             int oldSize = instructions.size();
             optimize0( instructions );
             int newSize = instructions.size();
@@ -48,7 +46,12 @@ class CodeOptimizer {
             }
         }
     }
-
+    
+    /**
+     * Private method for the optimizer.
+     * 
+     * @param instructions the list of instructions
+     */
     private void optimize0(List<WasmInstruction> instructions) {
         for (int i = instructions.size() - 1; i >= 0; i--) {
             if(i>=instructions.size()) {
@@ -57,27 +60,34 @@ class CodeOptimizer {
             WasmInstruction instr = instructions.get( i );
             switch (instr.getType()) {
             case Local:
-                localOptimization( instructions, i, instr );
+                localOptimization( instructions, i );
                 break;
             case Numeric:
-                numericOptimization( instructions, i, instr );
+                numericOptimization( instructions, i );
                 break;
             default:
             }
         }
     }
-
-    private void numericOptimization(List<WasmInstruction> instructions, int i, WasmInstruction instr) {
+    
+    
+    /**
+     * Private method for the optimizer.
+     * 
+     * @param instructions the list of instructions
+     * @param i The index of the instruction to optimize
+     */
+    private void numericOptimization(List<WasmInstruction> instructions, int i) {
         if (i == 0) {
             return;
         }
-        WasmNumericInstruction wni = (WasmNumericInstruction) instr;
+        WasmNumericInstruction wni = (WasmNumericInstruction) instructions.get( i );
         switch (wni.getPopCount()) {
         case 1:
-            optimizeUnaryOperator( i, instructions, wni );
+            optimizeUnaryOperator( i, instructions );
             break;
         case 2:
-            optimizeBinaryOperator( i, instructions, wni );
+            optimizeBinaryOperator( i, instructions );
             break;
         default:
             break;
@@ -85,22 +95,28 @@ class CodeOptimizer {
     }
 
     /*-
+     *
      * Merge two type.const and one type.binop instruction.
+     * <pre>
      * For example:
      * i32.const 20
      * i32.const 50
      * i32.add
-     * ==> i32.const 70
+     * ==&gt; i32.const 70
      * i32.const 40
      * i32.const 65
      * i32.lt
-     * ==>i32.const 1
-     * TODO:Cleanup
+     * ==&gt; i32.const 1
+     * </pre>
+     * 
+     * @param i The index of the instruction to optimize
+     * @param instructions list of instructions
      */
-    private void optimizeBinaryOperator(int i, List<WasmInstruction> instructions, WasmNumericInstruction wni) {
+    private void optimizeBinaryOperator(int i, List<WasmInstruction> instructions) {
         if (i <= 1) {
             return;
         }
+        WasmNumericInstruction wni=(WasmNumericInstruction)instructions.get( i );
         int lineNo = wni.getLineNumber();
         int codePos = wni.getCodePosition();
         WasmInstruction firstOperand = instructions.get( i - 2 );
@@ -503,7 +519,10 @@ class CodeOptimizer {
             break;
         }
     }
-
+    
+    /**
+     *     Helper method for f32.gt
+     */
     private int fgt(float v1, float v2) {
         if (Float.isNaN( v1 ) || Float.isNaN( v2 )) {
             return 0;
@@ -525,6 +544,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f64.gt
+     */
     private int fgt(double v1, double v2) {
         if (Double.isNaN( v1 ) || Double.isNaN( v2 )) {
             return 0;
@@ -546,6 +568,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f32.ge
+     */
     private int fge(float v1, float v2) {
         if (Float.isNaN( v1 ) || Float.isNaN( v2 )) {
             return 0;
@@ -566,7 +591,10 @@ class CodeOptimizer {
         }
         return 0;
     }
-
+    
+    /**
+     * Helper method for f64.ge
+     */
     private int fge(double v1, double v2) {
         if (Double.isNaN( v1 ) || Double.isNaN( v2 )) {
             return 0;
@@ -587,7 +615,10 @@ class CodeOptimizer {
         }
         return 0;
     }
-
+    
+    /**
+     * Helper method for f32.lt
+     */
     private int flt(float v1, float v2) {
         if (Float.isNaN( v1 ) || Float.isNaN( v2 )) {
             return 0;
@@ -609,6 +640,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f64.lt
+     */
     private int flt(double v1, double v2) {
         if (Double.isNaN( v1 ) || Double.isNaN( v2 )) {
             return 0;
@@ -629,7 +663,10 @@ class CodeOptimizer {
         }
         return 0;
     }
-
+    
+    /**
+     * Helper method for f32.le
+     */
     private int fle(float v1, float v2) {
         if (Float.isNaN( v1 ) || Float.isNaN( v2 )) {
             return 0;
@@ -651,6 +688,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f64.le
+    */
     private int fle(double v1, double v2) {
         if (Double.isNaN( v1 ) || Double.isNaN( v2 )) {
             return 0;
@@ -672,6 +712,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f32.eq
+    */
     private int feq(float v1, float v2) {
         if (Float.isNaN( v1 ) || Float.isNaN( v2 )) {
             return 0;
@@ -681,6 +724,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f64.eq
+    */
     private int feq(double v1, double v2) {
         if (Double.isNaN( v1 ) || Double.isNaN( v2 )) {
             return 0;
@@ -690,6 +736,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f32.ne
+    */
     private int fne(float v1, float v2) {
         if (Float.isNaN( v1 ) || Float.isNaN( v2 )) {
             return 0;
@@ -699,6 +748,9 @@ class CodeOptimizer {
         return 0;
     }
 
+    /**
+     * Helper method for f32.ne
+    */
     private int fne(double v1, double v2) {
         if (Double.isNaN( v1 ) || Double.isNaN( v2 )) {
             return 0;
@@ -711,17 +763,22 @@ class CodeOptimizer {
     /*-
      * Merge type.const and type.unop:
      * For example:
+     * <pre>
      * f32.const -450.01
      * f32.abs 
-     * ==> f32.const 450.01
+     * ==&gt; f32.const 450.01
      * f64.const 2
      * f64.sqrt
-     * ==> f64.const 1.4.....
+     * ==&gt; f64.const 1.4.....
+     * </pre>
+     * @param i The index of the instruction to optimize
+     * @param instructions A list of instructions.
      */
-    private void optimizeUnaryOperator(int i, List<WasmInstruction> instructions, WasmNumericInstruction wni) {
+    private void optimizeUnaryOperator(int i, List<WasmInstruction> instructions) {
         if (i == 0) {
             return;
         }
+        WasmNumericInstruction wni=(WasmNumericInstruction)instructions.get( i );
         int lineNo = wni.getLineNumber();
         int codePos = wni.getCodePosition();
         WasmInstruction wi = instructions.get( i - 1 );
@@ -880,32 +937,44 @@ class CodeOptimizer {
         return Math.rint( constValue );
     }
 
-    private void localOptimization(List<WasmInstruction> instructions, int i, WasmInstruction instr) {
+    /**
+     * Optimize instructions that access locals.
+     * @param instructions A list of instructions
+     * @param i The current index.
+     */
+    private void localOptimization(List<WasmInstruction> instructions, int i) {
+        WasmInstruction instr=instructions.get( i );
         WasmLocalInstruction local2 = (WasmLocalInstruction) instr;
         if (local2.getOperator() == VariableOperator.set) {
             boolean canOptimize = true;
             /*-
              * Dead store elimination: v is a local variable index. 
-             * 1. Test, whether instructions[i] is a "local.set  v" operation.<br>
+             * 1. Test, whether instructions[i] is a "local.set  v" operation.
              * 2. Look for a "local.get v " access
              * 2.1 If there is None, we can instead "drop".
              * 2.2 If there is another "local.set v" before a "local.get v", we can optimize this too. 
              * 2.3 Else we can't optimize.
              */
-            for (int j = i; j < instructions.size(); j++) {
+            for (int j = i+1; j < instructions.size(); j++) {
+                //Is this an instruction, that operates on variables?
                 if (instructions.get( j ).getType() == Type.Local) {
                     WasmLocalInstruction testedInstr = (WasmLocalInstruction) instructions.get( j );
+                    //Is this instruction operating on the same index?
                     if (testedInstr.getIndex() == local2.getIndex()) {
+                        //Later in the code, the local is accessed.
+                        //==> No deadstore
                         if (testedInstr.getOperator() == VariableOperator.get) {
                             canOptimize = false;
                             break;
+                        //The stored variable is later overwritten.
+                        //==>Deadstore.
                         } else if (testedInstr.getOperator() == VariableOperator.set) {
                             break;
                         }
                     }
                 }
             }
-            if (canOptimize) {
+            if (false) {
                 instructions.set( i, new WasmBlockInstruction( WasmBlockOperator.DROP, null, local2.getCodePosition(),
                         local2.getLineNumber() ) );
             }
