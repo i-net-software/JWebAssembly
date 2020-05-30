@@ -95,7 +95,7 @@ class WasmStructInstruction extends WasmInstruction {
                             js.append( type.getVTable() );
                         } else {
                             AnyType fieldType = storageType.getType();
-                            if( fieldType instanceof ValueType && fieldType != ValueType.anyref ) {
+                            if( fieldType instanceof ValueType && fieldType != ValueType.externref ) {
                                 js.append( '0' );
                             } else {
                                 js.append( "null" );
@@ -108,11 +108,11 @@ class WasmStructInstruction extends WasmInstruction {
                 break;
             case SET:
                 AnyType fieldType = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + validJsName( fieldType ), () -> "(a,v,i) => a[i]=v", ValueType.anyref, fieldType, ValueType.i32, null, null );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "set_" + validJsName( fieldType ), () -> "(a,v,i) => a[i]=v", ValueType.externref, fieldType, ValueType.i32, null, null );
                 break;
             case GET:
                 fieldType = fieldName.getType();
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + validJsName( fieldType ), () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, fieldType );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + validJsName( fieldType ), () -> "(a,i) => a[i]", ValueType.externref, ValueType.i32, null, fieldType );
                 break;
             default:
         }
@@ -200,7 +200,7 @@ class WasmStructInstruction extends WasmInstruction {
     AnyType getPushValueType() {
         switch( op ) {
             case NULL:
-                return ValueType.anyref;
+                return ValueType.externref;
             case NEW:
             case NEW_DEFAULT:
             case CAST:

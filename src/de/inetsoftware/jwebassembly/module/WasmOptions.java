@@ -150,7 +150,7 @@ public class WasmOptions {
         }
         if( get_i32 == null ) {
             SyntheticFunctionName name;
-            get_i32 = name = new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.anyref, ValueType.i32, null, ValueType.i32 );
+            get_i32 = name = new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.externref, ValueType.i32, null, ValueType.i32 );
             functions.markAsNeeded( name );
             functions.markAsImport( name, name.getAnnotation() );
         }

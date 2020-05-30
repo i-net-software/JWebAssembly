@@ -740,7 +740,7 @@ public class TypeManager {
         @Override
         public boolean isSubTypeOf( AnyType type ) {
             //TODO if type is StructType (class or interface)
-            return type == this || type == ValueType.anyref;
+            return type == this || type == ValueType.externref;
         }
 
         /**

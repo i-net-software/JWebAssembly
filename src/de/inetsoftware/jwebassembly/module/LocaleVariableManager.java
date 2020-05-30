@@ -163,7 +163,7 @@ class LocaleVariableManager {
         if( (maxLocals > 0 || variableTable == null) && size == 0 && (method != null || signature != null )) {
             Iterator<AnyType> parser = signature == null ? new ValueTypeParser( method.getType(), types ) : signature;
             if( method != null && !method.isStatic() ) {
-                resetAddVar( ValueType.anyref, size );
+                resetAddVar( ValueType.externref, size );
             }
             while( true ) {
                 AnyType type = parser.next();

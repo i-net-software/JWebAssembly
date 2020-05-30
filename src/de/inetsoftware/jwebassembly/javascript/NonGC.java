@@ -44,7 +44,7 @@ public abstract class NonGC {
     native static double[] array_new_f64( int length );
 
     @Import( js = "(l) => Object.seal(new Array(l).fill(null))" )
-    native static Object[] array_new_anyref( int length );
+    native static Object[] array_new_externref( int length );
 
     @Import( js = "(a) => a.length" )
     native static int array_len_i8( Object array );
@@ -65,7 +65,7 @@ public abstract class NonGC {
     native static int array_len_f64( Object array );
 
     @Import( js = "(a) => a.length" )
-    native static int array_len_anyref( Object array );
+    native static int array_len_externref( Object array );
 
     @Import( js = "(a,i,v) => a[i]=v" )
     native static void array_set_i8( byte[] array, int idx, byte value );
@@ -86,7 +86,7 @@ public abstract class NonGC {
     native static void array_set_f64( double[] array, int idx, double value );
 
     @Import( js = "(a,i,v) => a[i]=v" )
-    native static void array_set_anyref( Object[] array, int idx, Object value );
+    native static void array_set_externref( Object[] array, int idx, Object value );
 
     @Import( js = "(a,i) => a[i]" )
     native static byte array_get_i8( byte[] array, int idx );
@@ -107,7 +107,7 @@ public abstract class NonGC {
     native static double array_get_f64( double[] array, int idx );
 
     @Import( js = "(a,i) => a[i]" )
-    native static Object array_get_anyref( Object[] array, int idx );
+    native static Object array_get_externref( Object[] array, int idx );
 
     @Import( js = "(a,b) => a === b" )
     native static int ref_eq( Object a, Object b );

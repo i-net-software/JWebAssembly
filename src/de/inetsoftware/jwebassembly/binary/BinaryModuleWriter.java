@@ -193,14 +193,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
         // string constants table
         if( count >= 2 ) {
-            stream.writeValueType( ValueType.anyref ); // the type of elements
+            stream.writeValueType( ValueType.externref ); // the type of elements
             stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( stringCount ); // initial length
         }
 
         // table with classes
         if( count >= 3 ) {
-            stream.writeValueType( ValueType.anyref ); // the type of elements
+            stream.writeValueType( ValueType.externref ); // the type of elements
             stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( typeCount ); // initial length
         }
@@ -497,7 +497,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id );
 
         if( !options.useGC() ) {
-            return ValueType.anyref.getCode();
+            return ValueType.externref.getCode();
         }
 
         int typeId = functionTypes.size();
@@ -512,7 +512,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     protected void writeException() throws IOException {
         if( exceptionSignatureIndex <= 0 ) {
             FunctionTypeEntry type = new FunctionTypeEntry();
-            type.params.add( ValueType.anyref );
+            type.params.add( ValueType.externref );
             exceptionSignatureIndex = functionTypes.indexOf( type );
             if( exceptionSignatureIndex < 0 ) {
                 exceptionSignatureIndex = functionTypes.size();
@@ -522,7 +522,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             // result type of catch block for unboxing
             type = new FunctionTypeEntry();
             type.params.add( ValueType.exnref );
-            type.results.add( ValueType.anyref );
+            type.results.add( ValueType.externref );
             options.setCatchType( functionTypes.size() );
             functionTypes.add( type );
         }
@@ -1394,7 +1394,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case NULL:
                 opCode = REF_NULL;
-                type = null;
+                type = ValueType.externref;
                 break;
             default:
                 throw new Error( "Unknown operator: " + op );

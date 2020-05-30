@@ -158,7 +158,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addLoadStoreInstruction( ValueType.f64, true, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
                         break;
                     case 25: // aload
-                        addLoadStoreInstruction( ValueType.anyref, true, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
+                        addLoadStoreInstruction( ValueType.externref, true, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
                         break;
                     case 26: // iload_0
                     case 27: // iload_1
@@ -188,7 +188,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 43: //aload_1
                     case 44: //aload_2
                     case 45: //aload_3
-                        addLoadStoreInstruction( ValueType.anyref, true, op - 42, codePos, lineNumber );
+                        addLoadStoreInstruction( ValueType.externref, true, op - 42, codePos, lineNumber );
                         break;
                     case 46: // iaload
                         addArrayInstruction( ArrayOperator.GET, ValueType.i32, codePos, lineNumber );
@@ -229,8 +229,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 58: // astore
                         if( branchManager.isCatch( codePos ) ) {
-                            addJumpPlaceholder( codePos, 0, ValueType.anyref, codePos, lineNumber );
-                            storeType = ValueType.anyref; // for the catch there are no previous instructions
+                            addJumpPlaceholder( codePos, 0, ValueType.externref, codePos, lineNumber );
+                            storeType = ValueType.externref; // for the catch there are no previous instructions
                         } else {
                             storeType = findValueTypeFromStack( 1, codePos );
                         }
@@ -265,8 +265,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 77: // astore_2
                     case 78: // astore_3
                         if( branchManager.isCatch( codePos ) ) {
-                            addJumpPlaceholder( codePos, 0, ValueType.anyref, codePos, lineNumber );
-                            storeType = ValueType.anyref; // for the catch there are no previous instructions
+                            addJumpPlaceholder( codePos, 0, ValueType.externref, codePos, lineNumber );
+                            storeType = ValueType.externref; // for the catch there are no previous instructions
                         } else {
                             storeType = findValueTypeFromStack( 1, codePos );
                         }
@@ -580,7 +580,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 type = ValueType.f64;
                                 break;
                             case 176: // areturn
-                                type = ValueType.anyref;
+                                type = ValueType.externref;
                                 break;
                         }
                         addBlockInstruction( WasmBlockOperator.RETURN, type, codePos, lineNumber );
@@ -671,7 +671,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 189: // anewarray
                         name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
-                        type = ValueType.anyref; //TODO we need to use the right type from name; getTypeManager().valueOf( name );
+                        type = ValueType.externref; //TODO we need to use the right type from name; getTypeManager().valueOf( name );
                         addArrayInstruction( ArrayOperator.NEW, type, codePos, lineNumber );
                         break;
                     case 190: // arraylength
