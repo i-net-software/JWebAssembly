@@ -956,7 +956,12 @@ class CodeOptimizer {
              * 2.3 Else we can't optimize.
              */
             for (int j = i+1; j < instructions.size(); j++) {
-                //Is this an instruction, that operates on variables?
+            	//If there are branches, don't optimize (for now).
+            	if(instructions.get( j ).getType() == Type.Block) {
+            		canOptimize = false;
+                    break;
+            	}
+            	//Is this an instruction, that operates on variables?
                 if (instructions.get( j ).getType() == Type.Local) {
                     WasmLocalInstruction testedInstr = (WasmLocalInstruction) instructions.get( j );
                     //Is this instruction operating on the same index?
@@ -974,7 +979,7 @@ class CodeOptimizer {
                     }
                 }
             }
-            if (false) {
+            if (canOptimize) {
                 instructions.set( i, new WasmBlockInstruction( WasmBlockOperator.DROP, null, local2.getCodePosition(),
                         local2.getLineNumber() ) );
             }
