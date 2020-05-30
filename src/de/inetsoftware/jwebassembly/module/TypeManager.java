@@ -69,16 +69,22 @@ public class TypeManager {
     static final int                TYPE_DESCRIPTION_INSTANCEOF_OFFSET = 4;
 
     /**
-     * Byte position in the type description that contains the offset to class name idx. Length 4 bytes.
+     * Byte position in the type description that contains the offset to class name idx in the string constant table. Length 4 bytes.
      */
     static final int                TYPE_DESCRIPTION_TYPE_NAME = 8;
+
+    /**
+     * Byte position in the type description that contains the type of the array (component type). Length 4 bytes.
+     */
+    static final int                TYPE_DESCRIPTION_ARRAY_TYPE = 12;
 
     /**
      * The reserved position on start of the vtable:
      * <li>offset of interface call table (itable)
      * <li>offset of instanceof list
+     * <li>offset of class name idx in the string constant table
      */
-    private static final int        VTABLE_FIRST_FUNCTION_INDEX = 3;
+    private static final int        VTABLE_FIRST_FUNCTION_INDEX = 4;
 
     private static final FunctionName CLASS_CONSTANT_FUNCTION = new FunctionName( "java/lang/Class.classConstant(I)Ljava/lang/Class;" ); 
 
@@ -832,6 +838,9 @@ public class TypeManager {
             int classNameIdx = options.strings.get( getName().replace( '/', '.' ) );
             // header position TYPE_DESCRIPTION_TYPE_NAME
             header.writeInt32( classNameIdx ); // string id of the className
+
+            // header position TYPE_DESCRIPTION_ARRAY_TYPE
+            header.writeInt32( -1 );
 
             data.writeTo( dataStream );
         }
