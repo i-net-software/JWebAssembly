@@ -56,7 +56,7 @@ public class JavaScriptNewMultiArrayFunctionName extends JavaScriptSyntheticFunc
                 type = (ArrayType)arrayType;
                 continue;
             }
-            return arrayType.getClass() == ValueType.class ? (ValueType)arrayType : ValueType.anyref;
+            return arrayType.getClass() == ValueType.class ? (ValueType)arrayType : ValueType.externref;
         } while( true );
     }
 

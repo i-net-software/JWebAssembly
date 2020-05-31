@@ -1,5 +1,6 @@
 load( "{test}.wasm.js" );
 var wasm = wasmTextToBinary( read( "{test}.wat" ) );
+// os.file.writeTypedArrayToFile( "debug.wasm", wasm );
 var testData = JSON.parse( read( "testdata.json" ) );
 
 // save the test result

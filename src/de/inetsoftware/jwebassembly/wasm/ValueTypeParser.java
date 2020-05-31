@@ -85,7 +85,7 @@ public class ValueTypeParser implements Iterator<AnyType> {
                 int idx2 = sig.indexOf( ';', idx );
                 String name = sig.substring( idx, idx2 );
                 idx = idx2 + 1;
-                return "java/lang/Object".equals( name ) ? ValueType.anyref : types.valueOf( name );
+                return "java/lang/Object".equals( name ) ? ValueType.externref : types.valueOf( name );
             case 'Z': // boolean
             case 'B': // byte
                 return isArray ? ValueType.i8 : ValueType.i32;

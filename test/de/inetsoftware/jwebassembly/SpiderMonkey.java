@@ -55,8 +55,7 @@ public class SpiderMonkey {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
         File target = new File( System.getProperty( "java.io.tmpdir" ) + "/SpiderMonkey" );
-//TODO        URL url = new URL( "https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-" + fileName
-        URL url = new URL( "https://archive.mozilla.org/pub/firefox/nightly/2020/05/2020-05-10-21-26-56-mozilla-central/jsshell-" + fileName
+        URL url = new URL( "https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-" + fileName
                         + ".zip" );
         System.out.println( "\tDownload: " + url );
         command = target.getAbsolutePath() + "/js";

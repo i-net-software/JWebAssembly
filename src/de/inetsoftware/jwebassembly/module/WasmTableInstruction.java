@@ -75,7 +75,7 @@ class WasmTableInstruction extends WasmInstruction {
      */
     @Override
     AnyType getPushValueType() {
-        return load ? ValueType.anyref : null; 
+        return load ? ValueType.externref : null; 
     }
 
     /**

@@ -152,14 +152,14 @@ public class TextModuleWriter extends ModuleWriter {
                 textOutput.append( "(table $functions 0 funcref)" );
             }
             newline( textOutput );
-            textOutput.append( "(table $strings " ).append( Integer.toString( stringCount ) ).append( " anyref)" );
+            textOutput.append( "(table $strings " ).append( Integer.toString( stringCount ) ).append( " externref)" );
         }
 
         // table with classes
         int typeCount = options.types.size();
         if( typeCount > 0 ) {
             newline( textOutput );
-            textOutput.append( "(table $classes " ).append( Integer.toString( typeCount ) ).append( " anyref)" );
+            textOutput.append( "(table $classes " ).append( Integer.toString( typeCount ) ).append( " externref)" );
         }
 
         int dataSize = dataStream.size();
@@ -194,7 +194,7 @@ public class TextModuleWriter extends ModuleWriter {
         type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id );
 
         if( !options.useGC() ) {
-            return ValueType.anyref.getCode();
+            return ValueType.externref.getCode();
         }
 
         int oldInset = inset;
@@ -230,7 +230,7 @@ public class TextModuleWriter extends ModuleWriter {
             int oldInset = inset;
             inset = 1;
             newline( output );
-            output.append( "(event (param anyref))" );
+            output.append( "(event (param externref))" );
             inset = oldInset;
 
             options.setCatchType( types.size() );
@@ -318,7 +318,7 @@ public class TextModuleWriter extends ModuleWriter {
         } else if( options.useGC() ) {
             output.append( "(optref " ).append( normalizeName( type.toString() ) ).append( ')' );
         } else {
-            output.append( ValueType.anyref.toString() );
+            output.append( ValueType.externref.toString() );
         }
     }
 
@@ -538,14 +538,14 @@ public class TextModuleWriter extends ModuleWriter {
                 case i16:
                     writeDefaultValue( output, ValueType.i32 );
                     break;
-                case anyref:
-                    output.append( "ref.null" );
+                case externref:
+                    output.append( "ref.null extern" );
                     break;
                 default:
                     throw new WasmException( "Not supported storage type: " + type, -1 );
             }
         } else {
-            output.append( "ref.null" );
+            output.append( "ref.null extern" );
         }
     }
 
@@ -569,11 +569,11 @@ public class TextModuleWriter extends ModuleWriter {
                         op += "_s";
                         break;
                     case ifnonnull:
-                        op = "ref.is_null";
+                        op = "ref.is_null extern";
                         negate = true;
                         break;
                     case ifnull:
-                        op = "ref.is_null";
+                        op = "ref.is_null extern";
                         break;
                     case ref_ne:
                         op = options.useGC() ? "ref.eq" : null;
@@ -766,13 +766,13 @@ public class TextModuleWriter extends ModuleWriter {
                 insetAfter++;
                 break;
             case THROW:
-                name = options.useEH() ? "throw 0" : "unreachable"; // currently there is only one event/exception with anyref
+                name = options.useEH() ? "throw 0" : "unreachable"; // currently there is only one event/exception with externref
                 break;
             case RETHROW:
                 name = "rethrow";
                 break;
             case BR_ON_EXN:
-                name = options.useEH() ? "br_on_exn " + data + " 0" : "unreachable"; // br_on_exn, break depth, event; // currently there is only one event/exception with anyref
+                name = options.useEH() ? "br_on_exn " + data + " 0" : "unreachable"; // br_on_exn, break depth, event; // currently there is only one event/exception with externref
                 break;
             case MONITOR_ENTER:
             case MONITOR_EXIT:
@@ -858,7 +858,7 @@ public class TextModuleWriter extends ModuleWriter {
                 operation = "struct.set";
                 break;
             case NULL:
-                operation = "ref.null";
+                operation = "ref.null extern";
                 type = null;
                 break;
             default:

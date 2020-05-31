@@ -27,13 +27,13 @@ public enum ValueType implements AnyType {
     i8(-0x06), //TODO dummy value for https://github.com/WebAssembly/gc
     i16(-0x07), //TODO dummy value for https://github.com/WebAssembly/gc
     funcref(-0x10),
-    anyref(-0x11),
-    nullref(-0x12), // 0x6E https://webassembly.github.io/reference-types/core/appendix/index-types.html
+    externref(-0x11),
     ref_type(-0x13 ), // 0x6D https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
     exnref(-0x18), // https://github.com/WebAssembly/exception-handling/blob/master/proposals/Exceptions.md
     func(-0x20),
-    struct(-0x30),
-    empty(-0x40), // empty block_type
+    struct(-0x21),
+    array(-0x22),
+    empty(-0x40), // empty/void block_type
     ;
 
     private final int code;

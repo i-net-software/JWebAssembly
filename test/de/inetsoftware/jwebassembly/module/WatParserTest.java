@@ -321,7 +321,7 @@ public class WatParserTest {
 
     @Test
     public void ref_is_null() throws IOException {
-        test( "ref.is_null" );
+        test( "ref.is_null extern" );
     }
     
     @Test

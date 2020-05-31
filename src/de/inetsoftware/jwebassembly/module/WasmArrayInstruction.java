@@ -82,7 +82,7 @@ class WasmArrayInstruction extends WasmInstruction {
             case NEW:
                 return types.arrayType( type );
             case GET:
-                return type instanceof ValueType ? (ValueType)type : ValueType.anyref;
+                return type instanceof ValueType ? (ValueType)type : ValueType.externref;
             case SET:
                 return null;
             case LEN:
@@ -98,9 +98,9 @@ class WasmArrayInstruction extends WasmInstruction {
     @Override
     int getPopCount() {
         switch( op ) {
-            case NEW:
             case GET:
                 return 2;
+            case NEW:
             case LEN:
                 return 1;
             case SET:

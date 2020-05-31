@@ -461,6 +461,7 @@ public class WasmRule extends TemporaryFolder {
      *             if any error occur
      */
     private ProcessBuilder createCommand( ScriptEngine script ) throws Exception {
+        compiler.setProperty( JWebAssembly.WASM_USE_GC, script.useGC );
         switch( script ) {
             case SpiderMonkey:
                 return spiderMonkeyCommand( true, false );
@@ -510,7 +511,6 @@ public class WasmRule extends TemporaryFolder {
                 writeJsonTestData( Collections.singletonMap( methodName, params ) );
             }
 
-            compiler.setProperty( JWebAssembly.WASM_USE_GC, script.useGC );
             processBuilder = createCommand( script );
             processBuilder.directory( getRoot() );
             Process process = processBuilder.start();

@@ -100,7 +100,7 @@ class WasmOutputStream extends LittleEndianOutputStream {
             if( options.useGC() ) {
                 writeValueType( ValueType.ref_type );
             } else {
-                type = ValueType.anyref;
+                type = ValueType.externref;
             }
         }
         writeValueType( type );
@@ -128,14 +128,16 @@ class WasmOutputStream extends LittleEndianOutputStream {
                 case i16:
                     writeConst( 0, ValueType.i32 );
                     break;
-                case anyref:
+                case externref:
                     writeOpCode( InstructionOpcodes.REF_NULL );
+                    writeValueType( ValueType.externref );
                     break;
                 default:
                     throw new WasmException( "Not supported storage type: " + type, -1 );
             }
         } else {
             writeOpCode( InstructionOpcodes.REF_NULL );
+            writeValueType( ValueType.externref );
         }
     }
 

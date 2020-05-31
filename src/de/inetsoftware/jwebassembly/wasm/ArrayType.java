@@ -46,8 +46,8 @@ public class ArrayType implements AnyType {
      */
     @Override
     public int getCode() {
-        // until there is a real type definition we will define write it as anyref
-        return ValueType.anyref.getCode();
+        // until there is a real type definition we will define write it as externref
+        return ValueType.externref.getCode();
     }
 
     /**
@@ -63,7 +63,7 @@ public class ArrayType implements AnyType {
      */
     @Override
     public boolean isSubTypeOf( AnyType type ) {
-        return type == this || type == ValueType.anyref;
+        return type == this || type == ValueType.externref;
     }
 
     /**
@@ -71,7 +71,7 @@ public class ArrayType implements AnyType {
      */
     @Override
     public String toString() {
-        // until there is a real type definition we will define write it as anyref
-        return ValueType.anyref.toString();
+        // until there is a real type definition we will define write it as externref
+        return ValueType.externref.toString();
     }
 }

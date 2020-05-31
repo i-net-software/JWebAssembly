@@ -214,6 +214,7 @@ public class WatParser extends WasmCodeBuilder {
                         addNumericInstruction( NumericOperator.trunc, ValueType.f64, javaCodePos, lineNumber );
                         break;
                     case "ref.is_null":
+                        get( tokens, ++i ); // skip type, TODO
                         addNumericInstruction( NumericOperator.ifnull, ValueType.i32, javaCodePos, lineNumber );
                         break;
                     case "table.get":
@@ -296,7 +297,7 @@ public class WatParser extends WasmCodeBuilder {
                             }
                         }
                         if( fieldNameType == null ) {
-                            fieldNameType = new NamedStorageType( ValueType.anyref, "", fieldName );
+                            fieldNameType = new NamedStorageType( ValueType.externref, "", fieldName );
                         }
                         addStructInstruction( StructOperator.GET, typeName, fieldNameType, javaCodePos, lineNumber );
                         break;
