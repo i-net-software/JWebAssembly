@@ -957,7 +957,7 @@ class CodeOptimizer {
              */
             for (int j = i+1; j < instructions.size(); j++) {
             	//If there are branches, don't optimize (for now).
-            	if(instructions.get( j ).getType() == Type.Block) {
+            	if(instructions.get( j ).getType() == Type.Block&&((WasmBlockInstruction)instructions.get( j )).getOperation()!=WasmBlockOperator.DROP) {
             		canOptimize = false;
                     break;
             	}
