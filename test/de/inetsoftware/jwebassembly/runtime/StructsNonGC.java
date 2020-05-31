@@ -63,6 +63,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "classClassName" );
             addParam( list, script, "classConst" );
             addParam( list, script, "intClassName" );
+            addParam( list, script, "getComponentType" );
             addParam( list, script, "branchWithObjectResult" );
         }
         rule.setTestParameters( list );
@@ -216,6 +217,13 @@ public class StructsNonGC extends AbstractBaseTest {
         static Object intClassName() {
             Class<?> clazz = int.class; // Integer.TYPE;
             return JSObject.domString( clazz.getName() );
+        }
+
+        @Export
+        static boolean getComponentType() {
+            Class<?> clazz = byte.class;
+            clazz = clazz.getComponentType();
+            return clazz == null;
         }
 
         @Export

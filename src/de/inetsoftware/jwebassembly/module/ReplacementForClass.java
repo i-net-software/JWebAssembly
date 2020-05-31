@@ -174,6 +174,14 @@ class ReplacementForClass {
     }
 
     /**
+     * Replacement of the native Java methods getComponentType()
+     */
+    ReplacementForClass getComponentType() {
+        int classIdx = getIntFromMemory( vtable + TypeManager.TYPE_DESCRIPTION_ARRAY_TYPE );
+        return classIdx >= 0 ? classConstant( classIdx ) : null;
+    }
+
+    /**
      * Replacement of the native Java methods
      * 
      * @param name
