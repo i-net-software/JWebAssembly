@@ -95,9 +95,7 @@ public class TypeManager {
      */
     private static final String[]     PRIMITIVE_CLASSES                  = { "boolean", "byte", "char", "double", "float", "int", "long", "short", "void" };
 
-    private Map<String, StructType> structTypes = new LinkedHashMap<>();
-
-    private Map<AnyType, ArrayType> arrayTypes  = new LinkedHashMap<>();
+    private Map<Object, StructType> structTypes = new LinkedHashMap<>();
 
     private boolean                 isFinish;
 
@@ -198,6 +196,25 @@ public class TypeManager {
     }
 
     /**
+     * Check the internal state of the manager and create initial classes.
+     * 
+     * @param newType
+     *            the requested type for debug output
+     */
+    private void checkStructTypesState( Object newType ) {
+        JWebAssembly.LOGGER.fine( "\t\ttype: " + newType );
+        if( isFinish ) {
+            throw new WasmException( "Register needed type after scanning: " + newType, -1 );
+        }
+
+        if( structTypes.size() == 0 ) {
+            for( String primitiveTypeName : PRIMITIVE_CLASSES ) {
+                structTypes.put( primitiveTypeName, new StructType( primitiveTypeName, structTypes.size() ) );
+            }
+        }
+    }
+
+    /**
      * Get the StructType. If needed an instance is created.
      * 
      * @param name
@@ -207,16 +224,7 @@ public class TypeManager {
     public StructType valueOf( String name ) {
         StructType type = structTypes.get( name );
         if( type == null ) {
-            JWebAssembly.LOGGER.fine( "\t\ttype: " + name );
-            if( isFinish ) {
-                throw new WasmException( "Register needed type after scanning: " + name, -1 );
-            }
-
-            if( structTypes.size() == 0 ) {
-                for( String primitiveTypeName : PRIMITIVE_CLASSES ) {
-                    structTypes.put( primitiveTypeName, new StructType( primitiveTypeName, structTypes.size() ) );
-                }
-            }
+            checkStructTypesState( name );
 
             type = new StructType( name, structTypes.size() );
             structTypes.put( name, type );
@@ -232,14 +240,44 @@ public class TypeManager {
      * @return the array type
      */
     public ArrayType arrayType( AnyType arrayType ) {
-        ArrayType type = arrayTypes.get( arrayType );
+        ArrayType type = (ArrayType)structTypes.get( arrayType );
         if( type == null ) {
-            JWebAssembly.LOGGER.fine( "\t\ttype: " + arrayType );
-            if( isFinish ) {
-                throw new WasmException( "Register needed array type after scanning: " + arrayType, -1 );
+            checkStructTypesState( arrayType );
+
+            int componentClassIndex;
+            if( !arrayType.isRefType() ) {
+                // see ReplacementForClass.getPrimitiveClass(String)
+                switch( (ValueType)arrayType ) {
+                    case i8:
+                        componentClassIndex = 1;
+                        break;
+                    case i16:
+                        componentClassIndex = 2;
+                        break;
+                    case f64:
+                        componentClassIndex = 3;
+                        break;
+                    case f32:
+                        componentClassIndex = 4;
+                        break;
+                    case i32:
+                        componentClassIndex = 5;
+                        break;
+                    case i64:
+                        componentClassIndex = 6;
+                        break;
+                    case externref:
+                        componentClassIndex = valueOf( "java/lang/Object" ).classIndex;
+                        break;
+                    default:
+                        throw new WasmException( "Not supported array type: " + arrayType, -1 );
+                }
+            } else {
+                componentClassIndex = ((StructType)arrayType).classIndex;
             }
-            type = new ArrayType( arrayType );
-            arrayTypes.put( arrayType, type );
+
+            type = new ArrayType( arrayType, structTypes.size(), componentClassIndex );
+            structTypes.put( arrayType, type );
         }
         return type;
     }
@@ -392,7 +430,7 @@ public class TypeManager {
      * 
      * @author Volker Berlin
      */
-    public class StructType implements AnyType {
+    public static class StructType implements AnyType {
 
         private final String           name;
 
@@ -423,7 +461,7 @@ public class TypeManager {
          * @param classIndex
          *            the running index of the class/type
          */
-        StructType( String name, int classIndex ) {
+        protected StructType( String name, int classIndex ) {
             this.name = name;
             this.classIndex = classIndex;
         }
@@ -457,7 +495,12 @@ public class TypeManager {
             instanceOFs = new LinkedHashSet<>(); // remembers the order from bottom to top class.
             instanceOFs.add( this );
             interfaceMethods = new LinkedHashMap<>();
-            if( classIndex >= PRIMITIVE_CLASSES.length ) {
+            if( classIndex < PRIMITIVE_CLASSES.length ) {
+                // nothing
+            } else if( this instanceof ArrayType ) {
+                HashSet<String> allNeededFields = new HashSet<>();
+                listStructFields( "java/lang/Object", functions, types, classFileLoader, allNeededFields );
+            } else {
                 // add all interfaces to the instanceof set
                 listInterfaces( functions, types, classFileLoader );
 
@@ -775,13 +818,15 @@ public class TypeManager {
          *            the target stream
          * @param getFunctionsID
          *            source for function IDs
+         * @param options
+         *            the compiler options
          * @throws IOException
          *             should never occur
          * @see TypeManager#TYPE_DESCRIPTION_INTERFACE_OFFSET
          * @see TypeManager#TYPE_DESCRIPTION_INSTANCEOF_OFFSET
          * @see TypeManager#TYPE_DESCRIPTION_TYPE_NAME
          */
-        public void writeToStream( ByteArrayOutputStream dataStream, ToIntFunction<FunctionName> getFunctionsID ) throws IOException {
+        public void writeToStream( ByteArrayOutputStream dataStream, ToIntFunction<FunctionName> getFunctionsID, WasmOptions options ) throws IOException {
             /*
                  ┌───────────────────────────────────────┐
                  | Offset to the interfaces    [4 bytes] |

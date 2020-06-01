@@ -15,21 +15,31 @@
  */
 package de.inetsoftware.jwebassembly.wasm;
 
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+
 /**
  * A reference to an array type
  * 
  * @author Volker Berlin
  *
  */
-public class ArrayType implements AnyType {
+public class ArrayType extends StructType {
 
     private AnyType arrayType;
 
     /**
      * Create a new array type
-     * @param arrayType the type of the array
+     * 
+     * @param arrayType
+     *            the type of the array
+     * @param classIndex
+     *            the running index of the main class/type
+     * @param componentClassIndex
+     *            the running index of the component/array class/type
      */
-    public ArrayType( AnyType arrayType ) {
+    public ArrayType( AnyType arrayType, int classIndex, int componentClassIndex ) {
+        //TODO name
+        super( "[", classIndex );
         this.arrayType = arrayType;
     }
 
