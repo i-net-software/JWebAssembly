@@ -191,7 +191,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected int writeStructType( StructType type ) throws IOException {
-        type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id );
+        type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id, options );
 
         if( !options.useGC() ) {
             return ValueType.externref.getCode();
