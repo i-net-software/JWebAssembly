@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Formatter;
@@ -170,6 +171,16 @@ public class JWebAssembly {
     }
 
     /**
+     * Add a set of classFiles to compile
+     * 
+     * @param classFiles
+     *            the files
+     */
+    public void addFiles( @Nonnull Collection<URL> classFiles ) {
+        classFiles.addAll( classFiles );
+    }
+    
+    /**
      * Set property to control the behavior of the compiler
      * 
      * @param key
@@ -216,7 +227,17 @@ public class JWebAssembly {
         libraries.add( library );
     }
 
-     /**
+    /**
+     * Add jar or zip files as library to the compiler. Methods from the library will be add to the wasm only when used.
+     * 
+     * @param libraries
+     *            a collection of libraries
+     */ 
+    public void addLibraries( @Nonnull Collection<URL> libraries) {
+        libraries.addAll( libraries );
+    }
+    
+    /**
      * Convert the added files to a WebAssembly module in text representation.
      * 
      * @return the module as string
