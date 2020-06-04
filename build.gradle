@@ -118,7 +118,7 @@ test {
 /****************************************
  * Coverage
  ****************************************/
-/*apply plugin: 'jacoco'
+apply plugin: 'jacoco'
 
 jacocoTestReport {
     tasks.coveralls.dependsOn it
@@ -126,7 +126,7 @@ jacocoTestReport {
         xml.enabled = true  // coveralls plugin depends on xml format report
         html.enabled = true
     }
-}*/
+}
 check.dependsOn tasks.coveralls
 
 bintray {
