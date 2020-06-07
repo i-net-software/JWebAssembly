@@ -57,6 +57,8 @@ public class WasmRule extends TemporaryFolder {
 
     private static final SpiderMonkey spiderMonkey = new SpiderMonkey();
 
+    private static final Node         node = new Node();
+
     private static final Wat2Wasm     wat2Wasm = new Wat2Wasm();
 
     private static boolean            npmWabtNightly;
@@ -619,10 +621,12 @@ public class WasmRule extends TemporaryFolder {
      * The executable of the node command.
      * 
      * @return the node executable
+     * @throws IOException
+     *             if any I/O error occur
      */
     @Nonnull
-    private static String nodeExecuable() {
-        String command = System.getProperty( "node.dir" );
+    private static String nodeExecuable() throws IOException {
+        String command = node.getNodeDir();
         if( command == null ) {
             command = "node";
         } else {
@@ -641,14 +645,17 @@ public class WasmRule extends TemporaryFolder {
      * @param script
      *            the path to the script that should be executed
      * @return the value from the script
+     * @throws IOException
+     *             if any I/O error occur
      */
-    private static ProcessBuilder nodeJsCommand( File script ) {
+    private static ProcessBuilder nodeJsCommand( File script ) throws IOException {
         String command = nodeExecuable();
         // details see with command: node --v8-options
         ProcessBuilder processBuilder = new ProcessBuilder( command, //
                         "--experimental-wasm-mv", // multi value
                         "--experimental-wasm-eh", // exception handling
                         "--experimental-wasm-anyref", //
+                        "--experimental-wasm-gc", //
                         "--experimental-wasm-bigint", //
                         "--experimental-wasm-bulk-memory", // bulk memory for WABT version 1.0.13, https://github.com/WebAssembly/wabt/issues/1311
                         script.getName() );

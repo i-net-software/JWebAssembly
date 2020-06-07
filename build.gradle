@@ -1,5 +1,4 @@
 plugins {
-    id "com.github.node-gradle.node" version "2.2.3"
     id 'com.github.kt3k.coveralls' version '2.8.2' // Coverage
     id "com.jfrog.bintray" version "1.8.4"
 }
@@ -81,27 +80,6 @@ build {
 artifacts {
     archives sourcesJar
     archives javadocJar
-}
-
-node {
-    version = '14.0.0'
-//    version = '+'
-    download = true
-}
-
-task nodeVersion(type: NodeTask) {
-    test.dependsOn it
-    options = ['-v']
-    script = file("$buildDir/tmp/scriptDoesNotExists.js")
-    script.parentFile.mkdirs()
-    script.text = ''
-    doLast {
-        if( node.download ) {
-            def nodeDir = nodeSetup.getNodeDir() // dir is only valid if downloaded
-            println nodeDir
-            test.systemProperty 'node.dir', nodeDir
-        }
-    }
 }
 
 test {
