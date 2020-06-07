@@ -15,14 +15,14 @@
  */
 package de.inetsoftware.jwebassembly;
 
-import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.zip.GZIPInputStream;
 
@@ -134,9 +134,12 @@ public class SpiderMonkey {
             File file = new File( target, entry.getName() );
             file.getParentFile().mkdirs();
 
-            Files.copy( new BufferedInputStream( archiv, 0x8000 ), file.toPath(), StandardCopyOption.REPLACE_EXISTING );
+            byte[] buffer = new byte[ (int)entry.getSize() ];
+            new DataInputStream( archiv ).readFully( buffer );
+            Files.write( file.toPath(), buffer, StandardOpenOption.CREATE );
             file.setLastModified( entry.getLastModifiedDate().getTime() );
             file.setExecutable( true );
         } while( true );
+        archiv.close();
     }
 }
