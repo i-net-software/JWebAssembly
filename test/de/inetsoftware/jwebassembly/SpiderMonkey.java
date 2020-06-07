@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,7 +134,7 @@ public class SpiderMonkey {
             File file = new File( target, entry.getName() );
             file.getParentFile().mkdirs();
 
-            Files.copy( archiv, file.toPath(), StandardCopyOption.REPLACE_EXISTING );
+            Files.copy( new BufferedInputStream( archiv, 0x8000 ), file.toPath(), StandardCopyOption.REPLACE_EXISTING );
             file.setLastModified( entry.getLastModifiedDate().getTime() );
             file.setExecutable( true );
         } while( true );
