@@ -15,24 +15,19 @@
  */
 package de.inetsoftware.jwebassembly;
 
+import static de.inetsoftware.jwebassembly.SpiderMonkey.extractStream;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.junit.Assert;
 
 /**
@@ -93,29 +88,7 @@ class Wat2Wasm {
 
         long lastModfied = conn.getLastModified();
 
-        ArchiveInputStream archiv;
-        if( fileName.endsWith( ".tar.gz" ) ) {
-            input = new GZIPInputStream( input );
-            archiv = new TarArchiveInputStream( input );
-        } else {
-            archiv = new ZipArchiveInputStream( input );
-        }
-
-        do {
-            ArchiveEntry entry = archiv.getNextEntry();
-            if( entry == null ) {
-                break;
-            }
-            if( entry.isDirectory() ) {
-                continue;
-            }
-            File file = new File( target, entry.getName() );
-            file.getParentFile().mkdirs();
-
-            Files.copy( archiv, file.toPath(), StandardCopyOption.REPLACE_EXISTING );
-            file.setLastModified( entry.getLastModifiedDate().getTime() );
-            file.setExecutable( true );
-        } while( true );
+        extractStream( input, fileName.endsWith( ".tar.gz" ), target );
 
 //        target.setLastModified( lastModfied );
         System.out.println( "\tUse Version from " + Instant.ofEpochMilli( lastModfied ) );

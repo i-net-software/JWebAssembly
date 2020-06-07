@@ -23,8 +23,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.GZIPInputStream;
+
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 /**
  * Download the JavaScript engine SpiderMonkey.
@@ -55,8 +59,7 @@ public class SpiderMonkey {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
         File target = new File( System.getProperty( "java.io.tmpdir" ) + "/SpiderMonkey" );
-        URL url = new URL( "https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-" + fileName
-                        + ".zip" );
+        URL url = new URL( "https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-" + fileName + ".zip" );
         System.out.println( "\tDownload: " + url );
         command = target.getAbsolutePath() + "/js";
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
@@ -78,10 +81,49 @@ public class SpiderMonkey {
             System.out.println( "\tUP-TP-DATE, use version from " + Instant.ofEpochMilli( target.lastModified() ) );
             return;
         }
-        ZipInputStream zip = new ZipInputStream( input );
         long lastModfied = conn.getLastModified();
+        extractStream( input, false, target );
+        target.setLastModified( lastModfied );
+        System.out.println( "\tUse Version from " + Instant.ofEpochMilli( lastModfied ) );
+    }
+
+    /**
+     * Get the SpeiderMonkey command. If file not exists then download it.
+     * 
+     * @return the path to the executable
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    public String getCommand() throws IOException {
+        if( command == null ) {
+            download();
+        }
+        return command;
+    }
+
+    /**
+     * Extract a compressed stream
+     * 
+     * @param input
+     *            the input stream
+     * @param tarGz
+     *            true: *.tar.gz else *.zip
+     * @param target
+     *            the location to extract
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    static void extractStream( InputStream input, boolean tarGz, File target ) throws IOException {
+        ArchiveInputStream archiv;
+        if( tarGz ) {
+            input = new GZIPInputStream( input );
+            archiv = new TarArchiveInputStream( input );
+        } else {
+            archiv = new ZipArchiveInputStream( input );
+        }
+
         do {
-            ZipEntry entry = zip.getNextEntry();
+            ArchiveEntry entry = archiv.getNextEntry();
             if( entry == null ) {
                 break;
             }
@@ -91,21 +133,9 @@ public class SpiderMonkey {
             File file = new File( target, entry.getName() );
             file.getParentFile().mkdirs();
 
-            Files.copy( zip, file.toPath(), StandardCopyOption.REPLACE_EXISTING );
-            file.setLastModified( entry.getTime() );
-            if( "js".equals( file.getName() ) ) {
-                file.setExecutable( true );
-            }
+            Files.copy( archiv, file.toPath(), StandardCopyOption.REPLACE_EXISTING );
+            file.setLastModified( entry.getLastModifiedDate().getTime() );
+            file.setExecutable( true );
         } while( true );
-        target.setLastModified( lastModfied );
-        System.out.println( "\tUse Version from " + Instant.ofEpochMilli( lastModfied ) );
     }
-
-    public String getCommand() throws IOException {
-        if( command == null ) {
-            download();
-        }
-        return command;
-    }
-
 }
