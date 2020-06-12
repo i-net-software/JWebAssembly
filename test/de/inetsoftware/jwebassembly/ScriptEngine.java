@@ -27,7 +27,9 @@ public enum ScriptEngine {
     NodeWat,
     SpiderMonkeyWat,
     Wat2Wasm,
+    NodeJsGC(true),
     SpiderMonkeyGC(true),
+    NodeWatGC(true),
     SpiderMonkeyWatGC(true),
     ;
 

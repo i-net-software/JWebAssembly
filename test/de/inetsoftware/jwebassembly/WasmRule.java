@@ -474,8 +474,10 @@ public class WasmRule extends TemporaryFolder {
             case SpiderMonkeyWatGC:
                 return spiderMonkeyCommand( false, true );
             case NodeJS:
+            case NodeJsGC:
                 return nodeJsCommand( nodeScript );
             case NodeWat:
+            case NodeWatGC:
                 prepareNodeWat();
                 ProcessBuilder processBuilder = nodeJsCommand( nodeWatScript );
                 processBuilder.environment().put( "NODE_PATH", getNodeModulePath() );
