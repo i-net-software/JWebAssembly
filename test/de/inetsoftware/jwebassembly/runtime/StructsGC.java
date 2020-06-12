@@ -39,7 +39,7 @@ public class StructsGC extends AbstractBaseTest {
     @Parameters( name = "{0}-{1}" )
     public static Collection<Object[]> data() {
         ArrayList<Object[]> list = new ArrayList<>();
-        ScriptEngine[] engines = { ScriptEngine.SpiderMonkeyGC, ScriptEngine.SpiderMonkeyWatGC };
+        ScriptEngine[] engines = { ScriptEngine.SpiderMonkeyGC, ScriptEngine.SpiderMonkeyWatGC, ScriptEngine.NodeJsGC, ScriptEngine.NodeWatGC };
         for( ScriptEngine script : engines ) {
             addParam( list, script, "isNull" );
             addParam( list, script, "isNotNull" );
@@ -57,7 +57,7 @@ public class StructsGC extends AbstractBaseTest {
 
     @Test
     public void test() {
-        Assume.assumeFalse( true ); //TODO
+        Assume.assumeFalse( getScriptEngine().name().startsWith( "SpiderMonkey" ) ); //TODO
         super.test();
     }
 
