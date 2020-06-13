@@ -69,23 +69,9 @@ public class WasmRule extends TemporaryFolder {
 
     private final JWebAssembly        compiler;
 
-    private File                      wasmFile;
+    private Map<ScriptEngine, File>   compiledFiles = new HashMap<>();
 
-    private File                      watFile;
-
-    private File                      nodeScript;
-
-    private File                      spiderMonkeyScript;
-
-    private File                      spiderMonkeyScriptGC;
-
-    private File                      spiderMonkeyScriptWatGC;
-
-    private File                      nodeWatScript;
-
-    private File                      spiderMonkeyWatScript;
-
-    private File                      wat2WasmScript;
+    private Map<ScriptEngine, File>   scriptFiles = new HashMap<>();
 
     private boolean                   failed;
 
@@ -110,6 +96,14 @@ public class WasmRule extends TemporaryFolder {
         for( Class<?> clazz : classes ) {
             URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
             compiler.addFile( url );
+        }
+
+        // add the libraries that it can be scanned for annotations
+        final String[] libraries = System.getProperty("java.class.path").split(File.pathSeparator);
+        for( String lib : libraries ) {
+            if( lib.endsWith( ".jar" ) || lib.toLowerCase().contains( "jwebassembly-api" ) ) {
+                compiler.addLibrary( new File(lib) );
+            }
         }
     }
 
@@ -144,7 +138,7 @@ public class WasmRule extends TemporaryFolder {
      */
     @Override
     protected void before() throws Throwable {
-        compile();
+        super.before();
         if( testData != null ) {
             writeJsonTestData( testData );
         }
@@ -200,14 +194,16 @@ public class WasmRule extends TemporaryFolder {
     @Override
     protected void after() {
         if( failed ) {
-            if( wasmFile != null ) {
-                File jsFile = new File( wasmFile.toString() + ".js" );
-                if( jsFile.isFile() ) {
-                    try {
-                        System.out.println( new String( Files.readAllBytes( jsFile.toPath() ), StandardCharsets.UTF_8 ) );
-                        System.out.println();
-                    } catch( IOException e ) {
-                        e.printStackTrace();
+            for( File wasmFile : compiledFiles.values() ) {
+                if( wasmFile.getName().endsWith( ".wasm" ) ) {
+                    File jsFile = new File( wasmFile.toString() + ".js" );
+                    if( jsFile.isFile() ) {
+                        try {
+                            System.out.println( new String( Files.readAllBytes( jsFile.toPath() ), StandardCharsets.UTF_8 ) );
+                            System.out.println();
+                        } catch( IOException e ) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -223,45 +219,86 @@ public class WasmRule extends TemporaryFolder {
      *             if the compiling is failing
      */
     public void compile() throws WasmException {
-        compiler.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
-        assertEquals( "true", compiler.getProperty( JWebAssembly.DEBUG_NAMES ) );
-
-        // add the libraries that it can be scanned for annotations
-        final String[] libraries = System.getProperty("java.class.path").split(File.pathSeparator);
-        for( String lib : libraries ) {
-            if( lib.endsWith( ".jar" ) || lib.toLowerCase().contains( "jwebassembly-api" ) ) {
-                compiler.addLibrary( new File(lib) );
-            }
-        }
-
-        textCompiled = compiler.compileToText();
         try {
             create();
+        } catch( Throwable ex ) {
+            throwException( ex );
+        }
+        compile( ScriptEngine.NodeJS );
+    }
 
-            watFile = newFile( "test.wat" );
-            try( FileOutputStream stream = new FileOutputStream( watFile ) ) {
-                stream.write( textCompiled.getBytes( StandardCharsets.UTF_8 ) );
+    /**
+     * Compile the classes of the script engine if not already compiled.
+     * 
+     * @param script
+     *            the script engine
+     * @return the compiled main file
+     * @throws WasmException
+     *             if the compiling is failing
+     */
+    public File compile( ScriptEngine script ) throws WasmException {
+        File file = compiledFiles.get( script );
+        if( file != null ) {
+            // compile only once
+            return file;
+        }
+
+        compiler.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
+        assertEquals( "true", compiler.getProperty( JWebAssembly.DEBUG_NAMES ) );
+        compiler.setProperty( JWebAssembly.WASM_USE_GC, script.useGC );
+
+        if( textCompiled == null ) {
+            textCompiled = compiler.compileToText();
+        }
+        try {
+            String name = script.name();
+            if( name.contains( "Wat" ) ) {
+                file = newFile( name + ".wat" );
+                compiler.compileToText( file );
+            } else {
+                file = newFile( name + ".wasm" );
+                compiler.compileToBinary( file );
             }
-
-            wasmFile = newFile( "test.wasm" );
-            compiler.compileToBinary( wasmFile );
-
-            nodeScript = createScript( "nodetest.js", "{test.wasm}", wasmFile.getName() );
+            compiledFiles.put( script, file );
         } catch( Throwable ex ) {
             System.out.println( textCompiled );
             throwException( ex );
         }
+        return file;
+    }
+
+    /**
+     * Prepare the node node script.
+     * 
+     * @param script
+     *            the script engine
+     * @return the script file
+     * @throws IOException
+     *             if any error occur.
+     */
+    private File prepareNodeJs( ScriptEngine script ) throws IOException {
+        File scriptFile = scriptFiles.get( script );
+        if( scriptFile == null ) {
+            compile( script );
+            scriptFile = createScript( "nodetest.js", "{test}", script.name() );
+        }
+        return scriptFile;
     }
 
     /**
      * Prepare the node wabt module.
      * 
+     * @param script
+     *            the script engine
+     * @return the script file
      * @throws Exception
      *             if any error occur.
      */
-    private void prepareNodeWat() throws Exception {
-        if( nodeWatScript == null ) {
-            nodeWatScript = createScript( "WatTest.js", "{test.wat}", watFile.getName() );
+    private File prepareNodeWat( ScriptEngine script ) throws Exception {
+        File scriptFile = scriptFiles.get( script );
+        if( scriptFile == null ) {
+            compile( script );
+            scriptFile = createScript( "WatTest.js", "{test}", script.name() );
 
             if( !npmWabtNightly ) {
                 npmWabtNightly = true;
@@ -273,6 +310,7 @@ public class WasmRule extends TemporaryFolder {
                 execute( processBuilder );
             }
         }
+        return scriptFile;
     }
 
     /**
@@ -290,7 +328,7 @@ public class WasmRule extends TemporaryFolder {
                 processBuilder.command().add( 1, "/C" );
             }
             Process process = processBuilder.start();
-            int exitCode = process.waitFor();
+            process.waitFor();
             nodeModulePath = readStream( process.getInputStream() ).trim(); // module install path
             System.out.println( "node global module path: " + nodeModulePath );
 
@@ -301,11 +339,16 @@ public class WasmRule extends TemporaryFolder {
     /**
      * Prepare the Wat2Wasm tool if not already do. Fire an JUnit fail if the process produce an error.
      * 
+     * @param script
+     *            the script engine
+     * @return the script file
      * @throws Exception
      *             if any error occur.
      */
-    private void prepareWat2Wasm() throws Exception {
-        if( wat2WasmScript == null ) {
+    private File prepareWat2Wasm( ScriptEngine script ) throws Exception {
+        File scriptFile = scriptFiles.get( script );
+        if( scriptFile == null ) {
+            File watFile = compile( ScriptEngine.NodeJS );
             String cmd = wat2Wasm.getCommand();
             File wat2WasmFile = new File( getRoot(), "wat2Wasm.wasm" );
             // the wat2wasm tool
@@ -314,8 +357,9 @@ public class WasmRule extends TemporaryFolder {
             execute( processBuilder );
 
             // create the node script
-            wat2WasmScript = createScript( "nodetest.js", "{test.wasm}", wat2WasmFile.getName() );
+            scriptFile = createScript( "nodetest.js", "{test}", script.name() );
         }
+        return scriptFile;
     }
 
     /**
@@ -466,25 +510,23 @@ public class WasmRule extends TemporaryFolder {
         compiler.setProperty( JWebAssembly.WASM_USE_GC, script.useGC );
         switch( script ) {
             case SpiderMonkey:
-                return spiderMonkeyCommand( true, false );
+                return spiderMonkeyCommand( true, script );
             case SpiderMonkeyWat:
-                return spiderMonkeyCommand( false, false );
+                return spiderMonkeyCommand( false, script );
             case SpiderMonkeyGC:
-                return spiderMonkeyCommand( true, true );
+                return spiderMonkeyCommand( true, script );
             case SpiderMonkeyWatGC:
-                return spiderMonkeyCommand( false, true );
+                return spiderMonkeyCommand( false, script );
             case NodeJS:
             case NodeJsGC:
-                return nodeJsCommand( nodeScript );
+                return nodeJsCommand( prepareNodeJs( script ) );
             case NodeWat:
             case NodeWatGC:
-                prepareNodeWat();
-                ProcessBuilder processBuilder = nodeJsCommand( nodeWatScript );
+                ProcessBuilder processBuilder = nodeJsCommand( prepareNodeWat( script ) );
                 processBuilder.environment().put( "NODE_PATH", getNodeModulePath() );
                 return processBuilder;
             case Wat2Wasm:
-                prepareWat2Wasm();
-                return nodeJsCommand( wat2WasmScript );
+                return nodeJsCommand( prepareWat2Wasm( script ) );
             default:
                 throw new IllegalStateException( script.toString() );
         }
@@ -541,6 +583,7 @@ public class WasmRule extends TemporaryFolder {
 
             // read the result from file
             try( InputStreamReader jsonData = new InputStreamReader( new FileInputStream( new File( getRoot(), "testresult.json" ) ), StandardCharsets.UTF_8 ) ) {
+                @SuppressWarnings( "unchecked" )
                 Map<String, String> map = new Gson().fromJson( jsonData, Map.class );
                 if( testData != null ) {
                     testResults.put( script, map );
@@ -570,49 +613,35 @@ public class WasmRule extends TemporaryFolder {
     /**
      * Create a ProcessBuilder for spider monkey script shell.
      * 
-     * @param binary true, if the WASM format should be test; false, if the WAT format should be tested.
-     * @param gc true, if with gc should be test
+     * @param binary
+     *            true, if the WASM format should be test; false, if the WAT format should be tested.
+     * @param script
+     *            the script engine
      * @return the value from the script
      * @throws IOException
      *             if the download failed
      */
-    private ProcessBuilder spiderMonkeyCommand( boolean binary, boolean gc ) throws IOException {
-        File script;
-        if( gc ) {
-            if( binary ) {
-                if( spiderMonkeyScriptGC == null ) {
-                    File file = newFile( "spiderMonkeyGC.wasm" );
-                    compiler.compileToBinary( file );
-                    spiderMonkeyScriptGC = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+    private ProcessBuilder spiderMonkeyCommand( boolean binary, ScriptEngine script ) throws IOException {
+        boolean gc = Boolean.valueOf( script.useGC );
+        File scriptFile = scriptFiles.get( script );
+        if( scriptFile == null ) {
+            File file = compile( script );
+            if( gc ) {
+                if( binary ) {
+                    scriptFile = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                } else {
+                    scriptFile = createScript( "SpiderMonkeyWatTest.js", "{test}", script.name() );
                 }
-                script = spiderMonkeyScriptGC;
             } else {
-                if( spiderMonkeyScriptWatGC == null ) {
-                    File file = newFile( "spiderMonkeyGC.wat" );
-                    compiler.compileToText( file );
-                    spiderMonkeyScriptWatGC = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkeyGC" );
+                if( binary ) {
+                    scriptFile = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                } else {
+                    scriptFile = createScript( "SpiderMonkeyWatTest.js", "{test}", script.name() );
                 }
-                script = spiderMonkeyScriptWatGC;
-            }
-        } else {
-            if( binary ) {
-                if( spiderMonkeyScript == null ) {
-                    File file = newFile( "spiderMonkey.wasm" );
-                    compiler.compileToBinary( file );
-                    spiderMonkeyScript = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
-                }
-                script = spiderMonkeyScript;
-            } else {
-                if( spiderMonkeyWatScript == null ) {
-                    File file = newFile( "spiderMonkey.wat" );
-                    compiler.compileToText( file );
-                    spiderMonkeyWatScript = createScript( "SpiderMonkeyWatTest.js", "{test}", "spiderMonkey" );
-                }
-                script = spiderMonkeyWatScript;
             }
         }
 
-        ProcessBuilder process = new ProcessBuilder( spiderMonkey.getCommand(), script.getAbsolutePath() );
+        ProcessBuilder process = new ProcessBuilder( spiderMonkey.getCommand(), scriptFile.getAbsolutePath() );
         if( gc ) {
             process.command().add( 1, "--wasm-gc" );
         }
@@ -644,13 +673,13 @@ public class WasmRule extends TemporaryFolder {
     /**
      * Create a ProcessBuilder for node.js
      * 
-     * @param script
+     * @param nodeScript
      *            the path to the script that should be executed
      * @return the value from the script
      * @throws IOException
      *             if any I/O error occur
      */
-    private static ProcessBuilder nodeJsCommand( File script ) throws IOException {
+    private static ProcessBuilder nodeJsCommand( File nodeScript ) throws IOException {
         String command = nodeExecuable();
         // details see with command: node --v8-options
         ProcessBuilder processBuilder = new ProcessBuilder( command, //
@@ -660,7 +689,7 @@ public class WasmRule extends TemporaryFolder {
                         "--experimental-wasm-gc", //
                         "--experimental-wasm-bigint", //
                         "--experimental-wasm-bulk-memory", // bulk memory for WABT version 1.0.13, https://github.com/WebAssembly/wabt/issues/1311
-                        script.getName() );
+                        nodeScript.getName() );
         if( IS_WINDOWS ) {
             processBuilder.command().add( 0, "cmd" );
             processBuilder.command().add( 1, "/C" );
@@ -696,6 +725,7 @@ public class WasmRule extends TemporaryFolder {
      * @throws T
      *             a generic helper
      */
+    @SuppressWarnings( "unchecked" )
     public static <T extends Throwable> void throwException( Throwable exception ) throws T {
         throw (T)exception;
     }

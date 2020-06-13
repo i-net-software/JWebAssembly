@@ -3,8 +3,8 @@
 var fs = require('fs');
 var wabt = require("wabt")();
 
-const wasmImports = require( "./test.wasm.js" );
-var filename = '{test.wat}';
+const wasmImports = require( "./{test}.wasm.js" );
+var filename = '{test}.wat';
 var text = fs.readFileSync(filename, "utf8");
 var testData = JSON.parse( fs.readFileSync( "testdata.json", "utf8" ) );
 
