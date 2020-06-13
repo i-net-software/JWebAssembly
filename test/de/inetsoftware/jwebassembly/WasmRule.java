@@ -107,6 +107,10 @@ public class WasmRule extends TemporaryFolder {
         }
         this.classes = classes;
         compiler = new JWebAssembly();
+        for( Class<?> clazz : classes ) {
+            URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
+            compiler.addFile( url );
+        }
     }
 
     /**
@@ -219,10 +223,6 @@ public class WasmRule extends TemporaryFolder {
      *             if the compiling is failing
      */
     public void compile() throws WasmException {
-        for( Class<?> clazz : classes ) {
-            URL url = clazz.getResource( '/' + clazz.getName().replace( '.', '/' ) + ".class" );
-            compiler.addFile( url );
-        }
         compiler.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
         assertEquals( "true", compiler.getProperty( JWebAssembly.DEBUG_NAMES ) );
 
