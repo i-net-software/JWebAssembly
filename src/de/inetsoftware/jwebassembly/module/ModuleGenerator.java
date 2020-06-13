@@ -275,11 +275,15 @@ public class ModuleGenerator {
      */
     public void prepareFinish() throws IOException {
         int functCount;
+        int typeCount = 0;
         do {
             scanFunctions();
             functCount = functions.size();              // scan the functions can find new needed types
             scanForClinit();
-            types.scanTypeHierarchy( classFileLoader ); // scan the type hierarchy can find new functions
+            if( typeCount < types.size() ) {
+                types.scanTypeHierarchy( classFileLoader ); // scan the type hierarchy can find new functions
+                typeCount = types.size();
+            }
         } while( functCount < functions.size() );
 
         // write only the needed imports to the output
@@ -318,7 +322,13 @@ public class ModuleGenerator {
             writeMethodSignature( name, FunctionType.Abstract, null );
         }
 
-        JWebAssembly.LOGGER.fine( "scan finsih" );
+        // scan again if there are new types
+        if( typeCount < types.size() ) {
+            types.scanTypeHierarchy( classFileLoader );
+            typeCount = types.size();
+        }
+
+        JWebAssembly.LOGGER.fine( "scan finish" );
         types.prepareFinish( writer, classFileLoader );
         functions.prepareFinish();
         strings.prepareFinish( writer );

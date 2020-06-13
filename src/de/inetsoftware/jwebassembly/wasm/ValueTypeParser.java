@@ -29,9 +29,9 @@ import de.inetsoftware.jwebassembly.module.TypeManager;
 public class ValueTypeParser implements Iterator<AnyType> {
     private final String sig;
 
-    private int          idx;
+    private int               idx;
 
-    private TypeManager  types;
+    private final TypeManager types;
 
     /**
      * Create a new parser.
@@ -85,7 +85,7 @@ public class ValueTypeParser implements Iterator<AnyType> {
                 int idx2 = sig.indexOf( ';', idx );
                 String name = sig.substring( idx, idx2 );
                 idx = idx2 + 1;
-                return "java/lang/Object".equals( name ) ? ValueType.externref : types.valueOf( name );
+                return types.valueOf( name );
             case 'Z': // boolean
             case 'B': // byte
                 return isArray ? ValueType.i8 : ValueType.i32;

@@ -99,7 +99,7 @@ public class TypeManager {
 
     private boolean                 isFinish;
 
-    private final WasmOptions       options;
+    final WasmOptions               options;
 
     private int                     typeTableOffset;
 
@@ -783,7 +783,7 @@ public class TypeManager {
         @Override
         public boolean isSubTypeOf( AnyType type ) {
             //TODO if type is StructType (class or interface)
-            return type == this || type == ValueType.externref;
+            return type == this || type == ValueType.externref || type == ValueType.anyref;
         }
 
         /**

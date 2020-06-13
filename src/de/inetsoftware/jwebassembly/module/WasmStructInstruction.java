@@ -46,6 +46,8 @@ class WasmStructInstruction extends WasmInstruction {
 
     private SyntheticFunctionName functionName;
 
+    private final WasmOptions     options;
+
     /**
      * Create an instance of numeric operation.
      * 
@@ -70,6 +72,7 @@ class WasmStructInstruction extends WasmInstruction {
         if( type != null && fieldName != null ) {
             type.useFieldName( fieldName );
         }
+        this.options = types.options;
     }
 
     /**
@@ -200,7 +203,7 @@ class WasmStructInstruction extends WasmInstruction {
     AnyType getPushValueType() {
         switch( op ) {
             case NULL:
-                return ValueType.externref;
+                return options.useGC() ? ValueType.anyref : ValueType.externref;
             case NEW:
             case NEW_DEFAULT:
             case CAST:

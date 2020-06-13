@@ -459,7 +459,7 @@ interface InstructionOpcodes {
     /** converts a nullable reference to a non-nullable one or branches if null */
     static final int BR_ON_NULL             = 0xD4;
 
-    static final int REF_EQ                 = 0xF0;
+    static final int REF_EQ                 = 0xD5;
 
     // === Non-trapping float-to-int conversions ====== https://github.com/WebAssembly/design/issues/1143
 
