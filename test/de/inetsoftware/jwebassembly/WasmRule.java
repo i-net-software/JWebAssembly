@@ -204,6 +204,7 @@ public class WasmRule extends TemporaryFolder {
                         } catch( IOException e ) {
                             e.printStackTrace();
                         }
+                        break;
                     }
                 }
             }
