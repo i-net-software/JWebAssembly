@@ -13,3 +13,21 @@ We need a large infrastructure on tools that based on JWebAssembly. We will happ
 ## Test JWebAssembly
 
 Currently it is a little difficult to test JWebAssembly because the missing infrastructure. If you find problems, we will appreciate it if you post a [bug report](https://github.com/i-net-software/JWebAssembly/issues).
+
+# Pull Requests (PR)
+
+If you want contribute to JWebAssembly via a PR then
+
+* Notify us if you work on some larger changes to prevent conflicts with other.
+
+* Checkin only needed files for the PR.
+
+* Does not reformat existing files. Format new code with the same style as existing code.
+
+* Write API documentation for new code.
+
+* Write tests for your code. Preferred are functional tests that compile Java code to Wasm code.
+
+* Run the test locally before commit to prevent a regression.
+
+* Do the smallest possible PR. If there bugs that block a feature PR then create a separatly PR for the bug. A easer to review a smaller PR.
