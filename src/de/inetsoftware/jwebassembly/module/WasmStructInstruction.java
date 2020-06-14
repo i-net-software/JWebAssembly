@@ -203,7 +203,7 @@ class WasmStructInstruction extends WasmInstruction {
     AnyType getPushValueType() {
         switch( op ) {
             case NULL:
-                return options.useGC() ? ValueType.anyref : ValueType.externref;
+                return options.useGC() ? ValueType.eqref : ValueType.externref;
             case NEW:
             case NEW_DEFAULT:
             case CAST:

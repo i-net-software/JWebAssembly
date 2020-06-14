@@ -1394,7 +1394,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case NULL:
                 opCode = REF_NULL;
-                type = options.useGC() ? ValueType.anyref : ValueType.externref;
+                type = options.useGC() ? ValueType.eqref : ValueType.externref;
                 break;
             default:
                 throw new Error( "Unknown operator: " + op );

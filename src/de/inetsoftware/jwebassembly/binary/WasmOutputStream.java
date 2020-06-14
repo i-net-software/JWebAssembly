@@ -99,7 +99,7 @@ class WasmOutputStream extends LittleEndianOutputStream {
         if( type.isRefType() ) {
             if( options.useGC() ) {
                 //TODO writeValueType( ValueType.ref_type );
-                type = ValueType.anyref;
+                type = ValueType.eqref;
             } else {
                 type = ValueType.externref;
             }

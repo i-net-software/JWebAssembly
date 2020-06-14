@@ -316,7 +316,7 @@ public class TextModuleWriter extends ModuleWriter {
         if( !type.isRefType() ) {
             output.append( type.toString() );
         } else if( options.useGC() ) {
-            output.append( ValueType.anyref.toString() );
+            output.append( ValueType.eqref.toString() );
             //TODO output.append( "(optref " ).append( normalizeName( type.toString() ) ).append( ')' );
         } else {
             output.append( ValueType.externref.toString() );
@@ -859,7 +859,7 @@ public class TextModuleWriter extends ModuleWriter {
                 operation = "struct.set";
                 break;
             case NULL:
-                operation = options.useGC() ? "ref.null any" : "ref.null extern";
+                operation = options.useGC() ? "ref.null eq" : "ref.null extern";
                 type = null;
                 break;
             default:
