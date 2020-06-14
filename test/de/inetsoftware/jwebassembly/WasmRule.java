@@ -386,7 +386,7 @@ public class WasmRule extends TemporaryFolder {
      * Load a script resource, patch it and save it
      * 
      * @param name
-     *            the resource name
+     *            the template resource name
      * @param placeholder
      *            A placeholder that should be replaced.
      * @param value
@@ -639,6 +639,7 @@ public class WasmRule extends TemporaryFolder {
                     scriptFile = createScript( "SpiderMonkeyWatTest.js", "{test}", script.name() );
                 }
             }
+            scriptFiles.put( script, scriptFile );
         }
 
         ProcessBuilder process = new ProcessBuilder( spiderMonkey.getCommand(), scriptFile.getAbsolutePath() );
