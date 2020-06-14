@@ -75,6 +75,7 @@ class WasmNumericInstruction extends WasmInstruction {
      */
     AnyType getPushValueType() {
         switch( numOp ) {
+            case eqz:
             case eq:
             case ne:
             case gt:
@@ -95,6 +96,7 @@ class WasmNumericInstruction extends WasmInstruction {
     @Override
     int getPopCount() {
         switch( numOp ) {
+            case eqz:
             case ifnull:
             case ifnonnull:
             case neg:
