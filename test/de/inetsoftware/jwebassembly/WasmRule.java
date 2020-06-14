@@ -280,7 +280,8 @@ public class WasmRule extends TemporaryFolder {
         File scriptFile = scriptFiles.get( script );
         if( scriptFile == null ) {
             compile( script );
-            scriptFile = createScript( "nodetest.js", "{test}", script.name() );
+            scriptFile = createScript( script, "nodetest.js", "{test}", script.name() );
+            scriptFiles.put( script, scriptFile );
         }
         return scriptFile;
     }
@@ -298,7 +299,8 @@ public class WasmRule extends TemporaryFolder {
         File scriptFile = scriptFiles.get( script );
         if( scriptFile == null ) {
             compile( script );
-            scriptFile = createScript( "WatTest.js", "{test}", script.name() );
+            scriptFile = createScript( script, "WatTest.js", "{test}", script.name() );
+            scriptFiles.put( script, scriptFile );
 
             if( !npmWabtNightly ) {
                 npmWabtNightly = true;
@@ -357,7 +359,7 @@ public class WasmRule extends TemporaryFolder {
             execute( processBuilder );
 
             // create the node script
-            scriptFile = createScript( "nodetest.js", "{test}", script.name() );
+            scriptFile = createScript( script, "nodetest.js", "{test}", script.name() );
         }
         return scriptFile;
     }
@@ -385,6 +387,8 @@ public class WasmRule extends TemporaryFolder {
     /**
      * Load a script resource, patch it and save it
      * 
+     * @param script
+     *            the script engine
      * @param name
      *            the template resource name
      * @param placeholder
@@ -395,13 +399,13 @@ public class WasmRule extends TemporaryFolder {
      * @throws IOException
      *             if any IO error occur
      */
-    private File createScript( String name, String placeholder, String value ) throws IOException {
-        File file = File.createTempFile( "wasm", name, getRoot() );
+    private File createScript( ScriptEngine script, String name, String placeholder, String value ) throws IOException {
+        File file = newFile( script.name() + "Test.js" );
         URL scriptUrl = getClass().getResource( name );
-        String script = readStream( scriptUrl.openStream() );
-        script = script.replace( placeholder, value );
+        String template = readStream( scriptUrl.openStream() );
+        template = template.replace( placeholder, value );
         try (FileOutputStream scriptStream = new FileOutputStream( file )) {
-            scriptStream.write( script.getBytes( StandardCharsets.UTF_8 ) );
+            scriptStream.write( template.getBytes( StandardCharsets.UTF_8 ) );
         }
         return file;
     }
@@ -628,15 +632,15 @@ public class WasmRule extends TemporaryFolder {
             File file = compile( script );
             if( gc ) {
                 if( binary ) {
-                    scriptFile = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                    scriptFile = createScript( script, "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
                 } else {
-                    scriptFile = createScript( "SpiderMonkeyWatTest.js", "{test}", script.name() );
+                    scriptFile = createScript( script, "SpiderMonkeyWatTest.js", "{test}", script.name() );
                 }
             } else {
                 if( binary ) {
-                    scriptFile = createScript( "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
+                    scriptFile = createScript( script, "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
                 } else {
-                    scriptFile = createScript( "SpiderMonkeyWatTest.js", "{test}", script.name() );
+                    scriptFile = createScript( script, "SpiderMonkeyWatTest.js", "{test}", script.name() );
                 }
             }
             scriptFiles.put( script, scriptFile );
