@@ -56,9 +56,9 @@ class Wat2Wasm {
         if( os.contains( "windows" ) ) {
             fileName = "windows.tar.gz";
         } else if( os.contains( "mac" ) ) {
-            fileName = "macos.tar.gz";
+            fileName = "osx.tar.gz";
         } else if( os.contains( "linux" ) ) {
-            fileName = "ubuntu.tar.gz";
+            fileName = "linux.tar.gz";
         } else {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
