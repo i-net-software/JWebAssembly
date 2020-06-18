@@ -49,7 +49,7 @@ public enum ScriptEngine {
                         NodeJS, //
                         NodeWat, //
                         SpiderMonkeyWat,//
-                        //TODO Wat2Wasm, //
+                        Wat2Wasm, //
         };
         return val;
     }
