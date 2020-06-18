@@ -354,7 +354,7 @@ public class WasmRule extends TemporaryFolder {
         if( scriptFile == null ) {
             File watFile = compile( script );
             String cmd = wat2Wasm.getCommand();
-            File wat2WasmFile = new File( getRoot(), "wat2Wasm.wasm" );
+            File wat2WasmFile = new File( getRoot(), script.name() + ".wasm" );
             // the wat2wasm tool
             ProcessBuilder processBuilder =
                             new ProcessBuilder( cmd, watFile.toString(), "-o", wat2WasmFile.toString(), "--debug-names", "--enable-all" );
