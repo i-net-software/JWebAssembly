@@ -50,15 +50,15 @@ class Wat2Wasm {
      *             if any error occur
      */
     private void download( File target ) throws IOException {
-        boolean is32 = "32".equals( System.getProperty( "sun.arch.data.model" ) );
+        //boolean is32 = "32".equals( System.getProperty( "sun.arch.data.model" ) );
         String fileName;
         final String os = System.getProperty( "os.name", "" ).toLowerCase();
         if( os.contains( "windows" ) ) {
-            fileName = is32 ? "win32.zip" : "win64.zip";
+            fileName = "windows.tar.gz";
         } else if( os.contains( "mac" ) ) {
-            fileName = "osx.tar.gz";
+            fileName = "macos.tar.gz";
         } else if( os.contains( "linux" ) ) {
-            fileName = "linux.tar.gz";
+            fileName = "ubuntu.tar.gz";
         } else {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
