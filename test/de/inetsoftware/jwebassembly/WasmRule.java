@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
@@ -358,6 +359,7 @@ public class WasmRule extends TemporaryFolder {
             ProcessBuilder processBuilder =
                             new ProcessBuilder( cmd, watFile.toString(), "-o", wat2WasmFile.toString(), "--debug-names", "--enable-all" );
             execute( processBuilder );
+            assertTrue( wat2WasmFile.isFile() );
 
             // create the node script
             scriptFile = createScript( script, "nodetest.js", "{test}", script.name() );
