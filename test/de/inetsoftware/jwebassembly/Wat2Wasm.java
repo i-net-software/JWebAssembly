@@ -56,9 +56,9 @@ class Wat2Wasm {
         if( os.contains( "windows" ) ) {
             fileName = "windows.tar.gz";
         } else if( os.contains( "mac" ) ) {
-            fileName = "osx.tar.gz";
+            fileName = "macos.tar.gz";
         } else if( os.contains( "linux" ) ) {
-            fileName = "linux.tar.gz";
+            fileName = "windows.tar.gz";
         } else {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
@@ -70,7 +70,7 @@ class Wat2Wasm {
 
         Pattern pattern = Pattern.compile( "/WebAssembly/wabt/releases/download/[0-9.]*/wabt-[0-9.]*-" + fileName );
         Matcher matcher = pattern.matcher( data );
-        Assert.assertTrue( matcher.find() );
+        Assert.assertTrue( data, matcher.find() );
         String downloadUrl = matcher.group();
         url = new URL( url, downloadUrl );
         System.out.println( "\tDownload: " + url );
