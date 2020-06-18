@@ -107,7 +107,8 @@ class Wat2Wasm {
                 if( file.isDirectory() ) {
                     searchExecuteable( file );
                 } else {
-                    if( file.getName().contains( "wat2wasm" ) ) {
+                    String name = file.getName();
+                    if( name.equals( "wat2wasm" ) || name.equals( "wat2wasm.exe" ) ) {
                         command = file.getAbsolutePath();
                     }
                 }
