@@ -351,7 +351,7 @@ public class WasmRule extends TemporaryFolder {
     private File prepareWat2Wasm( ScriptEngine script ) throws Exception {
         File scriptFile = scriptFiles.get( script );
         if( scriptFile == null ) {
-            File watFile = compile( ScriptEngine.NodeJS );
+            File watFile = compile( script );
             String cmd = wat2Wasm.getCommand();
             File wat2WasmFile = new File( getRoot(), "wat2Wasm.wasm" );
             // the wat2wasm tool
