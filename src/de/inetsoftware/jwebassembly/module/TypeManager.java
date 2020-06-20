@@ -804,6 +804,15 @@ public class TypeManager {
         }
 
         /**
+         * The running index of the component/array class/type for class meta data, instanceof and interface calls.
+         * 
+         * @return the unique index or -1 id not an array
+         */
+        protected int getComponentClassIndex() {
+            return -1;
+        }
+
+        /**
          * Get the fields of this struct
          * @return the fields
          */
@@ -885,7 +894,7 @@ public class TypeManager {
             header.writeInt32( classNameIdx ); // string id of the className
 
             // header position TYPE_DESCRIPTION_ARRAY_TYPE
-            header.writeInt32( -1 );
+            header.writeInt32( getComponentClassIndex() );
 
             data.writeTo( dataStream );
         }

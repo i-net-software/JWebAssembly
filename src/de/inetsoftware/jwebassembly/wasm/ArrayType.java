@@ -27,6 +27,8 @@ public class ArrayType extends StructType {
 
     private AnyType arrayType;
 
+    private int componentClassIndex;
+
     /**
      * Create a new array type
      * 
@@ -41,6 +43,7 @@ public class ArrayType extends StructType {
         //TODO name
         super( "[", classIndex );
         this.arrayType = arrayType;
+        this.componentClassIndex = componentClassIndex;
     }
 
     /**
@@ -49,6 +52,14 @@ public class ArrayType extends StructType {
      */
     public AnyType getArrayType() {
         return arrayType;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int getComponentClassIndex() {
+        return componentClassIndex;
     }
 
     /**
