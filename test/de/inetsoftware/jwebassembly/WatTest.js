@@ -8,7 +8,7 @@ var filename = '{test}.wat';
 var text = fs.readFileSync(filename, "utf8");
 var testData = JSON.parse( fs.readFileSync( "testdata.json", "utf8" ) );
 
-var features = {'sat_float_to_int':true, 'sign_extension':true, 'exceptions':true, 'reference_types':true};
+var features = {'sat_float_to_int':true, 'sign_extension':true, 'exceptions':true, 'reference_types':true, 'gc':true};
 var wasm = wabt.parseWat(filename, text, features);
 wasm = wasm.toBinary({}).buffer;
 
