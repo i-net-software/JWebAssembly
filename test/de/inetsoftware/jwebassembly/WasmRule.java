@@ -196,17 +196,23 @@ public class WasmRule extends TemporaryFolder {
     protected void after() {
         if( failed ) {
             for( File wasmFile : compiledFiles.values() ) {
+                File jsFile;
                 if( wasmFile.getName().endsWith( ".wasm" ) ) {
-                    File jsFile = new File( wasmFile.toString() + ".js" );
-                    if( jsFile.isFile() ) {
-                        try {
-                            System.out.println( new String( Files.readAllBytes( jsFile.toPath() ), StandardCharsets.UTF_8 ) );
-                            System.out.println();
-                        } catch( IOException e ) {
-                            e.printStackTrace();
-                        }
-                        break;
+                    jsFile = new File( wasmFile.toString() + ".js" );
+                } else if( wasmFile.getName().endsWith( ".wat" ) ) {
+                    String name = wasmFile.toString();
+                    jsFile = new File( name.substring( 0, name.length() - 4 ) + ".wasm.js" );
+                } else {
+                    continue;
+                }
+                if( jsFile.isFile() ) {
+                    try {
+                        System.out.println( new String( Files.readAllBytes( jsFile.toPath() ), StandardCharsets.UTF_8 ) );
+                        System.out.println();
+                    } catch( IOException e ) {
+                        e.printStackTrace();
                     }
+                    break;
                 }
             }
             System.out.println( textCompiled );
