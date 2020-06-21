@@ -699,7 +699,8 @@ public class WasmRule extends TemporaryFolder {
         ProcessBuilder processBuilder = new ProcessBuilder( command, //
                         "--experimental-wasm-mv", // multi value
                         "--experimental-wasm-eh", // exception handling
-                        "--experimental-wasm-anyref", //
+                        "--experimental-wasm-reftypes", //
+                        "--experimental-wasm-typed-funcref", //
                         "--experimental-wasm-gc", //
                         "--experimental-wasm-bigint", //
                         "--experimental-wasm-bulk-memory", // bulk memory for WABT version 1.0.13, https://github.com/WebAssembly/wabt/issues/1311

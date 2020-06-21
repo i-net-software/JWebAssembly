@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.time.Instant;
 
 /**
  * Download the node tool.
@@ -36,7 +35,7 @@ public class Node {
 
     private static final String BASE_URL = "https://nodejs.org/download/v8-canary/";
 
-    private static final String REVISION = "15.0.0-v8-canary20200605aeeaa178a0";
+    private static final String REVISION = "15.0.0-v8-canary202006192e28363093";
 
     /**
      * Check if there is a new version of the script engine
