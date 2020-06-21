@@ -333,7 +333,7 @@ public class WasmRule extends TemporaryFolder {
             }
             Process process = processBuilder.start();
             process.waitFor();
-            nodeModulePath = readStream( process.getInputStream() ).trim(); // module install path
+            nodeModulePath = readStream( process.getInputStream(), false ).trim(); // module install path
             System.out.println( "node global module path: " + nodeModulePath );
 
         }
@@ -383,7 +383,7 @@ public class WasmRule extends TemporaryFolder {
         Process process = processBuilder.start();
         int exitCode = process.waitFor();
         if( exitCode != 0 ) {
-            fail( readStream( process.getErrorStream() ) + "\nExit code: " + exitCode + " from: " + processBuilder.command().get( 0 ) );
+            fail( readStream( process.getErrorStream(), false ) + "\nExit code: " + exitCode + " from: " + processBuilder.command().get( 0 ) );
         }
     }
 
@@ -405,7 +405,7 @@ public class WasmRule extends TemporaryFolder {
     private File createScript( ScriptEngine script, String name, String placeholder, String value ) throws IOException {
         File file = newFile( script.name() + "Test.js" );
         URL scriptUrl = getClass().getResource( name );
-        String template = readStream( scriptUrl.openStream() );
+        String template = readStream( scriptUrl.openStream(), true );
         template = template.replace( placeholder, value );
         try (FileOutputStream scriptStream = new FileOutputStream( file )) {
             scriptStream.write( template.getBytes( StandardCharsets.UTF_8 ) );
@@ -572,15 +572,15 @@ public class WasmRule extends TemporaryFolder {
             String errorMessage = "";
             do {
                 if( process.getInputStream().available() > 0 ) {
-                    stdoutMessage += readStream( process.getInputStream() );
+                    stdoutMessage += readStream( process.getInputStream(), false );
                 }
                 if( process.getErrorStream().available() > 0 ) {
-                    errorMessage += readStream( process.getErrorStream() );
+                    errorMessage += readStream( process.getErrorStream(), false );
                 }
             }
             while( !process.waitFor( 10, TimeUnit.MILLISECONDS ) );
-            stdoutMessage += readStream( process.getInputStream() );
-            errorMessage += readStream( process.getErrorStream() );
+            stdoutMessage += readStream( process.getInputStream(), false );
+            errorMessage += readStream( process.getErrorStream(), false );
             int exitCode = process.exitValue();
             if( exitCode != 0 || !stdoutMessage.isEmpty() || !errorMessage.isEmpty() ) {
                 System.err.println( stdoutMessage );
@@ -715,11 +715,11 @@ public class WasmRule extends TemporaryFolder {
      *             if an I/O error occurs.
      */
     @SuppressWarnings( "resource" )
-    public static String readStream( InputStream input ) throws IOException {
+    public static String readStream( InputStream input, boolean all ) throws IOException {
         byte[] bytes = new byte[8192];
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         int count;
-        while( (count = input.read( bytes )) > 0 ) {
+        while( (all || input.available() > 0) && (count = input.read( bytes )) > 0 ) {
             stream.write( bytes, 0, count );
         }
         return new String( stream.toByteArray() );

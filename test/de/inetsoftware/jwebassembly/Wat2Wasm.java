@@ -66,7 +66,7 @@ class Wat2Wasm {
         URL url = new URL( "https://github.com/WebAssembly/wabt/releases/latest" );
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         InputStream input = conn.getInputStream();
-        String data = WasmRule.readStream( input );
+        String data = WasmRule.readStream( input, true );
 
         Pattern pattern = Pattern.compile( "/WebAssembly/wabt/releases/download/[0-9.]*/wabt-[0-9.]*-" + fileName );
         Matcher matcher = pattern.matcher( data );
