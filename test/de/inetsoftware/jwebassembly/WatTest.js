@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var fs = require('fs');
-var wabt = require("wabt")();
+require("wabt")().then(wabt => {
 
 const wasmImports = require( "./{test}.wasm.js" );
 var filename = '{test}.wat';
@@ -34,3 +34,5 @@ WebAssembly.instantiate( wasm, wasmImports ).then(
   obj => callExport( obj.instance, wasmImports ),
   reason => console.log(reason)
 );
+
+}); // wabt
