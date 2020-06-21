@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2020 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,8 +22,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -39,6 +41,8 @@ class WasmArrayInstruction extends WasmInstruction {
     private final AnyType   type;
 
     private final TypeManager types;
+
+    private SyntheticFunctionName functionName;
 
     /**
      * Create an instance of an array operation.
@@ -57,6 +61,78 @@ class WasmArrayInstruction extends WasmInstruction {
         this.op = op;
         this.type = type;
         this.types = types;
+    }
+
+    /**
+     * Create the synthetic polyfill function of this instruction for nonGC mode.
+     * 
+     * @return the function or null if not needed
+     */
+    SyntheticFunctionName createNonGcFunction() {
+        // i8 and i16 are not valid in function signatures
+        AnyType functionType = type == ValueType.i8 || type == ValueType.i16 ? ValueType.i32 : type;
+        switch( op ) {
+            case NEW:
+                String cmd;
+                if( type.isRefType() ) {
+                    cmd = "Object.seal(new Array(l).fill(null))";
+                } else {
+                    switch( (ValueType)type ) {
+                        case i8:
+                            cmd = "new Uint8Array(l)";
+                            break;
+                        case i16:
+                            cmd = "new Int16Array(l)";
+                            break;
+                        case i32:
+                            cmd = "new Int32Array(l)";
+                            break;
+                        case i64:
+                            cmd = "new BigInt64Array(l)";
+                            break;
+                        case f32:
+                            cmd = "new Float32Array(l)";
+                            break;
+                        case f64:
+                            cmd = "new Float64Array(l)";
+                            break;
+                        default:
+                            cmd = "Object.seal(new Array(l).fill(null))";
+                    }
+                }
+                ArrayType arrayType = types.arrayType( type );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_new_" + validJsName( type ), () -> {
+                    // create the default values of a new type
+                    return new StringBuilder( "()=>Object.seal({0:" ) // fix count of elements
+                                    .append( arrayType.getClassIndex() ) // .vtable
+                                    .append( ",1:0,2:" ) // .hashCode
+                                    .append( cmd ) // the array data
+                                    .append( "})" ) //
+                                    .toString();
+                }, null, ValueType.externref );
+                break;
+            case GET:
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_get_" + validJsName( functionType ), () -> "(a,i)=>a[2][i]", ValueType.externref, ValueType.i32, null, functionType );
+                break;
+            case SET:
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_set_" + validJsName( functionType ), () -> "(a,v,i)=>a[2][i]=v", ValueType.externref, functionType, ValueType.i32, null, null );
+                break;
+            case LEN:
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_len", () -> "(a)=>a[2].length", ValueType.externref, null, ValueType.i32 );
+                break;
+        }
+        return functionName;
+    }
+
+    /**
+     * Get a valid JavaScript name.
+     * 
+     * @param type
+     *            the type
+     * @return the identifier that is valid
+     */
+    private static String validJsName( AnyType type ) {
+        return type.isRefType() ? "obj" : type.toString();
     }
 
     /**
