@@ -570,11 +570,11 @@ public class TextModuleWriter extends ModuleWriter {
                         op += "_s";
                         break;
                     case ifnonnull:
-                        op = "ref.is_null extern";
+                        op = "ref.is_null";
                         negate = true;
                         break;
                     case ifnull:
-                        op = "ref.is_null extern";
+                        op = "ref.is_null";
                         break;
                     case ref_ne:
                         op = options.useGC() ? "ref.eq" : null;

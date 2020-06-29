@@ -451,7 +451,7 @@ interface InstructionOpcodes {
 
     static final int REF_NULL               = 0xD0;
 
-    static final int REF_ISNULL             = 0xD16F; // "ref.is_null extern"
+    static final int REF_ISNULL             = 0xD1;
 
     /** converts a nullable reference to a non-nullable one or traps if null */
     static final int REF_AS_NON_NULL        = 0xD3;

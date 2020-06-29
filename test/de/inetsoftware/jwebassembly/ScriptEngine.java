@@ -46,10 +46,10 @@ public enum ScriptEngine {
     public static ScriptEngine[] testEngines() {
         ScriptEngine[] val = { //
                         SpiderMonkey, //
-                        NodeJS, //
-                        NodeWat, //
+                        //NodeJS, //
+                        //NodeWat, //
                         SpiderMonkeyWat,//
-                        Wat2Wasm, //
+                        //Wat2Wasm, //
         };
         return val;
     }
