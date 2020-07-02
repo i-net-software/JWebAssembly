@@ -103,19 +103,19 @@ class WasmArrayInstruction extends WasmInstruction {
                 ArrayType arrayType = types.arrayType( type );
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_new_" + validJsName( type ), () -> {
                     // create the default values of a new type
-                    return new StringBuilder( "()=>Object.seal({0:" ) // fix count of elements
+                    return new StringBuilder( "(l)=>Object.seal({0:" ) // fix count of elements
                                     .append( arrayType.getClassIndex() ) // .vtable
                                     .append( ",1:0,2:" ) // .hashCode
                                     .append( cmd ) // the array data
                                     .append( "})" ) //
                                     .toString();
-                }, null, ValueType.externref );
+                }, ValueType.i32, null, ValueType.externref );
                 break;
             case GET:
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_get_" + validJsName( functionType ), () -> "(a,i)=>a[2][i]", ValueType.externref, ValueType.i32, null, functionType );
                 break;
             case SET:
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_set_" + validJsName( functionType ), () -> "(a,v,i)=>a[2][i]=v", ValueType.externref, functionType, ValueType.i32, null, null );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_set_" + validJsName( functionType ), () -> "(a,i,v)=>a[2][i]=v", ValueType.externref, functionType, ValueType.i32, null, null );
                 break;
             case LEN:
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_len", () -> "(a)=>a[2].length", ValueType.externref, null, ValueType.i32 );
@@ -147,7 +147,11 @@ class WasmArrayInstruction extends WasmInstruction {
      * {@inheritDoc}
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
-        writer.writeArrayOperator( op, type );
+        if( functionName != null ) { // nonGC
+            writer.writeFunctionCall( functionName, null );
+        } else {
+            writer.writeArrayOperator( op, type );
+        }
     }
 
     /**
