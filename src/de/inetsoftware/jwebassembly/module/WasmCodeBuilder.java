@@ -31,7 +31,6 @@ import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.javascript.JavaScriptNewMultiArrayFunctionName;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
@@ -737,15 +736,14 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos, int lineNumber ) {
-        if( options.useGC() ) {
-            instructions.add( new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber ) );
-        } else {
-            if( type.getCode() >= 0 || type.getCode() == ValueType.externref.getCode() ) {
-                type = ValueType.externref; // handle all not native types as anyref 
+        WasmArrayInstruction arrayInst = new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber );
+        instructions.add( arrayInst );
+        if( !options.useGC() ) {
+            SyntheticFunctionName name = arrayInst.createNonGcFunction();
+            if( name != null ) {
+                functions.markAsNeeded( name );
+                functions.markAsImport( name, name.getAnnotation() );
             }
-            String api = "array_" + op.toString().toLowerCase() + "_" + type;
-            FunctionName name = getNonGC( api, lineNumber );
-            addCallInstruction( name, javaCodePos, lineNumber );
         }
     }
 
@@ -763,12 +761,24 @@ public abstract class WasmCodeBuilder {
      */
     protected void addMultiNewArrayInstruction( int dim, String typeName, int javaCodePos, int lineNumber ) {
         ArrayType type = (ArrayType)new ValueTypeParser( typeName, types ).next();
-        if( options.useGC() ) {
-            throw new WasmException( "multi new array is not supported", lineNumber );
-        } else {
-            FunctionName name = new JavaScriptNewMultiArrayFunctionName( dim, type );
-            addCallInstruction( name, javaCodePos, lineNumber );
-        }
+        addMultiNewArrayInstruction( dim, type, javaCodePos, lineNumber );
+    }
+
+    /**
+     * Add a new multi dimensional array instruction
+     * 
+     * @param dim
+     *            the dimension of the array &gt;= 2
+     * @param type
+     *            the full type
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addMultiNewArrayInstruction( int dim, ArrayType type, int javaCodePos, int lineNumber ) {
+        MultiArrayFunctionName name = new MultiArrayFunctionName( dim, type );
+        addCallInstruction( name, javaCodePos, lineNumber );
     }
 
     /**
