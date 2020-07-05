@@ -104,7 +104,7 @@ class WasmArrayInstruction extends WasmInstruction {
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_new_" + validJsName( type ), () -> {
                     // create the default values of a new type
                     return new StringBuilder( "(l)=>Object.seal({0:" ) // fix count of elements
-                                    .append( arrayType.getClassIndex() ) // .vtable
+                                    .append( arrayType.getVTable() ) // .vtable
                                     .append( ",1:0,2:" ) // .hashCode
                                     .append( cmd ) // the array data
                                     .append( "})" ) //
