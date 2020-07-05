@@ -115,7 +115,7 @@ class WasmArrayInstruction extends WasmInstruction {
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_get_" + validJsName( functionType ), () -> "(a,i)=>a[2][i]", ValueType.externref, ValueType.i32, null, functionType );
                 break;
             case SET:
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_set_" + validJsName( functionType ), () -> "(a,i,v)=>a[2][i]=v", ValueType.externref, functionType, ValueType.i32, null, null );
+                functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_set_" + validJsName( functionType ), () -> "(a,i,v)=>a[2][i]=v", ValueType.externref, ValueType.i32, functionType, null, null );
                 break;
             case LEN:
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC_", "array_len", () -> "(a)=>a[2].length", ValueType.externref, null, ValueType.i32 );
