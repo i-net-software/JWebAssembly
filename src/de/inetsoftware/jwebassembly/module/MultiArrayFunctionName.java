@@ -1,4 +1,4 @@
-package de.inetsoftware.jwebassembly.javascript;
+package de.inetsoftware.jwebassembly.module;
 
 import java.util.Arrays;
 /*
@@ -19,6 +19,7 @@ limitations under the License.
 */
 import java.util.function.Supplier;
 
+import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -28,7 +29,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  * 
  * @author Volker Berlin
  */
-public class JavaScriptNewMultiArrayFunctionName extends JavaScriptSyntheticFunctionName {
+public class MultiArrayFunctionName extends JavaScriptSyntheticFunctionName {
 
     /**
      * Create a new instance
@@ -38,7 +39,7 @@ public class JavaScriptNewMultiArrayFunctionName extends JavaScriptSyntheticFunc
      * @param type
      *            the full type of the allocated array
      */
-    public JavaScriptNewMultiArrayFunctionName( int dim, ArrayType type ) {
+    public MultiArrayFunctionName( int dim, ArrayType type ) {
         super( "NonGC", createName( dim, type ), createJS( dim, type ), createSignature( dim, type ) );
     }
 
