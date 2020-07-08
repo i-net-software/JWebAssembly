@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.wasm;
 
+import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 
 /**
@@ -40,10 +41,44 @@ public class ArrayType extends StructType {
      *            the running index of the component/array class/type
      */
     public ArrayType( AnyType arrayType, int classIndex, int componentClassIndex ) {
-        //TODO name
-        super( "[", classIndex );
+        super( getJavaClassName( arrayType ), classIndex );
         this.arrayType = arrayType;
         this.componentClassIndex = componentClassIndex;
+    }
+
+    /**
+     * Create class name for the array class.
+     * 
+     * @param arrayType
+     *            the type of the array
+     * @return the name
+     */
+    private static String getJavaClassName( AnyType arrayType ) {
+        if( !arrayType.isRefType() ) {
+            switch( (ValueType)arrayType ) {
+                case bool:
+                    return "[Z";
+                case i8:
+                    return "[B";
+                case i16:
+                    return "[S";
+                case u16:
+                    return "[C";
+                case f64:
+                    return "[D";
+                case f32:
+                    return "[F";
+                case i32:
+                    return "[I";
+                case i64:
+                    return "[J";
+                case externref:
+                    return "[Ljava.lang.Object;";
+                default:
+                    throw new WasmException( "Not supported array type: " + arrayType, -1 );
+            }
+        }
+        return "[" + ((StructType)arrayType).getName();
     }
 
     /**

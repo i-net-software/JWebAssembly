@@ -248,10 +248,13 @@ public class TypeManager {
             if( !arrayType.isRefType() ) {
                 // see ReplacementForClass.getPrimitiveClass(String)
                 switch( (ValueType)arrayType ) {
+                    case bool:
+                        componentClassIndex = 0;
+                        break;
                     case i8:
                         componentClassIndex = 1;
                         break;
-                    case i16:
+                    case u16:
                         componentClassIndex = 2;
                         break;
                     case f64:
@@ -265,6 +268,9 @@ public class TypeManager {
                         break;
                     case i64:
                         componentClassIndex = 6;
+                        break;
+                    case i16:
+                        componentClassIndex = 7;
                         break;
                     case externref:
                         componentClassIndex = valueOf( "java/lang/Object" ).classIndex;

@@ -641,10 +641,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         int typeValue = byteCode.readByte();
                         switch( typeValue ) {
                             case 4: // boolean
-                                type = ValueType.i8;
+                                type = ValueType.bool;
                                 break;
                             case 5: // char
-                                type = ValueType.i16;
+                                type = ValueType.u16;
                                 break;
                             case 6: //float
                                 type = ValueType.f32;

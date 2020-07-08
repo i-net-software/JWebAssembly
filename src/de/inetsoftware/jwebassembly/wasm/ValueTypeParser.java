@@ -87,9 +87,11 @@ public class ValueTypeParser implements Iterator<AnyType> {
                 idx = idx2 + 1;
                 return types.valueOf( name );
             case 'Z': // boolean
+                return isArray ? ValueType.bool : ValueType.i32;
             case 'B': // byte
                 return isArray ? ValueType.i8 : ValueType.i32;
             case 'C': // char
+                return isArray ? ValueType.u16 : ValueType.i32;
             case 'S': // short
                 return isArray ? ValueType.i16 : ValueType.i32;
             case 'I': // int
