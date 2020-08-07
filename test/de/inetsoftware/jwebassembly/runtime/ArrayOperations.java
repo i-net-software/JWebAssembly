@@ -70,6 +70,15 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "doubleArrayClassName" );
             addParam( list, script, "booleanArrayClassName" );
             addParam( list, script, "objectArrayClassName" );
+            addParam( list, script, "byteArrayComponentTypeClassName" );
+            addParam( list, script, "shortArrayComponentTypeClassName" );
+            addParam( list, script, "charArrayComponentTypeClassName" );
+            addParam( list, script, "intArrayComponentTypeClassName" );
+            addParam( list, script, "longArrayComponentTypeClassName" );
+            addParam( list, script, "floatArrayComponentTypeClassName" );
+            addParam( list, script, "doubleArrayComponentTypeClassName" );
+            addParam( list, script, "booleanArrayComponentTypeClassName" );
+            addParam( list, script, "objectArrayComponentTypeClassName" );
         }
         rule.setTestParameters( list );
         return list;
@@ -251,6 +260,51 @@ public class ArrayOperations extends AbstractBaseTest {
         @Export
         static String objectArrayClassName() {
             return JSObject.domString( new Object[0].getClass().getName() );
+        }
+
+        @Export
+        static String byteArrayComponentTypeClassName() {
+            return JSObject.domString( new byte[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String shortArrayComponentTypeClassName() {
+            return JSObject.domString( new short[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String charArrayComponentTypeClassName() {
+            return JSObject.domString( new char[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String intArrayComponentTypeClassName() {
+            return JSObject.domString( new int[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String longArrayComponentTypeClassName() {
+            return JSObject.domString( new long[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String floatArrayComponentTypeClassName() {
+            return JSObject.domString( new float[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String doubleArrayComponentTypeClassName() {
+            return JSObject.domString( new double[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String booleanArrayComponentTypeClassName() {
+            return JSObject.domString( new boolean[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static String objectArrayComponentTypeClassName() {
+            return JSObject.domString( new Object[0].getClass().getComponentType().getName() );
         }
     }
 }
