@@ -29,6 +29,7 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class ArrayOperations extends AbstractBaseTest {
 
@@ -60,6 +61,15 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "copyBack2Front" );
             addParam( list, script, "copyFront2Back" );
             addParam( list, script, "dup_x2" );
+            addParam( list, script, "byteArrayClassName" );
+            addParam( list, script, "shortArrayClassName" );
+            addParam( list, script, "charArrayClassName" );
+            addParam( list, script, "intArrayClassName" );
+            addParam( list, script, "longArrayClassName" );
+            addParam( list, script, "floatArrayClassName" );
+            addParam( list, script, "doubleArrayClassName" );
+            addParam( list, script, "booleanArrayClassName" );
+            addParam( list, script, "objectArrayClassName" );
         }
         rule.setTestParameters( list );
         return list;
@@ -196,6 +206,51 @@ public class ArrayOperations extends AbstractBaseTest {
             } else {
                 return 2;
             }
+        }
+
+        @Export
+        static String byteArrayClassName() {
+            return JSObject.domString( new byte[0].getClass().getName() );
+        }
+
+        @Export
+        static String shortArrayClassName() {
+            return JSObject.domString( new short[0].getClass().getName() );
+        }
+
+        @Export
+        static String charArrayClassName() {
+            return JSObject.domString( new char[0].getClass().getName() );
+        }
+
+        @Export
+        static String intArrayClassName() {
+            return JSObject.domString( new int[0].getClass().getName() );
+        }
+
+        @Export
+        static String longArrayClassName() {
+            return JSObject.domString( new long[0].getClass().getName() );
+        }
+
+        @Export
+        static String floatArrayClassName() {
+            return JSObject.domString( new float[0].getClass().getName() );
+        }
+
+        @Export
+        static String doubleArrayClassName() {
+            return JSObject.domString( new double[0].getClass().getName() );
+        }
+
+        @Export
+        static String booleanArrayClassName() {
+            return JSObject.domString( new boolean[0].getClass().getName() );
+        }
+
+        @Export
+        static String objectArrayClassName() {
+            return JSObject.domString( new Object[0].getClass().getName() );
         }
     }
 }
