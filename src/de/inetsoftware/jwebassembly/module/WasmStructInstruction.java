@@ -117,6 +117,12 @@ class WasmStructInstruction extends WasmInstruction {
                 fieldType = fieldName.getType();
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC", "get_" + validJsName( fieldType ), () -> "(a,i) => a[i]", ValueType.externref, ValueType.i32, null, fieldType );
                 break;
+            case INSTANCEOF:
+                functionName = options.getInstanceOf();
+                break;
+            case CAST:
+                functionName = options.getCast();
+                break;
             default:
         }
         return functionName;
@@ -162,33 +168,40 @@ class WasmStructInstruction extends WasmInstruction {
      */
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         int idx = -1;
-        if( type != null && fieldName != null ) {
-            // The fieldName of the struct operation does not contain the class name in which the field was declared. It contains the class name of the variable. This can be the class or a subclass.
-            List<NamedStorageType> fields = type.getFields();
-            boolean classNameMatched = type.getName().equals( fieldName.geClassName() );
-            for( int i = fields.size()-1; i >= 0; i-- ) {
-                NamedStorageType field = fields.get( i );
-                if( !classNameMatched && field.geClassName().equals( fieldName.geClassName() ) ) {
-                    classNameMatched = true;
-                }
-                if( classNameMatched && field.getName().equals( fieldName.getName() ) ) {
-                    idx = i;
-                    break;
-                }
-            }
-            if( !classNameMatched ) {
-                // special case, the type self does not add a needed field, that we search in all fields
+        switch( op ) {
+            case GET:
+            case SET:
+                // The fieldName of the struct operation does not contain the class name in which the field was declared. It contains the class name of the variable. This can be the class or a subclass.
+                List<NamedStorageType> fields = type.getFields();
+                boolean classNameMatched = type.getName().equals( fieldName.geClassName() );
                 for( int i = fields.size()-1; i >= 0; i-- ) {
                     NamedStorageType field = fields.get( i );
-                    if( field.getName().equals( fieldName.getName() ) ) {
+                    if( !classNameMatched && field.geClassName().equals( fieldName.geClassName() ) ) {
+                        classNameMatched = true;
+                    }
+                    if( classNameMatched && field.getName().equals( fieldName.getName() ) ) {
                         idx = i;
                         break;
                     }
                 }
-            }
+                if( !classNameMatched ) {
+                    // special case, the type self does not add a needed field, that we search in all fields
+                    for( int i = fields.size()-1; i >= 0; i-- ) {
+                        NamedStorageType field = fields.get( i );
+                        if( field.getName().equals( fieldName.getName() ) ) {
+                            idx = i;
+                            break;
+                        }
+                    }
+                }
+                break;
+            case INSTANCEOF:
+            case CAST:
+                idx = type.getClassIndex();
+                break;
         }
         if( functionName != null ) { // nonGC
-            if( fieldName != null ) {
+            if( idx >= 0 ) {
                 writer.writeConst( idx, ValueType.i32 );
             }
             writer.writeFunctionCall( functionName, null );

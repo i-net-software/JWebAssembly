@@ -42,6 +42,7 @@ import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.LittleEndianOutputStream;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
 /**
  * Manage the written and to write types (classes)
@@ -226,7 +227,11 @@ public class TypeManager {
         if( type == null ) {
             checkStructTypesState( name );
 
-            type = new StructType( name, structTypes.size() );
+            if( name.startsWith( "[" ) ) {
+                type = (StructType)new ValueTypeParser( name, options.types ).next();
+            } else {
+                type = new StructType( name, structTypes.size() );
+            }
             structTypes.put( name, type );
         }
         return type;
