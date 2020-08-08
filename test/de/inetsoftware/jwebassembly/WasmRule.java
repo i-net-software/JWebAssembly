@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import javax.annotation.Nonnull;
 
@@ -194,7 +195,7 @@ public class WasmRule extends TemporaryFolder {
      */
     @Override
     protected void after() {
-        if( failed ) {
+        if( failed || JWebAssembly.LOGGER.isLoggable( Level.FINE )) {
             for( File wasmFile : compiledFiles.values() ) {
                 File jsFile;
                 if( wasmFile.getName().endsWith( ".wasm" ) ) {
