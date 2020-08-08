@@ -31,39 +31,39 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 public class WasmOptions {
 
-    final FunctionManager functions = new FunctionManager();
+    final FunctionManager         functions = new FunctionManager();
 
-    public final TypeManager types  = new TypeManager( this );
+    public final TypeManager      types     = new TypeManager( this );
 
-    public final StringManager strings = new StringManager( this );
+    public final StringManager    strings   = new StringManager( this );
 
-    final CodeOptimizer   optimizer = new CodeOptimizer();
+    final CodeOptimizer           optimizer = new CodeOptimizer();
 
-    private final boolean debugNames;
+    private final boolean         debugNames;
 
-    private final boolean useGC;
+    private final boolean         useGC;
 
-    private final boolean useEH;
+    private final boolean         useEH;
 
     @Nonnull
-    private final String  sourceMapBase;
+    private final String          sourceMapBase;
 
     /**
      * NonGC function for ref_eq polyfill.
      */
-    public FunctionName ref_eq;
+    public FunctionName           ref_eq;
 
-    private FunctionName get_i32;
+    private FunctionName          get_i32;
 
-    private FunctionName callVirtual;
+    private FunctionName          callVirtual;
 
-    private FunctionName callInterface;
-    
-    private FunctionName instanceOf;
+    private FunctionName          callInterface;
 
-    private FunctionName cast;
+    private SyntheticFunctionName instanceOf;
 
-    private int catchTypeCode;
+    private SyntheticFunctionName cast;
+
+    private int                   catchTypeCode;
 
     private AnyType catchType = new AnyType() {
         @Override
@@ -197,8 +197,8 @@ public class WasmOptions {
      * @return the name
      */
     @Nonnull
-    FunctionName getInstanceOf() {
-        FunctionName name = instanceOf;
+    SyntheticFunctionName getInstanceOf() {
+        SyntheticFunctionName name = instanceOf;
         if( name == null ) {
             instanceOf = name = types.createInstanceOf();
             functions.markAsNeeded( name );
@@ -214,8 +214,8 @@ public class WasmOptions {
      * @return the name
      */
     @Nonnull
-    FunctionName getCast() {
-        FunctionName name = cast;
+    SyntheticFunctionName getCast() {
+        SyntheticFunctionName name = cast;
         if( name == null ) {
             cast = name = types.createCast();
             functions.markAsNeeded( name );
