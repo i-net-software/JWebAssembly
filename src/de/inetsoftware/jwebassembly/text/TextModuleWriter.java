@@ -37,6 +37,7 @@ import de.inetsoftware.jwebassembly.module.WasmOptions;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -820,7 +821,7 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeArrayOperator( @Nonnull ArrayOperator op, AnyType type ) throws IOException {
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, ArrayType type ) throws IOException {
         String operation;
         switch( op ) {
             case NEW:
@@ -839,7 +840,7 @@ public class TextModuleWriter extends ModuleWriter {
                 throw new Error( "Unknown operator: " + op );
         }
         newline( methodOutput );
-        methodOutput.append( "array." ).append( operation ).append( ' ' ).append( type );
+        methodOutput.append( "array." ).append( operation ).append( ' ' ).append( normalizeName( type.toString() ) );
     }
 
     /**

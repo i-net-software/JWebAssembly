@@ -121,13 +121,4 @@ public class ArrayType extends StructType {
     public boolean isSubTypeOf( AnyType type ) {
         return type == this || type == ValueType.externref;
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toString() {
-        // until there is a real type definition we will define write it as externref
-        return ValueType.externref.toString();
-    }
 }

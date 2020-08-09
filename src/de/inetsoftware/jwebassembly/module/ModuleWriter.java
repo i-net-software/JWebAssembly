@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -304,11 +305,11 @@ public abstract class ModuleWriter implements Closeable {
      * @param op
      *            the operation
      * @param type
-     *            the resulting type
+     *            the type of the array
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, AnyType type ) throws IOException;
+    protected abstract void writeArrayOperator( @Nonnull ArrayOperator op, ArrayType type ) throws IOException;
 
     /**
      * Write a struct operation

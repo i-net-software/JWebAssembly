@@ -36,11 +36,13 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmArrayInstruction extends WasmInstruction {
 
-    private final ArrayOperator op;
+    private final ArrayOperator   op;
 
-    private final AnyType   type;
+    private final AnyType         type;
 
-    private final TypeManager types;
+    private final ArrayType       arrayType;
+
+    private final TypeManager     types;
 
     private SyntheticFunctionName functionName;
 
@@ -51,6 +53,8 @@ class WasmArrayInstruction extends WasmInstruction {
      *            the array operation
      * @param type
      *            the type of the parameters
+     * @param types
+     *            the type manager
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
@@ -61,6 +65,7 @@ class WasmArrayInstruction extends WasmInstruction {
         this.op = op;
         this.type = type;
         this.types = types;
+        this.arrayType = types.arrayType( type );
     }
 
     /**
@@ -100,7 +105,6 @@ class WasmArrayInstruction extends WasmInstruction {
                             cmd = "Object.seal(new Array(l).fill(null))";
                     }
                 }
-                ArrayType arrayType = types.arrayType( type );
                 functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_new_" + validJsName( type ), () -> {
                     // create the default values of a new type
                     return new StringBuilder( "(l)=>Object.seal({0:" ) // fix count of elements
@@ -150,7 +154,7 @@ class WasmArrayInstruction extends WasmInstruction {
         if( functionName != null ) { // nonGC
             writer.writeFunctionCall( functionName, null );
         } else {
-            writer.writeArrayOperator( op, type );
+            writer.writeArrayOperator( op, arrayType );
         }
     }
 
@@ -160,7 +164,7 @@ class WasmArrayInstruction extends WasmInstruction {
     AnyType getPushValueType() {
         switch( op ) {
             case NEW:
-                return types.arrayType( type );
+                return arrayType;
             case GET:
                 return type instanceof ValueType ? (ValueType)type : ValueType.externref;
             case SET:

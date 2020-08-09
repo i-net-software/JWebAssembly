@@ -40,6 +40,7 @@ import de.inetsoftware.jwebassembly.sourcemap.SourceMapWriter;
 import de.inetsoftware.jwebassembly.sourcemap.SourceMapping;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
@@ -1353,7 +1354,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected void writeArrayOperator( @Nonnull ArrayOperator op, AnyType type ) throws IOException {
+    protected void writeArrayOperator( @Nonnull ArrayOperator op, ArrayType type ) throws IOException {
         int opCode;
         switch(op) {
             case NEW:
