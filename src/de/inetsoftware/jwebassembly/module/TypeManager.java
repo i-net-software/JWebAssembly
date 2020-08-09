@@ -60,6 +60,11 @@ public class TypeManager {
     static final String             FIELD_HASHCODE = ".hashcode";
 
     /**
+     * Name of field with array value.
+     */
+    static final String             FIELD_VALUE = ".val";
+
+    /**
      * Byte position in the type description that contains the offset to the interfaces. Length 4 bytes.
      */
     static final int                TYPE_DESCRIPTION_INTERFACE_OFFSET = 0;
@@ -225,13 +230,13 @@ public class TypeManager {
     public StructType valueOf( String name ) {
         StructType type = structTypes.get( name );
         if( type == null ) {
-            checkStructTypesState( name );
-
             if( name.startsWith( "[" ) ) {
-                type = (StructType)new ValueTypeParser( name, options.types ).next();
+                return (StructType)new ValueTypeParser( name, options.types ).next();
             } else {
+                checkStructTypesState( name );
                 type = new StructType( name, structTypes.size() );
             }
+
             structTypes.put( name, type );
         }
         return type;
@@ -583,6 +588,9 @@ public class TypeManager {
             } else {
                 fields.add( new NamedStorageType( ValueType.i32, className, FIELD_VTABLE ) );
                 fields.add( new NamedStorageType( ValueType.i32, className, FIELD_HASHCODE ) );
+                if( getComponentClassIndex() >= 0 ) {
+                    fields.add( new NamedStorageType( this, className, FIELD_VALUE ) );
+                }
             }
 
             // list all fields
