@@ -282,7 +282,8 @@ public class TextModuleWriter extends ModuleWriter {
     }
 
     /**
-     * Normalize the function name for the text format
+     * Normalize the function name for the text format of IDs.
+     * https://webassembly.github.io/spec/core/text/values.html#text-id
      * 
      * @param name
      *            the name
@@ -290,7 +291,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Nonnull
     private String normalizeName( String name ) {
-        return name;
+        return name.replace( '[', '/' );
     }
 
     /**
