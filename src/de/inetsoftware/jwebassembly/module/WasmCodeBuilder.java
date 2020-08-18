@@ -421,7 +421,6 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    @Nonnull
     protected void addTableInstruction( boolean load, @Nonnegative int idx, int javaCodePos, int lineNumber ) {
         instructions.add( new WasmTableInstruction( load, idx, javaCodePos, lineNumber ) );
     }
