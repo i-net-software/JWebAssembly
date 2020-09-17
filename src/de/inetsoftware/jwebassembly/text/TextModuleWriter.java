@@ -318,8 +318,8 @@ public class TextModuleWriter extends ModuleWriter {
         if( !type.isRefType() ) {
             output.append( type.toString() );
         } else if( options.useGC() ) {
-            output.append( ValueType.eqref.toString() );
-            //TODO output.append( "(optref " ).append( normalizeName( type.toString() ) ).append( ')' );
+            //output.append( ValueType.eqref.toString() );
+            output.append( "(ref null " ).append( normalizeName( type.toString() ) ).append( ')' );
         } else {
             output.append( ValueType.externref.toString() );
         }
@@ -527,7 +527,7 @@ public class TextModuleWriter extends ModuleWriter {
      * @throws IOException
      *             if an I/O error occurs.
      */
-    private static void writeDefaultValue( Appendable output, AnyType type ) throws IOException {
+    private void writeDefaultValue( Appendable output, AnyType type ) throws IOException {
         if( type instanceof ValueType ) {
             ValueType valueType = (ValueType)type;
             switch( valueType ) {
@@ -548,7 +548,7 @@ public class TextModuleWriter extends ModuleWriter {
                     throw new WasmException( "Not supported storage type: " + type, -1 );
             }
         } else {
-            output.append( "ref.null extern" );
+            output.append( "ref.null " ).append( options.useGC() ? normalizeName( type.toString() ) : "extern" );
         }
     }
 
