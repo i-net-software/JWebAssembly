@@ -82,7 +82,7 @@ public class TypeManager {
     /**
      * Byte position in the type description that contains the type of the array (component type). Length 4 bytes.
      */
-    static final int                TYPE_DESCRIPTION_ARRAY_TYPE = 12;
+    public static final int         TYPE_DESCRIPTION_ARRAY_TYPE = 12;
 
     /**
      * The reserved position on start of the vtable:
@@ -93,6 +93,51 @@ public class TypeManager {
     private static final int        VTABLE_FIRST_FUNCTION_INDEX = 4;
 
     private static final FunctionName CLASS_CONSTANT_FUNCTION = new FunctionName( "java/lang/Class.classConstant(I)Ljava/lang/Class;" ); 
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           BOOLEAN                            = 0;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           BYTE                               = 1;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           CHAR                               = 2;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           DOUBLE                             = 3;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           FLOAT                              = 4;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           INT                                = 5;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           LONG                               = 6;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           SHORT                              = 7;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int           VOID                               = 8;
 
     /**
      * the list of primitive types. The order is important and must correlate with getPrimitiveClass.

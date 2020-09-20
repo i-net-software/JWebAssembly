@@ -19,6 +19,8 @@ package de.inetsoftware.jwebassembly.module;
 import de.inetsoftware.jwebassembly.api.annotation.Replace;
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 
+import static de.inetsoftware.jwebassembly.module.TypeManager.*;
+
 /**
  * Replacement for java.lang.Class
  *
@@ -45,7 +47,7 @@ class ReplacementForClass {
      * @return the name
      */
     String getName() {
-        return StringManager.stringConstant( getIntFromMemory( vtable + TypeManager.TYPE_DESCRIPTION_TYPE_NAME ) );
+        return StringManager.stringConstant( getIntFromMemory( vtable + TYPE_DESCRIPTION_TYPE_NAME ) );
     }
 
     /**
@@ -59,7 +61,7 @@ class ReplacementForClass {
     @WasmTextCode( "local.get 0 " // THIS
                     + "struct.get java/lang/Object .vtable " // vtable is on index 0
                     + "local.tee 1 " // save the vtable location
-                    + "i32.const " + TypeManager.TYPE_DESCRIPTION_INSTANCEOF_OFFSET + " " // vtable is on index 0
+                    + "i32.const " + TYPE_DESCRIPTION_INSTANCEOF_OFFSET + " " // vtable is on index 0
                     + "i32.add " //
                     + "call $java/lang/Class.getIntFromMemory(I)I " //
                     + "local.get 1 " // get the vtable location
@@ -177,7 +179,7 @@ class ReplacementForClass {
      * Replacement of the native Java methods getComponentType()
      */
     ReplacementForClass getComponentType() {
-        int classIdx = getIntFromMemory( vtable + TypeManager.TYPE_DESCRIPTION_ARRAY_TYPE );
+        int classIdx = getIntFromMemory( vtable + TYPE_DESCRIPTION_ARRAY_TYPE );
         return classIdx >= 0 ? classConstant( classIdx ) : null;
     }
 
@@ -192,23 +194,23 @@ class ReplacementForClass {
     static ReplacementForClass getPrimitiveClass( String name ) {
         switch( name ) {
             case "boolean":
-                return classConstant( 0 );
+                return classConstant( BOOLEAN );
             case "byte":
-                return classConstant( 1 );
+                return classConstant( BYTE );
             case "char":
-                return classConstant( 2 );
+                return classConstant( CHAR );
             case "double":
-                return classConstant( 3 );
+                return classConstant( DOUBLE );
             case "float":
-                return classConstant( 4 );
+                return classConstant( FLOAT );
             case "int":
-                return classConstant( 5 );
+                return classConstant( INT );
             case "long":
-                return classConstant( 6 );
+                return classConstant( LONG );
             case "short":
-                return classConstant( 7 );
+                return classConstant( SHORT );
             case "void":
-                return classConstant( 8 );
+                return classConstant( VOID );
         }
         return null;
     }
