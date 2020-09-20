@@ -35,7 +35,7 @@ public class Node {
 
     private static final String BASE_URL = "https://nodejs.org/download/v8-canary/";
 
-    private static final String REVISION = "15.0.0-v8-canary202006192e28363093";
+    private static final String REVISION = "15.0.0-v8-canary20200919991ed8df63";
 
     /**
      * Check if there is a new version of the script engine
