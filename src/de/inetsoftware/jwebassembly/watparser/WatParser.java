@@ -30,6 +30,8 @@ import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmCodeBuilder;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
+import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.MemoryOperator;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
@@ -299,6 +301,11 @@ public class WatParser extends WasmCodeBuilder {
                             fieldNameType = new NamedStorageType( ValueType.externref, "", fieldName );
                         }
                         addStructInstruction( StructOperator.GET, typeName, fieldNameType, javaCodePos, lineNumber );
+                        break;
+                    case "array.len":
+                        typeName = get( tokens, ++i );
+                        AnyType type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
+                        addArrayInstruction( ArrayOperator.LEN, type, javaCodePos, lineNumber );
                         break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );
