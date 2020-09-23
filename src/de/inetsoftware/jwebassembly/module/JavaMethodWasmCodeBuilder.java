@@ -671,7 +671,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 189: // anewarray
                         name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
-                        type = ValueType.externref; //TODO we need to use the right type from name; getTypeManager().valueOf( name );
+                        type = getTypeManager().valueOf( name );
                         addArrayInstruction( ArrayOperator.NEW, type, codePos, lineNumber );
                         break;
                     case 190: // arraylength

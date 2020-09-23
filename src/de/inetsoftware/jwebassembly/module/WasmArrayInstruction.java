@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
@@ -136,7 +137,10 @@ class WasmArrayInstruction extends WasmInstruction {
      * @return the identifier that is valid
      */
     private static String validJsName( AnyType type ) {
-        return type.isRefType() ? "obj" : type.toString();
+        if( type.isRefType() ) {
+            return ((StructType)type).getName().replace( '[', '_' ).replace( '/', '_' ).replace( '.', '_' ).replace( ";", "" );
+        }
+        return type.toString();
     }
 
     /**

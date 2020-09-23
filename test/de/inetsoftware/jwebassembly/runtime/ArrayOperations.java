@@ -70,6 +70,8 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "doubleArrayClassName" );
             addParam( list, script, "booleanArrayClassName" );
             addParam( list, script, "objectArrayClassName" );
+            addParam( list, script, "stringArrayClassName" );
+            addParam( list, script, "stringMatrixClassName" );
             addParam( list, script, "byteArrayComponentTypeClassName" );
             addParam( list, script, "shortArrayComponentTypeClassName" );
             addParam( list, script, "charArrayComponentTypeClassName" );
@@ -262,6 +264,16 @@ public class ArrayOperations extends AbstractBaseTest {
             return JSObject.domString( new Object[0].getClass().getName() );
         }
 
+        @Export
+        static String stringArrayClassName() {
+            return JSObject.domString( new String[0].getClass().getName() );
+        }
+
+        @Export
+        static String stringMatrixClassName() {
+            return JSObject.domString( new String[0][].getClass().getName() );
+        }
+        
         @Export
         static String byteArrayComponentTypeClassName() {
             return JSObject.domString( new byte[0].getClass().getComponentType().getName() );

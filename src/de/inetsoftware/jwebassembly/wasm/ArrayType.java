@@ -78,7 +78,10 @@ public class ArrayType extends StructType {
                     throw new WasmException( "Not supported array type: " + arrayType, -1 );
             }
         }
-        return "[" + ((StructType)arrayType).getName();
+        if( arrayType instanceof ArrayType ) {
+            return "[" + getJavaClassName( ((ArrayType)arrayType).arrayType );
+        }
+        return "[L" + ((StructType)arrayType).getName() + ";";
     }
 
     /**
