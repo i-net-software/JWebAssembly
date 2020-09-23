@@ -728,7 +728,7 @@ public abstract class WasmCodeBuilder {
      * @param op
      *            the operation
      * @param type
-     *            the array type
+     *            the array/component type of the array
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
