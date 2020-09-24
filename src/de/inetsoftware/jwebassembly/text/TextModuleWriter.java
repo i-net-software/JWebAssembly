@@ -861,8 +861,12 @@ public class TextModuleWriter extends ModuleWriter {
                 operation = "struct.set";
                 break;
             case NULL:
-                operation = options.useGC() ? "ref.null eq" : "ref.null extern";
-                type = null;
+                if( options.useGC() ) {
+                    operation = "ref.null";
+                } else {
+                    operation = "ref.null extern";
+                    type = null;
+                }
                 break;
             default:
                 throw new Error( "Unknown operator: " + op );

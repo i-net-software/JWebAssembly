@@ -98,8 +98,7 @@ class WasmOutputStream extends LittleEndianOutputStream {
     public void writeRefValueType( AnyType type ) throws IOException {
         if( type.isRefType() ) {
             if( options.useGC() ) {
-                //TODO writeValueType( ValueType.ref_type );
-                type = ValueType.eqref;
+                writeValueType( ValueType.optref );
             } else {
                 type = ValueType.externref;
             }

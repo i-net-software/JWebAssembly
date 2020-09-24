@@ -64,10 +64,10 @@ class WasmStructInstruction extends WasmInstruction {
      * @param types
      *            the type manager
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nullable String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
+    WasmStructInstruction( @Nullable StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
         super( javaCodePos, lineNumber );
         this.op = op;
-        this.type = typeName == null ? null : types.valueOf( typeName );
+        this.type = types.valueOf( typeName );
         this.fieldName = fieldName;
         if( type != null && fieldName != null ) {
             type.useFieldName( fieldName );

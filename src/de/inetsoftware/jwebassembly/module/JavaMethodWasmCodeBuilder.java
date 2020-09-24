@@ -108,7 +108,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 0: // nop
                         break;
                     case 1: // aconst_null
-                        addStructInstruction( StructOperator.NULL, null, null, codePos, lineNumber );
+                        addStructInstruction( StructOperator.NULL, "java/lang/Object", null, codePos, lineNumber );
                         break;
                     case 2: // iconst_m1
                     case 3: // iconst_0
