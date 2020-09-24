@@ -292,7 +292,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Nonnull
     private String normalizeName( String name ) {
-        return name.replace( '[', '/' );
+        return name.replace( '[', '/' ).replace( ";", "" );
     }
 
     /**
