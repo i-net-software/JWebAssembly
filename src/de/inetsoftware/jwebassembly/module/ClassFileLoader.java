@@ -64,7 +64,7 @@ public class ClassFileLoader {
      * Get the ClassFile from cache or load it.
      * 
      * @param className
-     *            the class name
+     *            the class name like "java/lang/Object"
      * @return the ClassFile or null
      * @throws IOException
      *             If any I/O error occur
@@ -120,7 +120,7 @@ public class ClassFileLoader {
      * Add a partial class with the given instance to the loader cache.
      * 
      * @param className
-     *            the name of the class to replace
+     *            the name of the class to replace like "java/lang/String"
      * @param partialClassFile
      *            the partial ClassFile
      * @throws IOException
