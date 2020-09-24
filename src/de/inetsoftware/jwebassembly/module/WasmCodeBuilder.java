@@ -786,7 +786,7 @@ public abstract class WasmCodeBuilder {
      * @param op
      *            the operation
      * @param typeName
-     *            the type name
+     *            the type name like "java/lang/Object"
      * @param fieldName
      *            the name of field if needed for the operation
      * @param javaCodePos
