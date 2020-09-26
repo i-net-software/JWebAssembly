@@ -852,6 +852,8 @@ public class TextModuleWriter extends ModuleWriter {
         switch( op ) {
             case NEW:
             case NEW_DEFAULT:
+                newline( methodOutput );
+                methodOutput.append( "rtt.canon" ).append( ' ' ).append( normalizeName( type.toString() ) );
                 operation = "struct.new";
                 break;
             case GET:

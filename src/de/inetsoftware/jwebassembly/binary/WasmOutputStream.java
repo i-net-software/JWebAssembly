@@ -137,7 +137,7 @@ class WasmOutputStream extends LittleEndianOutputStream {
             }
         } else {
             writeOpCode( InstructionOpcodes.REF_NULL );
-            writeValueType( ValueType.externref );
+            writeValueType( type );
         }
     }
 

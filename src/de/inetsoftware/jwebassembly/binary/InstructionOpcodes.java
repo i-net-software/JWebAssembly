@@ -487,22 +487,22 @@ interface InstructionOpcodes {
 
     static final int TABLE_FILL             = 0xFC11;
 
-    // === GC opcodes (unofficial, experimental) ===== https://github.com/lars-t-hansen/moz-gc-experiments/blob/master/version2.md
+    // === GC opcodes
 
-    static final int STRUCT_NEW             = 0xFC50;
+    static final int STRUCT_NEW             = 0xFB01;
 
-    static final int STRUCT_GET             = 0xFC51;
+    static final int STRUCT_GET             = 0xFB03;
 
-    static final int STRUCT_SET             = 0xFC52;
-
-    static final int STRUCT_NARROW          = 0xFC53;
+    static final int STRUCT_SET             = 0xFB06;
 
 
-    static final int ARRAY_NEW              = 0xFC60;
+    static final int ARRAY_NEW              = 0xFB11;
 
-    static final int ARRAY_GET              = 0xFC61;
+    static final int ARRAY_GET              = 0xFB13;
 
-    static final int ARRAY_SET              = 0xFC62;
+    static final int ARRAY_SET              = 0xFB16;
 
-    static final int ARRAY_LEN              = 0xFC63;
+    static final int ARRAY_LEN              = 0xFB17;
+
+    static final int RTT_CANON              = 0xFB30;
 }

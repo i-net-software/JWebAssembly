@@ -1385,6 +1385,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         switch(op) {
             case NEW:
             case NEW_DEFAULT:
+                codeStream.writeOpCode( RTT_CANON );
+                codeStream.writeValueType( type );
                 opCode = STRUCT_NEW;
                 break;
             case GET:
