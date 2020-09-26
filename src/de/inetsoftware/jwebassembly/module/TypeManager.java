@@ -67,22 +67,22 @@ public class TypeManager {
     /**
      * Byte position in the type description that contains the offset to the interfaces. Length 4 bytes.
      */
-    static final int                TYPE_DESCRIPTION_INTERFACE_OFFSET = 0;
+    public static final int           TYPE_DESCRIPTION_INTERFACE_OFFSET  = 0;
 
     /**
      * Byte position in the type description that contains the offset to the instanceof list. Length 4 bytes.
      */
-    static final int                TYPE_DESCRIPTION_INSTANCEOF_OFFSET = 4;
+    public static final int           TYPE_DESCRIPTION_INSTANCEOF_OFFSET = 4;
 
     /**
      * Byte position in the type description that contains the offset to class name idx in the string constant table. Length 4 bytes.
      */
-    static final int                TYPE_DESCRIPTION_TYPE_NAME = 8;
+    public static final int           TYPE_DESCRIPTION_TYPE_NAME         = 8;
 
     /**
      * Byte position in the type description that contains the type of the array (component type). Length 4 bytes.
      */
-    public static final int         TYPE_DESCRIPTION_ARRAY_TYPE = 12;
+    public static final int           TYPE_DESCRIPTION_ARRAY_TYPE        = 12;
 
     /**
      * The reserved position on start of the vtable:

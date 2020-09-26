@@ -14,12 +14,24 @@
    limitations under the License.
 
 */
-package de.inetsoftware.jwebassembly.module;
+package de.inetsoftware.jwebassembly.module.nativecode;
+
+import static de.inetsoftware.jwebassembly.module.TypeManager.BOOLEAN;
+import static de.inetsoftware.jwebassembly.module.TypeManager.BYTE;
+import static de.inetsoftware.jwebassembly.module.TypeManager.CHAR;
+import static de.inetsoftware.jwebassembly.module.TypeManager.DOUBLE;
+import static de.inetsoftware.jwebassembly.module.TypeManager.FLOAT;
+import static de.inetsoftware.jwebassembly.module.TypeManager.INT;
+import static de.inetsoftware.jwebassembly.module.TypeManager.LONG;
+import static de.inetsoftware.jwebassembly.module.TypeManager.SHORT;
+import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_ARRAY_TYPE;
+import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_INSTANCEOF_OFFSET;
+import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_TYPE_NAME;
+import static de.inetsoftware.jwebassembly.module.TypeManager.VOID;
 
 import de.inetsoftware.jwebassembly.api.annotation.Replace;
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
-
-import static de.inetsoftware.jwebassembly.module.TypeManager.*;
+import de.inetsoftware.jwebassembly.module.TypeManager;
 
 /**
  * Replacement for java.lang.Class
@@ -47,7 +59,7 @@ class ReplacementForClass {
      * @return the name
      */
     String getName() {
-        return StringManager.stringConstant( getIntFromMemory( vtable + TYPE_DESCRIPTION_TYPE_NAME ) );
+        return StringTable.stringConstant( getIntFromMemory( vtable + TYPE_DESCRIPTION_TYPE_NAME ) );
     }
 
     /**
