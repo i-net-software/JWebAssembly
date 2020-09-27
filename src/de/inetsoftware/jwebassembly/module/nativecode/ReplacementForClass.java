@@ -41,7 +41,10 @@ import de.inetsoftware.jwebassembly.module.TypeManager;
 @Replace( "java/lang/Class" )
 class ReplacementForClass {
 
-    private final int vtable;
+    /**
+     * The pointer in the memory for the class/type description.
+     */
+    final int vtable;
 
     /**
      * Create a instance

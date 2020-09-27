@@ -129,4 +129,38 @@ public class ReplacementForArray {
                     + "array.len [S " //
                     + "return " )
     private static native int getLengthOfShorts( Object obj );
+
+    /**
+     * Replacement of the native Java methods Array.newInstance(c,l)
+     * 
+     * @param obj
+     *            the object
+     * @return the length of the object
+     */
+    @Replace( "java/lang/reflect/Array.newInstance(Ljava/lang/Class;I)Ljava/lang/Object;" )
+    private static Object array_newInstance( ReplacementForClass componentClass, int length ) {
+        int vtable = componentClass.vtable;
+        int componentType = getIntFromMemory( vtable + TYPE_DESCRIPTION_INSTANCEOF_OFFSET );
+        switch( componentType ) {
+            case BOOLEAN:
+                return new boolean[length];
+            case BYTE:
+                return new byte[length];
+            case CHAR:
+                return new char[length];
+            case DOUBLE:
+                return new double[length];
+            case FLOAT:
+                return new float[length];
+            case INT:
+                return new int[length];
+            case LONG:
+                return new long[length];
+            case SHORT:
+                return new short[length];
+            default:
+                //TODO it should return the right component array
+                return new Object[length];
+        }
+    }
 }

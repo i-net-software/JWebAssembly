@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -81,6 +82,7 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "doubleArrayComponentTypeClassName" );
             addParam( list, script, "booleanArrayComponentTypeClassName" );
             addParam( list, script, "objectArrayComponentTypeClassName" );
+            addParam( list, script, "arrayNewInstance_getLength" );
         }
         rule.setTestParameters( list );
         return list;
@@ -317,6 +319,12 @@ public class ArrayOperations extends AbstractBaseTest {
         @Export
         static String objectArrayComponentTypeClassName() {
             return JSObject.domString( new Object[0].getClass().getComponentType().getName() );
+        }
+
+        @Export
+        static int arrayNewInstance_getLength() {
+            Object obj = Array.newInstance( byte.class, 42 );
+            return Array.getLength( obj );
         }
     }
 }
