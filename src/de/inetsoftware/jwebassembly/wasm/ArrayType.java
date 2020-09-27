@@ -104,15 +104,6 @@ public class ArrayType extends StructType {
      * {@inheritDoc}
      */
     @Override
-    public int getCode() {
-        // until there is a real type definition we will define write it as externref
-        return ValueType.externref.getCode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public boolean isRefType() {
         return true;
     }
