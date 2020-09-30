@@ -33,6 +33,7 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructTypeKind;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
 import de.inetsoftware.jwebassembly.module.WasmOptions;
 import de.inetsoftware.jwebassembly.module.WasmTarget;
@@ -496,6 +497,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     @Override
     protected int writeStructType( StructType type ) throws IOException {
         type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id, options );
+
+        if( type.getKind() == StructTypeKind.primitive ) {
+            return -9; // Should never use
+        }
 
         if( !options.useGC() ) {
             return ValueType.externref.getCode();

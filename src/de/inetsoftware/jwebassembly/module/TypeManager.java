@@ -148,6 +148,8 @@ public class TypeManager {
 
     private Map<Object, StructType> structTypes = new LinkedHashMap<>();
 
+    private int                     typeIndexCounter;
+
     private boolean                 isFinish;
 
     final WasmOptions               options;
@@ -260,7 +262,7 @@ public class TypeManager {
 
         if( structTypes.size() == 0 ) {
             for( String primitiveTypeName : PRIMITIVE_CLASSES ) {
-                structTypes.put( primitiveTypeName, new StructType( primitiveTypeName, structTypes.size() ) );
+                structTypes.put( primitiveTypeName, new StructType( primitiveTypeName, StructTypeKind.primitive, this ) );
             }
         }
     }
@@ -279,7 +281,12 @@ public class TypeManager {
                 return (StructType)new ValueTypeParser( name, options.types ).next();
             } else {
                 checkStructTypesState( name );
-                type = new StructType( name, structTypes.size() );
+                type = new StructType( name, StructTypeKind.normal, this );
+
+                if( "java/lang/String".equals( name ) ) {
+                    // looks like strings are used, that register helper functions
+                    options.strings.getStringConstantFunction();
+                }
             }
 
             structTypes.put( name, type );
@@ -337,7 +344,7 @@ public class TypeManager {
                 componentClassIndex = ((StructType)arrayType).classIndex;
             }
 
-            type = new ArrayType( arrayType, structTypes.size(), componentClassIndex );
+            type = new ArrayType( arrayType, this, componentClassIndex );
             structTypes.put( arrayType, type );
         }
         return type;
@@ -487,6 +494,15 @@ public class TypeManager {
     }
 
     /**
+     * The kind of type
+     * 
+     * @author Volker Berlin
+     */
+    public static enum StructTypeKind {
+        primitive, normal, array, array_native;
+    }
+
+    /**
      * A reference to a type.
      * 
      * @author Volker Berlin
@@ -494,6 +510,8 @@ public class TypeManager {
     public static class StructType implements AnyType {
 
         private final String           name;
+
+        private final StructTypeKind  kind;
 
         private final int              classIndex;
 
@@ -519,12 +537,21 @@ public class TypeManager {
          * 
          * @param name
          *            the Java class name
-         * @param classIndex
-         *            the running index of the class/type
+         * @param kind
+         *            the type kind
+         * @param manager
+         *            the manager which hold all StructTypes
          */
-        protected StructType( String name, int classIndex ) {
+        protected StructType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager ) {
             this.name = name;
-            this.classIndex = classIndex;
+            this.kind = kind;
+            switch( kind ) {
+                case array_native:
+                    this.classIndex = -1;
+                    break;
+                default:
+                    this.classIndex = manager.typeIndexCounter++;
+            }
         }
 
         /**
@@ -848,6 +875,14 @@ public class TypeManager {
         public boolean isSubTypeOf( AnyType type ) {
             //TODO if type is StructType (class or interface)
             return type == this || type == ValueType.externref || type == ValueType.anyref || type == ValueType.eqref;
+        }
+
+        /**
+         * Get kind of the StructType
+         * @return the type kind
+         */
+        public StructTypeKind getKind() {
+            return kind;
         }
 
         /**

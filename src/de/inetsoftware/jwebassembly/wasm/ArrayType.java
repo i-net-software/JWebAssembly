@@ -15,8 +15,12 @@
  */
 package de.inetsoftware.jwebassembly.wasm;
 
+import javax.annotation.Nonnull;
+
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructTypeKind;
 
 /**
  * A reference to an array type
@@ -35,13 +39,13 @@ public class ArrayType extends StructType {
      * 
      * @param arrayType
      *            the type of the array
-     * @param classIndex
-     *            the running index of the main class/type
+     * @param manager
+     *            the manager which hold all StructTypes
      * @param componentClassIndex
      *            the running index of the component/array class/type
      */
-    public ArrayType( AnyType arrayType, int classIndex, int componentClassIndex ) {
-        super( getJavaClassName( arrayType ), classIndex );
+    public ArrayType( AnyType arrayType, @Nonnull TypeManager manager, int componentClassIndex ) {
+        super( getJavaClassName( arrayType ), StructTypeKind.array, manager );
         this.arrayType = arrayType;
         this.componentClassIndex = componentClassIndex;
     }
