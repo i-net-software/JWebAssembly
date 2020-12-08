@@ -334,6 +334,7 @@ public class TypeManager {
                     case i16:
                         componentClassIndex = 7;
                         break;
+                    case eqref:
                     case externref:
                         componentClassIndex = valueOf( "java/lang/Object" ).classIndex;
                         break;

@@ -76,6 +76,7 @@ public class ArrayType extends StructType {
                     return "[I";
                 case i64:
                     return "[J";
+                case eqref:
                 case externref:
                     return "[Ljava.lang.Object;";
                 default:
