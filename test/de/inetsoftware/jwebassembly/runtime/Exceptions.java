@@ -28,6 +28,7 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.web.DOMString;
 import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class Exceptions extends AbstractBaseTest {
@@ -101,7 +102,7 @@ public class Exceptions extends AbstractBaseTest {
         }
 
         @Export
-        static String rethrow() {
+        static DOMString rethrow() {
             String msg = "ok";
             try {
                 rethrowImpl();

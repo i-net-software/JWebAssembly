@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.web.DOMString;
 import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class StringOperations extends AbstractBaseTest {
@@ -53,19 +54,19 @@ public class StringOperations extends AbstractBaseTest {
     static class TestClass {
 
         @Export
-        static String newFromChars() {
+        static DOMString newFromChars() {
             char[] chars = {'ä','ö','ü'};
             return JSObject.domString( new String( chars ) );
         }
 
         @Export
-        static String newFromBytes() {
+        static DOMString newFromBytes() {
             byte[] bytes = {(byte)0xC3,(byte)0xA4};
             return JSObject.domString( new String( bytes ) );
         }
 
         @Export
-        static String constant() {
+        static DOMString constant() {
             // string larger as 128 bytes
             String constant  = "1234567890 äöüäöüß " // umlaute
                             + "𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡 𝒥𝒶𝓋𝒶𝓈𝒸𝓇𝒾𝓅𝓉 " // surrogate chars
@@ -74,7 +75,7 @@ public class StringOperations extends AbstractBaseTest {
         }
 
         @Export
-        static String objToString() {
+        static DOMString objToString() {
             Object obj = new Object();
             return JSObject.domString( obj.toString().substring( 0, 17 ) );
         }

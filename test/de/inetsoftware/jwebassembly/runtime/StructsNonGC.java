@@ -27,6 +27,7 @@ import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
 import de.inetsoftware.jwebassembly.runtime.StructsGC.Abc2;
+import de.inetsoftware.jwebassembly.web.DOMString;
 import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class StructsNonGC extends AbstractBaseTest {
@@ -187,28 +188,28 @@ public class StructsNonGC extends AbstractBaseTest {
         }
 
         @Export
-        static String objectClassName() {
+        static DOMString objectClassName() {
             Object obj = new Object();
             Class clazz = obj.getClass();
             return JSObject.domString( clazz.getName() );
         }
 
         @Export
-        static String integerClassName() {
+        static DOMString integerClassName() {
             Object obj = new Integer(42);
             Class clazz = obj.getClass();
             return JSObject.domString( clazz.getName() );
         }
 
         @Export
-        static String classClassName() {
+        static DOMString classClassName() {
             Object obj = new Object();
             Class clazz = obj.getClass().getClass();
             return JSObject.domString( clazz.getName() );
         }
 
         @Export
-        static String classConst() {
+        static DOMString classConst() {
             Class clazz = Float.class;
             return JSObject.domString( clazz.getName() );
         }

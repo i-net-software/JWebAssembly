@@ -26,10 +26,12 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
+import org.w3c.dom.DOMStringList;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
+import de.inetsoftware.jwebassembly.web.DOMString;
 import de.inetsoftware.jwebassembly.web.JSObject;
 
 public class ArrayOperations extends AbstractBaseTest {
@@ -222,102 +224,102 @@ public class ArrayOperations extends AbstractBaseTest {
         }
 
         @Export
-        static String byteArrayClassName() {
+        static DOMString byteArrayClassName() {
             return JSObject.domString( new byte[0].getClass().getName() );
         }
 
         @Export
-        static String shortArrayClassName() {
+        static DOMString shortArrayClassName() {
             return JSObject.domString( new short[0].getClass().getName() );
         }
 
         @Export
-        static String charArrayClassName() {
+        static DOMString charArrayClassName() {
             return JSObject.domString( new char[0].getClass().getName() );
         }
 
         @Export
-        static String intArrayClassName() {
+        static DOMString intArrayClassName() {
             return JSObject.domString( new int[0].getClass().getName() );
         }
 
         @Export
-        static String longArrayClassName() {
+        static DOMString longArrayClassName() {
             return JSObject.domString( new long[0].getClass().getName() );
         }
 
         @Export
-        static String floatArrayClassName() {
+        static DOMString floatArrayClassName() {
             return JSObject.domString( new float[0].getClass().getName() );
         }
 
         @Export
-        static String doubleArrayClassName() {
+        static DOMString doubleArrayClassName() {
             return JSObject.domString( new double[0].getClass().getName() );
         }
 
         @Export
-        static String booleanArrayClassName() {
+        static DOMString booleanArrayClassName() {
             return JSObject.domString( new boolean[0].getClass().getName() );
         }
 
         @Export
-        static String objectArrayClassName() {
+        static DOMString objectArrayClassName() {
             return JSObject.domString( new Object[0].getClass().getName() );
         }
 
         @Export
-        static String stringArrayClassName() {
+        static DOMString stringArrayClassName() {
             return JSObject.domString( new String[0].getClass().getName() );
         }
 
         @Export
-        static String stringMatrixClassName() {
+        static DOMString stringMatrixClassName() {
             return JSObject.domString( new String[0][].getClass().getName() );
         }
         
         @Export
-        static String byteArrayComponentTypeClassName() {
+        static DOMString byteArrayComponentTypeClassName() {
             return JSObject.domString( new byte[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String shortArrayComponentTypeClassName() {
+        static DOMString shortArrayComponentTypeClassName() {
             return JSObject.domString( new short[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String charArrayComponentTypeClassName() {
+        static DOMString charArrayComponentTypeClassName() {
             return JSObject.domString( new char[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String intArrayComponentTypeClassName() {
+        static DOMString intArrayComponentTypeClassName() {
             return JSObject.domString( new int[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String longArrayComponentTypeClassName() {
+        static DOMString longArrayComponentTypeClassName() {
             return JSObject.domString( new long[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String floatArrayComponentTypeClassName() {
+        static DOMString floatArrayComponentTypeClassName() {
             return JSObject.domString( new float[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String doubleArrayComponentTypeClassName() {
+        static DOMString doubleArrayComponentTypeClassName() {
             return JSObject.domString( new double[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String booleanArrayComponentTypeClassName() {
+        static DOMString booleanArrayComponentTypeClassName() {
             return JSObject.domString( new boolean[0].getClass().getComponentType().getName() );
         }
 
         @Export
-        static String objectArrayComponentTypeClassName() {
+        static DOMString objectArrayComponentTypeClassName() {
             return JSObject.domString( new Object[0].getClass().getComponentType().getName() );
         }
 
