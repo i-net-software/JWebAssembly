@@ -166,7 +166,7 @@ public class ModuleGenerator {
      * @throws IOException
      *             if any I/O error occur
      */
-    public void prepare( ClassFile classFile ) throws IOException {
+    public void prepare( @Nonnull ClassFile classFile ) throws IOException {
         classFileLoader.cache( classFile );
         // check if this class replace another class
         Map<String,Object> annotationValues;

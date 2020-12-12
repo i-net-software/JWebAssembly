@@ -24,7 +24,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ClassFile;
-import de.inetsoftware.classparser.WeakValueCache;
 
 /**
  * Cache and manager for the loaded ClassFiles
@@ -35,7 +34,8 @@ public class ClassFileLoader {
 
     private final HashMap<String, ClassFile>        replace   = new HashMap<>();
 
-    private final WeakValueCache<String, ClassFile> weakCache = new WeakValueCache<>();
+    //A weak cache has produce problems if there are different versions of the same class in the build path and/or library path. Then the prescan can add the second version of the class. 
+    private final HashMap<String, ClassFile>        cache = new HashMap<>();
 
     private final ClassLoader                       loader;
 
@@ -75,14 +75,14 @@ public class ClassFileLoader {
         if( classFile != null ) {
             return classFile;
         }
-        classFile = weakCache.get( className );
+        classFile = cache.get( className );
         if( classFile != null ) {
             return classFile;
         }
         InputStream stream = loader.getResourceAsStream( className + ".class" );
         if( stream != null ) {
             classFile = new ClassFile( stream );
-            weakCache.put( className, classFile );
+            cache.put( className, classFile );
         }
         return classFile;
     }
@@ -97,9 +97,15 @@ public class ClassFileLoader {
         String name = classFile.getThisClass().getName();
         if( bootLoader.getResource( name + ".class" ) != null ) {
             // if the same resource is exist in the JVM self then we need to hold the reference permanently
-            replace.put( name, classFile );
+            if( replace.get( name ) == null ) {
+                // does not add a second version of the same file
+                replace.put( name, classFile );
+            }
         } else {
-            weakCache.put( name, classFile );
+            if( cache.get( name ) == null ) {
+                // does not add a second version of the same file
+                cache.put( name, classFile );
+            }
         }
     }
 
