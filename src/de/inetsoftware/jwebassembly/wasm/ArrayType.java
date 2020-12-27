@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager;
+import de.inetsoftware.jwebassembly.module.WasmOptions;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructTypeKind;
 
@@ -32,6 +33,8 @@ public class ArrayType extends StructType {
 
     private AnyType arrayType;
 
+    private AnyType nativeArrayType;
+
     private int componentClassIndex;
 
     /**
@@ -43,11 +46,36 @@ public class ArrayType extends StructType {
      *            the manager which hold all StructTypes
      * @param componentClassIndex
      *            the running index of the component/array class/type
+     * @param options
+     *            compiler properties
      */
-    public ArrayType( AnyType arrayType, @Nonnull TypeManager manager, int componentClassIndex ) {
-        super( getJavaClassName( arrayType ), StructTypeKind.array, manager );
-        this.arrayType = arrayType;
+    public ArrayType( AnyType arrayType, @Nonnull TypeManager manager, int componentClassIndex, WasmOptions options ) {
+        this( getJavaClassName( arrayType ), StructTypeKind.array, manager, arrayType );
         this.componentClassIndex = componentClassIndex;
+        if( options.useGC() ) {
+            String nativeName = '_' + getName();
+            this.nativeArrayType = new ArrayType( nativeName, StructTypeKind.array_native, manager, arrayType );
+            //structTypes.put( name, nativeArrayType );
+        } else {
+            this.nativeArrayType = arrayType;
+        }
+    }
+
+    /**
+     * Create a new instance
+     * 
+     * @param name
+     *            the type name
+     * @param kind
+     *            the kind, array or array_native
+     * @param manager
+     *            the manager which hold all StructTypes
+     * @param arrayType
+     *            the type of the array
+     */
+    private ArrayType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, AnyType arrayType ) {
+        super( name, kind, manager );
+        this.arrayType = arrayType;
     }
 
     /**
@@ -57,6 +85,7 @@ public class ArrayType extends StructType {
      *            the type of the array
      * @return the name
      */
+    @Nonnull
     private static String getJavaClassName( AnyType arrayType ) {
         if( !arrayType.isRefType() ) {
             switch( (ValueType)arrayType ) {
@@ -95,6 +124,10 @@ public class ArrayType extends StructType {
      */
     public AnyType getArrayType() {
         return arrayType;
+    }
+
+    public AnyType getNativeArrayType() {
+        return nativeArrayType;
     }
 
     /**

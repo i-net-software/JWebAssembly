@@ -345,7 +345,11 @@ public class TypeManager {
                 componentClassIndex = ((StructType)arrayType).classIndex;
             }
 
-            type = new ArrayType( arrayType, this, componentClassIndex );
+            type = new ArrayType( arrayType, this, componentClassIndex, options );
+            if( options.useGC() ) {
+                StructType nativeArrayType = (StructType)type.getNativeArrayType();
+                structTypes.put( nativeArrayType.getName(), nativeArrayType );
+            }
             structTypes.put( arrayType, type );
         }
         return type;
@@ -584,17 +588,24 @@ public class TypeManager {
             instanceOFs = new LinkedHashSet<>(); // remembers the order from bottom to top class.
             instanceOFs.add( this );
             interfaceMethods = new LinkedHashMap<>();
-            if( classIndex < PRIMITIVE_CLASSES.length ) {
-                // nothing
-            } else if( this instanceof ArrayType ) {
-                HashSet<String> allNeededFields = new HashSet<>();
-                listStructFields( "java/lang/Object", functions, types, classFileLoader, allNeededFields );
-            } else {
-                // add all interfaces to the instanceof set
-                listInterfaces( functions, types, classFileLoader );
+            switch( kind ) {
+                case primitive:
+                    // nothing
+                    break;
+                case array:
+                    HashSet<String> allNeededFields = new HashSet<>();
+                    listStructFields( "java/lang/Object", functions, types, classFileLoader, allNeededFields );
+                    fields.add( new NamedStorageType( ((ArrayType)this).getNativeArrayType(), null, FIELD_VALUE ) );
+                    break;
+                case array_native:
+                    fields.add( new NamedStorageType( ((ArrayType)this).getArrayType(), null, null ) );
+                    break;
+                default:
+                    // add all interfaces to the instanceof set
+                    listInterfaces( functions, types, classFileLoader );
 
-                HashSet<String> allNeededFields = new HashSet<>();
-                listStructFields( name, functions, types, classFileLoader, allNeededFields );
+                    allNeededFields = new HashSet<>();
+                    listStructFields( name, functions, types, classFileLoader, allNeededFields );
             }
         }
 
@@ -661,9 +672,6 @@ public class TypeManager {
             } else {
                 fields.add( new NamedStorageType( ValueType.i32, className, FIELD_VTABLE ) );
                 fields.add( new NamedStorageType( ValueType.i32, className, FIELD_HASHCODE ) );
-                if( getComponentClassIndex() >= 0 ) {
-                    fields.add( new NamedStorageType( this, className, FIELD_VALUE ) );
-                }
             }
 
             // list all fields

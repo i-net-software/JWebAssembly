@@ -207,7 +207,8 @@ public class TextModuleWriter extends ModuleWriter {
         inset = 1;
         newline( output );
         String typeName = normalizeName( type.getName() );
-        output.append( "(type $" ).append( typeName ).append( " (struct" );
+        String kind = type.getKind() == StructTypeKind.array_native ? "array" : "struct";
+        output.append( "(type $" ).append( typeName ).append( " ("  ).append( kind );
         inset++;
         for( NamedStorageType field : type.getFields() ) {
             newline( output );
