@@ -180,14 +180,6 @@ class WasmArrayInstruction extends WasmInstruction {
         if( functionName != null ) { // nonGC
             writer.writeFunctionCall( functionName, null );
         } else {
-            switch( op ) {
-                case GET:
-                case SET:
-                case LEN:
-                    writer.writeStructOperator( StructOperator.GET, arrayType, null, 2 ); // the native array is on position 2 (vtable, hashcode are before)
-                    break;
-                default:
-            }
             writer.writeArrayOperator( op, arrayType );
         }
     }

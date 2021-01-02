@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 - 2020 Volker Berlin (i-net software)
+ * Copyright 2019 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ public class ArrayType extends StructType {
 
     private AnyType nativeArrayType;
 
+    private NamedStorageType nativeFieldName;
+
     private int componentClassIndex;
 
     /**
@@ -59,6 +61,7 @@ public class ArrayType extends StructType {
         } else {
             this.nativeArrayType = arrayType;
         }
+        nativeFieldName = new NamedStorageType( this.nativeArrayType, getName(), TypeManager.FIELD_VALUE );
     }
 
     /**
@@ -126,8 +129,21 @@ public class ArrayType extends StructType {
         return arrayType;
     }
 
+    /**
+     * The native webassembly array type that we wrap
+     * @return the type
+     */
     public AnyType getNativeArrayType() {
         return nativeArrayType;
+    }
+
+    /**
+     * The native field name
+     * 
+     * @return the field name
+     */
+    public NamedStorageType getNativeFieldName() {
+        return nativeFieldName;
     }
 
     /**

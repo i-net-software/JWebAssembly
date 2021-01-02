@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class TypeManager {
     /**
      * Name of field with array value.
      */
-    static final String             FIELD_VALUE = ".val";
+    public static final String             FIELD_VALUE = ".array";
 
     /**
      * Byte position in the type description that contains the offset to the interfaces. Length 4 bytes.
@@ -274,6 +274,7 @@ public class TypeManager {
      *            the type name like java/lang/Object
      * @return the struct type
      */
+    @Nonnull
     public StructType valueOf( String name ) {
         StructType type = structTypes.get( name );
         if( type == null ) {
@@ -301,6 +302,7 @@ public class TypeManager {
      *            the component type of the array
      * @return the array type
      */
+    @Nonnull
     public ArrayType arrayType( AnyType arrayType ) {
         ArrayType type = (ArrayType)structTypes.get( arrayType );
         if( type == null ) {
@@ -595,7 +597,7 @@ public class TypeManager {
                 case array:
                     HashSet<String> allNeededFields = new HashSet<>();
                     listStructFields( "java/lang/Object", functions, types, classFileLoader, allNeededFields );
-                    fields.add( new NamedStorageType( ((ArrayType)this).getNativeArrayType(), null, FIELD_VALUE ) );
+                    fields.add( ((ArrayType)this).getNativeFieldName() );
                     break;
                 case array_native:
                     fields.add( new NamedStorageType( ((ArrayType)this).getArrayType(), null, null ) );

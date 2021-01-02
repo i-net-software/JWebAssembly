@@ -66,9 +66,29 @@ class WasmStructInstruction extends WasmInstruction {
      *            the type manager
      */
     WasmStructInstruction( @Nonnull StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
+        this( op, types.valueOf( typeName ), fieldName, javaCodePos, lineNumber, types );
+    }
+
+    /**
+     * Create an instance of numeric operation.
+     * 
+     * @param op
+     *            the struct operation
+     * @param type
+     *            the type of the parameters
+     * @param fieldName
+     *            the name of field if needed for the operation
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     * @param types
+     *            the type manager
+     */
+    WasmStructInstruction( @Nonnull StructOperator op, @Nonnull StructType type, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
         super( javaCodePos, lineNumber );
         this.op = op;
-        this.type = types.valueOf( typeName );
+        this.type = type;
         this.fieldName = fieldName;
         if( type != null && fieldName != null ) {
             type.useFieldName( fieldName );

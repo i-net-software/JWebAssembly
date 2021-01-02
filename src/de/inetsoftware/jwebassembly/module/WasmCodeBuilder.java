@@ -735,9 +735,32 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos, int lineNumber ) {
+        boolean useGC = options.useGC();
+        if( useGC ) {
+            // replace the the array wrapper on the stack with the native array 
+            int idx;
+            switch( op ) {
+                case GET:
+                    idx = StackInspector.findInstructionThatPushValue( instructions, 1, javaCodePos ).idx;
+                    break;
+                case SET:
+                    idx = StackInspector.findInstructionThatPushValue( instructions, 2, javaCodePos ).idx;
+                    break;
+                case LEN:
+                    idx = instructions.size();
+                    break;
+                default:
+                    idx = -1;
+            }
+            if( idx >= 0 ) {
+                ArrayType arrayType = types.arrayType( type );
+                instructions.add( idx, new WasmStructInstruction( StructOperator.GET, arrayType, arrayType.getNativeFieldName(), javaCodePos, lineNumber, types ) );
+            }
+        }
+
         WasmArrayInstruction arrayInst = new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber );
         instructions.add( arrayInst );
-        SyntheticFunctionName name = arrayInst.createNonGcFunction( options.useGC() );
+        SyntheticFunctionName name = arrayInst.createNonGcFunction( useGC );
         if( name != null ) {
             functions.markAsNeeded( name );
             functions.markAsImport( name, name.getAnnotation() );
