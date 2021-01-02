@@ -741,6 +741,8 @@ public abstract class WasmCodeBuilder {
             int idx;
             switch( op ) {
                 case GET:
+                case GET_S:
+                case GET_U:
                     idx = StackInspector.findInstructionThatPushValue( instructions, 1, javaCodePos ).idx;
                     break;
                 case SET:

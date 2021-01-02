@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2020 Volker Berlin (i-net software)
+ * Copyright 2018 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,13 +207,13 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.GET, storeType, codePos, lineNumber );
                         break;
                     case 51: // baload
-                        addArrayInstruction( ArrayOperator.GET, ValueType.i8, codePos, lineNumber );
+                        addArrayInstruction( ArrayOperator.GET_S, ValueType.i8, codePos, lineNumber );
                         break;
                     case 52: // caload
-                        addArrayInstruction( ArrayOperator.GET, ValueType.i16, codePos, lineNumber );
+                        addArrayInstruction( ArrayOperator.GET_U, ValueType.i16, codePos, lineNumber );
                         break;
                     case 53: // saload
-                        addArrayInstruction( ArrayOperator.GET, ValueType.i16, codePos, lineNumber );
+                        addArrayInstruction( ArrayOperator.GET_S, ValueType.i16, codePos, lineNumber );
                         break;
                     case 54: // istore
                         addLoadStoreInstruction( ValueType.i32, false, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );

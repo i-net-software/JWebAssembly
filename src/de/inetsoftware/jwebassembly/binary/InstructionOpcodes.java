@@ -502,6 +502,10 @@ interface InstructionOpcodes {
 
     static final int ARRAY_GET              = 0xFB13;
 
+    static final int ARRAY_GET_S            = 0xFB14;
+
+    static final int ARRAY_GET_U            = 0xFB15;
+
     static final int ARRAY_SET              = 0xFB16;
 
     static final int ARRAY_LEN              = 0xFB17;

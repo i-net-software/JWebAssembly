@@ -137,6 +137,8 @@ class WasmArrayInstruction extends WasmInstruction {
                     }, ValueType.i32, null, ValueType.externref );
                     break;
                 case GET:
+                case GET_S:
+                case GET_U:
                     functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_get_" + validJsName( functionType ), () -> "(a,i)=>a[2][i]", ValueType.externref, ValueType.i32, null, functionType );
                     break;
                 case SET:
@@ -194,6 +196,8 @@ class WasmArrayInstruction extends WasmInstruction {
             case NEW_ARRAY_WITH_RTT:
                 return arrayType;
             case GET:
+            case GET_S:
+            case GET_U:
                 return type instanceof ValueType ? (ValueType)type : ValueType.externref;
             case SET:
                 return null;
@@ -211,6 +215,8 @@ class WasmArrayInstruction extends WasmInstruction {
     int getPopCount() {
         switch( op ) {
             case GET:
+            case GET_S:
+            case GET_U:
             case NEW_ARRAY_WITH_RTT:
                 return 2;
             case NEW:

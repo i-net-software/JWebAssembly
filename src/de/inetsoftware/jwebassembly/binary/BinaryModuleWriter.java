@@ -1371,6 +1371,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case GET:
                 opCode = ARRAY_GET;
                 break;
+            case GET_S:
+                opCode = ARRAY_GET_S;
+                break;
+            case GET_U:
+                opCode = ARRAY_GET_U;
+                break;
             case SET:
                 opCode = ARRAY_SET;
                 break;

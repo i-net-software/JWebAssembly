@@ -24,6 +24,8 @@ package de.inetsoftware.jwebassembly.wasm;
 public enum ArrayOperator {
     NEW,
     GET,
+    GET_S,
+    GET_U,
     SET,
     LEN,
     NEW_ARRAY_WITH_RTT,

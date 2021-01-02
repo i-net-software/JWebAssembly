@@ -838,6 +838,12 @@ public class TextModuleWriter extends ModuleWriter {
             case GET:
                 operation = "get";
                 break;
+            case GET_S:
+                operation = "get_s";
+                break;
+            case GET_U:
+                operation = "get_u";
+                break;
             case SET:
                 operation = "set";
                 break;
