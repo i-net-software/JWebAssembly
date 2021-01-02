@@ -507,7 +507,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
 
         int typeId = functionTypes.size();
-        functionTypes.add( new StructTypeEntry( type.getFields() ) );
+        List<NamedStorageType> fields = type.getFields();
+        functionTypes.add( type.getKind() == StructTypeKind.array_native ? new ArrayTypeEntry( fields ) : new StructTypeEntry( fields ) );
         return typeId;
     }
 
