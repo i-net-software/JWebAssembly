@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -831,7 +831,9 @@ public class TextModuleWriter extends ModuleWriter {
         String operation;
         switch( op ) {
             case NEW:
-                operation = "new";
+                newline( methodOutput );
+                methodOutput.append( "rtt.canon" ).append( ' ' ).append( normalizeName( type.getNativeArrayType().toString() ) );
+                operation = "new_default_with_rtt";
                 break;
             case GET:
                 operation = "get";
@@ -842,11 +844,14 @@ public class TextModuleWriter extends ModuleWriter {
             case LEN:
                 operation = "len";
                 break;
+            case NEW_ARRAY_WITH_RTT:
+                operation = "new_default_with_rtt";
+                break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }
         newline( methodOutput );
-        methodOutput.append( "array." ).append( operation ).append( ' ' ).append( normalizeName( type.toString() ) );
+        methodOutput.append( "array." ).append( operation ).append( ' ' ).append( normalizeName( type.getNativeArrayType().toString() ) );
     }
 
     /**
@@ -860,7 +865,7 @@ public class TextModuleWriter extends ModuleWriter {
             case NEW_DEFAULT:
                 newline( methodOutput );
                 methodOutput.append( "rtt.canon" ).append( ' ' ).append( normalizeName( type.toString() ) );
-                operation = "struct.new";
+                operation = "struct.new_default_with_rtt";
                 break;
             case GET:
                 operation = "struct.get";
@@ -876,6 +881,12 @@ public class TextModuleWriter extends ModuleWriter {
                     type = null;
                 }
                 break;
+            case RTT_CANON:
+                operation = "rtt.canon";
+                break;
+            case NEW_WITH_RTT:
+                operation = "struct.new_with_rtt";
+                break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }
@@ -884,8 +895,11 @@ public class TextModuleWriter extends ModuleWriter {
         if( type != null ) {
             methodOutput.append( ' ' ).append( normalizeName( type.toString() ) );
         }
-        if( fieldName != null ) {
-            methodOutput.append(  ' ' ).append( idx ).append( " ;; $" ).append( normalizeName( fieldName.getName() ) );
+        if( idx >= 0 ) {
+            methodOutput.append(  ' ' ).append( idx );
+            if( fieldName != null ) {
+                methodOutput.append( " ;; $" ).append( normalizeName( fieldName.getName() ) );
+            }
         }
     }
 

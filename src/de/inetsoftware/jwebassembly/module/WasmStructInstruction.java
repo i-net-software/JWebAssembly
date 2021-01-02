@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmStructInstruction extends WasmInstruction {
 
+    @Nonnull
     private final StructOperator   op;
 
     private final StructType       type;
@@ -64,7 +65,7 @@ class WasmStructInstruction extends WasmInstruction {
      * @param types
      *            the type manager
      */
-    WasmStructInstruction( @Nullable StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
+    WasmStructInstruction( @Nonnull StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber, TypeManager types ) {
         super( javaCodePos, lineNumber );
         this.op = op;
         this.type = types.valueOf( typeName );
@@ -166,6 +167,7 @@ class WasmStructInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         int idx = -1;
         switch( op ) {
@@ -199,6 +201,7 @@ class WasmStructInstruction extends WasmInstruction {
             case CAST:
                 idx = type.getClassIndex();
                 break;
+            default:
         }
         if( functionName != null ) { // nonGC
             if( idx >= 0 ) {
@@ -213,6 +216,7 @@ class WasmStructInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     AnyType getPushValueType() {
         switch( op ) {
             case NULL:
@@ -220,6 +224,7 @@ class WasmStructInstruction extends WasmInstruction {
             case NEW:
             case NEW_DEFAULT:
             case CAST:
+            case NEW_WITH_RTT:
                 return type;
             case GET:
                 return fieldName.getType();
@@ -227,6 +232,8 @@ class WasmStructInstruction extends WasmInstruction {
                 return null;
             case INSTANCEOF:
                 return ValueType.i32; // a boolean value
+            case RTT_CANON:
+                return ValueType.i32; // rtt type
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );
         }
@@ -241,12 +248,14 @@ class WasmStructInstruction extends WasmInstruction {
             case GET:
             case INSTANCEOF:
             case CAST:
+            case NEW_WITH_RTT:
                 return 1;
             case SET:
                 return 2;
             case NEW:
             case NEW_DEFAULT:
             case NULL:
+            case RTT_CANON:
                 return 0;
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );

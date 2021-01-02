@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2020 Volker Berlin (i-net software)
+ * Copyright 2018 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -737,12 +737,10 @@ public abstract class WasmCodeBuilder {
     protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos, int lineNumber ) {
         WasmArrayInstruction arrayInst = new WasmArrayInstruction( op, type, types, javaCodePos, lineNumber );
         instructions.add( arrayInst );
-        if( !options.useGC() ) {
-            SyntheticFunctionName name = arrayInst.createNonGcFunction();
-            if( name != null ) {
-                functions.markAsNeeded( name );
-                functions.markAsImport( name, name.getAnnotation() );
-            }
+        SyntheticFunctionName name = arrayInst.createNonGcFunction( options.useGC() );
+        if( name != null ) {
+            functions.markAsNeeded( name );
+            functions.markAsImport( name, name.getAnnotation() );
         }
     }
 

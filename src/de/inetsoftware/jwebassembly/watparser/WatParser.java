@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -306,6 +306,19 @@ public class WatParser extends WasmCodeBuilder {
                         typeName = get( tokens, ++i );
                         AnyType type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
                         addArrayInstruction( ArrayOperator.LEN, type, javaCodePos, lineNumber );
+                        break;
+                    case "array.new_default_with_rtt":
+                        typeName = get( tokens, ++i );
+                        type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
+                        addArrayInstruction( ArrayOperator.NEW_ARRAY_WITH_RTT, type, javaCodePos, lineNumber );
+                        break;
+                    case "rtt.canon":
+                        typeName = get( tokens, ++i );
+                        addStructInstruction( StructOperator.RTT_CANON, typeName, null, javaCodePos, lineNumber );
+                        break;
+                    case "struct.new_with_rtt":
+                        typeName = get( tokens, ++i );
+                        addStructInstruction( StructOperator.NEW_WITH_RTT, typeName, null, javaCodePos, lineNumber );
                         break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );

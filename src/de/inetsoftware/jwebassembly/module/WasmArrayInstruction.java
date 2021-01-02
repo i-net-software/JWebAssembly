@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
@@ -27,6 +26,7 @@ import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -37,6 +37,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 class WasmArrayInstruction extends WasmInstruction {
 
+    @Nonnull
     private final ArrayOperator   op;
 
     private final AnyType         type;
@@ -61,7 +62,7 @@ class WasmArrayInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmArrayInstruction( @Nullable ArrayOperator op, @Nullable AnyType type, TypeManager types, int javaCodePos, int lineNumber ) {
+    WasmArrayInstruction( @Nonnull ArrayOperator op, @Nonnull AnyType type, TypeManager types, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.op = op;
         this.type = type;
@@ -70,61 +71,81 @@ class WasmArrayInstruction extends WasmInstruction {
     }
 
     /**
-     * Create the synthetic polyfill function of this instruction for nonGC mode.
+     * Create the synthetic function of this instruction if required for the operation.
      * 
+     * @param useGC true, with GC code
      * @return the function or null if not needed
      */
-    SyntheticFunctionName createNonGcFunction() {
-        // i8 and i16 are not valid in function signatures
-        AnyType functionType = type == ValueType.i8 || type == ValueType.i16 ? ValueType.i32 : type;
-        switch( op ) {
-            case NEW:
-                String cmd;
-                if( type.isRefType() ) {
-                    cmd = "Object.seal(new Array(l).fill(null))";
-                } else {
-                    switch( (ValueType)type ) {
-                        case i8:
-                            cmd = "new Uint8Array(l)";
-                            break;
-                        case i16:
-                            cmd = "new Int16Array(l)";
-                            break;
-                        case i32:
-                            cmd = "new Int32Array(l)";
-                            break;
-                        case i64:
-                            cmd = "new BigInt64Array(l)";
-                            break;
-                        case f32:
-                            cmd = "new Float32Array(l)";
-                            break;
-                        case f64:
-                            cmd = "new Float64Array(l)";
-                            break;
-                        default:
-                            cmd = "Object.seal(new Array(l).fill(null))";
+    SyntheticFunctionName createNonGcFunction( boolean useGC ) {
+        if( useGC ) {
+            switch( op ) {
+                case NEW:
+                    functionName = new WatCodeSyntheticFunctionName( "array_new_" + validJsName( type ), "", ValueType.i32, null, arrayType ) {
+                        @Override
+                        protected String getCode() {
+                            String nativeArrayTypeName = ((ArrayType)arrayType.getNativeArrayType()).getName();
+                            return "i32.const " + arrayType.getVTable() + " i32.const 0" // hashcode
+                                            + " local.get 0" // array size
+                                            + " rtt.canon " + nativeArrayTypeName //
+                                            + " array.new_default_with_rtt " + nativeArrayTypeName //
+                                            + " rtt.canon " + arrayType.getName() //
+                                            + " struct.new_with_rtt " + arrayType.getName() //
+                                            + " return";
+                        }
+                    };
+            }
+        } else {
+            // i8 and i16 are not valid in function signatures
+            AnyType functionType = type == ValueType.i8 || type == ValueType.i16 ? ValueType.i32 : type;
+            switch( op ) {
+                case NEW:
+                    String cmd;
+                    if( type.isRefType() ) {
+                        cmd = "Object.seal(new Array(l).fill(null))";
+                    } else {
+                        switch( (ValueType)type ) {
+                            case i8:
+                                cmd = "new Uint8Array(l)";
+                                break;
+                            case i16:
+                                cmd = "new Int16Array(l)";
+                                break;
+                            case i32:
+                                cmd = "new Int32Array(l)";
+                                break;
+                            case i64:
+                                cmd = "new BigInt64Array(l)";
+                                break;
+                            case f32:
+                                cmd = "new Float32Array(l)";
+                                break;
+                            case f64:
+                                cmd = "new Float64Array(l)";
+                                break;
+                            default:
+                                cmd = "Object.seal(new Array(l).fill(null))";
+                        }
                     }
-                }
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_new_" + validJsName( type ), () -> {
-                    // create the default values of a new type
-                    return new StringBuilder( "(l)=>Object.seal({0:" ) // fix count of elements
-                                    .append( arrayType.getVTable() ) // .vtable
-                                    .append( ",1:0,2:" ) // .hashCode
-                                    .append( cmd ) // the array data
-                                    .append( "})" ) //
-                                    .toString();
-                }, ValueType.i32, null, ValueType.externref );
-                break;
-            case GET:
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_get_" + validJsName( functionType ), () -> "(a,i)=>a[2][i]", ValueType.externref, ValueType.i32, null, functionType );
-                break;
-            case SET:
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_set_" + validJsName( functionType ), () -> "(a,i,v)=>a[2][i]=v", ValueType.externref, ValueType.i32, functionType, null, null );
-                break;
-            case LEN:
-                functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_len", () -> "(a)=>a[2].length", ValueType.externref, null, ValueType.i32 );
-                break;
+                    functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_new_" + validJsName( type ), () -> {
+                        // create the default values of a new type
+                        return new StringBuilder( "(l)=>Object.seal({0:" ) // fix count of elements
+                                        .append( arrayType.getVTable() ) // .vtable
+                                        .append( ",1:0,2:" ) // .hashCode
+                                        .append( cmd ) // the array data
+                                        .append( "})" ) //
+                                        .toString();
+                    }, ValueType.i32, null, ValueType.externref );
+                    break;
+                case GET:
+                    functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_get_" + validJsName( functionType ), () -> "(a,i)=>a[2][i]", ValueType.externref, ValueType.i32, null, functionType );
+                    break;
+                case SET:
+                    functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_set_" + validJsName( functionType ), () -> "(a,i,v)=>a[2][i]=v", ValueType.externref, ValueType.i32, functionType, null, null );
+                    break;
+                case LEN:
+                    functionName = new JavaScriptSyntheticFunctionName( "NonGC", "array_len", () -> "(a)=>a[2].length", ValueType.externref, null, ValueType.i32 );
+                    break;
+            }
         }
         return functionName;
     }
@@ -154,10 +175,19 @@ class WasmArrayInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
         if( functionName != null ) { // nonGC
             writer.writeFunctionCall( functionName, null );
         } else {
+            switch( op ) {
+                case GET:
+                case SET:
+                case LEN:
+                    writer.writeStructOperator( StructOperator.GET, arrayType, null, 2 ); // the native array is on position 2 (vtable, hashcode are before)
+                    break;
+                default:
+            }
             writer.writeArrayOperator( op, arrayType );
         }
     }
@@ -165,9 +195,11 @@ class WasmArrayInstruction extends WasmInstruction {
     /**
      * {@inheritDoc}
      */
+    @Override
     AnyType getPushValueType() {
         switch( op ) {
             case NEW:
+            case NEW_ARRAY_WITH_RTT:
                 return arrayType;
             case GET:
                 return type instanceof ValueType ? (ValueType)type : ValueType.externref;
@@ -187,6 +219,7 @@ class WasmArrayInstruction extends WasmInstruction {
     int getPopCount() {
         switch( op ) {
             case GET:
+            case NEW_ARRAY_WITH_RTT:
                 return 2;
             case NEW:
             case LEN:

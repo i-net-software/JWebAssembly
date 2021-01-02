@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,4 +26,5 @@ public enum ArrayOperator {
     GET,
     SET,
     LEN,
+    NEW_ARRAY_WITH_RTT,
 }

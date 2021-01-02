@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -497,6 +497,8 @@ interface InstructionOpcodes {
 
 
     static final int ARRAY_NEW              = 0xFB11;
+
+    static final int ARRAY_NEW_DEFAULT      = 0xFB12;
 
     static final int ARRAY_GET              = 0xFB13;
 

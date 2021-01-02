@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1363,7 +1363,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         int opCode;
         switch(op) {
             case NEW:
-                opCode = ARRAY_NEW;
+                codeStream.writeOpCode( RTT_CANON );
+                codeStream.writeValueType( type.getNativeArrayType() );
+                opCode = ARRAY_NEW_DEFAULT;
                 break;
             case GET:
                 opCode = ARRAY_GET;
@@ -1374,11 +1376,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case LEN:
                 opCode = ARRAY_LEN;
                 break;
+            case NEW_ARRAY_WITH_RTT:
+                opCode = ARRAY_NEW_DEFAULT;
+                break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }
         codeStream.writeOpCode( opCode );
-        codeStream.writeValueType( type );
+        codeStream.writeValueType( type.getNativeArrayType() );
     }
 
     /**
@@ -1404,6 +1409,12 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 opCode = REF_NULL;
                 type = options.useGC() ? type : ValueType.externref;
                 break;
+            case RTT_CANON:
+                opCode = RTT_CANON;
+                break;
+            case NEW_WITH_RTT:
+                opCode = STRUCT_NEW;
+                break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }
@@ -1411,7 +1422,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         if( type != null ) {
             codeStream.writeValueType( type );
         }
-        if( fieldName != null ) {
+        if( idx >= 0 ) {
             codeStream.writeVaruint32( idx );
         }
     }
