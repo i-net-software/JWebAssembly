@@ -734,7 +734,7 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addArrayInstruction( ArrayOperator op, AnyType type, int javaCodePos, int lineNumber ) {
+    protected void addArrayInstruction( @Nonnull ArrayOperator op, @Nonnull AnyType type, int javaCodePos, int lineNumber ) {
         boolean useGC = options.useGC();
         if( useGC ) {
             // replace the the array wrapper on the stack with the native array 
