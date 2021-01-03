@@ -86,6 +86,10 @@ public class TextModuleWriter extends ModuleWriter {
 
     private boolean                        callIndirect;
 
+    private boolean                        useTypeString;
+
+    private boolean                        useTypeClass;
+
     /**
      * Create a new instance.
      * 
@@ -154,7 +158,7 @@ public class TextModuleWriter extends ModuleWriter {
                 textOutput.append( "(table $functions 0 funcref)" );
             }
             newline( textOutput );
-            String tableTypeName = options.useGC() && types.contains( "java/lang/String" ) ? "$java/lang/String" : "externref";
+            String tableTypeName = options.useGC() && useTypeString ? "(ref null $java/lang/String)" : "externref";
             textOutput.append( "(table $strings " ).append( Integer.toString( stringCount ) ).append( ' ' ).append( tableTypeName ).append( ')' );
         }
 
@@ -162,7 +166,7 @@ public class TextModuleWriter extends ModuleWriter {
         int typeCount = options.types.size();
         if( typeCount > 0 ) {
             newline( textOutput );
-            String tableTypeName = options.useGC() && types.contains( "java/lang/Class" ) ? "$java/lang/Class" : "externref";
+            String tableTypeName = options.useGC() && useTypeClass ? "(ref null $java/lang/Class)" : "externref";
             textOutput.append( "(table $classes " ).append( Integer.toString( typeCount ) ).append( ' ' ).append( tableTypeName ).append( ')' );
         }
 
@@ -209,6 +213,14 @@ public class TextModuleWriter extends ModuleWriter {
         inset = 1;
         newline( output );
         String typeName = normalizeName( type.getName() );
+        switch( typeName ) {
+            case "java/lang/String":
+                useTypeString = true;
+                break;
+            case "java/lang/Class":
+                useTypeClass = true;
+                break;
+        }
         String kind = type.getKind() == StructTypeKind.array_native ? "array" : "struct";
         output.append( "(type $" ).append( typeName ).append( " ("  ).append( kind );
         inset++;

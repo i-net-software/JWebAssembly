@@ -96,6 +96,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private FunctionName                startFunction;
 
+    private StructType                  stringType;
+
+    private StructType                  classType;
+
     /**
      * Create new instance.
      * 
@@ -195,14 +199,14 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
         // string constants table
         if( count >= 2 ) {
-            stream.writeValueType( ValueType.externref ); // the type of elements
+            stream.writeValueType( stringType != null ? stringType : ValueType.externref ); // the type of elements
             stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( stringCount ); // initial length
         }
 
         // table with classes
         if( count >= 3 ) {
-            stream.writeValueType( ValueType.externref ); // the type of elements
+            stream.writeValueType( classType != null ? classType : ValueType.externref ); // the type of elements
             stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( typeCount ); // initial length
         }
@@ -504,6 +508,15 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
         if( !options.useGC() ) {
             return ValueType.externref.getCode();
+        }
+
+        switch( type.getName() ) {
+            case "java/lang/String":
+                stringType = type;
+                break;
+            case "java/lang/Class":
+                classType = type;
+                break;
         }
 
         int typeId = functionTypes.size();
