@@ -154,14 +154,16 @@ public class TextModuleWriter extends ModuleWriter {
                 textOutput.append( "(table $functions 0 funcref)" );
             }
             newline( textOutput );
-            textOutput.append( "(table $strings " ).append( Integer.toString( stringCount ) ).append( " externref)" );
+            String tableTypeName = options.useGC() && types.contains( "java/lang/String" ) ? "$java/lang/String" : "externref";
+            textOutput.append( "(table $strings " ).append( Integer.toString( stringCount ) ).append( ' ' ).append( tableTypeName ).append( ')' );
         }
 
         // table with classes
         int typeCount = options.types.size();
         if( typeCount > 0 ) {
             newline( textOutput );
-            textOutput.append( "(table $classes " ).append( Integer.toString( typeCount ) ).append( " externref)" );
+            String tableTypeName = options.useGC() && types.contains( "java/lang/Class" ) ? "$java/lang/Class" : "externref";
+            textOutput.append( "(table $classes " ).append( Integer.toString( typeCount ) ).append( ' ' ).append( tableTypeName ).append( ')' );
         }
 
         int dataSize = dataStream.size();
