@@ -322,7 +322,8 @@ public class TextModuleWriter extends ModuleWriter {
      */
     private void writeTypeName( Appendable output, AnyType type ) throws IOException {
         if( !type.isRefType() ) {
-            output.append( type.toString() );
+            String name = type == ValueType.u16 ? "i16" : type.toString();
+            output.append( name );
         } else if( options.useGC() ) {
             //output.append( ValueType.eqref.toString() );
             output.append( "(ref null " ).append( normalizeName( type.toString() ) ).append( ')' );
