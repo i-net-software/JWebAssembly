@@ -204,7 +204,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 50: // aaload
                         AnyType storeType = findValueTypeFromStack( 2, codePos );
-                        addArrayInstruction( ArrayOperator.GET, storeType, codePos, lineNumber );
+                        addArrayInstruction( ArrayOperator.GET, ((ArrayType)storeType).getArrayType(), codePos, lineNumber );
                         break;
                     case 51: // baload
                         addArrayInstruction( ArrayOperator.GET_S, ValueType.i8, codePos, lineNumber );
@@ -285,8 +285,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.SET, ValueType.f64, codePos, lineNumber );
                         break;
                     case 83: // aastore
-                        storeType = findValueTypeFromStack( 1, codePos );
-                        addArrayInstruction( ArrayOperator.SET, storeType, codePos, lineNumber );
+                        storeType = findValueTypeFromStack( 3, codePos );
+                        addArrayInstruction( ArrayOperator.SET, ((ArrayType)storeType).getArrayType(), codePos, lineNumber );
                         break;
                     case 84: // bastore
                         addArrayInstruction( ArrayOperator.SET, ValueType.i8, codePos, lineNumber );
