@@ -65,7 +65,7 @@ public class Node {
         File target = new File( System.getProperty( "java.io.tmpdir" ) + "/node" );
         File commandDir = new File( target.getAbsolutePath() + MessageFormat.format( "/node-v{1}-{2}", BASE_URL, REVISION, fileName, ext ) );
 
-        if( commandDir.isDirectory() && commandDir.listFiles().length > 0 ) {
+        if( commandDir.isDirectory() && commandDir.list().length > 1 ) {
             // no download needed
             System.out.println( "\tUP-TP-DATE, use version from " + commandDir );
         } else {
