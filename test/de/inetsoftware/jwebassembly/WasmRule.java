@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,6 +157,7 @@ public class WasmRule extends TemporaryFolder {
     public void before( ScriptEngine script ) throws Exception {
         switch( script ) {
             case Wat2Wasm:
+            case Wat2WasmGC:
                 // this is already part of execute and not only a compile
                 return;
             default:
@@ -540,6 +541,7 @@ public class WasmRule extends TemporaryFolder {
                 processBuilder.environment().put( "NODE_PATH", getNodeModulePath() );
                 return processBuilder;
             case Wat2Wasm:
+            case Wat2WasmGC:
                 return nodeJsCommand( prepareWat2Wasm( script ) );
             default:
                 throw new IllegalStateException( script.toString() );

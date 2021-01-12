@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Volker Berlin (i-net software)
+ * Copyright 2019 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ class Wat2Wasm {
                     searchExecuteable( file );
                 } else {
                     String name = file.getName();
-                    if( name.equals( "wat2wasm" ) || name.equals( "wat2wasm.exe" ) ) {
+                    if( name.equals( "wat2wasm" ) || name.equals( "wat2wasm.exe" ) || name.equals( "wat2wasm.bat" ) ) {
                         command = file.getAbsolutePath();
                     }
                 }
