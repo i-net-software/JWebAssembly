@@ -654,6 +654,9 @@ public class TypeManager {
 
             // interface does not need to resolve
             if( classFile.getType() == Type.Interface ) {
+                // to make it possible to cast an interface to java/lang/Object it must have the same fileds also if we never create an instance
+                fields.add( new NamedStorageType( ValueType.i32, className, FIELD_VTABLE ) );
+                fields.add( new NamedStorageType( ValueType.i32, className, FIELD_HASHCODE ) );
                 return;
             }
 
