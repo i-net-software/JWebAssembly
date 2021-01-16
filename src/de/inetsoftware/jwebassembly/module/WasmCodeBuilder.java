@@ -820,12 +820,27 @@ public abstract class WasmCodeBuilder {
     protected void addStructInstruction( StructOperator op, @Nonnull String typeName, @Nullable NamedStorageType fieldName, int javaCodePos, int lineNumber ) {
         WasmStructInstruction structInst = new WasmStructInstruction( op, typeName, fieldName, javaCodePos, lineNumber, types );
         instructions.add( structInst );
-        if( !options.useGC() || op == StructOperator.CAST || op == StructOperator.INSTANCEOF ) {
-            SyntheticFunctionName name = structInst.createNonGcFunction();
-            if( name != null ) {
-                functions.markAsNeeded( name );
-                functions.markAsImport( name, name.getAnnotation() );
-            }
+        switch( op ) {
+            case CAST:
+            case INSTANCEOF:
+                structInst.createNonGcFunction();
+                break;
+            case NEW_DEFAULT:
+                if( options.useGC() ) {
+                    addDupInstruction( javaCodePos, lineNumber );
+                    addConstInstruction( structInst.getStructType().getVTable(), javaCodePos, lineNumber );
+                    instructions.add( new WasmStructInstruction( StructOperator.SET, typeName, new NamedStorageType( ValueType.i32, "", TypeManager.FIELD_VTABLE ), javaCodePos, lineNumber, types ) );
+                    break;
+                }
+                //$FALL-THROUGH$
+            default:
+                if( !options.useGC() ) {
+                    SyntheticFunctionName name = structInst.createNonGcFunction();
+                    if( name != null ) {
+                        functions.markAsNeeded( name );
+                        functions.markAsImport( name, name.getAnnotation() );
+                    }
+                }
         }
     }
 

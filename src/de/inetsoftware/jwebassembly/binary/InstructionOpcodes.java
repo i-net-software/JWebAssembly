@@ -491,6 +491,8 @@ interface InstructionOpcodes {
 
     static final int STRUCT_NEW             = 0xFB01;
 
+    static final int STRUCT_NEW_DEFAULT     = 0xFB02;
+
     static final int STRUCT_GET             = 0xFB03;
 
     static final int STRUCT_SET             = 0xFB06;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,6 @@ import de.inetsoftware.jwebassembly.javascript.JavaScriptWriter;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.FunctionType;
-import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
-import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.watparser.WatParser;
@@ -601,23 +599,6 @@ public class ModuleGenerator {
                                 }
                                 break;
                             default:
-                        }
-                        break;
-                    case Struct:
-                        if( !writer.options.useGC() ) {
-                            break;
-                        }
-                        WasmStructInstruction instr = (WasmStructInstruction)instruction;
-                        if( instr.getOperator() == StructOperator.NEW_DEFAULT ) {
-                            StructType structType = instr.getStructType();
-                            List<NamedStorageType> list = structType.getFields();
-                            for( NamedStorageType storageType : list ) {
-                                if( TypeManager.FIELD_VTABLE == storageType.getName() ) {
-                                    writer.writeConst( structType.getVTable(), ValueType.i32 );
-                                } else {
-                                    writer.writeDefaultValue( storageType.getType() );
-                                }
-                            }
                         }
                         break;
                     default:

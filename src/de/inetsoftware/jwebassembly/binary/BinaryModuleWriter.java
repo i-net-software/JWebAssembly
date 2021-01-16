@@ -1417,7 +1417,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case NEW_DEFAULT:
                 codeStream.writeOpCode( RTT_CANON );
                 codeStream.writeValueType( type );
-                opCode = STRUCT_NEW;
+                opCode = STRUCT_NEW_DEFAULT;
                 break;
             case GET:
                 opCode = STRUCT_GET;
@@ -1433,7 +1433,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 opCode = RTT_CANON;
                 break;
             case NEW_WITH_RTT:
-                opCode = STRUCT_NEW;
+                opCode = STRUCT_NEW_DEFAULT;
                 break;
             default:
                 throw new Error( "Unknown operator: " + op );
