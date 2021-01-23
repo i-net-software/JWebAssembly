@@ -631,10 +631,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         idx = byteCode.readUnsignedShort(); // ever zero
                         idx = dynamic.getBootstrapMethodIndex();
                         BootstrapMethod method = classFile.getBootstrapMethod( idx );
-                        throw new WasmException( "InvokeDynamic/Lambda is not supported.", lineNumber );
-                        //TODO break;
+                        String name = dynamic.getType();
+                        addInvokeDynamic( method, name, dynamic.getName(), codePos, lineNumber );
+                        break;
                     case 187: // new
-                        String name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
+                        name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
                         addStructInstruction( StructOperator.NEW_DEFAULT, name, null, codePos, lineNumber );
                         break;
                     case 188: // newarray

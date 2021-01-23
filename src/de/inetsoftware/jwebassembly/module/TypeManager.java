@@ -358,6 +358,29 @@ public class TypeManager {
     }
 
     /**
+     * Create a lambda type
+     * 
+     * @param typeName
+     *            the name (className) of the lambda class
+     * @param interfaceType
+     *            the implemented interface
+     * @param methodName
+     *            the real method in the parent class that implements the lambda expression
+     * @param interfaceMethodName
+     *            the name of the implemented method in the interface
+     * @return the type
+     */
+    StructType lambdaType( String typeName, StructType interfaceType, FunctionName methodName, String interfaceMethodName ) {
+        StructType type = structTypes.get( typeName );
+        if( type == null ) {
+            type = new LambdaType( typeName, interfaceType, methodName, interfaceMethodName, this );
+
+            structTypes.put( typeName, type );
+        }
+        return type;
+    }
+
+    /**
      * Create the FunctionName for a virtual call. The function has 2 parameters (THIS,
      * virtualfunctionIndex) and returns the index of the function.
      * 
@@ -506,7 +529,7 @@ public class TypeManager {
      * @author Volker Berlin
      */
     public static enum StructTypeKind {
-        primitive, normal, array, array_native;
+        primitive, normal, array, array_native, lambda;
     }
 
     /**
@@ -601,6 +624,15 @@ public class TypeManager {
                     break;
                 case array_native:
                     fields.add( new NamedStorageType( ((ArrayType)this).getArrayType(), null, null ) );
+                    break;
+                case lambda:
+                    allNeededFields = new HashSet<>();
+                    listStructFields( "java/lang/Object", functions, types, classFileLoader, allNeededFields );
+                    LambdaType lambda = (LambdaType)this;
+                    List<FunctionName> iMethods = new ArrayList<>();
+                    iMethods.add( lambda.getLambdaMethod() );
+                    interfaceMethods.put( lambda.getInterfaceType(), iMethods );
+                    functions.setITableIndex( new FunctionName( lambda.getInterfaceType().name, lambda.getInterfaceMethodName(), lambda.getLambdaMethod().signature ), 2 );
                     break;
                 default:
                     // add all interfaces to the instanceof set
@@ -1027,6 +1059,66 @@ public class TypeManager {
         @Override
         public String toString() {
             return "$" + name;
+        }
+    }
+
+    /**
+     * A generated type that represent a lambda expression
+     */
+    class LambdaType extends StructType {
+
+        private StructType   interfaceType;
+
+        private FunctionName methodName;
+
+        private String       interfaceMethodName;
+
+        /**
+         * Create a lambda type
+         * 
+         * @param name
+         *            the Java class name
+         * @param interfaceType
+         *            the implemented interface type
+         * @param methodName
+         *            the real method in the parent class that implements the lambda expression
+         * @param interfaceMethodName
+         *            the name of the implemented method in the interface
+         * @param manager
+         *            the manager which hold all StructTypes
+         */
+        LambdaType( String name, StructType interfaceType, FunctionName methodName, String interfaceMethodName, TypeManager manager ) {
+            super( name, StructTypeKind.lambda, manager );
+            this.interfaceType = interfaceType;
+            this.methodName = methodName;
+            this.interfaceMethodName = interfaceMethodName;
+        }
+
+        /**
+         * The implemented interface type
+         * 
+         * @return the interface type
+         */
+        StructType getInterfaceType() {
+            return interfaceType;
+        }
+
+        /**
+         * The real method in the parent class that implements the lambda expression
+         * 
+         * @return the function name
+         */
+        FunctionName getLambdaMethod() {
+            return methodName;
+        }
+
+        /**
+         * The name of the implemented method in the interface
+         * 
+         * @return the name
+         */
+        String getInterfaceMethodName() {
+            return interfaceMethodName;
         }
     }
 }

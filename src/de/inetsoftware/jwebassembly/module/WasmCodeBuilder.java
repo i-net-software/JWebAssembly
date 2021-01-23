@@ -25,14 +25,17 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ConstantClass;
+import de.inetsoftware.classparser.ConstantMethodRef;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -842,6 +845,36 @@ public abstract class WasmCodeBuilder {
                     }
                 }
         }
+    }
+
+    /**
+     * Add invoke dynamic operation.
+     * 
+     * @param method
+     *            the BootstrapMethod, described the method that should be executed
+     * @param factorySignature
+     *            Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lamba expression
+     *            <code>Runnable run = () -&gt; foo();</code>
+     * @param interfaceMethodName
+     *            The simple name of the generated method of the single function interface.
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addInvokeDynamic( BootstrapMethod method, String factorySignature, String interfaceMethodName, int javaCodePos, int lineNumber ) {
+        ConstantMethodRef implMethod = method.getImplMethod();
+        FunctionName name = new FunctionName( implMethod );
+        functions.markAsNeeded( name );
+        String typeName = implMethod.getClassName() + "$$" + implMethod.getName() + "/";
+        ValueTypeParser parser = new ValueTypeParser( factorySignature, types );
+        while( parser.next() != null ) {
+            // skip parameters TODO
+        }
+        StructType interfaceType = (StructType)parser.next();
+        StructType type = types.lambdaType( typeName, interfaceType, name, interfaceMethodName );
+        addStructInstruction( StructOperator.NEW_DEFAULT, typeName, null, javaCodePos, lineNumber );
+        throw new WasmException( "InvokeDynamic/Lambda is not supported.", lineNumber );
     }
 
     /**

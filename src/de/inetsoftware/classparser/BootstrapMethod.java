@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 Volker Berlin (i-net software)
+   Copyright 2020 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -42,7 +42,11 @@ public class BootstrapMethod {
      */
     private String            instantiatedMethodType;
 
+    /**
+     * Create an instance.
+     */
     BootstrapMethod( DataInputStream input, ConstantPool constantPool ) throws IOException {
+        //TODO check that it is a known implementation type
         int ref = input.readUnsignedShort();
         //ConstantMethodRef method = (ConstantMethodRef)constantPool.get( ref ); // ever: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
 
@@ -52,5 +56,14 @@ public class BootstrapMethod {
         samMethodType = (String)constantPool.get( input.readUnsignedShort() );
         implMethod = (ConstantMethodRef)constantPool.get( input.readUnsignedShort() );
         instantiatedMethodType = (String)constantPool.get( input.readUnsignedShort() );
+    }
+
+    /**
+     * The real method in the parent class that implements the lambda expression
+     * 
+     * @return the method
+     */
+    public ConstantMethodRef getImplMethod() {
+        return implMethod;
     }
 }
