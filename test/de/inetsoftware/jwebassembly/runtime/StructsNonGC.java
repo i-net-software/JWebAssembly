@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2020 Volker Berlin (i-net software)
+ * Copyright 2018 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.IntSupplier;
+import java.util.function.IntUnaryOperator;
 
 import org.junit.ClassRule;
 import org.junit.runners.Parameterized.Parameters;
@@ -66,6 +68,9 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "intClassName" );
             addParam( list, script, "getComponentType" );
             addParam( list, script, "branchWithObjectResult" );
+            addParam( list, script, "callParameterFromCondition" );
+            addParam( list, script, "lambda0" );
+            addParam( list, script, "lambda1" );
         }
         rule.setTestParameters( list );
         return list;
@@ -242,6 +247,18 @@ public class StructsNonGC extends AbstractBaseTest {
         static int callParameterFromCondition() {
             Abc abc = new Abc();
             return abc.add( 42, abc == null ? 7 : 13 );
+        }
+
+        @Export
+        static int lambda0() {
+            IntSupplier val = () -> 42;
+            return val.getAsInt();
+        }
+
+        @Export
+        static int lambda1() {
+            IntUnaryOperator val = (x) -> x;
+            return val.applyAsInt( 13 );
         }
     }
 

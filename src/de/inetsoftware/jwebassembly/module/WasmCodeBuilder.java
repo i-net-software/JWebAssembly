@@ -874,7 +874,6 @@ public abstract class WasmCodeBuilder {
         StructType interfaceType = (StructType)parser.next();
         StructType type = types.lambdaType( typeName, interfaceType, name, interfaceMethodName );
         addStructInstruction( StructOperator.NEW_DEFAULT, typeName, null, javaCodePos, lineNumber );
-        throw new WasmException( "InvokeDynamic/Lambda is not supported.", lineNumber );
     }
 
     /**
