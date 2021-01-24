@@ -377,7 +377,8 @@ public class TextModuleWriter extends ModuleWriter {
         if( methodOutput == null ) {
             return;
         }
-        methodOutput.append( '(' ).append( kind );
+        newline( methodOutput );
+        methodOutput.append( "    (" ).append( kind );
         if( options.debugNames() ) { 
             if( name != null ) {
                 methodOutput.append( " $" ).append( name );
