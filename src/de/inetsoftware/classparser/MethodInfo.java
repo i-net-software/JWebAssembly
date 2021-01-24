@@ -120,6 +120,15 @@ public class MethodInfo implements Member {
     }
 
     /**
+     * If the method is a synthetic lambda method
+     * 
+     * @return true, if lambda method
+     */
+    public boolean isLambda() {
+        return (accessFlags & 0x1000) > 0 && name.startsWith( "lambda$" );
+    }
+
+    /**
      * @return the name
      */
     @Override
