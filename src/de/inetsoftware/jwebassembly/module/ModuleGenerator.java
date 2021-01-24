@@ -222,7 +222,9 @@ public class ModuleGenerator {
             }
             if( method != null ) {
                 createInstructions( functions.replace( next, method ) );
-                boolean needThisParameter = !method.isStatic() || "<init>".equals( method.getName() );
+                boolean needThisParameter = !method.isStatic()                                         // if not static there is a not declared THIS parameter
+                                || "<init>".equals( method.getName() )                                 // constructor method need also the THIS parameter also if marked as static
+                                || (method.isSynthetic() && method.getName().startsWith( "lambda$" )); // lambda functions are static but will call with a THIS parameter which need be removed from stack
                 functions.markAsScanned( next, needThisParameter );
                 if( needThisParameter ) {
                     types.valueOf( next.className ); // for the case that the type unknown yet

@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2020 Volker Berlin (i-net software)
+   Copyright 2011 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -108,6 +108,15 @@ public class MethodInfo implements Member {
      */
     public boolean isAbstract() {
         return (accessFlags & 0x0400) > 0;
+    }
+
+    /**
+     * If the method is synthetic
+     * 
+     * @return true, if synthetic
+     */
+    public boolean isSynthetic() {
+        return (accessFlags & 0x1000) > 0;
     }
 
     /**
