@@ -6,6 +6,8 @@ plugins {
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 
+sourceCompatibility = 1.8
+
 group 'de.inetsoftware'
 archivesBaseName = 'jwebassembly-compiler'
 version = '0.3'
