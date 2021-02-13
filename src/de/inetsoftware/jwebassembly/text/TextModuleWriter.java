@@ -221,21 +221,27 @@ public class TextModuleWriter extends ModuleWriter {
                 useTypeClass = true;
                 break;
         }
-        String kind = type.getKind() == StructTypeKind.array_native ? "array" : "struct";
-        output.append( "(type $" ).append( typeName ).append( " ("  ).append( kind );
-        inset++;
-        for( NamedStorageType field : type.getFields() ) {
-            newline( output );
-            output.append( "(field" );
-            if( options.debugNames() && field.getName() != null ) {
-                output.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
+        output.append( "(type $" ).append( typeName ).append( " ("  );
+        if( type.getKind() == StructTypeKind.array_native ) {
+            output.append( "array (mut " );
+            writeTypeName( output, type.getFields().get( 0 ).getType() );
+            output.append( ")" );
+        } else {
+            output.append( "struct" );
+            inset++;
+            for( NamedStorageType field : type.getFields() ) {
+                newline( output );
+                output.append( "(field" );
+                if( options.debugNames() && field.getName() != null ) {
+                    output.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
+                }
+                output.append( " (mut " );
+                writeTypeName( output, field.getType() );
+                output.append( "))" );
             }
-            output.append( " (mut " );
-            writeTypeName( output, field.getType() );
-            output.append( "))" );
+            inset--;
+            newline( output );
         }
-        inset--;
-        newline( output );
         output.append( "))" );
         inset = oldInset;
         return 0;
@@ -336,7 +342,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     private void writeTypeName( Appendable output, AnyType type ) throws IOException {
         if( !type.isRefType() ) {
-            String name = type == ValueType.u16 ? "i16" : type.toString();
+            String name = type == ValueType.u16 ? "i16" : type == ValueType.bool ? "i8" : type.toString();
             output.append( name );
         } else if( options.useGC() ) {
             //output.append( ValueType.eqref.toString() );
