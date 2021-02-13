@@ -228,6 +228,10 @@ class WasmStructInstruction extends WasmInstruction {
                 writer.writeConst( idx, ValueType.i32 );
             }
             writer.writeFunctionCall( functionName, null );
+            if( op == StructOperator.CAST && options.useGC() ) {
+                writer.writeStructOperator( StructOperator.RTT_CANON, type, null, -1 );
+                writer.writeStructOperator( op, type, null, -1 );
+            }
         } else {
             writer.writeStructOperator( op, type, fieldName, idx );
         }

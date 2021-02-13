@@ -1435,6 +1435,11 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case NEW_WITH_RTT:
                 opCode = STRUCT_NEW_DEFAULT;
                 break;
+            case CAST:
+                codeStream.writeOpCode( REF_CAST );
+                codeStream.writeValueType( options.types.valueOf( "java/lang/Object" ) );
+                codeStream.writeValueType( type );
+                return;
             default:
                 throw new Error( "Unknown operator: " + op );
         }

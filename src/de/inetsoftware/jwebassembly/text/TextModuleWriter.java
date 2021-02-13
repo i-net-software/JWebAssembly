@@ -915,6 +915,9 @@ public class TextModuleWriter extends ModuleWriter {
             case NEW_WITH_RTT:
                 operation = "struct.new_with_rtt";
                 break;
+            case CAST:
+                operation = "ref.cast $java/lang/Object";
+                break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }

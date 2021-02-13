@@ -513,4 +513,6 @@ interface InstructionOpcodes {
     static final int ARRAY_LEN              = 0xFB17;
 
     static final int RTT_CANON              = 0xFB30;
+
+    static final int REF_CAST               = 0xFB41;
 }
