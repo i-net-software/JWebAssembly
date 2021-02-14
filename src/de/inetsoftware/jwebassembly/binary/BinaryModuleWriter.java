@@ -192,21 +192,21 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
         // indirect function table 
         int elemCount = callIndirect ? imports.size() + functions.size() : 0;
-        stream.writeValueType( ValueType.funcref ); // the type of elements
+        stream.writeRefValueType( ValueType.funcref ); // the type of elements
         stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
         stream.writeVaruint32( elemCount ); // initial length
         //stream.writeVaruint32( elemCount ); // maximum length
 
         // string constants table
         if( count >= 2 ) {
-            stream.writeValueType( stringType != null ? stringType : ValueType.externref ); // the type of elements
+            stream.writeRefValueType( stringType != null ? stringType : ValueType.externref ); // the type of elements
             stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( stringCount ); // initial length
         }
 
         // table with classes
         if( count >= 3 ) {
-            stream.writeValueType( classType != null ? classType : ValueType.externref ); // the type of elements
+            stream.writeRefValueType( classType != null ? classType : ValueType.externref ); // the type of elements
             stream.writeVaruint32( 0 ); // flags; 1-maximum is available, 0-no maximum value available
             stream.writeVaruint32( typeCount ); // initial length
         }
