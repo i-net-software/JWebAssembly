@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 Volker Berlin (i-net software)
+   Copyright 2020 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -70,65 +70,25 @@ public class ReplacementForArray {
             case -1:
                 throw new java.lang.IllegalArgumentException( "Argument is not an array" );
             case BOOLEAN:
-                return getLengthOfBooleans( obj );
+                return ((boolean[])obj).length;
             case BYTE:
-                return getLengthOfBytes( obj );
+                return ((byte[])obj).length;
             case CHAR:
-                return getLengthOfChars( obj );
+                return ((char[])obj).length;
             case DOUBLE:
-                return getLengthOfDoubles( obj );
+                return ((double[])obj).length;
             case FLOAT:
-                return getLengthOfFloats( obj );
+                return ((float[])obj).length;
             case INT:
-                return getLengthOfInts( obj );
+                return ((int[])obj).length;
             case LONG:
-                return getLengthOfLongs( obj );
+                return ((long[])obj).length;
             case SHORT:
-                return getLengthOfShorts( obj );
+                return ((short[])obj).length;
             default:
                 return ((Object[])obj).length;
         }
     }
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [Z " //
-                    + "return " )
-    private static native int getLengthOfBooleans( Object obj );
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [B " //
-                    + "return " )
-    private static native int getLengthOfBytes( Object obj );
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [C " //
-                    + "return " )
-    private static native int getLengthOfChars( Object obj );
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [D " //
-                    + "return " )
-    private static native int getLengthOfDoubles( Object obj );
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [F " //
-                    + "return " )
-    private static native int getLengthOfFloats( Object obj );
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [I " //
-                    + "return " )
-    private static native int getLengthOfInts( Object obj );
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [J " //
-                    + "return " )
-    private static native int getLengthOfLongs( Object obj );
-
-    @WasmTextCode( "local.get 0 " // THIS
-                    + "array.len [S " //
-                    + "return " )
-    private static native int getLengthOfShorts( Object obj );
 
     /**
      * Replacement of the native Java methods Array.newInstance(c,l)
