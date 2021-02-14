@@ -1433,7 +1433,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 opCode = RTT_CANON;
                 break;
             case NEW_WITH_RTT:
-                opCode = STRUCT_NEW_DEFAULT;
+                opCode = STRUCT_NEW;
                 break;
             case CAST:
                 codeStream.writeOpCode( REF_CAST );
