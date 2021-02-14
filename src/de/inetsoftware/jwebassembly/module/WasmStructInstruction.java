@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +42,7 @@ class WasmStructInstruction extends WasmInstruction {
     @Nonnull
     private final StructOperator   op;
 
-    private final StructType       type;
+    private       StructType       type;
 
     private final NamedStorageType fieldName;
 
@@ -177,6 +178,14 @@ class WasmStructInstruction extends WasmInstruction {
     }
 
     /**
+     * Set a new type for NULL const. 
+     * @param type the type
+     */
+    void setStructType( @Nonnull StructType type ) {
+        this.type = Objects.requireNonNull( type );
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -281,6 +290,31 @@ class WasmStructInstruction extends WasmInstruction {
             case NULL:
             case RTT_CANON:
                 return 0;
+            default:
+                throw new WasmException( "Unknown array operation: " + op, -1 );
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    AnyType[] getPopValueTypes() {
+        switch( op ) {
+            case GET:
+                return new AnyType[] { type };
+            case INSTANCEOF:
+            case CAST:
+                return new AnyType[] { options.types.valueOf( "java/lang/Object" ) };
+            case NEW_WITH_RTT:
+                return new AnyType[] { ValueType.i32 };// rtt type
+            case SET:
+                return new AnyType[] { type, fieldName.getType() };
+            case NEW:
+            case NEW_DEFAULT:
+            case NULL:
+            case RTT_CANON:
+                return null;
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );
         }

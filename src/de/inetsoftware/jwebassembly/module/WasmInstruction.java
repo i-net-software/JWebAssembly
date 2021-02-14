@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -115,4 +115,6 @@ abstract class WasmInstruction {
      * @return the count
      */
     abstract int getPopCount();
+
+    abstract AnyType[] getPopValueTypes();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,5 +96,35 @@ class WasmConvertInstruction extends WasmInstruction {
     @Override
     int getPopCount() {
         return 1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    AnyType[] getPopValueTypes() {
+        switch( conversion ) {
+            case i2b:
+            case i2c:
+            case i2s:
+            case i2l:
+            case i2f:
+            case i2d:
+                return new AnyType[] { ValueType.i32 };
+            case l2i:
+            case l2f:
+            case l2d:
+                return new AnyType[] { ValueType.i64 };
+            case f2i:
+            case f2l:
+            case f2d:
+                return new AnyType[] { ValueType.f32 };
+            case d2i:
+            case d2l:
+            case d2f:
+                return new AnyType[] { ValueType.f64 };
+            default:
+                throw new Error( conversion.toString() );
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2019 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -109,6 +109,28 @@ class WasmNumericInstruction extends WasmInstruction {
                 return 1;
             default:
                 return 2;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    AnyType[] getPopValueTypes() {
+        switch( numOp ) {
+            case eqz:
+            case ifnull:
+            case ifnonnull:
+            case neg:
+            case sqrt:
+            case abs:
+            case ceil:
+            case floor:
+            case trunc:
+            case nearest:
+                return new AnyType[] { ValueType.i32 };
+            default:
+                return new AnyType[] { valueType, valueType };
         }
     }
 }

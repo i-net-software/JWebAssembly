@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -121,5 +121,13 @@ class WasmLocalInstruction extends WasmInstruction {
     @Override
     int getPopCount() {
         return op == get  ? 0 : 1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    AnyType[] getPopValueTypes() {
+        return op == get  ? null : new AnyType[] { localVariables.getValueType( getIndex() ) };
     }
 }

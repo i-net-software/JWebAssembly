@@ -26,7 +26,6 @@ import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
-import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -224,6 +223,29 @@ class WasmArrayInstruction extends WasmInstruction {
                 return 1;
             case SET:
                 return 3;
+            default:
+                throw new WasmException( "Unknown array operation: " + op, -1 );
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    AnyType[] getPopValueTypes() {
+        switch( op ) {
+            case GET:
+            case GET_S:
+            case GET_U:
+                return new AnyType[] { arrayType, ValueType.i32 };
+            case NEW_ARRAY_WITH_RTT:
+                return new AnyType[] { ValueType.i32, ValueType.i32 }; // size, rtt type
+            case NEW:
+                return new AnyType[] { ValueType.i32 };
+            case LEN:
+                return new AnyType[] { arrayType };
+            case SET:
+                return new AnyType[] { arrayType, ValueType.i32, type };
             default:
                 throw new WasmException( "Unknown array operation: " + op, -1 );
         }

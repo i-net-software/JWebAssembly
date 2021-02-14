@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -134,6 +134,29 @@ class WasmCallInstruction extends WasmInstruction {
     int getPopCount() {
         countParams();
         return paramCount;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    AnyType[] getPopValueTypes() {
+        countParams();
+        if( paramCount == 0 ) {
+            return null;
+        }
+        AnyType[] valueTypes = new AnyType[paramCount];
+        int idx = 0;
+        if( needThisParameter ) {
+            valueTypes[ idx++ ] = types.valueOf( name.className );
+        }
+        if( idx < paramCount ) {
+            Iterator<AnyType> parser = name.getSignature( types );
+            while( idx < paramCount ) {
+                valueTypes[ idx++ ] = parser.next();
+            }
+        }
+        return valueTypes;
     }
 
     /**

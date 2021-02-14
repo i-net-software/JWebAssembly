@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -29,6 +30,8 @@ import de.inetsoftware.classparser.ConstantPool;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
@@ -36,6 +39,7 @@ import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
@@ -73,8 +77,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             branchManager.reset( code );
 
             byteCode = code.getByteCode();
-            boolean hasReturn = !method.getType().endsWith( ")V" );
-            writeCode( byteCode, code.getConstantPool(), method.getDeclaringClassFile(), hasReturn );
+            AnyType returnType = new ValueTypeParser( method.getType().substring( method.getType().lastIndexOf( ')' ) + 1), getTypeManager() ).next();
+            writeCode( byteCode, code.getConstantPool(), method.getDeclaringClassFile(), returnType );
             calculateVariables();
         } catch( Exception ioex ) {
             int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
@@ -91,12 +95,13 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      *            the constant pool of the the current class
      * @param classFile
      *            the declaring class file
-     * @param hasReturn
-     *            if the method has a return value
+     * @param returnType
+     *            the return type of the method
      * @throws WasmException
      *             if some Java code can't converted
      */
-    private void writeCode( CodeInputStream byteCode, ConstantPool constantPool, ClassFile classFile, boolean hasReturn ) throws WasmException {
+    private void writeCode( CodeInputStream byteCode, ConstantPool constantPool, ClassFile classFile, AnyType returnType ) throws WasmException {
+        boolean nullConstants = false;
         int lineNumber = -1;
         try {
             boolean wide = false;
@@ -109,6 +114,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 1: // aconst_null
                         addStructInstruction( StructOperator.NULL, "java/lang/Object", null, codePos, lineNumber );
+                        nullConstants = true;
                         break;
                     case 2: // iconst_m1
                     case 3: // iconst_0
@@ -580,7 +586,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 type = ValueType.f64;
                                 break;
                             case 176: // areturn
-                                type = ValueType.externref;
+                                type = getOptions().useGC() ? returnType : ValueType.externref;
                                 break;
                         }
                         addBlockInstruction( WasmBlockOperator.RETURN, type, codePos, lineNumber );
@@ -723,12 +729,17 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             }
             branchManager.calculate();
             branchManager.handle( byteCode ); // add branch operations
-            if( hasReturn && !isEndsWithReturn() ) {
+            if( returnType != null && !isEndsWithReturn() ) {
                 // if a method ends with a loop or block without a break then code after the loop is no reachable
                 // Java does not need a return byte code in this case
                 // But WebAssembly need the dead code to validate
                 addBlockInstruction( WasmBlockOperator.UNREACHABLE, null, byteCode.getCodePosition(), byteCode.getLineNumber() );
             }
+
+            if( nullConstants && getOptions().useGC() ) {
+                patchTypeOfNullConst();
+            }
+
         } catch( Exception ex ) {
             throw WasmException.create( ex, lineNumber );
         }
@@ -923,6 +934,35 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
         int offset = byteCode.readShort();
         WasmNumericInstruction compare = addNumericInstruction( numOp, valueType, codePos, lineNumber );
         branchManager.addIfOperator( codePos, offset, byteCode.getLineNumber(), compare );
+    }
+
+    /**
+     * NULL const has no type in Java. In WebAssembly currently.
+     */
+    private void patchTypeOfNullConst() {
+        List<WasmInstruction> instructions = getInstructions();
+        int size = instructions.size();
+        for( int i = 0; i < size; i++ ) {
+            WasmInstruction instr = instructions.get( i );
+            if( instr.getType() == Type.Struct ) {
+                WasmStructInstruction structInst = (WasmStructInstruction)instr;
+                if( structInst.getOperator() == StructOperator.NULL ) {
+                    int count = 0;
+                    for( int s = i + 1; s < size; s++ ) {
+                        WasmInstruction nextInstr = instructions.get( s );
+                        count -= nextInstr.getPopCount();
+                        if( count < 0 ) {
+                            AnyType[] popValueTypes = nextInstr.getPopValueTypes();
+                            structInst.setStructType( (StructType)popValueTypes[-1 - count] );
+                            break;
+                        }
+                        if( nextInstr.getPushValueType() != null ) {
+                            count++;
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

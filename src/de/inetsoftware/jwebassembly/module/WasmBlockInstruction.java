@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -123,8 +123,31 @@ class WasmBlockInstruction extends WasmInstruction {
             case THROW:
             case RETHROW:
                 return 1;
+            case RETURN:
+                return data == null ? 0 : 1;
             default:
                 return 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    AnyType[] getPopValueTypes() {
+        switch( op ) {
+            case IF:
+            case BR_IF:
+                return new AnyType[] { ValueType.i32 };
+            case DROP:
+                return new AnyType[] { ValueType.anyref };
+            case THROW:
+            case RETHROW:
+                return new AnyType[] { ValueType.exnref };
+            case RETURN:
+                return data == null ? null : new AnyType[] { (AnyType)data };
+            default:
+                return null;
         }
     }
 }
