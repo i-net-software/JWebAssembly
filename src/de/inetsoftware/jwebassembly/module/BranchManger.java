@@ -25,11 +25,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.CodeInputStream;
+import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -1015,10 +1018,10 @@ class BranchManger {
                 // occur with a RETURN in a finally block
                 // We does not need to unbox if the value will be drop
             } else {
-                addUnboxExnref( catchNode );
+                addUnboxExnref( catchNode, tryCatch );
             }
         } else {
-            addUnboxExnref( catchNode );
+            addUnboxExnref( catchNode, tryCatch );
 
             // add a "if $exception instanceof type" check to the WASM code
             int instrPos = findIdxOfCodePos( catchPos ) + 1;
@@ -1083,8 +1086,10 @@ class BranchManger {
      * 
      * @param catchNode
      *            the catch node
+     * @param tryCatch
+     *            the catch or finally block
      */
-    private void addUnboxExnref( BranchNode catchNode ) {
+    private void addUnboxExnref( BranchNode catchNode, TryCatchFinally tryCatch ) {
         // unboxing the exnref on the stack to a reference of the exception
         int catchPos = catchNode.startPos;
         if( !options.useEH() ) {
@@ -1092,7 +1097,9 @@ class BranchManger {
             catchNode.add( 0, unBoxing );
             return;
         }
-        BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, options.getCatchType() );
+        AnyType excepType = getCatchType( tryCatch );
+        BlockType blockType = options.types.blockType( Arrays.asList( ValueType.exnref ), Arrays.asList( excepType ) );
+        BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, blockType );
         catchNode.add( 0, unBoxing );
 
         //TODO localVariables.getTempVariable( ValueType.exnref, catchPos, endPos ); https://github.com/WebAssembly/wabt/issues/1388
@@ -1100,20 +1107,30 @@ class BranchManger {
         unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
     }
 
+    private AnyType getCatchType( TryCatchFinally tryCatch ) {
+        if( options.useGC() ) {
+            ConstantClass excepClass = tryCatch.getType();
+            String excepName = excepClass != null ? excepClass.getName() : "java/lang/Throwable";
+            return options.types.valueOf( excepName );
+        }
+        return ValueType.externref;
+    }
+
     /**
-     * Check if there are a start of a catch block on the code position.
+     * Get the catch type if there are a start of a catch block on the code position.
      * 
      * @param codePosition
      *            the code position
-     * @return true, if there is a catch block
+     * @return the type or null
      */
-    boolean isCatch( int codePosition ) {
+    @Nullable
+    AnyType getCatchType( int codePosition ) {
         for( TryCatchFinally tryCatch : exceptionTable ) {
             if( tryCatch.getHandler() == codePosition ) {
-                return true;
+                return getCatchType( tryCatch );
             }
         }
-        return false;
+        return null;
     }
 
     /**

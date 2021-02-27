@@ -19,6 +19,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -146,7 +147,9 @@ public class TypeManager {
      */
     private static final String[]     PRIMITIVE_CLASSES                  = { "boolean", "byte", "char", "double", "float", "int", "long", "short", "void" };
 
-    private Map<Object, StructType> structTypes = new LinkedHashMap<>();
+    private final Map<Object, StructType> structTypes = new LinkedHashMap<>();
+
+    private final Map<BlockType, BlockType> blockTypes = new LinkedHashMap<>();
 
     private int                     typeIndexCounter;
 
@@ -211,7 +214,11 @@ public class TypeManager {
     void prepareFinish( ModuleWriter writer, ClassFileLoader classFileLoader ) throws IOException {
         isFinish = true;
         for( StructType type : structTypes.values() ) {
-            type.writeStructType( writer, options.functions, this, classFileLoader );
+            type.writeStructType( writer );
+        }
+
+        for( BlockType type : blockTypes.values() ) {
+            type.code = writer.writeBlockType( type );
         }
 
         // write type table
@@ -378,6 +385,26 @@ public class TypeManager {
             structTypes.put( typeName, type );
         }
         return type;
+    }
+
+    /**
+     * Create block type
+     * 
+     * @param params
+     *            the parameters
+     * @param results
+     *            the results
+     * @return the type
+     */
+    @Nonnull
+    BlockType blockType( List<AnyType> params, List<AnyType> results ) {
+        BlockType blockType = new BlockType( params, results );
+        BlockType type = blockTypes.get( blockType );
+        if( type != null ) {
+            return type;
+        }
+        blockTypes.put( blockType, blockType );
+        return blockType;
     }
 
     /**
@@ -648,16 +675,10 @@ public class TypeManager {
          * 
          * @param writer
          *            the targets for the types
-         * @param functions
-         *            the used functions for the vtables of the types
-         * @param types
-         *            for types of fields
-         * @param classFileLoader
-         *            for loading the class files
          * @throws IOException
          *             if any I/O error occur on loading or writing
          */
-        private void writeStructType( ModuleWriter writer, FunctionManager functions, TypeManager types, ClassFileLoader classFileLoader ) throws IOException {
+        private void writeStructType( ModuleWriter writer ) throws IOException {
             JWebAssembly.LOGGER.fine( "write type: " + name );
             code = writer.writeStructType( this );
         }
@@ -1121,4 +1142,96 @@ public class TypeManager {
             return interfaceMethodName;
         }
     }
+
+    /**
+     * A type that can use for a block
+     */
+    public static class BlockType implements AnyType {
+
+        @Nonnull
+        private final List<AnyType> params;
+        @Nonnull
+        private final List<AnyType> results;
+        private int code;
+        private String name;
+
+        public BlockType(List<AnyType> params, List<AnyType> results) {
+            this.params = params;
+            this.results = results;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int getCode() {
+            return code;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isRefType() {
+            return false;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isSubTypeOf( AnyType type ) {
+            return type == this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int hashCode() {
+            return params.hashCode() + results.hashCode();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean equals( Object obj ) {
+            if( this == obj ) {
+                return true;
+            }
+            if( obj == null ) {
+                return false;
+            }
+            if( getClass() != obj.getClass() ) {
+                return false;
+            }
+            BlockType other = (BlockType)obj;
+            return params.equals( other.params ) && results.equals( other.results );
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString() {
+            if( name != null ) {
+                return name;
+            }
+            return super.toString();
+        }
+
+        public List<AnyType> getParams() {
+            return Collections.unmodifiableList( params );
+        }
+
+        public List<AnyType> getResults() {
+            return Collections.unmodifiableList( results );
+        }
+
+        public void setName( String name ) {
+            this.name = name;
+        }
+    }
+
 }

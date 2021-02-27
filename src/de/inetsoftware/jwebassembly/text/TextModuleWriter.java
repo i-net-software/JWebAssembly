@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructTypeKind;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
@@ -251,17 +252,36 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
+    protected int writeBlockType( BlockType type ) throws IOException {
+        StringBuilder output = new StringBuilder();
+        for( AnyType valueType : type.getParams() ) {
+            writeParam( output, "param", valueType, null );
+        }
+        for( AnyType valueType : type.getResults() ) {
+            writeParam( output, "result", valueType, null );
+        }
+        String name = output.toString();
+        type.setName( name );
+        types.add( name );
+        return types.size() - 1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeException() throws IOException {
         if( !useExceptions ) {
             useExceptions = true;
             int oldInset = inset;
             inset = 1;
             newline( output );
-            output.append( "(event (param externref))" );
+            if( options.useGC() ) {
+                output.append( "(event (param (ref null $java/lang/Throwable)))" );
+            } else {
+                output.append( "(event (param externref))" );
+            }
             inset = oldInset;
-
-            options.setCatchType( types.size() );
-            types.add( options.getCatchType().toString() );
         }
     }
 
@@ -383,19 +403,37 @@ public class TextModuleWriter extends ModuleWriter {
         if( methodOutput == null ) {
             return;
         }
-        newline( methodOutput );
-        methodOutput.append( "    (" ).append( kind );
-        if( options.debugNames() ) { 
+        writeParam( methodOutput, kind, valueType, name );
+    }
+
+    /**
+     * Write a parameter to the given output
+     * 
+     * @param output
+     *            the traget
+     * @param kind
+     *            "param", "result" or "local"
+     * @param valueType
+     *            the data type of the parameter
+     * @param name
+     *            optional name of the parameter
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeParam( StringBuilder output, String kind, AnyType valueType, @Nullable String name ) throws IOException {
+        newline( output );
+        output.append( "    (" ).append( kind );
+        if( options.debugNames() ) {
             if( name != null ) {
-                methodOutput.append( " $" ).append( name );
+                output.append( " $" ).append( name );
             }
             if( kind != "result" ) {
                 methodParamNames.add( name );
             }
         }
-        methodOutput.append( ' ' );
-        writeTypeName( methodOutput, valueType );
-        methodOutput.append( ')' );
+        output.append( ' ' );
+        writeTypeName( output, valueType );
+        output.append( ')' );
     }
 
     /**

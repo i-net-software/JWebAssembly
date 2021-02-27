@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.FunctionName;
 import de.inetsoftware.jwebassembly.module.ModuleWriter;
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructTypeKind;
 import de.inetsoftware.jwebassembly.module.ValueTypeConvertion;
@@ -529,22 +530,28 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
+    protected int writeBlockType( BlockType type ) throws IOException {
+        FunctionTypeEntry entry = new FunctionTypeEntry();
+        entry.params.addAll( type.getParams() );
+        entry.results.addAll( type.getResults() );
+        functionTypes.add( entry );
+        return functionTypes.size() - 1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void writeException() throws IOException {
         if( exceptionSignatureIndex <= 0 ) {
             FunctionTypeEntry type = new FunctionTypeEntry();
-            type.params.add( ValueType.externref );
+            AnyType eventType = options.useGC() ? options.types.valueOf( "java/lang/Throwable" ) : ValueType.externref;
+            type.params.add( eventType );
             exceptionSignatureIndex = functionTypes.indexOf( type );
             if( exceptionSignatureIndex < 0 ) {
                 exceptionSignatureIndex = functionTypes.size();
                 functionTypes.add( type );
             }
-
-            // result type of catch block for unboxing
-            type = new FunctionTypeEntry();
-            type.params.add( ValueType.exnref );
-            type.results.add( ValueType.externref );
-            options.setCatchType( functionTypes.size() );
-            functionTypes.add( type );
         }
     }
 

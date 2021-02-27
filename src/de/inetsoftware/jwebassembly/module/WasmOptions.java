@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptSyntheticFunctionName;
-import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -62,30 +61,6 @@ public class WasmOptions {
     private SyntheticFunctionName instanceOf;
 
     private SyntheticFunctionName cast;
-
-    private int                   catchTypeCode;
-
-    private AnyType catchType = new AnyType() {
-        @Override
-        public int getCode() {
-            return catchTypeCode;
-        }
-
-        @Override
-        public boolean isRefType() {
-            return false;
-        }
-
-        @Override
-        public boolean isSubTypeOf( AnyType type ) {
-            return type == this;
-        }
-
-        @Override
-        public String toString() {
-            return "(param exnref)(result anyref)";
-        }
-    };
 
     /**
      * Create a new instance of options
@@ -222,24 +197,5 @@ public class WasmOptions {
             getInstanceOf();
         }
         return name;
-    }
-
-    /**
-     * The type for a catch block to unboxing the exnref into a anyref
-     * 
-     * @return the type
-     */
-    public AnyType getCatchType() {
-        return catchType;
-    }
-
-    /**
-     * Set the dynamic type id for the catch type
-     * 
-     * @param catchTypeCode
-     *            the positive id
-     */
-    public void setCatchType( int catchTypeCode ) {
-        this.catchTypeCode = catchTypeCode;
     }
 }

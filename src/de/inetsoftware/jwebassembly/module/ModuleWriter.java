@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -78,7 +79,18 @@ public abstract class ModuleWriter implements Closeable {
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract int writeStructType( StructType type ) throws IOException;
+    protected abstract int writeStructType( @Nonnull StructType type ) throws IOException;
+
+    /**
+     * Write a block type.
+     * 
+     * @param type
+     *            the type
+     * @return type ID
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    protected abstract int writeBlockType( @Nonnull BlockType type ) throws IOException;
 
     /**
      * Mark to write exceptions
