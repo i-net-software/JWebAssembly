@@ -831,7 +831,7 @@ public class TextModuleWriter extends ModuleWriter {
                 break;
             case CATCH:
                 inset--;
-                name = options.useEH() ? "catch" : "br 0";
+                name = options.useEH() ? "catch " + data : "br 0";
                 insetAfter++;
                 break;
             case THROW:

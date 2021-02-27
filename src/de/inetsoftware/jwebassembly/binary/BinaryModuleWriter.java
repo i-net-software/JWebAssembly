@@ -1342,6 +1342,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case CATCH:
                 if( options.useEH() ) {
                     codeStream.writeOpCode( CATCH );
+                    codeStream.writeVaruint32( (Integer)data );
                 } else {
                     codeStream.writeOpCode( BR );
                     codeStream.writeVaruint32( 0 );

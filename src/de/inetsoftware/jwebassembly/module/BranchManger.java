@@ -978,7 +978,7 @@ class BranchManger {
         parent.add( tryNode );
         calculate( tryNode, parsedOperations.subList( 0, idx ) );
 
-        BranchNode catchNode = new BranchNode( catchPos, endPos, WasmBlockOperator.CATCH, WasmBlockOperator.END );
+        BranchNode catchNode = new BranchNode( catchPos, endPos, WasmBlockOperator.CATCH, WasmBlockOperator.END, 0 );
         parent.add( catchNode );
 
         // Create a block/end structure for every CATCH without the first CATCH
@@ -1097,14 +1097,14 @@ class BranchManger {
             catchNode.add( 0, unBoxing );
             return;
         }
-        AnyType excepType = getCatchType( tryCatch );
-        BlockType blockType = options.types.blockType( Arrays.asList( ValueType.exnref ), Arrays.asList( excepType ) );
-        BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, blockType );
-        catchNode.add( 0, unBoxing );
-
-        //TODO localVariables.getTempVariable( ValueType.exnref, catchPos, endPos ); https://github.com/WebAssembly/wabt/issues/1388
-        unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 0 ) );
-        unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
+//        AnyType excepType = getCatchType( tryCatch );
+//        BlockType blockType = options.types.blockType( Arrays.asList( ValueType.exnref ), Arrays.asList( excepType ) );
+//        BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, blockType );
+//        catchNode.add( 0, unBoxing );
+//
+//        //TODO localVariables.getTempVariable( ValueType.exnref, catchPos, endPos ); https://github.com/WebAssembly/wabt/issues/1388
+//        unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 0 ) );
+//        unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
     }
 
     private AnyType getCatchType( TryCatchFinally tryCatch ) {
