@@ -369,6 +369,8 @@ public class TypeManager {
      * 
      * @param typeName
      *            the name (className) of the lambda class
+     * @param params
+     *            the parameters of the constructor and type fields
      * @param interfaceType
      *            the implemented interface
      * @param methodName
@@ -377,10 +379,10 @@ public class TypeManager {
      *            the name of the implemented method in the interface
      * @return the type
      */
-    StructType lambdaType( String typeName, StructType interfaceType, FunctionName methodName, String interfaceMethodName ) {
-        StructType type = structTypes.get( typeName );
+    LambdaType lambdaType( String typeName, ArrayList<AnyType> params, StructType interfaceType, FunctionName methodName, String interfaceMethodName ) {
+        LambdaType type = (LambdaType)structTypes.get( typeName );
         if( type == null ) {
-            type = new LambdaType( typeName, interfaceType, methodName, interfaceMethodName, this );
+            type = new LambdaType( typeName, params, interfaceType, methodName, interfaceMethodName, this );
 
             structTypes.put( typeName, type );
         }
@@ -656,6 +658,7 @@ public class TypeManager {
                     allNeededFields = new HashSet<>();
                     listStructFields( "java/lang/Object", functions, types, classFileLoader, allNeededFields );
                     LambdaType lambda = (LambdaType)this;
+                    fields.addAll( lambda.getParamFields() );
                     List<FunctionName> iMethods = new ArrayList<>();
                     iMethods.add( lambda.getLambdaMethod() );
                     interfaceMethods.put( lambda.getInterfaceType(), iMethods );
@@ -1088,17 +1091,21 @@ public class TypeManager {
      */
     class LambdaType extends StructType {
 
-        private StructType   interfaceType;
+        private ArrayList<NamedStorageType> paramFields;
 
-        private FunctionName methodName;
+        private StructType                  interfaceType;
 
-        private String       interfaceMethodName;
+        private FunctionName                methodName;
+
+        private String                      interfaceMethodName;
 
         /**
          * Create a lambda type
          * 
          * @param name
-         *            the Java class name
+         *            the Lambda Java class name
+         * @param params
+         *            the parameters of the constructor and type fields
          * @param interfaceType
          *            the implemented interface type
          * @param methodName
@@ -1108,11 +1115,24 @@ public class TypeManager {
          * @param manager
          *            the manager which hold all StructTypes
          */
-        LambdaType( String name, StructType interfaceType, FunctionName methodName, String interfaceMethodName, TypeManager manager ) {
+        LambdaType( String name, ArrayList<AnyType> params, StructType interfaceType, FunctionName methodName, String interfaceMethodName, TypeManager manager ) {
             super( name, StructTypeKind.lambda, manager );
+            this.paramFields = new ArrayList<>( params.size() );
+            for( int i = 0; i < params.size(); i++ ) {
+                paramFields.add( new NamedStorageType( params.get( i ), "", "arg$" + (i+1) ) );
+            }
             this.interfaceType = interfaceType;
             this.methodName = methodName;
             this.interfaceMethodName = interfaceMethodName;
+        }
+
+        /**
+         * The parameters of the constructor
+         * 
+         * @return the parameters
+         */
+        ArrayList<NamedStorageType> getParamFields() {
+            return paramFields;
         }
 
         /**

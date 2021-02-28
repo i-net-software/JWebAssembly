@@ -35,6 +35,7 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
+import de.inetsoftware.jwebassembly.module.TypeManager.LambdaType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -866,14 +867,24 @@ public abstract class WasmCodeBuilder {
         ConstantMethodRef implMethod = method.getImplMethod();
         FunctionName name = new FunctionName( implMethod );
         functions.markAsNeeded( name );
-        String typeName = implMethod.getClassName() + "$$" + implMethod.getName() + "/";
+        String lambdaTypeName = implMethod.getClassName() + "$$" + implMethod.getName() + "/" + Math.abs( name.hashCode() );
         ValueTypeParser parser = new ValueTypeParser( factorySignature, types );
-        while( parser.next() != null ) {
-            // skip parameters TODO
-        }
+        ArrayList<AnyType> params = new ArrayList<>();
+        do {
+            AnyType param = parser.next();
+            if( param == null ) {
+                break;
+            }
+            params.add( param );
+        } while( true );
         StructType interfaceType = (StructType)parser.next();
-        StructType type = types.lambdaType( typeName, interfaceType, name, interfaceMethodName );
-        addStructInstruction( StructOperator.NEW_DEFAULT, typeName, null, javaCodePos, lineNumber );
+        LambdaType type = types.lambdaType( lambdaTypeName, params, interfaceType, name, interfaceMethodName );
+        addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
+
+        for( NamedStorageType field : type.getParamFields() ) {
+            addDupInstruction( javaCodePos, lineNumber );
+            instructions.add( new WasmStructInstruction( StructOperator.SET, lambdaTypeName, field, javaCodePos, lineNumber, types ) );
+        }
     }
 
     /**
