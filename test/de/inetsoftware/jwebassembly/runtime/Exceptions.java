@@ -64,7 +64,7 @@ public class Exceptions extends AbstractBaseTest {
     @Test
     public void test() {
         assumeFalse( getScriptEngine().name().startsWith( "SpiderMonkey" ) ); //TODO https://bugzilla.mozilla.org/show_bug.cgi?id=1335652
-        assumeFalse( getScriptEngine().name().contains( "Wat" ) );            //TODO Current Node version 8.1 has the wrong order of Event section but Wabt has already the right version
+        assumeFalse( getScriptEngine().name().contains( "NodeWat" ) );        //TODO Current Node version 8.1 has the wrong order of Event section but Wabt has already the right version
         super.test();
     }
 
