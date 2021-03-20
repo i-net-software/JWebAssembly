@@ -1,16 +1,15 @@
 plugins {
-    id 'com.github.kt3k.coveralls' version '2.8.2' // Coverage
-    id "com.jfrog.bintray" version "1.8.4"
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'com.github.kt3k.coveralls' version '2.11.0' // Coverage
 }
-
-apply plugin: 'java-library'
-apply plugin: 'maven-publish'
 
 sourceCompatibility = 1.8
 
 group 'de.inetsoftware'
 archivesBaseName = 'jwebassembly-compiler'
-version = '0.3'
+version = '0.4'
 
 repositories {
     mavenCentral()
@@ -51,14 +50,16 @@ sourceSets {
 }
 
 compileJava.options.encoding = 'UTF-8'
-compileJava.options.compilerArgs << '-Xlint:all'
+compileJava.options.compilerArgs += ['-Xlint:all', '-Xlint:-serial', '-Xlint:-fallthrough']
 compileTestJava.options.encoding = 'UTF-8'
-compileTestJava.options.compilerArgs << '-Xlint:all'
 javadoc.options.encoding = 'UTF-8'
 
 jar {
     manifest {
-        attributes( 'Implementation-Title': 'JWebAssembly-API',
+        attributes( 'Specification-Title': 'JWebAssembly-Compiler',
+                    'Specification-Vendor': 'i-net software',
+                    'Specification-Version': version,
+                    'Implementation-Title': 'JWebAssembly-Compiler',
                     'Implementation-Vendor': 'i-net software',
                     'Implementation-Version': version)
     }
@@ -109,51 +110,62 @@ jacocoTestReport {
 }
 check.dependsOn tasks.coveralls
 
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    publications = ['JWebAssemblyPublication']
-    publish = true
-    override = true
-    pkg {
-        repo = 'OSS'
-        userOrg = 'i-net-software'
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/i-net-software'
-        name = group + '.' + archivesBaseName
-        version { 
-            released = new Date()
-        }
-    }
-}
 
+/****************************************
+ * Deploy to Sonatype
+ ****************************************/
 publishing {
     publications {
-        JWebAssemblyPublication(MavenPublication) {
+        JWebAssembly(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
             artifactId archivesBaseName
-            pom.withXml {
-                def root = asNode()
-                root.appendNode('name', 'JWebAssembly-Compiler')
-                root.appendNode('description', 'A Java to WebAssembly compiler.')
-                root.appendNode('url', 'https://github.com/i-net-software/JWebAssembly')
-
-                def node = root.appendNode('developers').appendNode( 'developer' )
-                node.appendNode( 'id', 'Horcrux7' )
-                node.appendNode( 'name', 'Volker Berlin' )
-                node.appendNode( 'email', 'vberlin@inetsoftware.de' )
-                node.appendNode( 'organization', 'i-net software' )
-                node.appendNode( 'organizationUrl', 'https://www.inetsoftware.de' )
-
-                node = root.appendNode('scm')
-                node.appendNode( 'connection', 'scm:git:git@github.com:i-net-software/JWebAssembly.git' )
-                node.appendNode( 'developerConnection', 'scm:git:git@github.com:i-net-software/JWebAssembly.git' )
-                node.appendNode( 'url', 'https://github.com/i-net-software/JWebAssembly' )
-
-                root.children().last()
+            pom {
+                name = 'JWebAssembly-Compiler'
+                description = 'A Java to WebAssembly compiler.'
+                url = 'https://github.com/i-net-software/JWebAssembly'
+                developers {
+                    developer {
+                        id = 'Horcrux7'
+                        name = 'Volker Berlin'
+                        email = 'vberlin@inetsoftware.de'
+                        organization = 'i-net software'
+                        organizationUrl = 'https://www.inetsoftware.de'
+                    }
+                }
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:i-net-software/JWebAssembly.git'
+                    developerConnection = 'scm:git:git@github.com:i-net-software/JWebAssembly.git'
+                    url = 'https://github.com/i-net-software/JWebAssembly'
+                }
             }
         }
+    }
+    repositories {
+        maven {
+            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+            if (project.hasProperty("ossrhUsername") ) {
+                credentials {
+                    username ossrhUsername
+                    password ossrhPassword
+                }
+            }
+        }
+    }
+}
+
+signing {
+    if (project.hasProperty("signing.keyId") ){
+       sign publishing.publications.JWebAssembly
+
+        // does not create sha256 and sha512 checksums
+        System.setProperty('org.gradle.internal.publish.checksums.insecure', 'true' )
     }
 }
