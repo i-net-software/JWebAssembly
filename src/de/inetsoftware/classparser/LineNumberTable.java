@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2017 Volker Berlin (i-net software)
+   Copyright 2011 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class LineNumberTable {
      * @param input
      *            the stream of the class
      * @throws IOException
+     *             if any i/O error occur
      */
     LineNumberTable( DataInputStream input ) throws IOException {
         int count = input.readUnsignedShort();
@@ -79,7 +80,7 @@ public class LineNumberTable {
 
     /**
      * Get the line number of the last code block.
-     * @return
+     * @return the line number
      */
     public int getLastLineNr() {
         return line_number[line_number.length - 1];

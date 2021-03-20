@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,8 @@ public class WasmException extends RuntimeException {
      *            the source file of the Java code
      * @param className
      *            the class name of the Java code
+     * @param methodName
+     *            the method of the Java code
      * @param lineNumber
      *            the line number in Java Code
      * @return a new instance

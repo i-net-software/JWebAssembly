@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2020 Volker Berlin (i-net software)
+   Copyright 2011 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -303,6 +303,7 @@ public class ClassFile {
      * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1-200-E
      * http://docs.oracle.com/javase/specs/jvms/se5.0/html/ClassFile.doc.html#23242
      * @see java.lang.Class#isInterface()
+     * @return the flag
      */
     public int getAccessFlags() {
         return accessFlags;
@@ -335,6 +336,7 @@ public class ClassFile {
 
     /**
      * Get the signature of the class with generic types.
+     * @return the signature
      */
     public String getThisSignature() {
         return thisSignature;
@@ -342,6 +344,7 @@ public class ClassFile {
 
     /**
      * Get the signature of the super class with generic types.
+     * @return the signature
      */
     public String getSuperSignature() {
         return superSignature;
