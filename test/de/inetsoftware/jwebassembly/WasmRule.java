@@ -104,7 +104,10 @@ public class WasmRule extends TemporaryFolder {
         final String[] libraries = System.getProperty("java.class.path").split(File.pathSeparator);
         for( String lib : libraries ) {
             if( lib.endsWith( ".jar" ) || lib.toLowerCase().contains( "jwebassembly-api" ) ) {
-                compiler.addLibrary( new File(lib) );
+                File library = new File(lib);
+                if( library.exists() ) {
+                    compiler.addLibrary( library );
+                }
             }
         }
     }
