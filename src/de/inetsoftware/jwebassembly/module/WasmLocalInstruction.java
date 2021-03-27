@@ -34,6 +34,7 @@ import static de.inetsoftware.jwebassembly.wasm.VariableOperator.*;
  */
 class WasmLocalInstruction extends WasmInstruction {
 
+    @Nonnull
     private VariableOperator      op;
 
     private int                   idx;
@@ -54,7 +55,7 @@ class WasmLocalInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmLocalInstruction( VariableOperator op, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
+    WasmLocalInstruction( @Nonnull VariableOperator op, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.op = op;
         this.idx = idx;
@@ -74,6 +75,7 @@ class WasmLocalInstruction extends WasmInstruction {
      * 
      * @return the operator
      */
+    @Nonnull
     VariableOperator getOperator() {
         return op;
     }
@@ -84,7 +86,7 @@ class WasmLocalInstruction extends WasmInstruction {
      * @param op
      *            the operator
      */
-    void setOperator( VariableOperator op ) {
+    void setOperator( @Nonnull VariableOperator op ) {
         this.op = op;
     }
 
