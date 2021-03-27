@@ -316,23 +316,28 @@ public abstract class WasmCodeBuilder {
     protected void addDupInstruction( int javaCodePos, int lineNumber ) {
         WasmInstruction instr = findInstructionThatPushValue( 1, javaCodePos );
         AnyType type = instr.getPushValueType();
-        int varIndex = -1;
+        int slot = -1;
         // if it is a GET to a local variable then we can use it
         if( instr.getType() == Type.Local ) {
             WasmLocalInstruction local1 = (WasmLocalInstruction)instr;
-            if( local1.getOperator() == VariableOperator.get ) {
-                varIndex = local1.getIndex();
+            switch( local1.getOperator() ) {
+                case get:
+                case tee:
+                    slot = local1.getSlot();
+                    break;
+                default:
             }
         }
         //alternate we need to create a new locale variable
-        if( varIndex < 0 ) {
-            varIndex = getTempVariable( type, javaCodePos, javaCodePos + 1 );
-            instructions.add( new WasmLoadStoreInstruction( VariableOperator.tee, varIndex, localVariables, javaCodePos, lineNumber ) );
-            instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varIndex, localVariables, javaCodePos, lineNumber ) );
+        if( slot < 0 ) {
+            slot = getTempVariable( type, javaCodePos, javaCodePos + 1 );
+            instructions.add( new WasmLoadStoreInstruction( VariableOperator.tee, slot, localVariables, javaCodePos, lineNumber ) );
+            instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
             // an alternative solution can be a function call with multiple return values but this seems to be slower
             // new SyntheticFunctionName( "dup" + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber )
         } else {
-            instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex, localVariables, javaCodePos, lineNumber ) );
+            instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
+            localVariables.expandUse( slot, javaCodePos );
         }
     }
 

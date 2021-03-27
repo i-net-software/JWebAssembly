@@ -91,6 +91,16 @@ class WasmLocalInstruction extends WasmInstruction {
     }
 
     /**
+     * Get the slot of the locals
+     * 
+     * @return the Java slot for the variable
+     */
+    @Nonnegative
+    int getSlot() {
+        return idx;
+    }
+
+    /**
      * Get the number of the locals
      * 
      * @return the index, mostly the Wasm Index

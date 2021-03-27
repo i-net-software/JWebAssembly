@@ -360,6 +360,20 @@ class LocaleVariableManager {
     }
 
     /**
+     * Expand code range for which the variable is valid
+     * 
+     * @param slot
+     *            the memory/slot index of the local variable
+     * @param javaCodePos
+     *            the new end code position in the Java method
+     */
+    void expandUse( int slot, int javaCodePos ) {
+        Variable var = variables[slot];
+        //TODO does we need to check for overlap with other slots?
+        var.endPos = Math.max( var.endPos, javaCodePos );
+    }
+
+    /**
      * Get the WebAssembly variable index of the given Java Slot.
      * 
      * @param slot
