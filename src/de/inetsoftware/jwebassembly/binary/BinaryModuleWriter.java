@@ -1445,8 +1445,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
             case CAST:
                 codeStream.writeOpCode( REF_CAST );
-                codeStream.writeValueType( options.types.valueOf( "java/lang/Object" ) );
-                codeStream.writeValueType( type );
+//                codeStream.writeValueType( options.types.valueOf( "java/lang/Object" ) );
+//                codeStream.writeValueType( type );
                 return;
             default:
                 throw new Error( "Unknown operator: " + op );
