@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -854,7 +855,7 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
-     * Add invoke dynamic operation.
+     * Add invoke dynamic operation. (Creating of a lambda expression)
      * 
      * @param method
      *            the BootstrapMethod, described the method that should be executed
@@ -869,9 +870,12 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addInvokeDynamic( BootstrapMethod method, String factorySignature, String interfaceMethodName, int javaCodePos, int lineNumber ) {
+        // mark the static, synthetic method which implement the lambda code, as needed
         ConstantMethodRef implMethod = method.getImplMethod();
         FunctionName name = new FunctionName( implMethod );
         functions.markAsNeeded( name );
+
+        // Create the synthetic lambda class that hold the lambda expression.
         String lambdaTypeName = implMethod.getClassName() + "$$" + implMethod.getName() + "/" + Math.abs( name.hashCode() );
         ValueTypeParser parser = new ValueTypeParser( factorySignature, types );
         ArrayList<AnyType> params = new ArrayList<>();
@@ -884,11 +888,28 @@ public abstract class WasmCodeBuilder {
         } while( true );
         StructType interfaceType = (StructType)parser.next();
         LambdaType type = types.lambdaType( lambdaTypeName, params, interfaceType, name, interfaceMethodName );
-        addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
 
-        for( NamedStorageType field : type.getParamFields() ) {
-            addDupInstruction( javaCodePos, lineNumber );
-            instructions.add( new WasmStructInstruction( StructOperator.SET, lambdaTypeName, field, javaCodePos, lineNumber, types ) );
+        // Create the instance of the synthetic lambda class and save the parameters in fields  
+        ArrayList<NamedStorageType> paramFields = type.getParamFields();
+        int paramCount = paramFields.size();
+        if( paramCount == 0 ) {
+            addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
+        } else {
+            // Lambda with parameters from the stack
+            int idx = StackInspector.findInstructionThatPushValue( instructions, paramCount, javaCodePos ).idx;
+            int pos = instructions.size();
+            addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
+            int slot = ((WasmLocalInstruction)findInstructionThatPushValue( 1, javaCodePos )).getSlot();
+
+            // move the creating of the lambda instance before the parameters on the stack
+            Collections.rotate( instructions.subList( idx, instructions.size() ), idx - pos );
+
+            for( int i = 0; i < paramCount; i++ ) {
+                NamedStorageType field = paramFields.get( i );
+                idx = StackInspector.findInstructionThatPushValue( instructions, paramCount - i, javaCodePos ).idx;
+                instructions.add( idx, new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
+                instructions.add( new WasmStructInstruction( StructOperator.SET, lambdaTypeName, field, javaCodePos, lineNumber, types ) );
+            }
         }
     }
 
