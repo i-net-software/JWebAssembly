@@ -102,6 +102,8 @@ public class ModuleGenerator {
         optimizer = options.optimizer;
         javaCodeBuilder.init( options, classFileLoader );
         ((WasmCodeBuilder)watParser).init( options, classFileLoader );
+        types.init( classFileLoader );
+
         scanLibraries( libraries );
     }
 
@@ -279,7 +281,7 @@ public class ModuleGenerator {
             scanFunctions();
             functCount = functions.size();              // scan the functions can find new needed types or only new needed fields in the known types
             scanForClinit();
-            types.scanTypeHierarchy( classFileLoader ); // scan the type hierarchy can find new functions
+            types.scanTypeHierarchy();                  // scan the type hierarchy can find new functions
         } while( functCount < functions.size() );
 
         // write only the needed imports to the output
@@ -319,10 +321,10 @@ public class ModuleGenerator {
         }
 
         // scan again if there are new types or new needed fields
-        types.scanTypeHierarchy( classFileLoader );
+        types.scanTypeHierarchy();
 
         JWebAssembly.LOGGER.fine( "scan finish" );
-        types.prepareFinish( writer, classFileLoader );
+        types.prepareFinish( writer );
         functions.prepareFinish();
         strings.prepareFinish( writer );
         writer.prepareFinish();

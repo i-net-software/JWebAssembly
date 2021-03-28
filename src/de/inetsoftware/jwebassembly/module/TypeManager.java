@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -159,6 +160,8 @@ public class TypeManager {
 
     private int                     typeTableOffset;
 
+    private ClassFileLoader                 classFileLoader;
+
     /**
      * Initialize the type manager.
      * 
@@ -167,6 +170,14 @@ public class TypeManager {
      */
     TypeManager( WasmOptions options ) {
         this.options = options;
+    }
+
+    /**
+     * Initialize the type manager
+     * @param classFileLoader for loading the class files
+     */
+    void init( ClassFileLoader classFileLoader ) {
+        this.classFileLoader = classFileLoader;
     }
 
     /**
@@ -190,12 +201,10 @@ public class TypeManager {
     /**
      * Scan the hierarchy of the types.
      * 
-     * @param classFileLoader
-     *            for loading the class files
      * @throws IOException
      *             if any I/O error occur on loading or writing
      */
-    void scanTypeHierarchy( ClassFileLoader classFileLoader ) throws IOException {
+    void scanTypeHierarchy() throws IOException {
         for( StructType type : structTypes.values() ) {
             type.scanTypeHierarchy( options.functions, this, classFileLoader );
         }
@@ -206,12 +215,10 @@ public class TypeManager {
      * 
      * @param writer
      *            the targets for the types
-     * @param classFileLoader
-     *            for loading the class files
      * @throws IOException
      *             if any I/O error occur on loading or writing
      */
-    void prepareFinish( ModuleWriter writer, ClassFileLoader classFileLoader ) throws IOException {
+    void prepareFinish( ModuleWriter writer ) throws IOException {
         isFinish = true;
         for( StructType type : structTypes.values() ) {
             type.writeStructType( writer );
@@ -570,7 +577,9 @@ public class TypeManager {
 
         private final String           name;
 
-        private final StructTypeKind  kind;
+        private final StructTypeKind   kind;
+
+        private final TypeManager      manager;
 
         private final int              classIndex;
 
@@ -595,7 +604,7 @@ public class TypeManager {
          * Create a reference to type
          * 
          * @param name
-         *            the Java class name
+         *            the Java class name like "java/lang/String"
          * @param kind
          *            the type kind
          * @param manager
@@ -604,6 +613,7 @@ public class TypeManager {
         protected StructType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager ) {
             this.name = name;
             this.kind = kind;
+            this.manager = manager;
             switch( kind ) {
                 case array_native:
                     this.classIndex = -1;
@@ -943,8 +953,43 @@ public class TypeManager {
          */
         @Override
         public boolean isSubTypeOf( AnyType type ) {
-            //TODO if type is StructType (class or interface)
-            return type == this || type == ValueType.externref || type == ValueType.anyref || type == ValueType.eqref;
+            if( type == this || type == ValueType.externref || type == ValueType.anyref || type == ValueType.eqref ) {
+                return true;
+            }
+            if( !(type instanceof StructType) ) {
+                return false;
+            }
+            StructType structType = (StructType)type;
+            if( kind != structType.kind ) {
+                return false;
+            }
+
+            try {
+                ClassFile classFile = manager.classFileLoader.get( name );
+                if( classFile != null ) {
+                    for( ConstantClass interClass : classFile.getInterfaces() ) {
+                        if( interClass.getName().equals( structType.name ) ) {
+                            return true;
+                        }
+                    }
+
+                    while( classFile != null ) {
+                        ConstantClass superClass = classFile.getSuperClass();
+                        if( superClass == null ) {
+                            break;
+                        }
+                        String superName = superClass.getName();
+                        if( superName.equals( structType.name ) ) {
+                            return true;
+                        }
+                        classFile = manager.classFileLoader.get( superName );
+                    }
+                }
+            } catch( IOException ex ) {
+                throw new UncheckedIOException( ex );
+            }
+
+            return false;
         }
 
         /**
