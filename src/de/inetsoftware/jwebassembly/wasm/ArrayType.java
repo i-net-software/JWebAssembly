@@ -167,6 +167,19 @@ public class ArrayType extends StructType {
      */
     @Override
     public boolean isSubTypeOf( AnyType type ) {
-        return type == this || type == ValueType.externref;
+        if( type == this || type == ValueType.externref ) {
+            return true;
+        }
+        if( !(type instanceof StructType) ) {
+            return false;
+        }
+        StructType structType = (StructType)type;
+        switch( structType.getKind() ) {
+            case normal:
+                return "java/lang/Object".equals( structType.getName() );
+            case array:
+                return arrayType.isSubTypeOf( ((ArrayType)structType).arrayType );
+        }
+        return false;
     }
 }

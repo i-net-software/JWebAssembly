@@ -1206,6 +1206,17 @@ public class TypeManager {
         String getInterfaceMethodName() {
             return interfaceMethodName;
         }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isSubTypeOf( AnyType type ) {
+            if( type == this || type == ValueType.externref || type == ValueType.anyref || type == ValueType.eqref ) {
+                return true;
+            }
+            return type == interfaceType;
+        }
     }
 
     /**

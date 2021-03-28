@@ -19,12 +19,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import de.inetsoftware.jwebassembly.JWebAssembly;
+import de.inetsoftware.jwebassembly.module.TypeManager.LambdaType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructTypeKind;
 
@@ -99,4 +101,12 @@ public class StructTypeTest {
         assertFalse( typeObjArray.isSubTypeOf( typeIntArray ) );
     }
 
+    @Test
+    public void isSubTypeOf_Lambda() throws Throwable {
+        StructType typeRunnable = manager.valueOf( "java/lang/Runnable" );
+        LambdaType lambda = manager.lambdaType( "typeName", new ArrayList(), typeRunnable, new FunctionName( "", "", "" ), "run" );
+
+        assertTrue( lambda.isSubTypeOf( typeRunnable ) );
+        assertFalse( typeRunnable.isSubTypeOf( lambda ) );
+    }
 }
