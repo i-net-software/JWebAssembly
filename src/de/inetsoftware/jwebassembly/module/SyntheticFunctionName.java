@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 Volker Berlin (i-net software)
+   Copyright 2019 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -66,5 +66,14 @@ public abstract class SyntheticFunctionName extends FunctionName {
      */
     protected Function<String, Object> getAnnotation() {
         return null;
+    }
+
+    /**
+     * Is a static method or if it need a this parameter.
+     * 
+     * @return true, id static
+     */
+    protected boolean istStatic() {
+        return true;
     }
 }

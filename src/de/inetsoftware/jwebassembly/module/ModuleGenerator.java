@@ -208,7 +208,7 @@ public class ModuleGenerator {
                 } else {
                     functions.markAsImport( synth, synth.getAnnotation() );
                 }
-                functions.markAsScanned( next, false );
+                functions.markAsScanned( next, !synth.istStatic() );
                 continue;
             }
 
@@ -226,7 +226,7 @@ public class ModuleGenerator {
                 createInstructions( functions.replace( next, method ) );
                 boolean needThisParameter = !method.isStatic()                                         // if not static there is a not declared THIS parameter
                                 || "<init>".equals( method.getName() )                                 // constructor method need also the THIS parameter also if marked as static
-                                || (method.isLambda() );                                               // lambda functions are static but will call with a THIS parameter which need be removed from stack
+                                /*|| (method.isLambda() )*/;                                               // lambda functions are static but will call with a THIS parameter which need be removed from stack
                 functions.markAsScanned( next, needThisParameter );
                 if( needThisParameter ) {
                     types.valueOf( next.className ); // for the case that the type unknown yet

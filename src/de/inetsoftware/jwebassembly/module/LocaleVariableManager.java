@@ -87,13 +87,6 @@ class LocaleVariableManager {
     void reset( LocalVariableTable variableTable, MethodInfo method, Iterator<AnyType> signature ) {
         size = 0;
 
-        if( method != null && method.isLambda() ) {
-            AnyType type = types.options.useGC() ? types.valueOf( "java/lang/Object" ) : ValueType.externref;
-            resetAddVar( type, -1 );
-            variables[0].name = "this";
-        }
-        int baseSize = size;
-
         int maxLocals;
         if( variableTable == null ) {
             maxLocals = 0;
@@ -167,7 +160,7 @@ class LocaleVariableManager {
         }
 
         // add missing slots from signature
-        if( (maxLocals > 0 || variableTable == null) && size == baseSize && (method != null || signature != null )) {
+        if( (maxLocals > 0 || variableTable == null) && size == 0 && (method != null || signature != null )) {
             Iterator<AnyType> parser = signature == null ? new ValueTypeParser( method.getType(), types ) : signature;
             if( method != null && !method.isStatic() ) {
                 resetAddVar( ValueType.externref, size );
@@ -177,12 +170,12 @@ class LocaleVariableManager {
                 if( type == null ) {
                     break;
                 }
-                resetAddVar( type, size - baseSize );
+                resetAddVar( type, size );
             }
         }
 
         // add all missing slots that we can add self temporary variables
-        NEXT: for( int i = 0; i < maxLocals + baseSize; i++ ) {
+        NEXT: for( int i = 0; i < maxLocals; i++ ) {
             for( int j = 0; j < size; j++ ) {
                 Variable var = variables[j];
                 if( var.idx == i ) {

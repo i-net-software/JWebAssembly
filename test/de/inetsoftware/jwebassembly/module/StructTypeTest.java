@@ -18,6 +18,8 @@ package de.inetsoftware.jwebassembly.module;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +27,8 @@ import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.inetsoftware.classparser.BootstrapMethod;
+import de.inetsoftware.classparser.ConstantMethodRef;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.TypeManager.LambdaType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
@@ -104,7 +108,12 @@ public class StructTypeTest {
     @Test
     public void isSubTypeOf_Lambda() throws Throwable {
         StructType typeRunnable = manager.valueOf( "java/lang/Runnable" );
-        LambdaType lambda = manager.lambdaType( "typeName", new ArrayList(), typeRunnable, new FunctionName( "", "", "" ), "run" );
+
+        ConstantMethodRef implMethod = mock( ConstantMethodRef.class );
+        when( implMethod.getName() ).thenReturn( "" );
+        BootstrapMethod method = mock( BootstrapMethod.class );
+        when( method.getImplMethod() ).thenReturn( implMethod );
+        LambdaType lambda = manager.lambdaType( method, new ArrayList(), typeRunnable, "run" );
 
         assertTrue( lambda.isSubTypeOf( typeRunnable ) );
         assertFalse( typeRunnable.isSubTypeOf( lambda ) );

@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,9 +33,11 @@ import java.util.function.ToIntFunction;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ClassFile.Type;
 import de.inetsoftware.classparser.ConstantClass;
+import de.inetsoftware.classparser.ConstantMethodRef;
 import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
@@ -43,8 +46,10 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.LittleEndianOutputStream;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
+import de.inetsoftware.jwebassembly.wasm.StructOperator;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
+import de.inetsoftware.jwebassembly.watparser.WatParser;
 
 /**
  * Manage the written and to write types (classes)
@@ -374,22 +379,24 @@ public class TypeManager {
     /**
      * Create a lambda type
      * 
-     * @param typeName
-     *            the name (className) of the lambda class
+     * @param method
+     *            the name BootstrapMethod from the parsed class file
      * @param params
      *            the parameters of the constructor and type fields
      * @param interfaceType
      *            the implemented interface
-     * @param methodName
-     *            the real method in the parent class that implements the lambda expression
      * @param interfaceMethodName
      *            the name of the implemented method in the interface
      * @return the type
      */
-    LambdaType lambdaType( String typeName, ArrayList<AnyType> params, StructType interfaceType, FunctionName methodName, String interfaceMethodName ) {
+    LambdaType lambdaType( @Nonnull BootstrapMethod method, ArrayList<AnyType> params, StructType interfaceType, String interfaceMethodName ) {
+        ConstantMethodRef implMethod = method.getImplMethod();
+        FunctionName methodName = new FunctionName( implMethod );
+        String typeName = implMethod.getClassName() + "$$" + implMethod.getName() + "/" + Math.abs( implMethod.getName().hashCode() );
+
         LambdaType type = (LambdaType)structTypes.get( typeName );
         if( type == null ) {
-            type = new LambdaType( typeName, params, interfaceType, methodName, interfaceMethodName, this );
+            type = new LambdaType( typeName, method, params, interfaceType, methodName, interfaceMethodName, this );
 
             structTypes.put( typeName, type );
         }
@@ -1149,26 +1156,64 @@ public class TypeManager {
          * 
          * @param name
          *            the Lambda Java class name
+         * @param method
+         *            the name BootstrapMethod from the parsed class file
          * @param params
          *            the parameters of the constructor and type fields
          * @param interfaceType
          *            the implemented interface type
-         * @param methodName
+         * @param syntheticLambdaFunctionName
          *            the real method in the parent class that implements the lambda expression
          * @param interfaceMethodName
          *            the name of the implemented method in the interface
          * @param manager
          *            the manager which hold all StructTypes
          */
-        LambdaType( String name, ArrayList<AnyType> params, StructType interfaceType, FunctionName methodName, String interfaceMethodName, TypeManager manager ) {
+        LambdaType( @Nonnull String name, @Nonnull BootstrapMethod method, ArrayList<AnyType> params, StructType interfaceType, FunctionName syntheticLambdaFunctionName, String interfaceMethodName, @Nonnull TypeManager manager ) {
             super( name, StructTypeKind.lambda, manager );
             this.paramFields = new ArrayList<>( params.size() );
             for( int i = 0; i < params.size(); i++ ) {
                 paramFields.add( new NamedStorageType( params.get( i ), "", "arg$" + (i+1) ) );
             }
             this.interfaceType = interfaceType;
-            this.methodName = methodName;
             this.interfaceMethodName = interfaceMethodName;
+
+            methodName = new SyntheticFunctionName( name, interfaceMethodName, method.getSamMethodType() ) {
+                @Override
+                protected boolean hasWasmCode() {
+                    return true;
+                }
+                @Override
+                protected boolean istStatic() {
+                    return false;
+                }
+                @Override
+                protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
+                    WasmCodeBuilder codebuilder = watParser;
+                    ArrayList<AnyType> sig = new ArrayList<>();
+                    sig.add( LambdaType.this );
+                    for( Iterator<AnyType> it = getSignature( manager ); it.hasNext(); ) {
+                        sig.add( it.next() );
+                    }
+                    watParser.reset( null, null, sig.iterator() );
+
+                    for( int i = 1; i < sig.size(); i++ ) {
+                        AnyType anyType = sig.get( i );
+                        if( anyType == null ) {
+                            break;
+                        }
+                        codebuilder.addLoadStoreInstruction( anyType, true, i, 0, -1 );
+                    }
+
+                    for( int i = 0; i < paramFields.size(); i++ ) {
+                        codebuilder.addLoadStoreInstruction( LambdaType.this, true, 0, 0, -1 );
+                        codebuilder.addStructInstruction( StructOperator.GET, name, paramFields.get( i ), 0, -1 );
+                    }
+
+                    codebuilder.addCallInstruction( syntheticLambdaFunctionName, 0, -1 );
+                    return watParser;
+                }
+            };
         }
 
         /**
@@ -1194,6 +1239,7 @@ public class TypeManager {
          * 
          * @return the function name
          */
+        @Nonnull
         FunctionName getLambdaMethod() {
             return methodName;
         }

@@ -59,6 +59,16 @@ public class BootstrapMethod {
     }
 
     /**
+     * Signature and return type of method to be implemented by the function object.
+     * 
+     * @see java.lang.invoke.LambdaMetafactory#metafactory parameter samMethodType
+     * @return the signature
+     */
+    public String getSamMethodType() {
+        return samMethodType;
+    }
+
+    /**
      * The real method in the parent class that implements the lambda expression
      * 
      * @return the method
