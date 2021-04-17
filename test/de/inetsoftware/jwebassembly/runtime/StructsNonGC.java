@@ -71,6 +71,8 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "callParameterFromCondition" );
             addParam( list, script, "lambda0" );
             addParam( list, script, "lambda1" );
+            addParam( list, script, "lambda2" );
+            addParam( list, script, "lambda3" );
         }
         rule.setTestParameters( list );
         return list;
@@ -258,6 +260,21 @@ public class StructsNonGC extends AbstractBaseTest {
         @Export
         static int lambda1() {
             IntUnaryOperator val = (x) -> x;
+            return val.applyAsInt( 13 );
+        }
+
+        @Export
+        static int lambda2() {
+            int v1 = 42;
+            IntUnaryOperator val = (x) -> x + v1;
+            return val.applyAsInt( 13 );
+        }
+
+        @Export
+        static int lambda3() {
+            int v1 = 42;
+            int v2 = 7;
+            IntUnaryOperator val = (x) -> x + v2 + v1;
             return val.applyAsInt( 13 );
         }
     }
