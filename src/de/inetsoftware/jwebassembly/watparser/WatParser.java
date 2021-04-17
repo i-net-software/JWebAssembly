@@ -234,7 +234,7 @@ public class WatParser extends WasmCodeBuilder {
                             } while ( !")".equals( str ) );
                             builder.append( get( tokens, ++i ) );
                             FunctionName name = new FunctionName( builder.substring( 1 ) );
-                            addCallInstruction( name, javaCodePos, lineNumber );
+                            addCallInstruction( name, false, javaCodePos, lineNumber );
                         } catch( Exception ex ) {
                             throw WasmException.create( "The syntax for a function name is $package.ClassName.methodName(paramSignature)returnSignature", ex );
                         }

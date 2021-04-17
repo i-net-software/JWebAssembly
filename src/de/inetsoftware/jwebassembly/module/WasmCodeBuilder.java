@@ -477,7 +477,7 @@ public abstract class WasmCodeBuilder {
             Integer id = types.valueOf( className ).getClassIndex();
             FunctionName name = types.getClassConstantFunction();
             instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
-            addCallInstruction( name, javaCodePos, lineNumber );
+            addCallInstruction( name, false, javaCodePos, lineNumber );
         } else {
             //TODO There can be ConstantClass, MethodType and MethodHandle
             throw new WasmException( "Class constants are not supported. : " + value, lineNumber );
@@ -520,7 +520,7 @@ public abstract class WasmCodeBuilder {
         WasmNumericInstruction numeric = new WasmNumericInstruction( numOp, valueType, javaCodePos, lineNumber );
         instructions.add( numeric );
         if( !options.useGC() && options.ref_eq == null && (numOp == NumericOperator.ref_eq || numOp == NumericOperator.ref_ne ) ) {
-            functions.markAsNeeded( options.ref_eq = getNonGC( "ref_eq", lineNumber ) );
+            functions.markAsNeeded( options.ref_eq = getNonGC( "ref_eq", lineNumber ), false );
         }
         return numeric;
     }
@@ -549,9 +549,8 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addCallInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        name = functions.markAsNeeded( name );
-        boolean needThisParameter = functions.needThisParameter( name );
+    protected void addCallInstruction( FunctionName name, boolean needThisParameter, int javaCodePos, int lineNumber ) {
+        name = functions.markAsNeeded( name, needThisParameter );
         WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types, needThisParameter );
 
         if( "<init>".equals( name.methodName ) ) {
@@ -642,7 +641,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallVirtualInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        name = functions.markAsNeeded( name );
+        name = functions.markAsNeeded( name, true );
         addCallIndirectInstruction( new WasmCallVirtualInstruction( name, javaCodePos, lineNumber, types, options ) );
         options.getCallVirtual(); // mark the function as needed
         functions.markClassAsUsed( name.className );
@@ -658,7 +657,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addCallInterfaceInstruction( FunctionName name, int javaCodePos, int lineNumber ) {
-        name = functions.markAsNeeded( name );
+        name = functions.markAsNeeded( name, true );
         addCallIndirectInstruction( new WasmCallInterfaceInstruction( name, javaCodePos, lineNumber, types, options ) );
         options.getCallInterface(); // mark the function as needed
         functions.markClassAsUsed( name.className );
@@ -773,7 +772,7 @@ public abstract class WasmCodeBuilder {
         instructions.add( arrayInst );
         SyntheticFunctionName name = arrayInst.createNonGcFunction( useGC );
         if( name != null ) {
-            functions.markAsNeeded( name );
+            functions.markAsNeeded( name, !name.istStatic() );
             functions.markAsImport( name, name.getAnnotation() );
         }
     }
@@ -809,7 +808,7 @@ public abstract class WasmCodeBuilder {
      */
     protected void addMultiNewArrayInstruction( int dim, ArrayType type, int javaCodePos, int lineNumber ) {
         MultiArrayFunctionName name = new MultiArrayFunctionName( dim, type );
-        addCallInstruction( name, javaCodePos, lineNumber );
+        addCallInstruction( name, false, javaCodePos, lineNumber );
     }
 
     /**
@@ -846,7 +845,7 @@ public abstract class WasmCodeBuilder {
                 if( !options.useGC() ) {
                     SyntheticFunctionName name = structInst.createNonGcFunction();
                     if( name != null ) {
-                        functions.markAsNeeded( name );
+                        functions.markAsNeeded( name, !name.istStatic() );
                         functions.markAsImport( name, name.getAnnotation() );
                     }
                 }
@@ -881,7 +880,7 @@ public abstract class WasmCodeBuilder {
         } while( true );
         StructType interfaceType = (StructType)parser.next();
         LambdaType type = types.lambdaType( method, params, interfaceType, interfaceMethodName );
-        functions.markAsNeeded( type.getLambdaMethod() );
+        functions.markAsNeeded( type.getLambdaMethod(), true );
         String lambdaTypeName = type.getName();
 
         // Create the instance of the synthetic lambda class and save the parameters in fields  

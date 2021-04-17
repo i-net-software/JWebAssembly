@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2020 Volker Berlin (i-net software)
+ * Copyright 2018 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,7 @@ class FunctionManager {
             states.remove( name );
             states.put( name, state );
         }
-        markAsNeeded( name );
+        markAsNeeded( name, !name.istStatic() );
     }
 
     /**
@@ -143,15 +143,18 @@ class FunctionManager {
      * 
      * @param name
      *            the function name
+     * @param needThisParameter
+     *            if this function need additional to the parameter of the signature an extra "this" parameter
      * @return the real function name
      */
-    FunctionName markAsNeeded( @Nonnull FunctionName name ) {
+    FunctionName markAsNeeded( @Nonnull FunctionName name, boolean needThisParameter ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
             if( isFinish ) {
                 throw new WasmException( "Prepare was already finish: " + name.signatureName, -1 );
             }
             state.state = State.Needed;
+            state.needThisParameter = needThisParameter;
             JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );
             usedClasses.add( name.className );
         }
@@ -163,10 +166,8 @@ class FunctionManager {
      * 
      * @param name
      *            the function name
-     * @param needThisParameter
-     *            if this function need additional to the parameter of the signature an extra "this" parameter
      */
-    void markAsScanned( @Nonnull FunctionName name, boolean needThisParameter ) {
+    void markAsScanned( @Nonnull FunctionName name ) {
         FunctionState state = getOrCreate( name );
         switch( state.state ) {
             case None:
@@ -174,7 +175,6 @@ class FunctionManager {
                 state.state = State.Scanned;
                 break;
         }
-        state.needThisParameter = needThisParameter;
     }
 
     /**

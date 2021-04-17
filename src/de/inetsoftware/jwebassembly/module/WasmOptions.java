@@ -126,7 +126,7 @@ public class WasmOptions {
         if( get_i32 == null ) {
             SyntheticFunctionName name;
             get_i32 = name = new JavaScriptSyntheticFunctionName( "NonGC", "get_i32", () -> "(a,i) => a[i]", ValueType.externref, ValueType.i32, null, ValueType.i32 );
-            functions.markAsNeeded( name );
+            functions.markAsNeeded( name, !name.istStatic() );
             functions.markAsImport( name, name.getAnnotation() );
         }
     }
@@ -142,7 +142,7 @@ public class WasmOptions {
         FunctionName name = callVirtual;
         if( name == null ) {
             callVirtual = name = types.createCallVirtual();
-            functions.markAsNeeded( name );
+            functions.markAsNeeded( name, false );
             registerGet_i32();
         }
         return name;
@@ -159,7 +159,7 @@ public class WasmOptions {
         FunctionName name = callInterface;
         if( name == null ) {
             callInterface = name = types.createCallInterface();
-            functions.markAsNeeded( name );
+            functions.markAsNeeded( name, false );
             registerGet_i32();
         }
         return name;
@@ -176,7 +176,7 @@ public class WasmOptions {
         SyntheticFunctionName name = instanceOf;
         if( name == null ) {
             instanceOf = name = types.createInstanceOf();
-            functions.markAsNeeded( name );
+            functions.markAsNeeded( name, !name.istStatic() );
             registerGet_i32();
         }
         return name;
@@ -193,7 +193,7 @@ public class WasmOptions {
         SyntheticFunctionName name = cast;
         if( name == null ) {
             cast = name = types.createCast();
-            functions.markAsNeeded( name );
+            functions.markAsNeeded( name, !name.istStatic() );
             getInstanceOf();
         }
         return name;

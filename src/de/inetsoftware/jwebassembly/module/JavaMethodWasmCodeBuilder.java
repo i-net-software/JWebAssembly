@@ -362,14 +362,14 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 108: // idiv
                         if( getOptions().useEH() ) {
-                            addCallInstruction( new FunctionName( "de/inetsoftware/jwebassembly/module/WasmEmbbeddedCode", "idiv", "(II)I" ), codePos, lineNumber );
+                            addCallInstruction( new FunctionName( "de/inetsoftware/jwebassembly/module/WasmEmbbeddedCode", "idiv", "(II)I" ), false, codePos, lineNumber );
                         } else {
                             addNumericInstruction( NumericOperator.div, ValueType.i32, codePos, lineNumber );
                         }
                         break;
                     case 109: // ldiv
                         if( getOptions().useEH() ) {
-                            addCallInstruction( new FunctionName( "de/inetsoftware/jwebassembly/module/WasmEmbbeddedCode", "ldiv", "(JJ)J" ), codePos, lineNumber );
+                            addCallInstruction( new FunctionName( "de/inetsoftware/jwebassembly/module/WasmEmbbeddedCode", "ldiv", "(JJ)J" ), false, codePos, lineNumber );
                         } else {
                             addNumericInstruction( NumericOperator.div, ValueType.i64, codePos, lineNumber );
                         }
@@ -388,11 +388,11 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 114: // frem
                         //helper function like: (a - (int)(a / b) * (float)b) 
-                        addCallInstruction( new WatCodeSyntheticFunctionName( "frem", "local.get 0 local.get 0 local.get 1 f32.div i32.trunc_sat_f32_s f32.convert_i32_s local.get 1 f32.mul f32.sub return", ValueType.f32, ValueType.f32, null, ValueType.f32 ), codePos, lineNumber );
+                        addCallInstruction( new WatCodeSyntheticFunctionName( "frem", "local.get 0 local.get 0 local.get 1 f32.div i32.trunc_sat_f32_s f32.convert_i32_s local.get 1 f32.mul f32.sub return", ValueType.f32, ValueType.f32, null, ValueType.f32 ), false, codePos, lineNumber );
                         break;
                     case 115: // drem
                         //helper function like: (a - (long)(a / b) * (double)b) 
-                        addCallInstruction( new WatCodeSyntheticFunctionName( "drem", "local.get 0 local.get 0 local.get 1 f64.div i64.trunc_sat_f64_s f64.convert_i64_s local.get 1 f64.mul f64.sub return", ValueType.f64, ValueType.f64, null, ValueType.f64 ), codePos, lineNumber );
+                        addCallInstruction( new WatCodeSyntheticFunctionName( "drem", "local.get 0 local.get 0 local.get 1 f64.div i64.trunc_sat_f64_s f64.convert_i64_s local.get 1 f64.mul f64.sub return", ValueType.f64, ValueType.f64, null, ValueType.f64 ), false, codePos, lineNumber );
                         break;
                     case 116: // ineg
                         addConstInstruction( -1, ValueType.i32, codePos, lineNumber );
@@ -621,10 +621,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 addCallVirtualInstruction( funcName, codePos, lineNumber );
                                 break;
                             case 183:
-                                addCallInstruction( funcName, codePos, lineNumber );
+                                addCallInstruction( funcName, true, codePos, lineNumber );
                                 break;
                             case 184:
-                                addCallInstruction( funcName, codePos, lineNumber );
+                                addCallInstruction( funcName, false, codePos, lineNumber );
                                 break;
                             case 185:
                                 addCallInterfaceInstruction( funcName, codePos, lineNumber );

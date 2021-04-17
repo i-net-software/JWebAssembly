@@ -254,7 +254,7 @@ public class TypeManager {
                                 return "i32.const " + typeTableOffset;
                             }
                         };
-        options.functions.markAsNeeded( offsetFunction );
+        options.functions.markAsNeeded( offsetFunction, !offsetFunction.istStatic() );
         return offsetFunction;
     }
 
@@ -804,7 +804,7 @@ public class TypeManager {
                 if( func.methodName.equals( funcName.methodName ) && func.signature.equals( funcName.signature ) ) {
                     if( !isDefault || functions.getITableIndex( func ) >= 0 ) {
                         vtable.set( idx, funcName ); // use the override method
-                        functions.markAsNeeded( funcName ); // mark all overridden methods also as needed if the super method is used
+                        functions.markAsNeeded( funcName, true ); // mark all overridden methods also as needed if the super method is used
                     }
                     break;
                 }
@@ -891,7 +891,7 @@ public class TypeManager {
 
                         if( method != null ) {
                             FunctionName methodName = new FunctionName( method );
-                            functions.markAsNeeded( methodName );
+                            functions.markAsNeeded( methodName, !method.isStatic() );
                             if( iMethods == null ) {
                                 interfaceMethods.put( type, iMethods = new ArrayList<>() );
                             }
@@ -1210,7 +1210,7 @@ public class TypeManager {
                         codebuilder.addStructInstruction( StructOperator.GET, name, paramFields.get( i ), 0, -1 );
                     }
 
-                    codebuilder.addCallInstruction( syntheticLambdaFunctionName, 0, -1 );
+                    codebuilder.addCallInstruction( syntheticLambdaFunctionName, false, 0, -1 );
                     return watParser;
                 }
             };

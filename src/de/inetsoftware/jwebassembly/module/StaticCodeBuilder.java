@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Volker Berlin (i-net software)
+ * Copyright 2020 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ class StaticCodeBuilder {
 
                 while( !clinits.isEmpty() ) {
                     FunctionName name = clinits.pop();
-                    watParser.addCallInstruction( name, 0, -1 );
+                    watParser.addCallInstruction( name, false, 0, -1 );
                     scanAndPatchIfNeeded( name );
                 }
                 return watParser;

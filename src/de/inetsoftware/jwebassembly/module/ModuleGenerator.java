@@ -208,7 +208,7 @@ public class ModuleGenerator {
                 } else {
                     functions.markAsImport( synth, synth.getAnnotation() );
                 }
-                functions.markAsScanned( next, !synth.istStatic() );
+                functions.markAsScanned( next );
                 continue;
             }
 
@@ -224,11 +224,8 @@ public class ModuleGenerator {
             }
             if( method != null ) {
                 createInstructions( functions.replace( next, method ) );
-                boolean needThisParameter = !method.isStatic()                                         // if not static there is a not declared THIS parameter
-                                || "<init>".equals( method.getName() )                                 // constructor method need also the THIS parameter also if marked as static
-                                /*|| (method.isLambda() )*/;                                               // lambda functions are static but will call with a THIS parameter which need be removed from stack
-                functions.markAsScanned( next, needThisParameter );
-                if( needThisParameter ) {
+                functions.markAsScanned( next );
+                if( functions.needThisParameter( next ) ) {
                     types.valueOf( next.className ); // for the case that the type unknown yet
                 }
                 continue;
@@ -240,7 +237,7 @@ public class ModuleGenerator {
                 method = superClassFile.getMethod( next.methodName, next.signature );
                 if( method != null ) {
                     FunctionName name = new FunctionName( method );
-                    functions.markAsNeeded( name );
+                    functions.markAsNeeded( name, !method.isStatic() );
                     functions.setAlias( next, name );
                     continue NEXT; // we have found a super method
                 }
@@ -256,7 +253,7 @@ public class ModuleGenerator {
                     method = iClassFile.getMethod( next.methodName, next.signature );
                     if( method != null ) {
                         FunctionName name = new FunctionName( method );
-                        functions.markAsNeeded( name );
+                        functions.markAsNeeded( name, !method.isStatic() );
                         functions.setAlias( next, name );
                         continue NEXT; // we have found a super method
                     }
@@ -344,7 +341,7 @@ public class ModuleGenerator {
             if( classFile != null ) {
                 MethodInfo method = classFile.getMethod( "<clinit>", "()V" );
                 if( method != null ) {
-                    functions.markAsNeeded( new FunctionName( method ) );
+                    functions.markAsNeeded( new FunctionName( method ), false );
                 }
             }
         }
@@ -360,7 +357,7 @@ public class ModuleGenerator {
         // add the start function/section only if there are static code
         if( functions.getWriteLaterClinit().hasNext() ) {
             FunctionName start = new StaticCodeBuilder( writer.options, classFileLoader, javaCodeBuilder ).createStartFunction();
-            functions.markAsNeeded( start );
+            functions.markAsNeeded( start, false );
             writeMethodSignature( start, FunctionType.Start, null );
         }
     }
@@ -474,7 +471,7 @@ public class ModuleGenerator {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Export method must be static: " + name.fullName, -1 );
                 }
-                functions.markAsNeeded( name );
+                functions.markAsNeeded( name, false );
                 return;
             }
         } catch( Exception ioex ) {
