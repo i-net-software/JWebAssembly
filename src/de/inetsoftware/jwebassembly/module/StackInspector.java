@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 Volker Berlin (i-net software)
+   Copyright 2020 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -72,6 +72,8 @@ class StackInspector {
                         }
                         i--; // we are on the right position but the loop increment
                     }
+                } else {
+                    // TODO poCount == 1 means an ternary operator (Question mark operator). We should return the operator with the lowest level but not null (ValueType.eqref).
                 }
             }
         }
