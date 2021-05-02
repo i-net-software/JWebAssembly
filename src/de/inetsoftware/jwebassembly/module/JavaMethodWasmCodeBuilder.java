@@ -34,7 +34,6 @@ import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
-import de.inetsoftware.jwebassembly.wasm.ArrayType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.NumericOperator;
 import de.inetsoftware.jwebassembly.wasm.StructOperator;
@@ -164,7 +163,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addLoadStoreInstruction( ValueType.f64, true, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
                         break;
                     case 25: // aload
-                        addLoadStoreInstruction( ValueType.externref, true, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
+                        addLoadStoreInstruction( ValueType.eqref, true, byteCode.readUnsignedIndex( wide ), codePos, lineNumber );
                         break;
                     case 26: // iload_0
                     case 27: // iload_1
@@ -194,7 +193,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 43: //aload_1
                     case 44: //aload_2
                     case 45: //aload_3
-                        addLoadStoreInstruction( ValueType.externref, true, op - 42, codePos, lineNumber );
+                        addLoadStoreInstruction( ValueType.eqref, true, op - 42, codePos, lineNumber );
                         break;
                     case 46: // iaload
                         addArrayInstruction( ArrayOperator.GET, ValueType.i32, codePos, lineNumber );
@@ -209,8 +208,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.GET, ValueType.f64, codePos, lineNumber );
                         break;
                     case 50: // aaload
-                        AnyType storeType = findValueTypeFromStack( 2, codePos );
-                        addArrayInstruction( ArrayOperator.GET, ((ArrayType)storeType).getArrayType(), codePos, lineNumber );
+                        AnyType storeType = findArrayTypeFromStack( 2, codePos );
+                        addArrayInstruction( ArrayOperator.GET, storeType, codePos, lineNumber );
                         break;
                     case 51: // baload
                         addArrayInstruction( ArrayOperator.GET_S, ValueType.i8, codePos, lineNumber );
@@ -293,8 +292,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.SET, ValueType.f64, codePos, lineNumber );
                         break;
                     case 83: // aastore
-                        storeType = findValueTypeFromStack( 3, codePos );
-                        addArrayInstruction( ArrayOperator.SET, ((ArrayType)storeType).getArrayType(), codePos, lineNumber );
+                        storeType = findArrayTypeFromStack( 3, codePos );
+                        addArrayInstruction( ArrayOperator.SET, storeType, codePos, lineNumber );
                         break;
                     case 84: // bastore
                         addArrayInstruction( ArrayOperator.SET, ValueType.i8, codePos, lineNumber );
@@ -573,7 +572,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                     case 175: // dreturn
                     case 176: // areturn
                     case 177: // return void
-                        AnyType type = null;
+                        AnyType type;
                         switch( op ) {
                             case 172: // ireturn
                                 type = ValueType.i32;
@@ -590,6 +589,8 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                             case 176: // areturn
                                 type = getOptions().useGC() ? returnType : ValueType.externref;
                                 break;
+                            default:
+                                type = null;
                         }
                         addBlockInstruction( WasmBlockOperator.RETURN, type, codePos, lineNumber );
                         break;
@@ -684,7 +685,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         addArrayInstruction( ArrayOperator.NEW, type, codePos, lineNumber );
                         break;
                     case 190: // arraylength
-                        type = ((ArrayType)findValueTypeFromStack( 1, codePos )).getArrayType();
+                        type = findArrayTypeFromStack( 1, codePos );
                         addArrayInstruction( ArrayOperator.LEN, type, codePos, lineNumber );
                         break;
                     case 191: // athrow

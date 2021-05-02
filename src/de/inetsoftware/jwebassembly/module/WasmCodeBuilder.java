@@ -184,6 +184,32 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
+     * Find the array component type from stack.
+     * 
+     * @param count
+     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
+     * @param javaCodePos
+     *            current code position for which the stack is inspected
+     * @return
+     */
+    @Nonnull
+    AnyType findArrayTypeFromStack( int count, int javaCodePos ) {
+        StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions, count, javaCodePos );
+        AnyType type = stackValue.instr.getPushValueType();
+        if( type instanceof ArrayType ) {
+            return ((ArrayType)type).getArrayType();
+        }
+
+        if( stackValue.instr instanceof WasmLoadStoreInstruction ) {
+            int slot = ((WasmLoadStoreInstruction)stackValue.instr).getSlot();
+            ArrayType arrayType = types.arrayType( types.valueOf( "java/lang/Object" ) );
+            localVariables.use( arrayType, slot, javaCodePos );
+            return arrayType.getArrayType();
+        }
+        return ValueType.eqref;
+    }
+
+    /**
      * Find the instruction that push the x-th value to the stack.
      * 
      * @param count
