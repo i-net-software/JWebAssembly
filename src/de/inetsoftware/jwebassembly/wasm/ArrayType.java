@@ -167,7 +167,7 @@ public class ArrayType extends StructType {
      */
     @Override
     public boolean isSubTypeOf( AnyType type ) {
-        if( type == this || type == ValueType.externref ) {
+        if( type == this || type == ValueType.externref || type == ValueType.anyref || type == ValueType.eqref ) {
             return true;
         }
         if( !(type instanceof StructType) ) {
