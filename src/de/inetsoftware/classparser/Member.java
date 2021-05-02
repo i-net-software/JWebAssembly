@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public interface Member {
     String getName();
 
     /**
-     * The class name of the declaring class.
+     * The class name of the declaring class like "java/lang/Object".
      * 
      * @return the class name
      */
