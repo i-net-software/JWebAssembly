@@ -29,6 +29,8 @@ import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_I
 import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_TYPE_NAME;
 import static de.inetsoftware.jwebassembly.module.TypeManager.VOID;
 
+import java.lang.reflect.Method;
+
 import de.inetsoftware.jwebassembly.api.annotation.Replace;
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 import de.inetsoftware.jwebassembly.module.TypeManager;
@@ -191,12 +193,24 @@ class ReplacementForClass {
     }
 
     /**
+     * Replacement of the Java methods getSuperclass()
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    native Class getSuperclass();
+
+    /**
      * Replacement of the native Java methods getComponentType()
      */
     ReplacementForClass getComponentType() {
         int classIdx = getIntFromMemory( vtable + TYPE_DESCRIPTION_ARRAY_TYPE );
         return classIdx >= 0 ? classConstant( classIdx ) : null;
     }
+
+    /**
+     * Replacement of the Java methods getDeclaredMethod()
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    native Method getDeclaredMethod(String name, Class<?>... parameterTypes);
 
     /**
      * Replacement of the native Java methods
