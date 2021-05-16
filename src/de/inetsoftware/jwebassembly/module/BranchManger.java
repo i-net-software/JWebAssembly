@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2020 Volker Berlin (i-net software)
+   Copyright 2018 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
-import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -434,16 +433,32 @@ class BranchManger {
      * @return the calculated positions
      */
     private IfPositions searchElsePosition( IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
+        int parsedOpCount = parsedOperations.size();
+
         // find the end position of the else block
         int endElse = startBlock.endPosition;
-        int parsedOpCount = parsedOperations.size();
+        boolean newElsePositionFound = true;
+        LOOP:
         for( int i = 0; i < parsedOpCount; i++ ) {
-            ParsedBlock parsedBlock = parsedOperations.get( i );
+            ParsedBlock parsedBlock;
+            if( newElsePositionFound ) {
+                newElsePositionFound = false;
+                for( int j = i; j < parsedOpCount; j++ ) {
+                    parsedBlock = parsedOperations.get( j );
+                    if( parsedBlock.op == JavaBlockOperator.GOTO ) {
+                        if( parsedBlock.nextPosition == endElse ) {
+                            break LOOP;
+                        }
+                    }
+                }
+            }
+            parsedBlock = parsedOperations.get( i );
             switch( parsedBlock.op ) {
                 case IF:
                 case GOTO:
-                    if( parsedBlock.startPosition < endElse ) {
-                        endElse = Math.max( endElse, parsedBlock.endPosition );
+                    if( parsedBlock.startPosition < endElse && endElse < parsedBlock.endPosition ) {
+                        endElse = parsedBlock.endPosition;
+                        newElsePositionFound = true;
                     }
                     break;
             }

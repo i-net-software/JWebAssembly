@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2020 Volker Berlin (i-net software)
+ * Copyright 2018 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifWithoutElseAndLoop" );
             addParam( list, script, "ifOrWithMulti" );
             addParam( list, script, "ifMultipleInsideThen" );
+            addParam( list, script, "ifWithConditionalInsideThen" );
             addParam( list, script, "stringSwitchNormalFoo" );
             addParam( list, script, "stringSwitchNormalBar" );
             addParam( list, script, "stringSwitchNormalDefault" );
@@ -543,6 +544,20 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 result = 4;
             }
             return result;
+        }
+
+        @Export
+        static int ifWithConditionalInsideThen() throws CloneNotSupportedException {
+            int val = 42;
+            int result = 0;
+            if( val > 20 ) {
+                if( val > 21 ) {
+                    result = val == 42 ? 4 : 5;
+                }
+            } else {
+                result = 3;
+            }
+            return result + 13;
         }
 
         @Export
