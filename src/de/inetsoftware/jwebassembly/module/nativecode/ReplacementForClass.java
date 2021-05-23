@@ -172,6 +172,16 @@ class ReplacementForClass<T> {
     private static native int getIntFromMemory( int pos );
 
     /**
+     * Replacement of the Java methods isInstance()
+     * 
+     * @param obj
+     *            the object to check
+     * @return true if {@code obj} is an instance of this class
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native boolean isInstance( Object obj );
+
+    /**
      * Replacement of the Java methods isArray()
      * @return {@code true} if this object represents an array class;
      */
@@ -231,6 +241,35 @@ class ReplacementForClass<T> {
     public ReplacementForClass<?> getComponentType() {
         int classIdx = getIntFromMemory( vtable + TYPE_DESCRIPTION_ARRAY_TYPE );
         return classIdx >= 0 ? classConstant( classIdx ) : null;
+    }
+
+    /**
+     * Replacement of the Java methods getSimpleName()
+     * 
+     * @return the simple name of the underlying class
+     */
+    public String getSimpleName() {
+        if( isArray() )
+            return getComponentType().getSimpleName() + "[]";
+
+        String simpleName = getName();
+        int index = simpleName.lastIndexOf( "$" ) + 1;
+        if( index == 0 ) { // top level class
+            return simpleName.substring( simpleName.lastIndexOf( "." ) + 1 ); // strip the package name
+        }
+
+        // Remove leading "\$[0-9]*" from the name
+        int length = simpleName.length();
+        while( index < length ) {
+            char ch = simpleName.charAt( index );
+            if( '0' <= ch && ch <= '9' ) {
+                index++;
+            } else  {
+                break;
+            }
+        }
+        // Eventually, this is the empty string iff this is an anonymous class
+        return simpleName.substring( index );
     }
 
     /**
