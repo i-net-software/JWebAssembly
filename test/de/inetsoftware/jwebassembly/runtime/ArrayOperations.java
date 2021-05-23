@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,8 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "booleanArrayComponentTypeClassName" );
             addParam( list, script, "objectArrayComponentTypeClassName" );
             addParam( list, script, "arrayNewInstance_getLength" );
+            addParam( list, script, "isArrayOfArray" );
+            addParam( list, script, "isArrayOfObject" );
         }
         rule.setTestParameters( list );
         return list;
@@ -327,6 +329,20 @@ public class ArrayOperations extends AbstractBaseTest {
         static int arrayNewInstance_getLength() {
             Object obj = Array.newInstance( byte.class, 42 );
             return Array.getLength( obj );
+        }
+
+        @Export
+        static boolean isArrayOfArray() {
+            Object obj = new Object[42];
+            Class<?> clazz = obj.getClass();
+            return clazz.isArray();
+        }
+
+        @Export
+        static boolean isArrayOfObject() {
+            Object obj = new Object();
+            Class<?> clazz = obj.getClass();
+            return clazz.isArray();
         }
     }
 }

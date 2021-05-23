@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 Volker Berlin (i-net software)
+   Copyright 2020 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import de.inetsoftware.jwebassembly.module.TypeManager;
 /**
  * Replacement for java.lang.Class
  *
+ * @param <T> the type of the class modeled by this {@code Class}
  * @author Volker Berlin
  */
 @Replace( "java/lang/Class" )
@@ -57,15 +58,6 @@ class ReplacementForClass<T> {
      */
     private ReplacementForClass( int vtable ) {
         this.vtable = vtable;
-    }
-
-    /**
-     * Replacement for {@link Class#getName()}
-     * 
-     * @return the name
-     */
-    public String getName() {
-        return StringTable.stringConstant( getIntFromMemory( vtable + TYPE_DESCRIPTION_TYPE_NAME ) );
     }
 
     /**
@@ -180,6 +172,24 @@ class ReplacementForClass<T> {
     private static native int getIntFromMemory( int pos );
 
     /**
+     * Replacement of the Java methods isArray()
+     * @return {@code true} if this object represents an array class;
+     */
+    public boolean isArray() {
+        int classIdx = getIntFromMemory( vtable + TYPE_DESCRIPTION_ARRAY_TYPE );
+        return classIdx >= 0;
+    }
+
+    /**
+     * Replacement for {@link Class#getName()}
+     * 
+     * @return the name
+     */
+    public String getName() {
+        return StringTable.stringConstant( getIntFromMemory( vtable + TYPE_DESCRIPTION_TYPE_NAME ) );
+    }
+
+    /**
      * Replacement of the Java methods
      */
     public ClassLoader getClassLoader() {
@@ -187,7 +197,7 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the Java methods
+     * Replacement of the Java methods getClassLoader0()
      */
     ClassLoader getClassLoader0() {
         return null;
