@@ -20,6 +20,8 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -42,6 +44,7 @@ class StackInspector {
      *            the current code position, important to follow jumps in the code
      * @return details of the stack position
      */
+    @Nonnull
     static StackValue findInstructionThatPushValue( List<WasmInstruction> instructions, int count, int javaCodePos ) {
         // because there can be jumps (GOTO) we can analyze the stack only forward. If we iterate backward we will not see that we are in a jump.
         ArrayDeque<StackValue> stack = new ArrayDeque<>();

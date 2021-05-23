@@ -310,7 +310,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         break;
                     case 89: // dup: duplicate the value on top of the stack
                     case 92: // dup2
-                        addDupInstruction( codePos, lineNumber );
+                        addDupInstruction( op == 92, codePos, lineNumber );
                         break;
                     case 90: // dup_x1
                     case 93: // dup2_x1

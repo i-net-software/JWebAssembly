@@ -218,6 +218,7 @@ public abstract class WasmCodeBuilder {
      *            current code position for which the stack is inspected
      * @return the instruction
      */
+    @Nonnull
     private WasmInstruction findInstructionThatPushValue( int count, int javaCodePos ) {
         return StackInspector.findInstructionThatPushValue( instructions, count, javaCodePos ).instr;
     }
@@ -332,36 +333,62 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
-     * Create a WasmDupInstruction.
+     * Get a possible slot from the instruction
      * 
-     * @param javaCodePos
-     *            the code position/offset in the Java method
-     * @param lineNumber
-     *            the line number in the Java source code
+     * @param instr
+     *            the instruction
+     * @return the slot or -1 if there no slot
      */
-    protected void addDupInstruction( int javaCodePos, int lineNumber ) {
-        WasmInstruction instr = findInstructionThatPushValue( 1, javaCodePos );
-        AnyType type = instr.getPushValueType();
-        int slot = -1;
+    private static int getPossibleSlot( @Nonnull WasmInstruction instr ) {
         // if it is a GET to a local variable then we can use it
         if( instr.getType() == Type.Local ) {
             WasmLocalInstruction local1 = (WasmLocalInstruction)instr;
             switch( local1.getOperator() ) {
                 case get:
                 case tee:
-                    slot = local1.getSlot();
-                    break;
+                    return local1.getSlot();
                 default:
             }
         }
+        return -1;
+    }
+
+    /**
+     * Create a WasmDupInstruction.
+     * 
+     * @param dup2
+     *            call from dup2 instruction
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addDupInstruction( boolean dup2, int javaCodePos, int lineNumber ) {
+        WasmInstruction instr = findInstructionThatPushValue( 1, javaCodePos );
+        AnyType type = instr.getPushValueType();
+        int slot = getPossibleSlot( instr );
+
+        // occur with:
+        // int[] data = new int[x];
+        // data[i] |= any;
+        instr = dup2 && type != ValueType.i64 && type != ValueType.f64 ? //
+                        findInstructionThatPushValue( 2, javaCodePos ) : null;
+
         //alternate we need to create a new locale variable
         if( slot < 0 ) {
+            if( instr != null ) {
+                throw new WasmException( "DUP2 for two slots without variables", lineNumber );
+            }
             slot = getTempVariable( type, javaCodePos, javaCodePos + 1 );
             instructions.add( new WasmLoadStoreInstruction( VariableOperator.tee, slot, localVariables, javaCodePos, lineNumber ) );
             instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
             // an alternative solution can be a function call with multiple return values but this seems to be slower
             // new SyntheticFunctionName( "dup" + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber )
         } else {
+            if( instr != null ) {
+                int slot2 = getPossibleSlot( instr );
+                instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot2, localVariables, javaCodePos, lineNumber ) );
+            }
             instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
             localVariables.expandUse( slot, javaCodePos );
         }
@@ -861,7 +888,7 @@ public abstract class WasmCodeBuilder {
                 break;
             case NEW_DEFAULT:
                 if( options.useGC() ) {
-                    addDupInstruction( javaCodePos, lineNumber );
+                    addDupInstruction( false, javaCodePos, lineNumber );
                     addConstInstruction( structInst.getStructType().getVTable(), javaCodePos, lineNumber );
                     instructions.add( new WasmStructInstruction( StructOperator.SET, typeName, new NamedStorageType( ValueType.i32, "", TypeManager.FIELD_VTABLE ), javaCodePos, lineNumber, types ) );
                     break;
@@ -920,7 +947,7 @@ public abstract class WasmCodeBuilder {
             int pos = instructions.size();
             addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
             if( !options.useGC() ) {
-                addDupInstruction( javaCodePos, lineNumber );
+                addDupInstruction( false, javaCodePos, lineNumber );
             }
             int slot =  ((WasmLocalInstruction)findInstructionThatPushValue( 1, javaCodePos )).getSlot();
 

@@ -63,6 +63,7 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "loopObject" );
             addParam( list, script, "copyBack2Front" );
             addParam( list, script, "copyFront2Back" );
+            addParam( list, script, "dup2" );
             addParam( list, script, "dup_x2" );
             addParam( list, script, "byteArrayClassName" );
             addParam( list, script, "shortArrayClassName" );
@@ -210,6 +211,18 @@ public class ArrayOperations extends AbstractBaseTest {
             CRC32 crc = new CRC32();
             crc.update( a );
             return crc.getValue();
+        }
+
+        @Export
+        static int dup2() {
+            int[] data = {1,2,3};
+            int sum = 0;
+
+            for( int i = 0; i < data.length; i++ ) {
+                data[i] |= 13; // use dup2 to duplicate the array and the index
+                sum += data[i];
+            }
+            return sum;
         }
 
         @Export
