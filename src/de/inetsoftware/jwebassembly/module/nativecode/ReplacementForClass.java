@@ -30,6 +30,7 @@ import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_T
 import static de.inetsoftware.jwebassembly.module.TypeManager.VOID;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import de.inetsoftware.jwebassembly.api.annotation.Replace;
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
@@ -197,6 +198,22 @@ class ReplacementForClass<T> {
      */
     @WasmTextCode( "unreachable" ) // TODO
     public native Class<? super T> getSuperclass();
+
+    /**
+     * Replacement of the Java methods getInterfaces()
+     * @return an array of interfaces implemented by this class.
+     */
+    public Class<?>[] getInterfaces() { //TODO
+        return new Class<?>[0];
+    }
+
+    /**
+     * Replacement of the Java methods getGenericInterfaces()
+     * @return an array of interfaces implemented by this class
+     */
+    public Type[] getGenericInterfaces() { // TODO
+        return getInterfaces();
+    }
 
     /**
      * Replacement of the native Java methods getComponentType()
