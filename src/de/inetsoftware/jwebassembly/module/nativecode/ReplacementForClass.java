@@ -41,7 +41,7 @@ import de.inetsoftware.jwebassembly.module.TypeManager;
  * @author Volker Berlin
  */
 @Replace( "java/lang/Class" )
-class ReplacementForClass {
+class ReplacementForClass<T> {
 
     /**
      * The pointer in the memory for the class/type description.
@@ -63,7 +63,7 @@ class ReplacementForClass {
      * 
      * @return the name
      */
-    String getName() {
+    public String getName() {
         return StringTable.stringConstant( getIntFromMemory( vtable + TYPE_DESCRIPTION_TYPE_NAME ) );
     }
 
@@ -181,7 +181,7 @@ class ReplacementForClass {
     /**
      * Replacement of the Java methods
      */
-    ClassLoader getClassLoader() {
+    public ClassLoader getClassLoader() {
         return null;
     }
 
@@ -196,12 +196,12 @@ class ReplacementForClass {
      * Replacement of the Java methods getSuperclass()
      */
     @WasmTextCode( "unreachable" ) // TODO
-    native Class getSuperclass();
+    public native Class<? super T> getSuperclass();
 
     /**
      * Replacement of the native Java methods getComponentType()
      */
-    ReplacementForClass getComponentType() {
+    public ReplacementForClass<?> getComponentType() {
         int classIdx = getIntFromMemory( vtable + TYPE_DESCRIPTION_ARRAY_TYPE );
         return classIdx >= 0 ? classConstant( classIdx ) : null;
     }
@@ -210,7 +210,7 @@ class ReplacementForClass {
      * Replacement of the Java methods getDeclaredMethod()
      */
     @WasmTextCode( "unreachable" ) // TODO
-    native Method getDeclaredMethod(String name, Class<?>... parameterTypes);
+    public native Method getDeclaredMethod(String name, Class<?>... parameterTypes);
 
     /**
      * Replacement of the native Java methods
@@ -220,7 +220,7 @@ class ReplacementForClass {
      * @return the class
      * @see TypeManager#PRIMITIVE_CLASSES
      */
-    static ReplacementForClass getPrimitiveClass( String name ) {
+    static ReplacementForClass<?> getPrimitiveClass( String name ) {
         switch( name ) {
             case "boolean":
                 return classConstant( BOOLEAN );
@@ -247,7 +247,7 @@ class ReplacementForClass {
     /**
      * Replacement of the native Java methods.
      */
-    boolean desiredAssertionStatus() {
+    public boolean desiredAssertionStatus() {
         return false;
     }
 }
