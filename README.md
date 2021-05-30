@@ -31,11 +31,12 @@ The project is currently not production ready but you can run already some tests
 * [x] invoke static method calls
 * [x] invoke instance method calls
 * [x] invoke interface method calls
-* [ ] invoke dynamic method calls (lambdas)
+* [x] invoke dynamic method calls (lambdas)
 * [x] invoke default method calls
 * [x] String support
 * [x] Simple Class object support
 * [x] static constructors
+* [ ] Enum support
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * [x] Hello World sample [(live)](https://i-net-software.github.io/JWebAssembly/samples/HelloWorld/HelloWorld.html), [(source code)](https://github.com/i-net-software/JWebAssembly/blob/master/docs/samples/HelloWorld/HelloWorld.java)
 
