@@ -231,6 +231,11 @@ public class ModuleGenerator {
                 continue;
             }
 
+            if( classFile == null ) {
+                // all extends from object, also arrays
+                classFile = classFileLoader.get( "java/lang/Object" );
+            }
+
             // search if there is a super class with the same signature
             ClassFile superClassFile = classFile;
             while( superClassFile != null ) {
