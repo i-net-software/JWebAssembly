@@ -318,6 +318,15 @@ public class ClassFile {
         return (accessFlags & 0x0400) > 0;
     }
 
+    /**
+     * If the class is an Enum
+     * 
+     * @return true, if Enum class
+     */
+    public boolean isEnum() {
+        return (accessFlags & 0x4000) > 0;
+    }
+
     private FieldInfo[] readFields( DataInputStream input ) throws IOException {
         FieldInfo[] fields = new FieldInfo[input.readUnsignedShort()];
         for( int i = 0; i < fields.length; i++ ) {
