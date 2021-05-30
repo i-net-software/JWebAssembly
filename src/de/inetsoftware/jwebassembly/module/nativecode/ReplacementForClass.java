@@ -50,14 +50,19 @@ class ReplacementForClass<T> {
      */
     final int vtable;
 
+    final int classIdx;
+
     /**
      * Create a instance
      * 
      * @param vtable
      *            the pointer in the memory for the class/type description.
+     * @param classIdx
+     *            the class index, the ID of the class
      */
-    private ReplacementForClass( int vtable ) {
+    private ReplacementForClass( int vtable, int classIdx ) {
         this.vtable = vtable;
+        this.classIdx = classIdx;
     }
 
     /**
@@ -112,7 +117,7 @@ class ReplacementForClass<T> {
              └──────────────────────────────────┘
         */
         int vtable = getIntFromMemory( classIdx * 4 + typeTableMemoryOffset() );
-        clazz = new ReplacementForClass( vtable );
+        clazz = new ReplacementForClass( vtable, classIdx );
         // save the string for future use
         setClassIntoTable( classIdx, clazz );
         return clazz;
@@ -172,7 +177,7 @@ class ReplacementForClass<T> {
     private static native int getIntFromMemory( int pos );
 
     /**
-     * Replacement of the Java methods forName(String)
+     * Replacement of the Java method forName(String)
      * 
      * @param className
      *            the fully qualified name of the desired class.
@@ -183,7 +188,7 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the Java methods newInstance()
+     * Replacement of the Java method newInstance()
      * 
      * @return a newly allocated instance of the class represented by this object.
      */
@@ -192,7 +197,7 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the Java methods isInstance()
+     * Replacement of the Java method isInstance()
      * 
      * @param obj
      *            the object to check
@@ -202,12 +207,22 @@ class ReplacementForClass<T> {
     public native boolean isInstance( Object obj );
 
     /**
-     * Replacement of the Java methods isArray()
+     * Replacement of the Java method isArray()
      * @return {@code true} if this object represents an array class;
      */
     public boolean isArray() {
         int classIdx = getIntFromMemory( vtable + TYPE_DESCRIPTION_ARRAY_TYPE );
         return classIdx >= 0;
+    }
+
+    /**
+     * Replacement of the Java method {@link Class#isPrimitive()}
+     * 
+     * @return true if and only if this class represents a primitive type
+     */
+    public boolean isPrimitive() {
+        // the first 9 classes are primitive classes
+        return classIdx <= VOID;
     }
 
     /**
@@ -220,14 +235,14 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the Java methods
+     * Replacement of the Java method getClassLoader()
      */
     public ClassLoader getClassLoader() {
         return null;
     }
 
     /**
-     * Replacement of the Java methods getClassLoader0()
+     * Replacement of the Java method getClassLoader0()
      */
     ClassLoader getClassLoader0() {
         return null;
@@ -240,7 +255,7 @@ class ReplacementForClass<T> {
     public native Class<? super T> getSuperclass();
 
     /**
-     * Replacement of the Java methods getInterfaces()
+     * Replacement of the Java method getInterfaces()
      * @return an array of interfaces implemented by this class.
      */
     public Class<?>[] getInterfaces() { //TODO
@@ -248,7 +263,7 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the Java methods getGenericInterfaces()
+     * Replacement of the Java method getGenericInterfaces()
      * @return an array of interfaces implemented by this class
      */
     public Type[] getGenericInterfaces() { // TODO
@@ -256,7 +271,7 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the native Java methods getComponentType()
+     * Replacement of the native Java method getComponentType()
      */
     public ReplacementForClass<?> getComponentType() {
         int classIdx = getIntFromMemory( vtable + TYPE_DESCRIPTION_ARRAY_TYPE );
@@ -264,7 +279,7 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the Java methods getSimpleName()
+     * Replacement of the Java method getSimpleName()
      * 
      * @return the simple name of the underlying class
      */
@@ -293,13 +308,13 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the Java methods getDeclaredMethod()
+     * Replacement of the Java method getDeclaredMethod()
      */
     @WasmTextCode( "unreachable" ) // TODO
     public native Method getDeclaredMethod(String name, Class<?>... parameterTypes);
 
     /**
-     * Replacement of the native Java methods
+     * Replacement of the native Java method {@link Class#getPrimitiveClass}
      * 
      * @param name
      *            the class name
@@ -331,7 +346,9 @@ class ReplacementForClass<T> {
     }
 
     /**
-     * Replacement of the native Java methods.
+     * Replacement of the native Java method {@link Class#desiredAssertionStatus()}
+     * 
+     * @return the desired assertion status of the specified class.
      */
     public boolean desiredAssertionStatus() {
         return false;

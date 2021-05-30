@@ -78,6 +78,8 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "simpleName_Array" );
             addParam( list, script, "simpleName_InnerClass" );
             addParam( list, script, "simpleName_LocalClass" );
+            addParam( list, script, "isPrimitive_int" );
+            addParam( list, script, "isPrimitive_Object" );
         }
         rule.setTestParameters( list );
         return list;
@@ -316,6 +318,16 @@ public class StructsNonGC extends AbstractBaseTest {
             int v2 = 7;
             IntUnaryOperator val = (x) -> x + v2 + v1;
             return val.applyAsInt( 13 );
+        }
+
+        @Export
+        static boolean isPrimitive_int() {
+            return int.class.isPrimitive();
+        }
+
+        @Export
+        static boolean isPrimitive_Object() {
+            return Object.class.isPrimitive();
         }
     }
 
