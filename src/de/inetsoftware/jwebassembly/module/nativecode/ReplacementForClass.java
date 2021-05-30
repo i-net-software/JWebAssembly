@@ -172,6 +172,26 @@ class ReplacementForClass<T> {
     private static native int getIntFromMemory( int pos );
 
     /**
+     * Replacement of the Java methods forName(String)
+     * 
+     * @param className
+     *            the fully qualified name of the desired class.
+     * @return the {@code Class} object for the class with the specified name.
+     */
+    public static Class<?> forName( String className ) throws ClassNotFoundException {
+        throw new ClassNotFoundException( className ); // TODO
+    }
+
+    /**
+     * Replacement of the Java methods newInstance()
+     * 
+     * @return a newly allocated instance of the class represented by this object.
+     */
+    public T newInstance() throws InstantiationException, IllegalAccessException {
+        throw new InstantiationException( getName() ); // TODO
+    }
+
+    /**
      * Replacement of the Java methods isInstance()
      * 
      * @param obj
