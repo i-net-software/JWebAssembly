@@ -102,6 +102,15 @@ public class MethodInfo implements Member {
     }
 
     /**
+     * If the method is native
+     * 
+     * @return true, if abstract
+     */
+    public boolean isNative() {
+        return (accessFlags & 0x0100) > 0;
+    }
+
+    /**
      * If the method is abstract
      * 
      * @return true, if abstract

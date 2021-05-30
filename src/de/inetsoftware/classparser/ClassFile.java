@@ -388,9 +388,12 @@ public class ClassFile {
         String origClassName = partialClassFile.thisClass.getName();
         ArrayList<MethodInfo> allMethods = new ArrayList<>( Arrays.asList( methods ) );
         for( MethodInfo m : partialClassFile.methods ) {
-            if( getMethod( m.getName(), m.getType() ) == null ) {
-                m.setDeclaringClassFile( origClassName, this );
+            m.setDeclaringClassFile( origClassName, this );
+            MethodInfo origMethod = getMethod( m.getName(), m.getType() );
+            if( origMethod == null ) {
                 allMethods.add( m );
+            } else if( origMethod.isNative() ) {
+                allMethods.set( allMethods.indexOf( origMethod ), m );
             }
         }
         methods = allMethods.toArray( methods );
