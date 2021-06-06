@@ -374,24 +374,35 @@ public abstract class WasmCodeBuilder {
         instr = dup2 && type != ValueType.i64 && type != ValueType.f64 ? //
                         findInstructionThatPushValue( 2, javaCodePos ) : null;
 
+        int slot2;
+        if( instr != null ) {
+            slot2 = getPossibleSlot( instr );
+            if( slot2 < 0 ) {
+                slot2 = getTempVariable( instr.getPushValueType(), javaCodePos, javaCodePos + 1 );
+                if( slot < 0 ) {
+                    slot = getTempVariable( type, javaCodePos, javaCodePos + 1 );
+                    instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, slot, localVariables, javaCodePos, lineNumber ) );
+                } else {
+                    instructions.add( new WasmBlockInstruction( WasmBlockOperator.DROP, null, javaCodePos, lineNumber ) );
+                }
+                instructions.add( new WasmLoadStoreInstruction( VariableOperator.tee, slot2, localVariables, javaCodePos, lineNumber ) );
+                instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
+            }
+        } else {
+            slot2 = -1; // for compiler only
+        }
+
         //alternate we need to create a new locale variable
         if( slot < 0 ) {
-            if( instr != null ) {
-                throw new WasmException( "DUP2 for two slots without variables", lineNumber );
-            }
             slot = getTempVariable( type, javaCodePos, javaCodePos + 1 );
             instructions.add( new WasmLoadStoreInstruction( VariableOperator.tee, slot, localVariables, javaCodePos, lineNumber ) );
-            instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
-            // an alternative solution can be a function call with multiple return values but this seems to be slower
-            // new SyntheticFunctionName( "dup" + storeType, "local.get 0 local.get 0 return", storeType, null, storeType, storeType ), codePos, lineNumber )
         } else {
-            if( instr != null ) {
-                int slot2 = getPossibleSlot( instr );
-                instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot2, localVariables, javaCodePos, lineNumber ) );
-            }
-            instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
             localVariables.expandUse( slot, javaCodePos );
         }
+        if( instr != null ) {
+            instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot2, localVariables, javaCodePos, lineNumber ) );
+        }
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
     }
 
     /**

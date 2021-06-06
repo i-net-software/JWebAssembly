@@ -19,6 +19,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.zip.CRC32;
 
 import org.junit.Assume;
@@ -64,6 +65,7 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "copyBack2Front" );
             addParam( list, script, "copyFront2Back" );
             addParam( list, script, "dup2" );
+            addParam( list, script, "dup2FromStack" );
             addParam( list, script, "dup_x2" );
             addParam( list, script, "byteArrayClassName" );
             addParam( list, script, "shortArrayClassName" );
@@ -223,6 +225,17 @@ public class ArrayOperations extends AbstractBaseTest {
                 sum += data[i];
             }
             return sum;
+        }
+
+        @Export
+        static int dup2FromStack() {
+            int[] data = {1,2,3};
+            int i = 0;
+
+            // use dup2 to duplicate the array and the index from stack (not variable)
+            Objects.requireNonNull( data )[i+1] |= 13;
+
+            return data[1];
         }
 
         @Export
