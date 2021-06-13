@@ -879,7 +879,7 @@ class BranchManger {
                 return;
             }
         }
-        throw new WasmException( "GOTO code without target loop/block", gotoBlock.lineNumber );
+        throw new WasmException( "GOTO code without target loop/block. Jump from " + start + " to " + jump, gotoBlock.lineNumber );
     }
 
     /**
@@ -1001,6 +1001,11 @@ class BranchManger {
         for( int i = catches.size()-1; i > 0; i-- ) {
             TryCatchFinally tryCat = catches.get( i );
 
+            if( tryCatch.getHandler() == tryCat.getHandler() ) {
+                // multiple exception in catch block like "catch ( ArrayIndexOutOfBoundsException | IllegalArgumentException ex )"
+                continue;
+            }
+
             int blockGotoPos = tryCat.getHandler()-3;
             for( idx = 0; idx < parsedOperations.size(); idx++ ) {
                 ParsedBlock parsedBlock = parsedOperations.get( idx );
@@ -1082,7 +1087,7 @@ class BranchManger {
         do {
             for( idx = 0; idx < parsedOperations.size(); idx++ ) {
                 ParsedBlock parsedBlock = parsedOperations.get( idx );
-                if( parsedBlock.startPosition > node.endPos ) {
+                if( parsedBlock.startPosition >= node.endPos ) {
                     break;
                 }
             }
