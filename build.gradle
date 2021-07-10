@@ -22,13 +22,13 @@ dependencies {
     //compileOnly 'de.inetsoftware:jwebassembly-api:+'
     compileOnly 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
 
-    testCompile 'com.google.code.findbugs:jsr305:3.0.1'
+    testImplementation 'com.google.code.findbugs:jsr305:3.0.1'
     //testCompile 'de.inetsoftware:jwebassembly-api:+'
-    testCompile 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
-    testCompile 'junit:junit:+'
-    testCompile 'org.mockito:mockito-core:+'
-    testCompile 'org.apache.commons:commons-compress:1.2'
-    testCompile 'com.google.code.gson:gson:+'
+    testImplementation 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
+    testImplementation 'junit:junit:+'
+    testImplementation 'org.mockito:mockito-core:+'
+    testImplementation 'org.apache.commons:commons-compress:1.2'
+    testImplementation 'com.google.code.gson:gson:+'
 }
 
 sourceSets {
