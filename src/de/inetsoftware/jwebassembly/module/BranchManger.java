@@ -1053,6 +1053,8 @@ class BranchManger {
                         FunctionName instanceOf = options.getInstanceOf();
 
                         instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.BLOCK, null, catchPos, lineNumber ) );
+                        int brIf = -1;
+                        int handler = -1;
                         for( int i = 0; i < catches.size(); i++ ) {
                             TryCatchFinally tryCat = catches.get( i );
                             String exceptionTypeName = tryCat.getType().getName();
@@ -1060,7 +1062,12 @@ class BranchManger {
                             instructions.add( idx++, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
                             instructions.add( idx++, new WasmConstInstruction( type.getClassIndex(), catchPos, lineNumber ) );
                             instructions.add( idx++, new WasmCallInstruction( instanceOf, catchPos, lineNumber, options.types, false, exceptionTypeName ) );
-                            instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, i, catchPos, lineNumber ) );
+                            if( handler != tryCat.getHandler() ) {
+                                // if not multiple exception in catch block like "catch ( ArrayIndexOutOfBoundsException | IllegalArgumentException ex )"
+                                handler = tryCat.getHandler();
+                                brIf++;
+                            }
+                            instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, brIf, catchPos, lineNumber ) );
                         }
                         instructions.add( idx++, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
                         instructions.add( idx++, new WasmBlockInstruction( WasmBlockOperator.THROW, null, catchPos, lineNumber ) );
