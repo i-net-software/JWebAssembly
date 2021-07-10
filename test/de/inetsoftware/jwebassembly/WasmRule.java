@@ -321,6 +321,8 @@ public class WasmRule extends TemporaryFolder {
                 if( IS_WINDOWS ) {
                     processBuilder.command().add( 0, "cmd" );
                     processBuilder.command().add( 1, "/C" );
+                } else {
+                    processBuilder.command().add( 0, "sudo" ); // with Github actions there is no write right 
                 }
                 execute( processBuilder );
             }
