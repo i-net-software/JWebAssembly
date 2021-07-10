@@ -14,4 +14,4 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
     - name: Build with Gradle
-      run: gradle build
+      run: gradle build --stacktrace
