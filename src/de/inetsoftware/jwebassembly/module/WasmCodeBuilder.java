@@ -608,6 +608,7 @@ public abstract class WasmCodeBuilder {
      * 
      * @param name
      *            the function name that should be called
+     *            @param needThisParameter true, if the hidden THIS parameter is needed, If it is an instance method call.
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber

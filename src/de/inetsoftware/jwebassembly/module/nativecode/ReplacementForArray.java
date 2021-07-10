@@ -98,7 +98,7 @@ public class ReplacementForArray {
      * @return the length of the object
      */
     @Replace( "java/lang/reflect/Array.newInstance(Ljava/lang/Class;I)Ljava/lang/Object;" )
-    private static Object array_newInstance( ReplacementForClass componentClass, int length ) {
+    private static Object array_newInstance( ReplacementForClass<?> componentClass, int length ) {
         int vtable = componentClass.vtable;
         int componentType = getIntFromMemory( vtable + TYPE_DESCRIPTION_INSTANCEOF_OFFSET );
         switch( componentType ) {

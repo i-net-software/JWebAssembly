@@ -88,7 +88,7 @@ class ReplacementForClass<T> {
                     + "return " //
     )
     @Replace( "java/lang/Object.getClass()Ljava/lang/Class;" )
-    private static native ReplacementForClass getClassObject( Object obj );
+    private static native ReplacementForClass<?> getClassObject( Object obj );
 
     /**
      * WASM code
@@ -100,8 +100,8 @@ class ReplacementForClass<T> {
      * @return the string
      * @see TypeManager#getClassConstantFunction()
      */
-    private static ReplacementForClass classConstant( int classIdx ) {
-        ReplacementForClass clazz = getClassFromTable( classIdx );
+    private static ReplacementForClass<?> classConstant( int classIdx ) {
+        ReplacementForClass<?> clazz = getClassFromTable( classIdx );
         if( clazz != null ) {
             return clazz;
         }
@@ -117,7 +117,7 @@ class ReplacementForClass<T> {
              └──────────────────────────────────┘
         */
         int vtable = getIntFromMemory( classIdx * 4 + typeTableMemoryOffset() );
-        clazz = new ReplacementForClass( vtable, classIdx );
+        clazz = new ReplacementForClass<>( vtable, classIdx );
         // save the string for future use
         setClassIntoTable( classIdx, clazz );
         return clazz;
@@ -135,7 +135,7 @@ class ReplacementForClass<T> {
     @WasmTextCode( "local.get 0 " + //
                     "table.get 2 " + // table 2 is used for classes
                     "return" )
-    private static native ReplacementForClass getClassFromTable( int classIdx );
+    private static native ReplacementForClass<?> getClassFromTable( int classIdx );
 
     /**
      * WASM code
@@ -151,7 +151,7 @@ class ReplacementForClass<T> {
                     "local.get 1 " + //
                     "table.set 2 " + // table 2 is used for classes
                     "return" )
-    private static native void setClassIntoTable( int strIdx, ReplacementForClass clazz );
+    private static native void setClassIntoTable( int strIdx, ReplacementForClass<?> clazz );
 
     /**
      * WASM code
