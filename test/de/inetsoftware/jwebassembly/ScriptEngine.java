@@ -22,16 +22,49 @@ import java.util.Collection;
  * @author Volker Berlin
  */
 public enum ScriptEngine {
+    /** 
+     * Test the binary output with a fix version nodejs JavaScript runtime. GC is disabled.
+     */
     NodeJS,
+    /** 
+     * Test the binary output with the nightly SpiderMonkey JavaScript runtime. GC is disabled.
+     */
     SpiderMonkey,
+    /**
+     * Convert the text output with the nightly wabt.js (https://github.com/AssemblyScript/wabt.js/) and tun the test
+     * with nodejs. GC is disabled.
+     */
     NodeWat,
+    /** 
+     * Convert the text output with wasmTextToBinary function form nightly SpiderMonkey. GC is disabled. 
+     */
     SpiderMonkeyWat,
+    /**
+     * Convert the text output with wat2wasm https://github.com/WebAssembly/wabt and test it with nodejs. GC is
+     * disabled.
+     */
     Wat2Wasm,
-    NodeJsGC(true),
-    SpiderMonkeyGC(true),
-    NodeWatGC(true),
-    SpiderMonkeyWatGC(true),
-    Wat2WasmGC(true),
+    /** 
+     * Test the binary output with a fix version nodejs JavaScript runtime. GC is enabled.
+     */
+    NodeJsGC( true ),
+    /** 
+     * Test the binary output with the nightly SpiderMonkey JavaScript runtime. GC is enabled. 
+     */
+    SpiderMonkeyGC( true ),
+    /**
+     * Convert the text output with the nightly wabt.js (https://github.com/AssemblyScript/wabt.js/) and tun the test
+     * with nodejs. GC is enabled.
+     */
+    NodeWatGC( true ),
+    /** 
+     * Convert the text output with wasmTextToBinary function form nightly SpiderMonkey. GC is enabled.
+     */
+    SpiderMonkeyWatGC( true ),
+    /**
+     * Convert the text output with wat2wasm https://github.com/WebAssembly/wabt and test it with nodejs. GC is enabled.
+     */
+    Wat2WasmGC( true ),
     ;
 
     public final String useGC;
