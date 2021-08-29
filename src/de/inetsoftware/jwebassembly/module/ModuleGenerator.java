@@ -42,6 +42,7 @@ import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.JavaScriptWriter;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
+import de.inetsoftware.jwebassembly.module.nativecode.ReplacementForEnums;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.FunctionType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -182,6 +183,20 @@ public class ModuleGenerator {
             String signatureName = (String)annotationValues.get( "value" );
             if( signatureName != null ) {
                 classFileLoader.partial( signatureName, classFile );
+            }
+        }
+
+        if( classFile.isEnum() ) {
+            //temporary Hack because the generated Enum.valueOf(String) use Reflection which currently is not supported
+            for( MethodInfo method : classFile.getMethods() ) {
+                if( "valueOf".equals( method.getName() ) && method.getType().startsWith( "(Ljava/lang/String;)" )  ) {
+                    FunctionName valueOf = new FunctionName( method );
+                    String replaceForEnums = ReplacementForEnums.class.getName().replace( ".", "/" );
+                    ClassFile file = classFileLoader.get( replaceForEnums );
+                    MethodInfo method2 = file.getMethod( "valueOf_", "(Ljava/lang/String;)L" + replaceForEnums + ";" );
+                    functions.addReplacement( valueOf, method2 );
+                    break;
+                }
             }
         }
 
