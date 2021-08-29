@@ -132,7 +132,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         writeSection( SectionType.Function, functions.values() );
         writeTableSection();
         writeMemorySection();
-        writeEventSection();
+        writeTagSection();
         writeSection( SectionType.Global, globals.values() );
         writeSection( SectionType.Export, exports );
         writeStartSection();
@@ -238,21 +238,21 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     }
 
     /**
-     * Write the event section if needed.
+     * Write the tag section if needed.
      * 
      * @throws IOException
      *             if any I/O error occur
      */
-    private void writeEventSection() throws IOException {
+    private void writeTagSection() throws IOException {
         if( exceptionSignatureIndex >= 0 ) {
             WasmOutputStream stream = new WasmOutputStream( options );
             stream.writeVaruint32( 1 );
 
-            // event declaration
-            stream.writeVaruint32( 0 ); // event type: exception = 0
+            // tag declaration
+            stream.writeVaruint32( 0 ); // tag type: exception = 0
             stream.writeVaruint32( exceptionSignatureIndex );
 
-            wasm.writeSection( SectionType.Event, stream );
+            wasm.writeSection( SectionType.Tag, stream );
         }
     }
 
@@ -1351,7 +1351,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case THROW:
                 if( options.useEH() ) {
                     codeStream.writeOpCode( THROW );
-                    codeStream.writeVaruint32( 0 );             // event/exception ever 0 because currently there is only one with signature anyref
+                    codeStream.writeVaruint32( 0 );             // tag/exception ever 0 because currently there is only one with signature anyref
                 } else {
                     codeStream.writeOpCode( UNREACHABLE );
                 }
@@ -1363,7 +1363,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 if( options.useEH() ) {
                     codeStream.writeOpCode( BR_ON_EXN );
                     codeStream.writeVaruint32( (Integer)data ); // break depth
-                    codeStream.writeVaruint32( 0 );             // event/exception ever 0 because currently there is only one with signature anyref
+                    codeStream.writeVaruint32( 0 );             // tag/exception ever 0 because currently there is only one with signature anyref
                 } else {
                     codeStream.writeOpCode( UNREACHABLE );
                 }

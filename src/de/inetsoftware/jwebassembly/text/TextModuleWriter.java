@@ -277,9 +277,9 @@ public class TextModuleWriter extends ModuleWriter {
             inset = 1;
             newline( output );
             if( options.useGC() ) {
-                output.append( "(event (param (ref null $java/lang/Throwable)))" );
+                output.append( "(tag (param (ref null $java/lang/Throwable)))" );
             } else {
-                output.append( "(event (param externref))" );
+                output.append( "(tag (param externref))" );
             }
             inset = oldInset;
         }
@@ -851,13 +851,13 @@ public class TextModuleWriter extends ModuleWriter {
                 insetAfter++;
                 break;
             case THROW:
-                name = options.useEH() ? "throw 0" : "unreachable"; // currently there is only one event/exception with externref
+                name = options.useEH() ? "throw 0" : "unreachable"; // currently there is only one tag/exception with externref
                 break;
             case RETHROW:
                 name = "rethrow";
                 break;
             case BR_ON_EXN:
-                name = options.useEH() ? "br_on_exn " + data + " 0" : "unreachable"; // br_on_exn, break depth, event; // currently there is only one event/exception with externref
+                name = options.useEH() ? "br_on_exn " + data + " 0" : "unreachable"; // br_on_exn, break depth, tag; // currently there is only one tag/exception with externref
                 break;
             case MONITOR_ENTER:
             case MONITOR_EXIT:

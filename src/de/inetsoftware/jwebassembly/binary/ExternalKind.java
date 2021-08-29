@@ -26,5 +26,5 @@ enum ExternalKind {
     Table,
     Memory,
     Global,
-    Event,
+    Tag,
 }
