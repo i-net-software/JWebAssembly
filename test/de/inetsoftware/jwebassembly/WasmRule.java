@@ -71,13 +71,11 @@ public class WasmRule extends TemporaryFolder {
 
     private final JWebAssembly        compiler;
 
-    private Map<ScriptEngine, File>   compiledFiles = new HashMap<>();
+    private Map<ScriptEngine, Object> compiledFiles = new HashMap<>(); // File or Throwable
 
     private Map<ScriptEngine, File>   scriptFiles = new HashMap<>();
 
     private boolean                   failed;
-
-    private String                    textCompiled;
 
     private Map<String, Object[]>                  testData;
 
@@ -200,27 +198,49 @@ public class WasmRule extends TemporaryFolder {
     @Override
     protected void after() {
         if( failed || JWebAssembly.LOGGER.isLoggable( Level.FINE )) {
-            for( File wasmFile : compiledFiles.values() ) {
+            File watFile = null;
+            boolean wasJsFile = false;
+            boolean wasFiles = false;
+            for( Object fileOrException : compiledFiles.values() ) {
+                if( !(fileOrException instanceof File) ) {
+                    continue;
+                }
+                wasFiles = true;
+                File wasmFile = (File)fileOrException;
                 File jsFile;
                 if( wasmFile.getName().endsWith( ".wasm" ) ) {
                     jsFile = new File( wasmFile.toString() + ".js" );
                 } else if( wasmFile.getName().endsWith( ".wat" ) ) {
+                    if( wasmFile.isFile() ) {
+                        watFile = wasmFile;
+                    }
                     String name = wasmFile.toString();
                     jsFile = new File( name.substring( 0, name.length() - 4 ) + ".wasm.js" );
                 } else {
                     continue;
                 }
-                if( jsFile.isFile() ) {
+                if( !wasJsFile && jsFile.isFile() ) {
                     try {
+                        wasJsFile = true;
                         System.out.println( new String( Files.readAllBytes( jsFile.toPath() ), StandardCharsets.UTF_8 ) );
                         System.out.println();
                     } catch( IOException e ) {
                         e.printStackTrace();
                     }
-                    break;
                 }
             }
-            System.out.println( textCompiled );
+            try {
+                String textCompiled;
+                if( watFile != null ) {
+                    textCompiled = new String( Files.readAllBytes( watFile.toPath() ), StandardCharsets.UTF_8 );
+                } else {
+                    textCompiled = compiler.compileToText();
+                }
+                System.out.println( textCompiled );
+                System.out.println();
+            } catch( IOException e ) {
+                e.printStackTrace();
+            }
         }
         super.after();
     }
@@ -250,19 +270,20 @@ public class WasmRule extends TemporaryFolder {
      *             if the compiling is failing
      */
     public File compile( ScriptEngine script ) throws WasmException {
-        File file = compiledFiles.get( script );
-        if( file != null ) {
+        Object fileOrException = compiledFiles.get( script );
+        if( fileOrException instanceof File ) {
             // compile only once
-            return file;
+            return (File)fileOrException;
+        }
+        if( fileOrException instanceof Throwable ) {
+            throwException( (Throwable)fileOrException );
         }
 
         compiler.setProperty( JWebAssembly.DEBUG_NAMES, "true" );
         assertEquals( "true", compiler.getProperty( JWebAssembly.DEBUG_NAMES ) );
         compiler.setProperty( JWebAssembly.WASM_USE_GC, script.useGC );
 
-        if( textCompiled == null ) {
-            textCompiled = compiler.compileToText();
-        }
+        File file = null;
         try {
             String name = script.name();
             if( name.contains( "Wat" ) ) {
@@ -274,7 +295,7 @@ public class WasmRule extends TemporaryFolder {
             }
             compiledFiles.put( script, file );
         } catch( Throwable ex ) {
-            System.out.println( textCompiled );
+            compiledFiles.put( script, ex );
             throwException( ex );
         }
         return file;
