@@ -31,7 +31,7 @@ public enum ScriptEngine {
      */
     SpiderMonkey,
     /**
-     * Convert the text output with the nightly wabt.js (https://github.com/AssemblyScript/wabt.js/) and tun the test
+     * Convert the text output with the nightly wabt.js (https://github.com/AssemblyScript/wabt.js/) and test it
      * with nodejs. GC is disabled.
      */
     NodeWat,
