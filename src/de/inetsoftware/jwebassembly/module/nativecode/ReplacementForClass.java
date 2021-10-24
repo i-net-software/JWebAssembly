@@ -29,6 +29,7 @@ import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_I
 import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_TYPE_NAME;
 import static de.inetsoftware.jwebassembly.module.TypeManager.VOID;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -306,6 +307,12 @@ class ReplacementForClass<T> {
         // Eventually, this is the empty string iff this is an anonymous class
         return simpleName.substring( index );
     }
+
+    /**
+     * Replacement of the Java method getDeclaredField()
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Field getDeclaredField(String name);
 
     /**
      * Replacement of the Java method getDeclaredMethod()
