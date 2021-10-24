@@ -3,7 +3,9 @@
 [![Build Status](https://travis-ci.org/i-net-software/JWebAssembly.svg)](https://travis-ci.org/i-net-software/JWebAssembly)
 [![License](https://img.shields.io/github/license/i-net-software/jwebassembly.svg)](https://github.com/i-net-software/jwebassembly/blob/master/LICENSE.txt)
 [![Coverage Status](https://coveralls.io/repos/github/i-net-software/JWebAssembly/badge.svg?branch=master)](https://coveralls.io/github/i-net-software/JWebAssembly?branch=master)
-[![Download](https://api.bintray.com/packages/i-net-software/OSS/de.inetsoftware.jwebassembly-compiler/images/download.svg)](https://bintray.com/i-net-software/OSS/de.inetsoftware.jwebassembly-compiler/_latestVersion)
+[![Maven](https://img.shields.io/maven-central/v/de.inetsoftware/jwebassembly-compiler.svg)](https://mvnrepository.com/artifact/de.inetsoftware/jwebassembly-compiler)
+[![JitPack](https://jitpack.io/v/i-net-software/jwebassembly.svg)](https://jitpack.io/#i-net-software/jwebassembly/master-SNAPSHOT)
+
 
 JWebAssembly is a Java bytecode to [WebAssembly](http://webassembly.org/) compiler. It uses Java class files as input. That it can compile any language that compile to Java bytecode like Clojure, Groovy, JRuby, Jython, Kotlin and Scala.
 As output it generates the binary format (.wasm file) or the text format (.wat file). The target is to run Java natively in the browser with WebAssembly.
