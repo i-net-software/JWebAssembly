@@ -91,6 +91,7 @@ class BranchManger {
         allParsedOperations.clear();
         root.clear();
         loops.clear();
+        breakOperations.clear();
         root.endPos = root.elseEndPos = code.getCodeSize();
         exceptionTable = code.getExceptionTable();
         for( TryCatchFinally ex : exceptionTable ) {
