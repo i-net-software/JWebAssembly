@@ -81,7 +81,7 @@ public enum ScriptEngine {
         ScriptEngine[] val = { //
                         SpiderMonkey, //
                         NodeJS, //
-                        NodeWat, //
+                        // NodeWat, // disabled because https://github.com/AssemblyScript/wabt.js/issues/26
                         SpiderMonkeyWat,//
                         Wat2Wasm, //
         };
