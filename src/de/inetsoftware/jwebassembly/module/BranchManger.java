@@ -62,6 +62,9 @@ class BranchManger {
 
     private TryCatchFinally[]                   exceptionTable;
 
+    private final ArrayList<BreakBlock>         breakOperations = new ArrayList<>();
+
+
     /**
      * Create a branch manager.
      * 
@@ -88,7 +91,7 @@ class BranchManger {
         allParsedOperations.clear();
         root.clear();
         loops.clear();
-        root.endPos = code.getCodeSize();
+        root.endPos = root.elseEndPos = code.getCodeSize();
         exceptionTable = code.getExceptionTable();
         for( TryCatchFinally ex : exceptionTable ) {
             if ( ex.getStart() == ex.getHandler() ) {
@@ -161,6 +164,9 @@ class BranchManger {
         List<ParsedBlock> parsedOperations = allParsedOperations;
         Collections.sort( parsedOperations );
         calculate( root, parsedOperations );
+        for( BreakBlock breakBlock : breakOperations ) {
+            calculateBreak( breakBlock );
+        }
     }
 
     /**
@@ -393,6 +399,7 @@ class BranchManger {
                     branch.add(  new BranchNode( positions.elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
                     endPos = branch.endPos;
                 } else {
+                    branch.elseEndPos = endPos;
                     branch = new BranchNode( positions.elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
                     parent.add( branch );
                 }
@@ -406,6 +413,29 @@ class BranchManger {
         if( branch == null ) {
             branch = new BranchNode( startPos, endPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
             parent.add( branch );
+            if( startBlock.endPosition > parent.endPos ) {
+                int count = 0;
+                for( int j = 0; j < instructions.size(); j++ ) {
+                    WasmInstruction instr = instructions.get( j );
+                    int pos = instr.getCodePosition();
+                    if( pos < startPos ) {
+                        continue;
+                    }
+                    if( pos >= endPos ) {
+                        break;
+                    }
+                    if( instr.getType() == Type.Jump ) {
+                        continue;
+                    }
+                    count++;
+                }
+                if( count == 0 ) {
+                    // we jump outside the parent and there are no instructions. This is lie a conditional break
+                    //TODO should be BR_IF
+                    breakOperations.add( new BreakBlock( branch, startBlock.endPosition ) );
+                    return;
+                }
+            }
         }
         startBlock.negateCompare();
 
@@ -585,7 +615,7 @@ class BranchManger {
     private int calculateBreakDeep( BranchNode parent, int endPos ) {
         int deep = -1;
         boolean wasLoop = false;
-        while( parent != null && parent.endPos == endPos && parent.data == null ) {
+        while( parent != null && parent.elseEndPos <= endPos && parent.data == null ) {
             deep++;
             wasLoop |= parent.startOp == WasmBlockOperator.LOOP; // only in a loop we need to jump for exit
             parent = parent.parent;
@@ -1161,6 +1191,43 @@ class BranchManger {
     }
 
     /**
+     * Add the break to the block hierarchy. Add an extra block if needed and correct the break deep of other
+     * instructions.
+     * 
+     * @param breakBlock
+     *            the description of the break.
+     */
+    private void calculateBreak( BreakBlock breakBlock ) {
+        int deep = -1;
+        int gotoEndPos = breakBlock.endPosition;
+        BranchNode branch = breakBlock.branch;
+        BranchNode parent = branch;
+        while( parent != null && parent.elseEndPos < gotoEndPos ) {
+            deep++;
+            parent = parent.parent;
+        }
+
+        if( parent != null && parent.elseEndPos > gotoEndPos ) {
+            BranchNode middleNode = new BranchNode( parent.startPos, gotoEndPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+            for( Iterator<BranchNode> it = parent.iterator(); it.hasNext(); ) {
+                BranchNode child = it.next();
+                if( child.endPos > gotoEndPos ) {
+                    continue;
+                }
+                middleNode.add( child );
+                it.remove();
+            }
+            parent.add( middleNode );
+            //deep++;
+            parent = middleNode;
+            patchBrDeep( middleNode );
+        }
+
+        BranchNode breakNode = new BranchNode( branch.endPos, branch.endPos, WasmBlockOperator.BR, null, deep + 1 );
+        branch.add( breakNode );
+    }
+
+    /**
      * Check on every instruction position if there any branch is ending
      * 
      * @param byteCode
@@ -1349,6 +1416,8 @@ class BranchManger {
          */
         private int                     startIdx;
 
+        private int                     elseEndPos;
+
         /**
          * Create a new description.
          * 
@@ -1381,7 +1450,7 @@ class BranchManger {
          */
         BranchNode( int startPos, int endPos, WasmBlockOperator startOp, WasmBlockOperator endOp, Object data ) {
             this.startPos = startPos;
-            this.endPos = endPos;
+            this.endPos = this.elseEndPos = endPos;
             this.startOp = startOp;
             this.endOp = endOp;
             this.data = data;
@@ -1538,5 +1607,28 @@ class BranchManger {
 
         /** The position of the first instruction in the ELSE part. */
         private int elsePos;
+    }
+
+    /**
+     * Described a break to a block that will be added later.
+     */
+    private static class BreakBlock {
+
+        private final int        endPosition;
+
+        private final BranchNode branch;
+
+        /**
+         * Create Break
+         * 
+         * @param branch
+         *            the parent block which should contain the break
+         * @param endPosition
+         *            the Jump position
+         */
+        public BreakBlock( BranchNode branch, int endPosition ) {
+            this.endPosition = endPosition;
+            this.branch = branch;
+        }
     }
 }

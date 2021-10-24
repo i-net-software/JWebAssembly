@@ -74,6 +74,10 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifOrWithMulti" );
             addParam( list, script, "ifMultipleInsideThen" );
             addParam( list, script, "ifWithConditionalInsideThen" );
+            addParam( list, script, "conditionalInsideIf_1" );
+            addParam( list, script, "conditionalInsideIf_2" );
+            addParam( list, script, "conditionalInsideIf_3" );
+            addParam( list, script, "conditionalInsideIf_4" );
             addParam( list, script, "stringSwitchNormalFoo" );
             addParam( list, script, "stringSwitchNormalBar" );
             addParam( list, script, "stringSwitchNormalDefault" );
@@ -547,7 +551,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
         }
 
         @Export
-        static int ifWithConditionalInsideThen() throws CloneNotSupportedException {
+        static int ifWithConditionalInsideThen() {
             int val = 42;
             int result = 0;
             if( val > 20 ) {
@@ -558,6 +562,34 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 result = 3;
             }
             return result + 13;
+        }
+
+        @Export
+        static int conditionalInsideIf_1() {
+            return conditionalInsideIf( null, null, null );
+        }
+
+        @Export
+        static int conditionalInsideIf_2() {
+            return conditionalInsideIf( null, null, "foo" );
+        }
+
+        @Export
+        static int conditionalInsideIf_3() {
+            return conditionalInsideIf( "foo", null, null );
+        }
+
+        @Export
+        static int conditionalInsideIf_4() {
+            return conditionalInsideIf( null, "foo", null );
+        }
+
+        static int conditionalInsideIf( Object a, Object b, Object c ) {
+            if( (a == null ? b == null : a == b ) ) {
+                return c == null ? 1 : 2;
+            } else {
+                return 3;
+            }
         }
 
         @Export
