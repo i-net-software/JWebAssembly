@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Volker Berlin (i-net software)
+   Copyright 2017 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import javax.annotation.Nonnull;
  */
 public class TryCatchFinally {
 
-    private final int           start;
+    private int                 start;
 
-    private final int           end;
+    private int                 end;
 
     private final int           handler;
 
@@ -67,5 +67,13 @@ public class TryCatchFinally {
 
     public boolean isFinally() {
         return type == null;
+    }
+
+    void setStart( int start ) {
+        this.start = start;
+    }
+
+    void setEnd( int end ) {
+        this.end = end;
     }
 }
