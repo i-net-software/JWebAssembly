@@ -95,10 +95,6 @@ class BranchManger {
         root.endPos = root.elseEndPos = code.getCodeSize();
         exceptionTable = code.getExceptionTable();
         for( TryCatchFinally ex : exceptionTable ) {
-            if ( ex.getStart() == ex.getHandler() ) {
-                // see with end of synchronized block, compiled with Eclipse 2019-09
-                continue;
-            }
             allParsedOperations.add( new TryCatchParsedBlock( ex ) );
         }
     }

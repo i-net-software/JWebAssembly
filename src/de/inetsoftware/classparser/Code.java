@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2020 Volker Berlin (i-net software)
+   Copyright 2011 - 2021 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package de.inetsoftware.classparser;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,6 +29,8 @@ import de.inetsoftware.classparser.Attributes.AttributeInfo;
  * @author Volker Berlin
  */
 public class Code {
+
+    private static final TryCatchFinally[] NO_TRY_CATCHES = new TryCatchFinally[0];
 
     private final ConstantPool      constantPool;
 
@@ -63,11 +66,62 @@ public class Code {
         codeData = new byte[input.readInt()];
         input.readFully( codeData );
 
-        exceptionTable = new TryCatchFinally[input.readUnsignedShort()];
-        for( int i = 0; i < exceptionTable.length; i++ ) {
-            exceptionTable[i] = new TryCatchFinally( input, constantPool );
-        }
+        exceptionTable = readExceptionTable( input, constantPool );
         attributes = new Attributes( input, constantPool );
+    }
+
+    /**
+     * Read the exception table and correct some problems.
+     * 
+     * @param input
+     *            the stream of the code attribute
+     * @param constantPool
+     *            the ConstantPool of the class
+     * @return the exception table
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    private static TryCatchFinally[] readExceptionTable( DataInputStream input, @Nonnull ConstantPool constantPool ) throws IOException {
+        int tryCatchCount = input.readUnsignedShort();
+        if( tryCatchCount > 0 ) {
+            // read all definitions
+            TryCatchFinally[] exceptionTable = new TryCatchFinally[tryCatchCount];
+            for( int i = 0; i < tryCatchCount; i++ ) {
+                exceptionTable[i] = new TryCatchFinally( input, constantPool );
+            }
+
+            for( int i = 0; i < tryCatchCount - 1; i++ ) {
+                TryCatchFinally try1 = exceptionTable[i];
+
+                if( try1.getStart() == try1.getHandler() ) {
+                    // see with end of synchronized block, compiled with Eclipse 2019-09
+                    tryCatchCount--;
+                    System.arraycopy( exceptionTable, i + 1, exceptionTable, i, tryCatchCount - i );
+                    i--;
+                    continue;
+                }
+
+                for( int k = i + 1; k < tryCatchCount; k++ ) {
+                    TryCatchFinally try2 = exceptionTable[k];
+                    if( try1.getHandler() == try2.getHandler() && try1.getType() == try2.getType() ) {
+                        // in java.util.Hashtable.equals(Object) of java 1.8.0_171 there is the try block split
+                        try1.setStart( Math.min( try1.getStart(), try2.getStart() ) );
+                        try1.setEnd( Math.max( try1.getEnd(), try2.getEnd() ) );
+                        tryCatchCount--;
+                        System.arraycopy( exceptionTable, k + 1, exceptionTable, k, tryCatchCount - k );
+                        k--;
+                    }
+                }
+            }
+
+            if( tryCatchCount == exceptionTable.length ) {
+                return exceptionTable;
+            } else {
+                return Arrays.copyOf( exceptionTable, tryCatchCount );
+            }
+        } else {
+            return NO_TRY_CATCHES;
+        }
     }
 
     /**
