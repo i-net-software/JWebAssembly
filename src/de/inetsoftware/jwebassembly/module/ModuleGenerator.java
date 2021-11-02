@@ -570,7 +570,7 @@ public class ModuleGenerator {
                     strings.getStringConstantFunction();
                     return null;
                 }
-                throw new WasmException( "Abstract or native method can not be used: " + name.signatureName, -1 );
+                throw new WasmException( "Abstract or native method can not be used: " + name.signatureName +"\nIf you want to use classes with native code, you must use a library that implements these native methods, such as 'de.inetsoftware:jwebassembly-api:+'.", -1 );
             }
         } catch( Exception ioex ) {
             int lineNumber = code == null ? -1 : code.getFirstLineNr();
