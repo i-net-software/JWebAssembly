@@ -208,6 +208,16 @@ class ReplacementForClass<T> {
     public native boolean isInstance( Object obj );
 
     /**
+     * Replacement of the Java method isAssignableFrom()
+     * 
+     * @param cls
+     *            the class to check
+     * @return true, if type {@code cls} can be assigned to objects of this class
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native boolean isAssignableFrom( Class<?> cls );
+
+    /**
      * Replacement of the Java method isArray()
      * @return {@code true} if this object represents an array class;
      */
