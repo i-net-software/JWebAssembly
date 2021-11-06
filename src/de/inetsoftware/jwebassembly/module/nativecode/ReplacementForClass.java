@@ -319,6 +319,12 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Replacement of the Java method getMethod()
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Method getMethod(String name, Class<?>... parameterTypes);
+
+    /**
      * Replacement of the Java method getDeclaredField()
      */
     @WasmTextCode( "unreachable" ) // TODO
