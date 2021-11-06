@@ -384,6 +384,27 @@ class LocaleVariableManager {
             }
         }
 
+        // there is no variable slot declared for the given java code position
+        // in a second try we search for a slot that has the smallest distance
+        // TODO a better option can be to use the next slot and not the smallest distance because the position is define some time on first use and not on assign
+        int index = -1;
+        int distance = Integer.MAX_VALUE;
+        for( int i = 0; i < size; i++ ) {
+            Variable var = variables[i];
+            if( slot != var.idx ) {
+                continue;
+            }
+
+            int distanceDiff = Math.min( Math.abs( javaCodePos - var.startPos), Math.abs( javaCodePos - var.endPos ) );
+            if( distanceDiff <= distance ) {
+                index = i;
+                distance = distanceDiff;
+            }
+        }
+        if( index >= 0 ) {
+            return index;
+        }
+
         throw new WasmException( "Can not find local variable for slot: " + slot + " on code position " + javaCodePos, -1 );
     }
 
