@@ -319,6 +319,35 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Replacement of the Java method getCanonicalName()
+     * 
+     * @return the canonical name of the underlying class
+     */
+    public String getCanonicalName() {
+        String canonicalName;
+        if( isArray() ) {
+            canonicalName = getComponentType().getCanonicalName();
+            if( canonicalName != null )
+                return canonicalName + "[]";
+            else
+                return null;
+        }
+        canonicalName = getName();
+        int idx = canonicalName.indexOf( '$' );
+        if( idx >= 0 ) {
+            idx++;
+            if( idx < canonicalName.length() ) {
+                char ch = canonicalName.charAt( idx );
+                if( '0' <= ch && ch <= '9' ) {
+                    return null;
+                }
+            }
+            return canonicalName.replace( '$', '.' );
+        }
+        return canonicalName;
+    }
+
+    /**
      * Replacement of the Java method getMethod()
      */
     @WasmTextCode( "unreachable" ) // TODO
