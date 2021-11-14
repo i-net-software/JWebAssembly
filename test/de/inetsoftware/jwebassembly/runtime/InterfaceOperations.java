@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Volker Berlin (i-net software)
+ * Copyright 2020 - 2021 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ public class InterfaceOperations extends AbstractBaseTest {
             addParam( list, script, "getDefaultExtends" );
             addParam( list, script, "getDefaultReimplement" );
             addParam( list, script, "getDefaultRedefinied" );
+            addParam( list, script, "getDefaultMultiImpl1" );
+            addParam( list, script, "getDefaultMultiImpl2" );
             addParam( list, script, "abstractParent" );
         }
         rule.setTestParameters( list );
@@ -125,6 +127,27 @@ public class InterfaceOperations extends AbstractBaseTest {
             default int getDefaultValue() {
                 return 99;
             }
+        }
+
+        @Export
+        static int getDefaultMultiImpl1() {
+            Bar bar = new BarMultiImpl1() {};
+            return bar.getDefaultValue();
+        }
+
+        @Export
+        static int getDefaultMultiImpl2() {
+            Bar bar = new BarMultiImpl2() {};
+            return bar.getDefaultValue();
+        }
+
+        static class BarMultiImpl1 implements Bar2, Bar3 {
+        }
+
+        static class BarMultiImpl2 implements Bar3, Bar2 {
+        }
+
+        interface Bar3 extends Bar {
         }
 
         @Export

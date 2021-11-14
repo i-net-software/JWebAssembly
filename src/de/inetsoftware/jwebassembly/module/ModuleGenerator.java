@@ -268,15 +268,8 @@ public class ModuleGenerator {
             // search if there is a default implementation in an interface
             superClassFile = classFile;
             while( superClassFile != null ) {
-                for( ConstantClass iface : superClassFile.getInterfaces() ) {
-                    ClassFile iClassFile = classFileLoader.get( iface.getName() );
-                    method = iClassFile.getMethod( next.methodName, next.signature );
-                    if( method != null ) {
-                        FunctionName name = new FunctionName( method );
-                        functions.markAsNeeded( name, !method.isStatic() );
-                        functions.setAlias( next, name );
-                        continue NEXT; // we have found a super method
-                    }
+                if( scanFunctionInterfaces( superClassFile, next ) ) {
+                    continue NEXT; // we have found a super method
                 }
                 ConstantClass superClass = superClassFile.getSuperClass();
                 superClassFile = superClass == null ? null : classFileLoader.get( superClass.getName() );
@@ -284,6 +277,39 @@ public class ModuleGenerator {
 
             throw new WasmException( "Missing function: " + next.signatureName, -1 );
         }
+    }
+
+    /**
+     * Search if there is a default implementation in an interface for the given method.
+     * 
+     * @param classFile
+     *            the class to scan
+     * @param next
+     *            the method to scan
+     * @return true, if method was found
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private boolean scanFunctionInterfaces( ClassFile classFile, FunctionName next ) throws IOException {
+        // first scan direct interfaces
+        for( ConstantClass iface : classFile.getInterfaces() ) {
+            ClassFile iClassFile = classFileLoader.get( iface.getName() );
+            MethodInfo method = iClassFile.getMethod( next.methodName, next.signature );
+            if( method != null ) {
+                FunctionName name = new FunctionName( method );
+                functions.markAsNeeded( name, !method.isStatic() );
+                functions.setAlias( next, name );
+                return true; // we have found a super method
+            }
+        }
+        // then possible super interfaces
+        for( ConstantClass iface : classFile.getInterfaces() ) {
+            ClassFile iClassFile = classFileLoader.get( iface.getName() );
+            if( scanFunctionInterfaces( iClassFile, next ) ) {
+                return true; // we have found a super method
+            }
+        }
+        return false;
     }
 
     /**

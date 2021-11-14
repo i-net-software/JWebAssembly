@@ -922,6 +922,8 @@ public class TypeManager {
          *             if any I/O error occur on loading or writing
          */
         private void listInterfaceTypes( ClassFile classFile, TypeManager types, ClassFileLoader classFileLoader, Set<StructType> interfaceTypes, Set<String> interfaceNames ) throws IOException {
+            // first list the direct interfaces
+            ArrayList<ClassFile> later = null;
             for( ConstantClass interClass : classFile.getInterfaces() ) {
                 String interName = interClass.getName();
                 if( interfaceNames.add( interName ) ) {
@@ -933,8 +935,17 @@ public class TypeManager {
                     }
                     ClassFile interClassFile = classFileLoader.get( interName );
                     if( interClassFile != null ) {
-                        listInterfaceTypes( interClassFile, types, classFileLoader, interfaceTypes, interfaceNames );
+                        if( later == null ) {
+                            later = new ArrayList<>();
+                        }
+                        later.add( interClassFile );
                     }
+                }
+            }
+            // then possible super interfaces, the order is important for default methods
+            if( later != null ) {
+                for( ClassFile interClassFile : later ) {
+                    listInterfaceTypes( interClassFile, types, classFileLoader, interfaceTypes, interfaceNames );
                 }
             }
         }
