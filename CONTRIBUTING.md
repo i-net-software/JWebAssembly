@@ -31,3 +31,9 @@ If you want contribute to JWebAssembly via a PR then
 * Run the test locally before commit to prevent a regression.
 
 * Do the smallest possible PR. If there bugs that block a feature PR then create a separatly PR for the bug. A easer to review a smaller PR.
+
+## Where to start?
+
+* In the issues some issue are marked with "good first issue".
+
+* In the sister project https://github.com/i-net-software/JWebAssembly-API/tree/master/src/de/inetsoftware/jwebassembly/web/dom there are many wrappers to complete for the API on the web.
