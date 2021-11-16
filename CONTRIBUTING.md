@@ -37,3 +37,5 @@ If you want contribute to JWebAssembly via a PR then
 * In the issues some issue are marked with "good first issue".
 
 * In the sister project https://github.com/i-net-software/JWebAssembly-API/tree/master/src/de/inetsoftware/jwebassembly/web/dom there are many wrappers to complete for the API on the web.
+
+* replacement for native Java methods https://github.com/i-net-software/JWebAssembly-API/tree/master/src/de/inetsoftware/jwebassembly/api. Write pure Java code for some native Java methods for example java.util.zip.Adler32 or find JavaScript replacements. You can see how you can do this in the examples already implemented.
