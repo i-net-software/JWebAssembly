@@ -12,6 +12,9 @@ As output it generates the binary format (.wasm file) or the text format (.wat f
 
 The difference to similar projects is that not a complete VM with GC and memory management should be ported. It's more like a 1: 1 conversion. The generated WebAssembly code is similar in size to the original Java class files.
 
+## Contribution
+[Contributions](https://github.com/i-net-software/JWebAssembly/blob/master/CONTRIBUTING.md) are very welcome. This large project will not work without [contributions](https://github.com/i-net-software/JWebAssembly/blob/master/CONTRIBUTING.md).
+
 ## Documentation
 The documentation can be found in the [wiki](https://github.com/i-net-software/JWebAssembly/wiki).
 
@@ -41,6 +44,7 @@ The project is currently not production ready but you can run already some tests
 * [ ] Enum support
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * [x] Hello World sample [(live)](https://i-net-software.github.io/JWebAssembly/samples/HelloWorld/HelloWorld.html), [(source code)](https://github.com/i-net-software/JWebAssembly/blob/master/docs/samples/HelloWorld/HelloWorld.java)
+* [ ] Collection framework compile
 
 #### Status of Required WebAssembly Features
 The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly. If you want know the status of your current browser then look for [your browser support](https://wasm-feature-detect.surma.technology/).
@@ -67,7 +71,7 @@ Importance: All with high marked features are required for a hello word sample. 
 #### Desired Features
 
 * [ ] Full featured [library for accessing the DOM](https://github.com/i-net-software/JWebAssembly-API/tree/master/src/de/inetsoftware/jwebassembly/web).
-* [ ] Resources (properties, images, etc.)
+* [ ] Embbedding of Resources (properties, images, etc.)
 
 ### Version 3.0 (Milestone 3)
 
@@ -76,7 +80,8 @@ Importance: All with high marked features are required for a hello word sample. 
 * [ ] Exception handling - required the next version of WebAssembly
 * [ ] Multiple threads - required the next version of WebAssembly
 * [ ] Memory Management with build in GC without JavaScript polyfill
-* [ ] More Optimize like Tail Calls
+* [ ] Reflection
+* [ ] More optimize like tail calls, removing from asserts, inlining of functions, etc
 
 #### Status of Required WebAssembly Features
 
@@ -118,13 +123,20 @@ static int max( int a, int b) {
 }
 ```
 
+### Hello world sample in the browser with the DOM wrapper API
+```java
+@Export
+public static void main() {
+    Document document = Window.document();
+    HTMLElement div = document.createElement("div");
+    Text text = document.createTextNode("Hello World, this text come from WebAssembly."); 
+    div.appendChild( text );
+    document.body().appendChild( div );
+}
+```
 
 ### Java Limits
-In version 1 of WebAssembly you can only compile:
-* static methods
-* use the data types int, long float and double
-
-This is state of JWebAssembly 0.1. With version 0.2 you can use Objects via JavaScript polyfill.
+If you use it in the browser then only things can work that also work in the browser sandbox. This means file access or sockets will never work. Another problem are native parts of the Java VM. If there are no replacements via pure Java or JavaScript import then it will not work. [Contributions](https://github.com/i-net-software/JWebAssembly/blob/master/CONTRIBUTING.md) are wellcome.
 
 ### Alternatives
 * [TeaVM](https://github.com/konsoletyper/teavm)
