@@ -183,6 +183,7 @@ class BranchManger {
                             loop = new ParsedBlock( JavaBlockOperator.LOOP, start, 0, start, parsedBlock.lineNumber );
                             loops.put( start, loop );
                         }
+                        loop.nextPosition = parsedBlock.startPosition; // Jump position for Continue
                         loop.endPosition = parsedBlock.nextPosition;
                         break;
                     default:
@@ -262,7 +263,7 @@ class BranchManger {
         for( i = 0; i < instructions.size(); i++ ) {
             WasmInstruction instr = instructions.get( i );
             int codePos = instr.getCodePosition();
-            if( codePos == nextPos ) {
+            if( codePos == nextPos && conditionIdx < 0 ) {
                 conditionIdx = i;
             }
             if( codePos >= conditionEnd ) {
@@ -276,6 +277,7 @@ class BranchManger {
         }
 
         gotoBlock.op = JavaBlockOperator.LOOP;
+        gotoBlock.nextPosition = conditionStart; // Jump position for Continue
         gotoBlock.endPosition = conditionEnd;
         instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew, gotoBlock.lineNumber ) );
         instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew, gotoBlock.lineNumber  ) );
@@ -313,6 +315,33 @@ class BranchManger {
     }
 
     /**
+     * Add a break to the node if the block jump to the continue position of an outer loop.
+     * 
+     * @param parent
+     *            the container for adding the break
+     * @param startBlock
+     *            an IF or GOTO block.
+     * @return true, if the break was added
+     */
+    private boolean addBreakIfLoopContinue( BranchNode parent, ParsedBlock startBlock ) {
+        BranchNode main = parent;
+        int endPos = startBlock.endPosition;
+        int breakDeep = 0;
+        while( main != null ) {
+            if( main.startOp == WasmBlockOperator.LOOP && main.continuePos == endPos ) {
+                // possible operation values here are IF and GOTO
+                WasmBlockOperator op = startBlock.op == JavaBlockOperator.IF ? WasmBlockOperator.BR_IF : WasmBlockOperator.BR;
+                int startPos = startBlock.nextPosition;
+                parent.add( new BranchNode( startPos, startPos, op, null, breakDeep ) );
+                return true;
+            }
+            main = main.parent;
+            breakDeep++;
+        }
+        return false;
+    }
+
+    /**
      * Calculate the ELSE and END position of an IF control structure.
      * 
      * @param parent
@@ -325,6 +354,10 @@ class BranchManger {
     private void calculateIf( BranchNode parent, IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
         instructions.remove( startBlock.jump );
         IfPositions positions = searchElsePosition( startBlock, parsedOperations );
+
+        if( addBreakIfLoopContinue( parent, startBlock ) ) {
+            return;
+        }
 
         BranchNode main = parent;
         for( int i = 0; i < positions.ifCount; i++ ) {
@@ -389,6 +422,11 @@ class BranchManger {
                     i = 0;
                 }
 
+                if( addBreakIfLoopContinue( branch, parsedBlock ) ) {
+                    branch.endOp = WasmBlockOperator.END;
+                    endPos = branch.endPos;
+                    break;
+                }
                 // if with block type signature must have an else block
                 int breakDeep = calculateBreakDeep( parent, endPos );
                 if( breakDeep > 0 ) {
@@ -863,6 +901,29 @@ class BranchManger {
                 blockInstr.setData( data + 1 );
             }
         }
+        patchBrDeepInTree( newNode, 0 );
+    }
+
+    /**
+     * Patch the existing BR instructions in the tree after a new BLOCK node was injected in the hierarchy. The break position must
+     * only increment if the old break position is outside of the new BLOCK.
+     * 
+     * @param newNode
+     *            the new node
+     * @param deep
+     *            the deep of recursion 
+     */
+    private void patchBrDeepInTree( BranchNode newNode, int deep ) {
+        for( BranchNode node : newNode ) {
+            if( node.startOp == WasmBlockOperator.BR || node.startOp == WasmBlockOperator.BR_IF ) {
+                Integer data = (Integer)node.data;
+                if( data >= deep ) {
+                    node.data = data + 1;
+                }
+            } else {
+                patchBrDeepInTree( node, deep + 1 );
+            }
+        }
     }
 
     /**
@@ -906,6 +967,7 @@ class BranchManger {
                 return;
             }
         }
+        //breakOperations.add( new BreakBlock( parent, jump ) );
         throw new WasmException( "GOTO code without target loop/block. Jump from " + start + " to " + jump, gotoBlock.lineNumber );
     }
 
@@ -922,6 +984,7 @@ class BranchManger {
         BranchNode blockNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
         parent.add( blockNode );
         BranchNode loopNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.LOOP, WasmBlockOperator.END );
+        loopNode.continuePos = loopBlock.nextPosition;
         blockNode.add( loopNode );
 
         int idx = 0;
@@ -1414,6 +1477,9 @@ class BranchManger {
         private int                     startIdx;
 
         private int                     elseEndPos;
+
+        /** jump position for a CONTINUE in a loop */
+        private int                     continuePos;
 
         /**
          * Create a new description.

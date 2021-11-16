@@ -50,6 +50,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "doWhileLoopTwoConditions" );
             addParam( list, script, "doWhileLoopWithBreak" );
             addParam( list, script, "whileLoop" );
+            addParam( list, script, "whileLoopWithContinue" );
             addParam( list, script, "forLoop" );
             addParam( list, script, "conditionalOperator" );
             addParam( list, script, "conditionalOperator2" );
@@ -332,6 +333,20 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 a++;
             }
             return b;
+        }
+
+        @Export
+        public static int whileLoopWithContinue() {
+            int i = 0;
+            int value = 0;
+            while( i < 16 ) {
+                i++;
+                if( i > 8 ) {
+                    continue;
+                }
+                value |= 1 << i;
+            }
+            return value;
         }
 
         @Export
