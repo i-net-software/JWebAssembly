@@ -89,7 +89,7 @@ Importance: All with high marked features are required for a hello word sample. 
 
 Required Java Version
 ----
-The JWebAssembly compiler requires Java SE 8 or higher. It is tested with Java SE 8 on [travis-ci.org](https://travis-ci.org/i-net-software/jwebassembly).
+The JWebAssembly compiler requires Java SE 8 or higher. It is tested with OpenJDK 8 on [travis-ci.com](https://app.travis-ci.com/github/i-net-software/JWebAssembly).
 
 ## Usage
 
