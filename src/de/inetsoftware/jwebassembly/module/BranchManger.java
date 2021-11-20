@@ -467,7 +467,7 @@ class BranchManger {
                 if( count == 0 ) {
                     // we jump outside the parent and there are no instructions. This is lie a conditional break
                     //TODO should be BR_IF
-                    breakOperations.add( new BreakBlock( branch, startBlock.endPosition ) );
+                    breakOperations.add( new BreakBlock( branch, branch.endPos, startBlock.endPosition ) );
                     return;
                 }
             }
@@ -838,6 +838,7 @@ class BranchManger {
                                         lastPosition = Math.max( lastPosition, end );
                                     } else {
                                         startOp = WasmBlockOperator.BR_IF;
+                                        instructions.remove( ((IfParsedBlock)parsedBlock).jump );
                                     }
                                     start++;
                                     branch.add( new BranchNode( start, start, startOp, null, blockCount ) );
@@ -967,7 +968,7 @@ class BranchManger {
                 return;
             }
         }
-        //breakOperations.add( new BreakBlock( parent, jump ) );
+        //breakOperations.add( new BreakBlock( parent, start, jump ) );
         throw new WasmException( "GOTO code without target loop/block. Jump from " + start + " to " + jump, gotoBlock.lineNumber );
     }
 
@@ -1283,7 +1284,7 @@ class BranchManger {
             patchBrDeep( middleNode );
         }
 
-        BranchNode breakNode = new BranchNode( branch.endPos, branch.endPos, WasmBlockOperator.BR, null, deep + 1 );
+        BranchNode breakNode = new BranchNode( breakBlock.breakPos, breakBlock.breakPos, WasmBlockOperator.BR, null, deep + 1 );
         branch.add( breakNode );
     }
 
@@ -1569,7 +1570,7 @@ class BranchManger {
         }
 
         /**
-         * Calculate the block type. The value type that is on the stack after the block.
+         * Calculate the block type (return type). The value type that is on the stack after the block.
          * 
          * @param instructions
          *            the instructions of the function
@@ -1580,14 +1581,19 @@ class BranchManger {
                 branch.calculateBlockType( instructions );
             }
 
-            if( startBlock != null && startBlock.getOperation() == WasmBlockOperator.IF ) {
+            if( startBlock == null ) {
+                return;
+            }
+            switch( startBlock.getOperation() ) {
+                case IF:
+//                case BLOCK:
                 try {
                     ArrayDeque<AnyType> stack = new ArrayDeque<>();
                     stack.push( ValueType.empty );
                     INSTRUCTIONS: for( int i = startIdx; i < instructions.size(); i++ ) {
                         WasmInstruction instr = instructions.get( i );
                         int codePos = instr.getCodePosition();
-                        if( codePos >= endPos ) {
+                        if( codePos > endPos ) {
                             break;
                         }
                         int popCount = instr.getPopCount();
@@ -1614,6 +1620,9 @@ class BranchManger {
                                     // skip the content of the block, important to not count ELSE blocks
                                     i = findEndInstruction( instructions, i );
                                     break;
+                                case END:
+                                case ELSE:
+                                    break INSTRUCTIONS;
                             }
                         }
                     }
@@ -1677,6 +1686,8 @@ class BranchManger {
      */
     private static class BreakBlock {
 
+        private final int        breakPos;
+
         private final int        endPosition;
 
         private final BranchNode branch;
@@ -1686,10 +1697,13 @@ class BranchManger {
          * 
          * @param branch
          *            the parent block which should contain the break
+         * @param breakPos
+         *            the position where the break should be inserted.
          * @param endPosition
          *            the Jump position
          */
-        public BreakBlock( BranchNode branch, int endPosition ) {
+        public BreakBlock( BranchNode branch, int breakPos, int endPosition ) {
+            this.breakPos = breakPos;
             this.endPosition = endPosition;
             this.branch = branch;
         }
