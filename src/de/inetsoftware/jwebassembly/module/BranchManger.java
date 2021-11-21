@@ -1586,7 +1586,7 @@ class BranchManger {
             }
             switch( startBlock.getOperation() ) {
                 case IF:
-//                case BLOCK:
+                case BLOCK:
                 try {
                     ArrayDeque<AnyType> stack = new ArrayDeque<>();
                     stack.push( ValueType.empty );
