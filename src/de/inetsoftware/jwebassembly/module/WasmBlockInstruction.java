@@ -119,6 +119,7 @@ class WasmBlockInstruction extends WasmInstruction {
         switch( op ) {
             case IF:
             case BR_IF:
+            case BR_TABLE:
             case DROP:
             case THROW:
             case RETHROW:
