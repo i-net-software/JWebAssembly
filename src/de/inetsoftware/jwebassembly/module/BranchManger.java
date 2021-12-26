@@ -160,6 +160,7 @@ class BranchManger {
         addLoops();
         List<ParsedBlock> parsedOperations = allParsedOperations;
         Collections.sort( parsedOperations );
+        normalizeEmptyThenBlocks( parsedOperations );
         calculate( root, parsedOperations );
         for( BreakBlock breakBlock : breakOperations ) {
             calculateBreak( breakBlock );
@@ -284,6 +285,40 @@ class BranchManger {
     }
 
     /**
+     * Normalize all empty THEN blocks like:
+     * 
+     * <pre>
+     * if (condition) {
+     * } else {
+     *      ....
+     * }
+     * </pre>
+     * 
+     * are changed to: if (!condition) { .... }
+     * </pre>
+     * The THEN block contains only a single GOTO operation. This operation is removed and the IF condition is negate.
+     * The removing of the GOTO operation make it easer to convert it to a valid WebAssembly structure without GOTO.
+     * 
+     * @param parsedOperations
+     *            the parsed operations
+     */
+    private static void normalizeEmptyThenBlocks( List<ParsedBlock> parsedOperations ) {
+        // occur also with cascaded conditional operator like: int result = (a < 0 ? false : a == c ) && (b < 0 ? false : b == c ) ? 17 : 18;
+        for( int i = 0; i < parsedOperations.size() - 1; i++ ) {
+            ParsedBlock ifBlock = parsedOperations.get( i );
+            if( ifBlock.op == JavaBlockOperator.IF ) {
+                ParsedBlock nextBlock = parsedOperations.get( i + 1 );
+                if( nextBlock.op == JavaBlockOperator.GOTO && nextBlock.startPosition == ifBlock.nextPosition
+                                && ifBlock.endPosition == nextBlock.nextPosition ) {
+                    ((IfParsedBlock)ifBlock).negateCompare();
+                    ifBlock.endPosition = nextBlock.endPosition;
+                    parsedOperations.remove( i + 1 );
+                }
+            }
+        }
+    }
+
+    /**
      * Calculate the branch tree for the given branch and parsed sub operations.
      * 
      * @param parent the parent branch/block in the hierarchy.
@@ -399,21 +434,6 @@ class BranchManger {
                 parsedOperations.remove( i );
                 // end position can not be outside of the parent
                 endPos = Math.min( parsedBlock.endPosition, parent.endPos );
-
-                // special case if there is only one goto in the IF block. Occur with goto_w
-                if( parsedBlock.startPosition == startPos ) {
-                    int nextPos = Math.min( parsedBlock.endPosition, parent.endPos );
-                    for( int j = i; j < parsedOperations.size(); j++ ) {
-                        ParsedBlock parsedBlock2 = parsedOperations.get( j );
-                        if( parsedBlock2.nextPosition == nextPos && parsedBlock2.op == JavaBlockOperator.GOTO && parsedBlock2.startPosition < parsedBlock2.endPosition ) {
-                            parsedOperations.remove( j );
-                            positions.elsePos = nextPos;
-                            endPos = parsedBlock2.endPosition;
-                            startBlock.negateCompare();
-                            i = j;
-                        }
-                    }
-                }
 
                 branch = new BranchNode( startPos, positions.elsePos, WasmBlockOperator.IF, null );
                 parent.add( branch );
