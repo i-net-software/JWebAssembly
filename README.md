@@ -19,7 +19,7 @@ The difference to similar projects is that not a complete VM with GC and memory 
 The documentation can be found in the [wiki](https://github.com/i-net-software/JWebAssembly/wiki).
 
 ## Roadmap
-The project is currently not production ready but you can run already some tests.
+The project is not currently production-ready, but you can already run some tests.
 
 ### Version 1.0 (Milestone 1)
 
@@ -79,7 +79,7 @@ Importance: All with high marked features are required for a hello word sample. 
 
 * [ ] Exception handling - required the next version of WebAssembly
 * [ ] Multiple threads - required the next version of WebAssembly
-* [ ] Memory Management with build in GC without JavaScript polyfill
+* [ ] Memory Management with built-in GC without JavaScript polyfill
 * [ ] Reflection
 * [ ] More optimize like tail calls, removing from asserts, inlining of functions, etc
 
