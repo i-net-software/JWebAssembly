@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2021 Volker Berlin (i-net software)
+ * Copyright 2018 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "conditionalOperator" );
             addParam( list, script, "conditionalOperator2" );
             addParam( list, script, "conditionalOperatorConcated" );
+            addParam( list, script, "conditionalOperatorConcated2" );
             addParam( list, script, "redifineVariable" );
             addParam( list, script, "ifAnd_0" );
             addParam( list, script, "ifAnd_3" );
@@ -379,6 +380,14 @@ public class ControlFlowOperators extends AbstractBaseTest {
             int c = 42;
             int result = (a < 0 ? false : a == c ) && (b < 0 ? false : b == c ) ? 3 : 4;
             return result;
+        }
+
+        @Export
+        static int conditionalOperatorConcated2() {
+            int a = 7;
+            int b = 13;
+            int c = 42;
+            return (a < 0 ? a != b : a != c ) && (b < 0 ? false : b == c ) ? 17 : 18;
         }
 
         @Export

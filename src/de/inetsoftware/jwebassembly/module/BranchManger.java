@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -409,7 +409,7 @@ class BranchManger {
                 // OR concatenation (|| operator)
                 int pos = startBlock.startPosition + 2; // startBlock.startPosition is the position of the compare operation which need before this if construct
                 main.add( new BranchNode( pos, startBlock.nextPosition, WasmBlockOperator.IF, null ) );
-                BranchNode node = new BranchNode( startBlock.nextPosition, positions.thenPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
+                BranchNode node = new BranchNode( startBlock.nextPosition, positions.thenPos - 1, WasmBlockOperator.ELSE, WasmBlockOperator.END );
                 main.add( node );
                 main = node;
                 insertConstBeforePosition( 1, pos + 1, startBlock.lineNumber ); // 1 --> TRUE for the next if expression
@@ -466,7 +466,7 @@ class BranchManger {
         }
 
         if( branch == null ) {
-            branch = new BranchNode( startPos, endPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
+            branch = new BranchNode( startPos - 1, endPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
             parent.add( branch );
             if( startBlock.endPosition > parent.endPos ) {
                 int count = 0;
@@ -485,9 +485,9 @@ class BranchManger {
                     count++;
                 }
                 if( count == 0 ) {
-                    // we jump outside the parent and there are no instructions. This is lie a conditional break
+                    // we jump outside the parent and there are no instructions. This is like a conditional break
                     //TODO should be BR_IF
-                    breakOperations.add( new BreakBlock( branch, branch.endPos, startBlock.endPosition ) );
+                    breakOperations.add( new BreakBlock( branch, endPos, startBlock.endPosition ) );
                     return;
                 }
             }
@@ -1289,21 +1289,42 @@ class BranchManger {
         }
 
         if( parent != null && parent.elseEndPos > gotoEndPos ) {
+
+            // check if we break into an ELSE block which is possible in Java with a GOTO, occur with concatenated conditional operators
+            for( int i = 1; i < parent.size(); i++ ) {
+                BranchNode node = parent.get( i );
+                System.err.println( node.startOp + " " + node.startPos + " " + node.endPos );
+                if( gotoEndPos == node.startPos ) {
+                    if( node.startOp == WasmBlockOperator.ELSE ) {
+                        // we can't break into an else block that we break to the IF and push a zero to the stack
+                        node = parent.get( i - 1 ); // should be the IF to the ELSE
+                        breakBlock.endPosition = node.startPos;
+                        breakBlock.breakToElseBlock = true;
+                        calculateBreak( breakBlock );
+                        return;
+                    }
+                    break;
+                }
+            }
+
             BranchNode middleNode = new BranchNode( parent.startPos, gotoEndPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-            for( Iterator<BranchNode> it = parent.iterator(); it.hasNext(); ) {
-                BranchNode child = it.next();
+            while( !parent.isEmpty() ) {
+                BranchNode child = parent.get( 0 );
                 if( child.endPos > gotoEndPos ) {
-                    continue;
+                    break;
                 }
                 middleNode.add( child );
-                it.remove();
+                parent.remove( 0 );
             }
-            parent.add( middleNode );
-            //deep++;
+            parent.add( 0, middleNode );
             parent = middleNode;
             patchBrDeep( middleNode );
         }
 
+        if( breakBlock.breakToElseBlock ) {
+            // push zero that we switch into the ELSE block
+            insertConstBeforePosition( 0, breakBlock.breakPos, -1 );
+        }
         BranchNode breakNode = new BranchNode( breakBlock.breakPos, breakBlock.breakPos, WasmBlockOperator.BR, null, deep + 1 );
         branch.add( breakNode );
     }
@@ -1626,7 +1647,8 @@ class BranchManger {
                         }
 
                         if( instr.getType() == Type.Block ) {
-                            switch( ((WasmBlockInstruction)instr).getOperation() ) {
+                            WasmBlockInstruction blockInstr = (WasmBlockInstruction)instr;
+                            switch( blockInstr.getOperation() ) {
                                 case RETURN:
                                     // set "empty" block type
                                     while( stack.size() > 1 ) {
@@ -1643,6 +1665,17 @@ class BranchManger {
                                 case END:
                                 case ELSE:
                                     break INSTRUCTIONS;
+                                case BR:
+                                    Integer data = (Integer)blockInstr.getData();
+                                    if( data > 0 ) {
+                                        // TODO we should check the ELSE block in this case if there is any
+                                        // set "empty" block type
+                                        while( stack.size() > 1 ) {
+                                            stack.pop();
+                                        }
+                                    }
+                                    break INSTRUCTIONS;
+                                default:
                             }
                         }
                     }
@@ -1708,9 +1741,11 @@ class BranchManger {
 
         private final int        breakPos;
 
-        private final int        endPosition;
+        private       int        endPosition;
 
         private final BranchNode branch;
+
+        private boolean          breakToElseBlock;
 
         /**
          * Create Break
