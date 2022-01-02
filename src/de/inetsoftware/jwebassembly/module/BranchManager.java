@@ -46,7 +46,7 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  * @author Volker Berlin
  *
  */
-class BranchManger {
+class BranchManager {
 
     private final ArrayList<ParsedBlock>        allParsedOperations = new ArrayList<>();
 
@@ -75,7 +75,7 @@ class BranchManger {
      * @param localVariables
      *            the local variables
      */
-    public BranchManger( WasmOptions options, List<WasmInstruction> instructions, LocaleVariableManager localVariables ) {
+    public BranchManager( WasmOptions options, List<WasmInstruction> instructions, LocaleVariableManager localVariables ) {
         this.options = options;
         this.instructions = instructions;
         this.localVariables = localVariables;
