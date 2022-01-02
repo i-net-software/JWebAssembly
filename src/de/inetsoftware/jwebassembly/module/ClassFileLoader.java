@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 Volker Berlin (i-net software)
+   Copyright 2020 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -118,8 +118,10 @@ public class ClassFileLoader {
      *            the replacing ClassFile
      */
     void replace( String className, ClassFile classFile ) {
-        classFile = new ClassFile( className, classFile );
-        replace.put( className, classFile );
+        if( replace.get( className ) == null ) {
+            classFile = new ClassFile( className, classFile );
+            replace.put( className, classFile );
+        }
     }
 
     /**
