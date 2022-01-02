@@ -923,6 +923,17 @@ class BranchManger {
             }
         }
         patchBrDeepInTree( newNode, 0 );
+
+        // also change the parent for all break operations
+        BranchNode parent = newNode.parent;
+        for( BreakBlock breakBlock : breakOperations ) {
+            if( breakBlock.branch == parent ) {
+                int breakPos = breakBlock.breakPos;
+                if( breakPos >= newNode.startPos && breakPos < newNode.endPos ) {
+                    breakBlock.branch = newNode; 
+                }
+            }
+        }
     }
 
     /**
@@ -988,8 +999,7 @@ class BranchManger {
                 return;
             }
         }
-        //breakOperations.add( new BreakBlock( parent, start, jump ) );
-        throw new WasmException( "GOTO code without target loop/block. Jump from " + start + " to " + jump, gotoBlock.lineNumber );
+        breakOperations.add( new BreakBlock( parent, start, jump ) );
     }
 
     /**
@@ -1293,7 +1303,6 @@ class BranchManger {
             // check if we break into an ELSE block which is possible in Java with a GOTO, occur with concatenated conditional operators
             for( int i = 1; i < parent.size(); i++ ) {
                 BranchNode node = parent.get( i );
-                System.err.println( node.startOp + " " + node.startPos + " " + node.endPos );
                 if( gotoEndPos == node.startPos ) {
                     if( node.startOp == WasmBlockOperator.ELSE ) {
                         // we can't break into an else block that we break to the IF and push a zero to the stack
@@ -1739,13 +1748,13 @@ class BranchManger {
      */
     private static class BreakBlock {
 
-        private final int        breakPos;
+        private final int  breakPos;
 
-        private       int        endPosition;
+        private int        endPosition;
 
-        private final BranchNode branch;
+        private BranchNode branch;
 
-        private boolean          breakToElseBlock;
+        private boolean    breakToElseBlock;
 
         /**
          * Create Break
