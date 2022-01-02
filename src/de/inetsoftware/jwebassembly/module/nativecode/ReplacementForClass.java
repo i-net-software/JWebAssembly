@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 - 2021 Volker Berlin (i-net software)
+   Copyright 2020 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import static de.inetsoftware.jwebassembly.module.TypeManager.VOID;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import de.inetsoftware.jwebassembly.api.annotation.Replace;
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
@@ -216,6 +217,14 @@ class ReplacementForClass<T> {
      */
     @WasmTextCode( "unreachable" ) // TODO
     public native boolean isAssignableFrom( Class<?> cls );
+
+    /**
+     * Replacement of the Java method isInterface()
+     *
+     * @return  {@code true} if this object represents an interface;
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native boolean isInterface();
 
     /**
      * Replacement of the Java method isArray()
@@ -405,4 +414,13 @@ class ReplacementForClass<T> {
     public boolean desiredAssertionStatus() {
         return false;
     }
+
+    /**
+     * Replacement of the Java method enumConstantDirectory()
+     *
+     * Returns a map from simple name to enum constant.  This package-private
+     * method is used internally by Enum to implement
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    native Map<String, T> enumConstantDirectory();
 }
