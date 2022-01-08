@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2021 Volker Berlin (i-net software)
+ * Copyright 2018 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,9 @@ class FunctionManager {
      *            the name of the class like "java/lang/Object"
      */
     void markClassAsUsed( String className ) {
-        usedClasses.add( className );
+        if( usedClasses.add( className ) ) {
+            JWebAssembly.LOGGER.fine( "\t\tused: " + className );
+        }
     }
 
     /**
