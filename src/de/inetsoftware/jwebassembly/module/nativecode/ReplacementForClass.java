@@ -29,6 +29,8 @@ import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_I
 import static de.inetsoftware.jwebassembly.module.TypeManager.TYPE_DESCRIPTION_TYPE_NAME;
 import static de.inetsoftware.jwebassembly.module.TypeManager.VOID;
 
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -275,6 +277,13 @@ class ReplacementForClass<T> {
     public native Class<? super T> getSuperclass();
 
     /**
+     * Replacement of the Java methods getPackage()
+     */
+    public Package getPackage() {
+        return null;
+    }
+
+    /**
      * Replacement of the Java method getInterfaces()
      * @return an array of interfaces implemented by this class.
      */
@@ -328,6 +337,31 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Replacement of the Java method getTypeName()
+     * 
+     * @return an informative string for the name of this type
+     */
+    public String getTypeName() {
+        if (isArray()) {
+            try {
+                ReplacementForClass<?> cl = this;
+                int dimensions = 0;
+                while (cl.isArray()) {
+                    dimensions++;
+                    cl = cl.getComponentType();
+                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(cl.getName());
+                for (int i = 0; i < dimensions; i++) {
+                    sb.append("[]");
+                }
+                return sb.toString();
+            } catch (Throwable e) { /*FALLTHRU*/ }
+        }
+        return getName();
+    }
+
+    /**
      * Replacement of the Java method getCanonicalName()
      * 
      * @return the canonical name of the underlying class
@@ -373,6 +407,19 @@ class ReplacementForClass<T> {
      */
     @WasmTextCode( "unreachable" ) // TODO
     public native Method getDeclaredMethod(String name, Class<?>... parameterTypes);
+
+    /**
+     * Replacement of the Java method getDeclaredConstructor()
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes);
+
+    /**
+     * Replacement of the Java method getResourceAsStream()
+     */
+    public InputStream getResourceAsStream(String name) {
+        return null; //TODO
+    }
 
     /**
      * Replacement of the native Java method {@link Class#getPrimitiveClass}
