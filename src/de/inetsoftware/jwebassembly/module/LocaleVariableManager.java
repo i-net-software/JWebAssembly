@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
 /**
@@ -161,15 +162,22 @@ class LocaleVariableManager {
         // add missing slots from signature
         if( (maxLocals > 0 || variableTable == null) && size == 0 && (method != null || signature != null )) {
             Iterator<AnyType> parser = signature == null ? new ValueTypeParser( method.getType(), types ) : signature;
+            int slot = 0;
             if( method != null && !method.isStatic() ) {
-                resetAddVar( types.valueOf( method.getClassName() ), size );
+                // the first parameter is THIS
+                resetAddVar( types.valueOf( method.getClassName() ), 0 );
+                slot++;
             }
             while( true ) {
                 AnyType type = parser.next();
                 if( type == null ) {
                     break;
                 }
-                resetAddVar( type, size );
+                resetAddVar( type, slot++ );
+                if( type == ValueType.i64 || type == ValueType.f64 ) {
+                    // 64bit values use two slots in Java
+                    slot++;
+                }
             }
         }
 
