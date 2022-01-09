@@ -338,12 +338,21 @@ class LocaleVariableManager {
      */
     int getTempVariable( AnyType valueType, int startCodePosition, int endCodePosition ) {
         // can we reuse some other temporary local variables?
+        LOOP:
         for( int i = size-1; i >= 0 ; i-- ) {
             Variable var = variables[i];
             if( var.valueType != valueType ) {
                 continue;
             }
             if( var.endPos < startCodePosition ) {
+                int idx = var.idx;
+                for( int s = i + 1; s < size ; s++ ) {
+                    Variable var2 = variables[s];
+                    // the same slot is already use with another type on a different code position
+                    if( var2.idx == idx ) {
+                        continue LOOP;
+                    }
+                }
                 var.endPos = endCodePosition;
                 return var.idx;
             }
