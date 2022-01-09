@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2021 Volker Berlin (i-net software)
+ * Copyright 2018 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -419,17 +419,17 @@ public abstract class WasmCodeBuilder {
         AnyType type1 = findValueTypeFromStack( 1, javaCodePos );
         AnyType type2 = findValueTypeFromStack( 2, javaCodePos );
 
-        int varIndex1 = getTempVariable( type1, javaCodePos, javaCodePos + 1 );
-        int varIndex2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );
+        int varSlot1 = getTempVariable( type1, javaCodePos, javaCodePos + 1 );
+        int varSlot2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );
 
         // save in temp variables
-        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex1, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex2, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, varSlot1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, varSlot2, localVariables, javaCodePos, lineNumber ) );
 
         // and restore it in new order on the stack
-        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex2, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot2, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot1, localVariables, javaCodePos, lineNumber ) );
     }
 
     /**
@@ -447,20 +447,20 @@ public abstract class WasmCodeBuilder {
         AnyType type2 = findValueTypeFromStack( 2, javaCodePos );
         AnyType type3 = findValueTypeFromStack( 3, javaCodePos );
 
-        int varIndex1 = getTempVariable( type1, javaCodePos, javaCodePos + 1 );
-        int varIndex2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );
-        int varIndex3 = getTempVariable( type3, javaCodePos, javaCodePos + 1 );
+        int varSlot1 = getTempVariable( type1, javaCodePos, javaCodePos + 1 );
+        int varSlot2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );
+        int varSlot3 = getTempVariable( type3, javaCodePos, javaCodePos + 1 );
 
         // save in temp variables
-        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex1, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex2, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.set, varIndex3, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, varSlot1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, varSlot2, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, varSlot3, localVariables, javaCodePos, lineNumber ) );
 
         // and restore it in new order on the stack
-        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex3, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex2, localVariables, javaCodePos, lineNumber ) );
-        instructions.add( new WasmLocalInstruction( VariableOperator.get, varIndex1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot1, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot3, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot2, localVariables, javaCodePos, lineNumber ) );
+        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot1, localVariables, javaCodePos, lineNumber ) );
     }
 
     /**
