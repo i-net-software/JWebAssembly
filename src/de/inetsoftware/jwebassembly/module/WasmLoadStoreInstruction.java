@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      * 
      * @param op
      *            the operation
-     * @param idx
+     * @param slot
      *            the memory/slot idx of the variable
      * @param localVariables
      *            the manager for local variables
@@ -43,21 +43,9 @@ class WasmLoadStoreInstruction extends WasmLocalInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmLoadStoreInstruction( @Nonnull VariableOperator op, @Nonnegative int idx, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
-        super( op, idx, localVariables, javaCodePos, lineNumber );
+    WasmLoadStoreInstruction( @Nonnull VariableOperator op, @Nonnegative int slot, LocaleVariableManager localVariables, int javaCodePos, int lineNumber ) {
+        super( op, slot, localVariables, javaCodePos, lineNumber );
     }
-
-    /**
-     * Create a derived instruction for the same slot
-     * 
-     * @param op
-     *            the operation
-     * @return the new instruction
-     */
-//    @Nonnull
-//    WasmLoadStoreInstruction create( VariableOperator op ) {
-//        return new WasmLoadStoreInstruction( op, super.getIndex(), localVariables, getCodePosition(), getLineNumber() );
-//    }
 
     /**
      * {@inheritDoc}
