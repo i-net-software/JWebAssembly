@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -35,11 +35,17 @@ import static de.inetsoftware.jwebassembly.wasm.VariableOperator.*;
 class WasmLocalInstruction extends WasmInstruction {
 
     @Nonnull
-    private VariableOperator      op;
+    private VariableOperator    op;
 
-    private int                   idx;
+    /**
+     * The variable slot (Java) for WasmLoadStoreInstruction and the WebAssembly variable index for a
+     * WasmLocalInstruction instance.
+     */
+    private int                 idx;
 
     final LocaleVariableManager localVariables;
+
+    private AnyType             pushValueType;
 
     /**
      * Create an instance of a load/store instruction for a local variable.
@@ -124,7 +130,9 @@ class WasmLocalInstruction extends WasmInstruction {
      */
     @Override
     AnyType getPushValueType() {
-        return op != set ? localVariables.getValueType( getIndex() ) : null;
+        return op != set ?
+            pushValueType != null ? pushValueType : (pushValueType = localVariables.getValueType( getIndex() ))
+            : null;
     }
 
     /**
