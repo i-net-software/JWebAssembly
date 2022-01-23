@@ -208,11 +208,28 @@ class BranchManager {
                         for( int n = b + 1; n < allParsedOperations.size(); n++ ) {
                             ParsedBlock nextBlock = allParsedOperations.get( n );
                             if( nextBlock.op == JavaBlockOperator.IF && nextBlock.endPosition == nextPos ) { // Eclipse loop with normal goto
-                                int conditionStart = parsedBlock.endPosition;
-                                int conditionEnd = nextBlock.nextPosition;
-                                convertToLoop( parsedBlock, conditionStart, conditionEnd );
                                 allParsedOperations.remove( n );
                                 ((IfParsedBlock)nextBlock).negateCompare();
+
+                                int conditionStart = parsedBlock.endPosition;
+                                int conditionEnd = nextBlock.nextPosition;
+                                if( conditionStart == conditionEnd ) {
+                                    // WHILE loop in ELSE block. 
+                                    // The GOTO from the ELSE and the jump to the end of the WHILE loop is merged to one GOTO.
+                                    for( n = b - 1; n >= 0; n-- ) {
+                                        ParsedBlock prevBlock = allParsedOperations.get( n );
+                                        if( prevBlock.endPosition > nextPos ) {
+                                            conditionStart = prevBlock.endPosition;
+                                            prevBlock.endPosition = parsedBlock.nextPosition;
+                                            // Create the second GOTO
+                                            allParsedOperations.add( b, new ParsedBlock( JavaBlockOperator.GOTO, parsedBlock.startPosition, parsedBlock.endPosition - parsedBlock.startPosition, parsedBlock.nextPosition, parsedBlock.lineNumber ) );
+                                            // we have only 3 code positions but need 6 for two GOTO
+                                            parsedBlock.startPosition = parsedBlock.nextPosition;
+                                            break;
+                                        }
+                                    }
+                                }
+                                convertToLoop( parsedBlock, conditionStart, conditionEnd );
 
                                 // if conditions that point at the end of the loop for optimization must now point at start.
                                 for( n = b - 1; n >= 0; n-- ) {
@@ -223,11 +240,16 @@ class BranchManager {
                                 }
                                 break;
                             }
-                            if( nextBlock.op == JavaBlockOperator.GOTO && nextBlock.endPosition == nextPos && n > 1 ) { // Eclipse loop with wide goto_w
+                            if( nextBlock.op == JavaBlockOperator.GOTO && nextBlock.endPosition == nextPos ) { // Eclipse loop with wide goto_w
                                 ParsedBlock prevBlock = allParsedOperations.get( n - 1 );
                                 if( prevBlock.op == JavaBlockOperator.IF && prevBlock.endPosition == nextBlock.nextPosition ) {
                                     int conditionStart = parsedBlock.endPosition;
                                     int conditionEnd = prevBlock.nextPosition;
+                                    if( conditionStart >= conditionEnd ) {
+                                        // WHILE loop in ELSE block.
+                                        // occur with java.math.BigInteger.add(int[],int[]) in Java 8
+                                        break;
+                                    }
                                     convertToLoop( parsedBlock, conditionStart, conditionEnd );
                                     allParsedOperations.remove( n );
                                     allParsedOperations.remove( n - 1 );
