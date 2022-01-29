@@ -157,8 +157,8 @@ class BranchManager {
      * Calculate all block operators from the parsed information.
      */
     void calculate() {
-        addLoops();
         List<ParsedBlock> parsedOperations = allParsedOperations;
+        addLoops( parsedOperations );
         Collections.sort( parsedOperations );
         normalizeEmptyThenBlocks( parsedOperations );
         calculate( root, parsedOperations );
@@ -170,10 +170,12 @@ class BranchManager {
     /**
      * In the compiled Java byte code there is no marker for the start of loop. But we need this marker. That we add a
      * virtual loop operator on the target position of GOTO operators with a negative offset.
+     * @param parsedOperations
+     *            the parsed operations
      */
-    private void addLoops() {
-        for( int b = 0; b < allParsedOperations.size(); b++ ) {
-            ParsedBlock parsedBlock = allParsedOperations.get( b );
+    private void addLoops( List<ParsedBlock> parsedOperations ) {
+        for( int b = 0; b < parsedOperations.size(); b++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( b );
             if( parsedBlock.startPosition > parsedBlock.endPosition ) {
                 switch ( parsedBlock.op ) {
                     case GOTO: // do while(true) loop; Continue
@@ -205,10 +207,10 @@ class BranchManager {
                         // if<cond> START:
                         // we can not match this in WASM because a missing GOTO that we need to move the condition to the start of the loop
                         int nextPos = parsedBlock.nextPosition;
-                        for( int n = b + 1; n < allParsedOperations.size(); n++ ) {
-                            ParsedBlock nextBlock = allParsedOperations.get( n );
+                        for( int n = b + 1; n < parsedOperations.size(); n++ ) {
+                            ParsedBlock nextBlock = parsedOperations.get( n );
                             if( nextBlock.op == JavaBlockOperator.IF && nextBlock.endPosition == nextPos ) { // Eclipse loop with normal goto
-                                allParsedOperations.remove( n );
+                                parsedOperations.remove( n );
                                 ((IfParsedBlock)nextBlock).negateCompare();
 
                                 int conditionStart = parsedBlock.endPosition;
@@ -217,12 +219,12 @@ class BranchManager {
                                     // WHILE loop in ELSE block. 
                                     // The GOTO from the ELSE and the jump to the end of the WHILE loop is merged to one GOTO.
                                     for( n = b - 1; n >= 0; n-- ) {
-                                        ParsedBlock prevBlock = allParsedOperations.get( n );
+                                        ParsedBlock prevBlock = parsedOperations.get( n );
                                         if( prevBlock.endPosition > nextPos ) {
                                             conditionStart = prevBlock.endPosition;
                                             prevBlock.endPosition = parsedBlock.nextPosition;
                                             // Create the second GOTO
-                                            allParsedOperations.add( b, new ParsedBlock( JavaBlockOperator.GOTO, parsedBlock.startPosition, parsedBlock.endPosition - parsedBlock.startPosition, parsedBlock.nextPosition, parsedBlock.lineNumber ) );
+                                            parsedOperations.add( b, new ParsedBlock( JavaBlockOperator.GOTO, parsedBlock.startPosition, parsedBlock.endPosition - parsedBlock.startPosition, parsedBlock.nextPosition, parsedBlock.lineNumber ) );
                                             // we have only 3 code positions but need 6 for two GOTO
                                             parsedBlock.startPosition = parsedBlock.nextPosition;
                                             break;
@@ -233,7 +235,7 @@ class BranchManager {
 
                                 // if conditions that point at the end of the loop for optimization must now point at start.
                                 for( n = b - 1; n >= 0; n-- ) {
-                                    ParsedBlock prevBlock = allParsedOperations.get( n );
+                                    ParsedBlock prevBlock = parsedOperations.get( n );
                                     if( prevBlock.op == JavaBlockOperator.IF && prevBlock.endPosition == conditionStart ) {
                                         prevBlock.endPosition = parsedBlock.startPosition;
                                     }
@@ -241,7 +243,7 @@ class BranchManager {
                                 break;
                             }
                             if( nextBlock.op == JavaBlockOperator.GOTO && nextBlock.endPosition == nextPos ) { // Eclipse loop with wide goto_w
-                                ParsedBlock prevBlock = allParsedOperations.get( n - 1 );
+                                ParsedBlock prevBlock = parsedOperations.get( n - 1 );
                                 if( prevBlock.op == JavaBlockOperator.IF && prevBlock.endPosition == nextBlock.nextPosition ) {
                                     int conditionStart = parsedBlock.endPosition;
                                     int conditionEnd = prevBlock.nextPosition;
@@ -251,8 +253,8 @@ class BranchManager {
                                         break;
                                     }
                                     convertToLoop( parsedBlock, conditionStart, conditionEnd );
-                                    allParsedOperations.remove( n );
-                                    allParsedOperations.remove( n - 1 );
+                                    parsedOperations.remove( n );
+                                    parsedOperations.remove( n - 1 );
                                     break;
                                 }
                             }
@@ -263,7 +265,7 @@ class BranchManager {
             }
         }
 
-        allParsedOperations.addAll( loops.values() );
+        parsedOperations.addAll( loops.values() );
     }
 
     /**
