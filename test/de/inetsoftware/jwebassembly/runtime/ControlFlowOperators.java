@@ -53,6 +53,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "whileLoopWithContinue" );
             addParam( list, script, "whileLoopInElse_3" );
             addParam( list, script, "whileLoopInElse_13" );
+            addParam( list, script, "whileLoopInElseAfterReturn" );
             addParam( list, script, "forLoop" );
             addParam( list, script, "conditionalOperator" );
             addParam( list, script, "conditionalOperator2" );
@@ -374,6 +375,21 @@ public class ControlFlowOperators extends AbstractBaseTest {
         @Export
         public static int whileLoopInElse_13() {
             return whileLoopInElse( 13 );
+        }
+
+        @Export
+        public static int whileLoopInElseAfterReturn() {
+            int yIndex = 13;
+            int result = 0;
+            if (yIndex == 3) {
+                return 42;
+            } else {
+                while (yIndex > 7) {
+                    result++;
+                    yIndex--;
+                }
+            }
+            return result;
         }
 
         @Export

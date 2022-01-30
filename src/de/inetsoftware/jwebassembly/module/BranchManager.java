@@ -185,6 +185,14 @@ class BranchManager {
                         if( loop == null ) {
                             loop = new ParsedBlock( JavaBlockOperator.LOOP, start, 0, start, parsedBlock.lineNumber );
                             loops.put( start, loop );
+                            // if a condition form outside of the loop point inside the loop then it must be conditional return and a jump to the loop condition.
+                            for( int n = b - 1; n >= 0; n-- ) {
+                                ParsedBlock prevBlock = parsedOperations.get( n );
+                                if( prevBlock.op == JavaBlockOperator.IF && prevBlock.startPosition < start && prevBlock.endPosition > start
+                                                && prevBlock.endPosition < parsedBlock.startPosition ) {
+                                    prevBlock.endPosition = start;
+                                }
+                            }
                         }
                         loop.nextPosition = parsedBlock.startPosition; // Jump position for Continue
                         loop.endPosition = parsedBlock.nextPosition;
