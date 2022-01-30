@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 - 2021 Volker Berlin (i-net software)
+ * Copyright 2019 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ class Wat2Wasm {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
 
-        URL url = new URL( "https://github.com/WebAssembly/wabt/releases/latest" );
+        URL url = new URL( "https://github.com/WebAssembly/wabt/releases/tag/1.0.26" ); //TODO new URL( "https://github.com/WebAssembly/wabt/releases/latest" );
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         InputStream input = conn.getInputStream();
         String data = WasmRule.readStream( input, true );
