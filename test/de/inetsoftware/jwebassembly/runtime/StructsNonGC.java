@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2021 Volker Berlin (i-net software)
+ * Copyright 2018 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntSupplier;
 import java.util.function.IntUnaryOperator;
 
@@ -315,11 +316,11 @@ public class StructsNonGC extends AbstractBaseTest {
         }
 
         @Export
-        static int lambda3() {
+        static double lambda3() {
             int v1 = 42;
             int v2 = 7;
-            IntUnaryOperator val = (x) -> x + v2 + v1;
-            return val.applyAsInt( 13 );
+            DoubleUnaryOperator val = (x) -> x * v2 + v1;
+            return val.applyAsDouble( 13 );
         }
 
         @Export

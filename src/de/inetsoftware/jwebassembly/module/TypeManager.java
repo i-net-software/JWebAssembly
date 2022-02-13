@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -1208,17 +1208,19 @@ public class TypeManager {
                     }
                     watParser.reset( null, null, sig.iterator() );
 
+                    // first add the values from the Lambda constructor which is saves in the syntetic class
+                    for( int i = 0; i < paramFields.size(); i++ ) {
+                        codebuilder.addLoadStoreInstruction( LambdaType.this, true, 0, 0, -1 );
+                        codebuilder.addStructInstruction( StructOperator.GET, name, paramFields.get( i ), 0, -1 );
+                    }
+
+                    // forward the parameter from the current call without the THIS parameter because the call lambda method is static
                     for( int i = 1; i < sig.size(); i++ ) {
                         AnyType anyType = sig.get( i );
                         if( anyType == null ) {
                             break;
                         }
                         codebuilder.addLoadStoreInstruction( anyType, true, i, 0, -1 );
-                    }
-
-                    for( int i = 0; i < paramFields.size(); i++ ) {
-                        codebuilder.addLoadStoreInstruction( LambdaType.this, true, 0, 0, -1 );
-                        codebuilder.addStructInstruction( StructOperator.GET, name, paramFields.get( i ), 0, -1 );
                     }
 
                     codebuilder.addCallInstruction( syntheticLambdaFunctionName, false, 0, -1 );

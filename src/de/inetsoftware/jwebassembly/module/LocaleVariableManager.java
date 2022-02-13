@@ -191,6 +191,9 @@ class LocaleVariableManager {
             }
             resetAddVar( null, i );
         }
+
+        // in Eclipse for lambda expression only the method parameters has an entry in the variable table. But the not define parameter of the lambda constructor come before.
+        Arrays.sort( variables, 0, size );
     }
 
     /**
@@ -455,7 +458,7 @@ class LocaleVariableManager {
     /**
      * The state of a single local variable slot.
      */
-    private static class Variable {
+    private static class Variable implements Comparable<Variable> {
 
         private AnyType valueType;
 
@@ -476,6 +479,14 @@ class LocaleVariableManager {
          */
         public boolean matchCodePosition( int codePosition ) {
             return startPos <= codePosition && codePosition <= endPos;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int compareTo( Variable o ) {
+            return Integer.compare( idx, o.idx );
         }
     }
 }
