@@ -617,8 +617,8 @@ class BranchManager {
                 boolean isContinue = false;
                 for( int i = ifCount + 1; i < parsedOpCount; i++ ) {
                     ParsedBlock op = parsedOperations.get( i );
-                    if( op.endPosition >= elsePos && op.op == JavaBlockOperator.IF ) {
-                        isContinue = true;
+                    if( op.endPosition >= elsePos ) {
+                        isContinue = op.op == JavaBlockOperator.IF;
                         break;
                     }
                 }
