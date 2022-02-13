@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 - 2020 Volker Berlin (i-net software)
+   Copyright 2019 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ abstract class WasmCallIndirectInstruction extends WasmCallInstruction {
 
     private final StructType            type;
 
-    private int                         tempVarIdx;
+    private int                         tempVarSlot;
+
+    private LocaleVariableManager       localVariables;
 
     /**
      * Create an instance of a function call instruction
@@ -57,11 +59,14 @@ abstract class WasmCallIndirectInstruction extends WasmCallInstruction {
     }
 
     /**
-     * Set the variable index on which this can be found.
-     * @param tempVarIdx the index
+     * Set the Java variable slot on which THIS can be found.
+     * @param tempVarSlot the slot
+     * @param localVariables
+     *            the manager for local variables to resolve the index
      */
-    void setVariableIndexOfThis( int tempVarIdx ) {
-        this.tempVarIdx = tempVarIdx;
+    void setVariableSlotOfThis( int tempVarSlot, LocaleVariableManager localVariables ) {
+        this.tempVarSlot = tempVarSlot;
+        this.localVariables = localVariables;
     }
 
     /**
@@ -70,7 +75,7 @@ abstract class WasmCallIndirectInstruction extends WasmCallInstruction {
      * @return the index of the variable
      */
     int getVariableIndexOfThis() {
-        return tempVarIdx;
+        return localVariables.get( tempVarSlot, getCodePosition() );
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 - 2021 Volker Berlin (i-net software)
+   Copyright 2019 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,22 +30,27 @@ class DupThis extends WasmInstruction {
 
     private WasmCallIndirectInstruction virtualCall;
 
-    private int                         tempVarIdx;
+    private int                         tempVarSlot;
+
+    private LocaleVariableManager       localVariables;
 
     /**
      * Create a instance.
      * 
      * @param virtualCall
      *            the related virtual function call.
-     * @param tempVarIdx
-     *            the index of the temporary variable
+     * @param tempVarSlot
+     *            the slot of the temporary variable
+     * @param localVariables
+     *            the manager for local variables
      * @param javaCodePos
      *            the code position
      */
-    DupThis( WasmCallIndirectInstruction virtualCall, int tempVarIdx, int javaCodePos ) {
+    DupThis( WasmCallIndirectInstruction virtualCall, int tempVarSlot, LocaleVariableManager localVariables, int javaCodePos ) {
         super( javaCodePos, virtualCall.getLineNumber() );
         this.virtualCall = virtualCall;
-        this.tempVarIdx = tempVarIdx;
+        this.tempVarSlot = tempVarSlot;
+        this.localVariables = localVariables;
     }
 
     /**
@@ -62,7 +67,7 @@ class DupThis extends WasmInstruction {
     @Override
     void writeTo( ModuleWriter writer ) throws IOException {
         if( virtualCall.isVirtual() ) {
-            writer.writeLocal( VariableOperator.tee, tempVarIdx );
+            writer.writeLocal( VariableOperator.tee, localVariables.get( tempVarSlot, getCodePosition() ) );
         }
     }
 

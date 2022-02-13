@@ -676,21 +676,21 @@ public abstract class WasmCodeBuilder {
         int javaCodePos = indirectCall.getCodePosition();
         StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions, count, javaCodePos );
         WasmInstruction instr = stackValue.instr;
-        int varIndex = -1;
+        int varSlot = -1;
         // if it is a GET to a local variable then we can use it
         if( instr.getType() == Type.Local ) {
             WasmLocalInstruction local1 = (WasmLocalInstruction)instr;
             if( local1.getOperator() == VariableOperator.get ) {
-                varIndex = local1.getIndex();
+                varSlot = local1.getSlot();
             }
         }
         //alternate we need to create a new locale variable
-        if( varIndex < 0 ) {
-            varIndex = getTempVariable( indirectCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
+        if( varSlot < 0 ) {
+            varSlot = getTempVariable( indirectCall.getThisType(), instr.getCodePosition(), javaCodePos + 1 );
             int idx = count == 1 ? instructions.size() : stackValue.idx + 1;
-            instructions.add( idx, new DupThis( indirectCall, varIndex, instr.getCodePosition() + 1 ) );
+            instructions.add( idx, new DupThis( indirectCall, varSlot, localVariables, instr.getCodePosition() + 1 ) );
         }
-        indirectCall.setVariableIndexOfThis( varIndex );
+        indirectCall.setVariableSlotOfThis( varSlot, localVariables );
         instructions.add( indirectCall );
         options.registerGet_i32(); // for later access of the vtable
     }
