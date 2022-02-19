@@ -63,7 +63,7 @@ class Wat2Wasm {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
 
-        URL url = new URL( "https://github.com/WebAssembly/wabt/releases/tag/1.0.26" ); //TODO new URL( "https://github.com/WebAssembly/wabt/releases/latest" );
+        URL url = new URL( "https://github.com/WebAssembly/wabt/releases/latest" );
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         InputStream input = conn.getInputStream();
         String data = WasmRule.readStream( input, true );
