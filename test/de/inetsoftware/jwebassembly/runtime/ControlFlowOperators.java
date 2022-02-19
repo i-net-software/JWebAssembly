@@ -85,6 +85,11 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "conditionalInsideIf_2" );
             addParam( list, script, "conditionalInsideIf_3" );
             addParam( list, script, "conditionalInsideIf_4" );
+            addParam( list, script, "ifWithReturn8" );
+            addParam( list, script, "ifWithReturn17" );
+            addParam( list, script, "ifWithReturn21" );
+            addParam( list, script, "ifWithReturn27" );
+            addParam( list, script, "ifWithReturn28" );
             addParam( list, script, "stringSwitchNormalFoo" );
             addParam( list, script, "stringSwitchNormalBar" );
             addParam( list, script, "stringSwitchNormalDefault" );
@@ -682,6 +687,50 @@ public class ControlFlowOperators extends AbstractBaseTest {
             } else {
                 return 3;
             }
+        }
+
+        @Export
+        static int ifWithReturn8() {
+            return ifWithReturn( 8, 0 );
+        }
+
+        @Export
+        static int ifWithReturn17() {
+            return ifWithReturn( 8, 13 );
+        }
+
+        @Export
+        static int ifWithReturn21() {
+            return ifWithReturn( 8, 5 );
+        }
+
+        @Export
+        static int ifWithReturn27() {
+            return ifWithReturn( 0, 0 );
+        }
+
+        @Export
+        static int ifWithReturn28() {
+            return ifWithReturn( 0, 1 );
+        }
+
+        private static int ifWithReturn( int a, int b ) {
+            if( a > 7 ) {
+                if( b > 1 ) {
+                    if( b == 13 ) {
+                        return 17;
+                    } else {
+                        return 21;
+                    }
+                }
+            } else {
+                if( a == b ) {
+                    return 27;
+                } else {
+                    return 28;
+                }
+            }
+            return a;
         }
 
         @Export

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2021 Volker Berlin (i-net software)
+ * Copyright 2018 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -593,6 +593,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                                 type = null;
                         }
                         addBlockInstruction( WasmBlockOperator.RETURN, type, codePos, lineNumber );
+                        branchManager.addReturnOperator( codePos, byteCode.getCodePosition(), lineNumber );
                         break;
                     case 178: // getstatic
                         ConstantRef ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );

@@ -100,7 +100,7 @@ class BranchManager {
     }
 
     /**
-     * Add a new Java block operator to handle from this manager.
+     * Add a new GOTO operator to handle from this manager.
      * 
      * @param startPosition
      *            the byte position of the start position
@@ -113,6 +113,20 @@ class BranchManager {
      */
     void addGotoOperator( int startPosition, int offset, int nextPosition, int lineNumber ) {
         allParsedOperations.add( new ParsedBlock( JavaBlockOperator.GOTO, startPosition, offset, nextPosition, lineNumber ) );
+    }
+
+    /**
+     * Add a new RETURN to help analyze structures.
+     * 
+     * @param startPosition
+     *            the byte position of the start position
+     * @param nextPosition
+     *            the position of the next instruction
+     * @param lineNumber
+     *            the current line number
+     */
+    void addReturnOperator( int startPosition, int nextPosition, int lineNumber ) {
+        allParsedOperations.add( new ParsedBlock( JavaBlockOperator.RETURN, startPosition, 0, nextPosition, lineNumber ) );
     }
 
     /**
@@ -375,6 +389,9 @@ class BranchManager {
                 case TRY:
                     calculateTry( parent, (TryCatchParsedBlock)parsedBlock, parsedOperations );
                     break;
+                case RETURN:
+                    // noting, only use as alternative GOTO
+                    break;
                 default:
                     throw new WasmException( "Unimplemented block code operation: " + parsedBlock.op, parsedBlock.lineNumber );
             }
@@ -462,35 +479,50 @@ class BranchManager {
         BranchNode branch = null;
         for( ; i < parsedOperations.size(); i++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.nextPosition == positions.elsePos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
-                parsedOperations.remove( i );
-                // end position can not be outside of the parent
-                endPos = Math.min( parsedBlock.endPosition, parent.endPos );
-
-                branch = new BranchNode( startPos, positions.elsePos, WasmBlockOperator.IF, null );
-                parent.add( branch );
-                if( i > 0 ) {
-                    calculate( branch, parsedOperations.subList( 0, i ) );
-                    i = 0;
+            if( parsedBlock.nextPosition == positions.elsePos ) {
+                boolean endPosFound = false;
+                if( parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
+                    parsedOperations.remove( i );
+                    endPos = parsedBlock.endPosition;
+                    endPosFound = true;
+                } else if( parsedBlock.op == JavaBlockOperator.RETURN ) {
+                    for( int k = 0; k < i; k++ ) {
+                        ParsedBlock block = parsedOperations.get( k );
+                        if( block.op == JavaBlockOperator.IF ) {
+                            endPos = Math.max( endPos, block.endPosition );
+                        }
+                    }
+                    endPosFound = true;
                 }
+                if( endPosFound ) {
+                    // end position can not be outside of the parent
+                    endPos = Math.min( endPos, parent.endPos );
 
-                if( addBreakIfLoopContinue( branch, parsedBlock ) ) {
-                    branch.endOp = WasmBlockOperator.END;
-                    endPos = branch.endPos;
+                    branch = new BranchNode( startPos, positions.elsePos, WasmBlockOperator.IF, null );
+                    parent.add( branch );
+                    if( i > 0 ) {
+                        calculate( branch, parsedOperations.subList( 0, i ) );
+                        i = 0;
+                    }
+
+                    if( addBreakIfLoopContinue( branch, parsedBlock ) ) {
+                        branch.endOp = WasmBlockOperator.END;
+                        endPos = branch.endPos;
+                        break;
+                    }
+                    // if with block type signature must have an else block
+                    int breakDeep = calculateBreakDeep( parent, endPos );
+                    if( breakDeep > 0 ) {
+                        branch.endOp = WasmBlockOperator.END;
+                        branch.add( new BranchNode( positions.elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
+                        endPos = branch.endPos;
+                    } else {
+                        branch.elseEndPos = endPos;
+                        branch = new BranchNode( positions.elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
+                        parent.add( branch );
+                    }
                     break;
                 }
-                // if with block type signature must have an else block
-                int breakDeep = calculateBreakDeep( parent, endPos );
-                if( breakDeep > 0 ) {
-                    branch.endOp = WasmBlockOperator.END;
-                    branch.add(  new BranchNode( positions.elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
-                    endPos = branch.endPos;
-                } else {
-                    branch.elseEndPos = endPos;
-                    branch = new BranchNode( positions.elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
-                    parent.add( branch );
-                }
-                break;
             }
             if( parsedBlock.nextPosition >= positions.elsePos ) {
                 break;
@@ -562,10 +594,18 @@ class BranchManager {
                 newElsePositionFound = false;
                 for( int j = i; j < parsedOpCount; j++ ) {
                     parsedBlock = parsedOperations.get( j );
-                    if( parsedBlock.op == JavaBlockOperator.GOTO ) {
-                        if( parsedBlock.nextPosition == endElse ) {
-                            break LOOP;
-                        }
+                    switch( parsedBlock.op ) {
+                        case IF:
+                            break;
+                        case GOTO:
+                            if( parsedBlock.nextPosition == endElse ) {
+                                break LOOP;
+                            }
+                            break;
+                        default:
+                            if( parsedBlock.nextPosition < endElse ) {
+                                break LOOP;
+                            }
                     }
                 }
             }
