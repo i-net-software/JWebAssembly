@@ -126,7 +126,7 @@ class BranchManager {
      *            the current line number
      */
     void addReturnOperator( int startPosition, int nextPosition, int lineNumber ) {
-        allParsedOperations.add( new ParsedBlock( JavaBlockOperator.RETURN, startPosition, 0, nextPosition, lineNumber ) );
+        allParsedOperations.add( new ParsedBlock( JavaBlockOperator.RETURN, startPosition, Integer.MAX_VALUE - startPosition, nextPosition, lineNumber ) );
     }
 
     /**
@@ -188,6 +188,7 @@ class BranchManager {
      *            the parsed operations
      */
     private void addLoops( List<ParsedBlock> parsedOperations ) {
+        MAIN:
         for( int b = 0; b < parsedOperations.size(); b++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( b );
             if( parsedBlock.startPosition > parsedBlock.endPosition ) {
@@ -229,6 +230,15 @@ class BranchManager {
                         // if<cond> START:
                         // we can not match this in WASM because a missing GOTO that we need to move the condition to the start of the loop
                         int nextPos = parsedBlock.nextPosition;
+
+                        for( int n = b - 1; n >= 0; n-- ) {
+                            ParsedBlock block = parsedOperations.get( n );
+                            if( block.op == JavaBlockOperator.IF && block.endPosition == nextPos ) {
+                                // a normal GOTO before the ELSE
+                                continue MAIN;
+                            }
+                        }
+
                         for( int n = b + 1; n < parsedOperations.size(); n++ ) {
                             ParsedBlock nextBlock = parsedOperations.get( n );
                             if( nextBlock.op == JavaBlockOperator.IF && nextBlock.endPosition == nextPos ) { // Eclipse loop with normal goto
@@ -242,7 +252,7 @@ class BranchManager {
                                     // The GOTO from the ELSE and the jump to the end of the WHILE loop is merged to one GOTO.
                                     for( n = b - 1; n >= 0; n-- ) {
                                         ParsedBlock prevBlock = parsedOperations.get( n );
-                                        if( prevBlock.endPosition > nextPos ) {
+                                        if( prevBlock.endPosition > nextPos && prevBlock.endPosition < conditionStart ) {
                                             conditionStart = prevBlock.endPosition;
                                             prevBlock.endPosition = parsedBlock.nextPosition;
                                             // Create the second GOTO
@@ -251,6 +261,9 @@ class BranchManager {
                                             parsedBlock.startPosition = parsedBlock.nextPosition;
                                             break;
                                         }
+                                    }
+                                    if( conditionStart == conditionEnd ) {
+                                        throw new WasmException( "Loop condition start not found. Jump from " + parsedBlock.startPosition + " to " + parsedBlock.endPosition, parsedBlock.lineNumber );
                                     }
                                 }
                                 convertToLoop( parsedBlock, conditionStart, conditionEnd );
@@ -1064,6 +1077,7 @@ class BranchManager {
                 parent = parent.parent;
                 deep++;
             }
+            throw new WasmException( "GOTO code without target loop/block. Jump from " + start + " to " + jump, gotoBlock.lineNumber );
         } else {
             if( gotoBlock.nextPosition == jump ) {
                 //A GOTO to the next position is like a NOP and can be ignored.
@@ -1838,7 +1852,7 @@ class BranchManager {
          * @param endPosition
          *            the Jump position
          */
-        public BreakBlock( BranchNode branch, int breakPos, int endPosition ) {
+        public BreakBlock( @Nonnull BranchNode branch, int breakPos, int endPosition ) {
             this.breakPos = breakPos;
             this.endPosition = endPosition;
             this.branch = branch;
