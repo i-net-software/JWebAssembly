@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -580,10 +580,10 @@ public class ModuleGenerator {
                 }
                 watParser.parse( watCode, method, null, code == null ? -1 : code.getFirstLineNr() );
                 return watParser;
-            } else if( code != null ) { // abstract methods and interface methods does not have code
+            } else if( code != null ) {
                 javaCodeBuilder.buildCode( code, method );
                 return javaCodeBuilder;
-            } else if( method.isAbstract() ) {
+            } else if( method.isAbstract() ) { // abstract methods and interface methods does not have code
                 functions.markAsAbstract( new FunctionName( method ) ); // there is nothing to write for an abstract method
                 return null;
             } else {
