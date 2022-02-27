@@ -91,8 +91,8 @@ public class ModuleGenerator {
      *            libraries 
      */
     public ModuleGenerator( @Nonnull ModuleWriter writer, WasmTarget target, @Nonnull List<URL> libraries ) {
-        this.javaCodeBuilder = new JavaMethodWasmCodeBuilder();
         this.watParser = new WatParser();
+        this.javaCodeBuilder = new JavaMethodWasmCodeBuilder( watParser );
         this.writer = writer;
         this.javaScript = new JavaScriptWriter( target );
         this.classFileLoader = new ClassFileLoader( new URLClassLoader( libraries.toArray( new URL[libraries.size()] ) ) );

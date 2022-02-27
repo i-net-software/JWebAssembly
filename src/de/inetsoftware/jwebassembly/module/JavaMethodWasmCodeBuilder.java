@@ -51,6 +51,16 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
     private BranchManager branchManager;
 
     /**
+     * Create an instance
+     * 
+     * @param codeBuilder
+     *            other code builder for shred references
+     */
+    JavaMethodWasmCodeBuilder( @Nonnull WasmCodeBuilder codeBuilder ) {
+        super( codeBuilder );
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

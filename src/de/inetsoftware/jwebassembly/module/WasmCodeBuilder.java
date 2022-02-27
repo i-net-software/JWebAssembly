@@ -57,9 +57,9 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public abstract class WasmCodeBuilder {
 
-    private final LocaleVariableManager localVariables = new LocaleVariableManager();
+    private final LocaleVariableManager localVariables;
 
-    private final List<WasmInstruction> instructions   = new ArrayList<>();
+    private final List<WasmInstruction> instructions;
 
     private TypeManager                 types;
 
@@ -70,6 +70,25 @@ public abstract class WasmCodeBuilder {
     private StringManager               strings;
 
     private ClassFileLoader             classFileLoader;
+
+    /**
+     * Create a new instance of CodeBuilder
+     */
+    protected WasmCodeBuilder() {
+        localVariables = new LocaleVariableManager();
+        instructions = new ArrayList<>();
+    }
+
+    /**
+     * Create a new instance with shared resources
+     * 
+     * @param codeBuilder
+     *            other instance of CodeBuilder
+     */
+    WasmCodeBuilder( @Nonnull WasmCodeBuilder codeBuilder ) {
+        localVariables = codeBuilder.localVariables;
+        instructions = codeBuilder.instructions;
+    }
 
     /**
      * Initialize the code builder;
