@@ -248,7 +248,7 @@ class FunctionManager {
      * 
      * @return an iterator
      */
-    @Nullable
+    @Nonnull
     Iterator<String> getUsedClasses() {
         return usedClasses.iterator();
     }
@@ -258,7 +258,7 @@ class FunctionManager {
      * 
      * @return an iterator
      */
-    @Nullable
+    @Nonnull
     Iterator<FunctionName> getWriteLaterClinit() {
         return iterator( entry -> entry.getKey().methodName.equals( "<clinit>" ) && entry.getValue().state != State.None );
     }
@@ -268,7 +268,7 @@ class FunctionManager {
      * 
      * @return an iterator
      */
-    @Nullable
+    @Nonnull
     Iterator<FunctionName> getWriteLater() {
         return iterator( entry -> {
             switch( entry.getValue().state ) {
@@ -302,6 +302,7 @@ class FunctionManager {
      * @param filter the filter
      * @return the iterator
      */
+    @Nonnull
     private Iterator<FunctionName> iterator( Predicate<Entry<FunctionName, FunctionState>> filter ) {
         return states.entrySet().stream().filter( filter ).map( entry -> entry.getKey() ).iterator();
     }
