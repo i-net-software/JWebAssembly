@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.LocalVariable;
@@ -440,6 +441,32 @@ class LocaleVariableManager {
     }
 
     /**
+     * Create a copy of the internal state
+     * 
+     * @return the state
+     */
+    @Nonnull
+    Variable[] getCopy() {
+        Variable[] copy = Arrays.copyOf( variables, size );
+        for( int i = 0; i < size; i++ ) {
+            variables[i] = new Variable();
+        }
+        return copy;
+    }
+
+    /**
+     * Set a previous copy
+     * 
+     * @param copy
+     *            the previous state
+     */
+    void setCopy( @Nonnull Variable[] copy ) {
+        size = copy.length;
+        ensureCapacity( size );
+        System.arraycopy( copy, 0, variables, 0, size );
+    }
+
+    /**
      * Ensure that there is enough capacity.
      * 
      * @param slot
@@ -458,7 +485,7 @@ class LocaleVariableManager {
     /**
      * The state of a single local variable slot.
      */
-    private static class Variable implements Comparable<Variable> {
+    static class Variable implements Comparable<Variable> {
 
         private AnyType valueType;
 
@@ -477,7 +504,7 @@ class LocaleVariableManager {
          *            the position to check
          * @return true, if this variable match
          */
-        public boolean matchCodePosition( int codePosition ) {
+        private boolean matchCodePosition( int codePosition ) {
             return startPos <= codePosition && codePosition <= endPos;
         }
 
