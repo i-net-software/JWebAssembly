@@ -514,6 +514,8 @@ public class TypeManager {
     WatCodeSyntheticFunctionName createInstanceOf() {
         return new WatCodeSyntheticFunctionName( //
                         "instanceof", "local.get 0 " // THIS
+                                        + "ref.is_null if i32.const 0 return end " // NULL check
+                                        + "local.get 0 " // THIS
                                         + "struct.get java/lang/Object .vtable " // vtable is on index 0
                                         + "local.tee 2 " // save the vtable location
                                         + "i32.load offset=" + TYPE_DESCRIPTION_INSTANCEOF_OFFSET + " align=4 " // get offset of instanceof inside vtable (int position 1, byte position 4)
@@ -557,11 +559,14 @@ public class TypeManager {
     WatCodeSyntheticFunctionName createCast() {
         return new WatCodeSyntheticFunctionName( //
                         "cast", "local.get 0 " // THIS
+                                        + "ref.is_null if local.get 0 return end " // NULL check
+                                        + "local.get 0 " // THIS
                                         + "local.get 1 " // the class index that we search
                                         + "call $.instanceof()V " // the synthetic signature of ArraySyntheticFunctionName
-                                        + "i32.eqz " //
-                                        + "local.get 0 " // THIS
-                                        + "return " //
+                                        + "if " //
+                                        + "  local.get 0 " // THIS
+                                        + "  return " //
+                                        + "end " //
                                         + "unreachable " // TODO throw a ClassCastException if exception handling is supported
                         , valueOf( "java/lang/Object" ), ValueType.i32, null, valueOf( "java/lang/Object" ) );
     }

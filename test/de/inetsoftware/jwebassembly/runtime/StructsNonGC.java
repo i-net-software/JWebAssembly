@@ -61,7 +61,9 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "instanceof1" );
             addParam( list, script, "instanceof2" );
             addParam( list, script, "instanceof3" );
-            addParam( list, script, "cast" );
+            addParam( list, script, "instanceof4" );
+            addParam( list, script, "cast1" );
+            addParam( list, script, "cast2" );
             addParam( list, script, "objectClassName" );
             addParam( list, script, "integerClassName" );
             addParam( list, script, "classClassName" );
@@ -197,10 +199,23 @@ public class StructsNonGC extends AbstractBaseTest {
         }
 
         @Export
-        static int cast() {
+        static boolean instanceof4() {
+            Object obj = null;
+            return obj instanceof List;
+        }
+
+        @Export
+        static int cast1() {
             Object obj = new Integer(42);
             Integer val = (Integer)obj;
             return val.intValue();
+        }
+
+        @Export
+        static Integer cast2() {
+            Object obj = null;
+            Integer val = (Integer)obj;
+            return val;
         }
 
         @Export

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -833,6 +833,9 @@ public class TextModuleWriter extends ModuleWriter {
                     builder.append( ' ' ).append( i );
                 }
                 name = builder.toString();
+                break;
+            case BR_ON_NULL:
+                name = "br_on_null " + data;
                 break;
             case LOOP:
                 name = "loop";

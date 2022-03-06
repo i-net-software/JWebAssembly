@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1327,6 +1327,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 for( int i : targets ) {
                     codeStream.writeVaruint32( i );
                 }
+                break;
+            case BR_ON_NULL:
+                codeStream.writeOpCode( BR_ON_NULL );
+                codeStream.writeVaruint32( (Integer)data );
                 break;
             case LOOP:
                 codeStream.writeOpCode( LOOP );
