@@ -80,6 +80,7 @@ public class ModuleGenerator {
 
     private final CodeOptimizer             optimizer;
 
+    private final StaticCodeBuilder         staticCodeBuilder;
     /**
      * Create a new generator.
      * 
@@ -104,6 +105,7 @@ public class ModuleGenerator {
         javaCodeBuilder.init( options, classFileLoader );
         ((WasmCodeBuilder)watParser).init( options, classFileLoader );
         types.init( classFileLoader );
+        staticCodeBuilder = new StaticCodeBuilder( writer.options, classFileLoader, javaCodeBuilder );
 
         scanLibraries( libraries );
     }
@@ -401,8 +403,9 @@ public class ModuleGenerator {
      */
     private void prepareStartFunction() throws IOException {
         // add the start function/section only if there are static code
-        if( functions.getWriteLaterClinit().hasNext() ) {
-            FunctionName start = new StaticCodeBuilder( writer.options, classFileLoader, javaCodeBuilder ).createStartFunction();
+        Iterator<FunctionName> writeLaterClinit = functions.getWriteLaterClinit();
+        if( writeLaterClinit.hasNext() ) {
+            FunctionName start = staticCodeBuilder.createStartFunction( writeLaterClinit );
             functions.markAsNeeded( start, false );
             writeMethodSignature( start, FunctionType.Start, null );
         }
