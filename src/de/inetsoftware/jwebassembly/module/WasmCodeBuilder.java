@@ -497,6 +497,24 @@ public abstract class WasmCodeBuilder {
     protected void addGlobalInstruction( boolean load, Member ref, int javaCodePos, int lineNumber ) {
         FunctionName name = new FunctionName( ref );
         AnyType type = new ValueTypeParser( ref.getType(), types ).next();
+        addGlobalInstruction( load, name, type, javaCodePos, lineNumber );
+    }
+
+    /**
+     * Add a global instruction
+     * 
+     * @param load
+     *            true: if load
+     * @param name
+     *            reference to a static field
+     * @param type
+     *            the type of the static field
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addGlobalInstruction( boolean load, FunctionName name, AnyType type, int javaCodePos, int lineNumber ) {
         instructions.add( new WasmGlobalInstruction( load, name, type, javaCodePos, lineNumber ) );
         functions.markClassAsUsed( name.className );
     }
