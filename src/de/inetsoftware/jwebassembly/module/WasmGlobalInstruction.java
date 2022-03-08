@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package de.inetsoftware.jwebassembly.module;
 import java.io.IOException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 
@@ -30,11 +31,13 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 class WasmGlobalInstruction extends WasmInstruction {
 
-    private boolean load;
+    private boolean      load;
 
     private FunctionName name;
 
-    private AnyType type;
+    private AnyType      type;
+
+    private FunctionName clinit;
 
     /**
      * Create an instance of a load/store instruction
@@ -45,16 +48,19 @@ class WasmGlobalInstruction extends WasmInstruction {
      *            the name of the static field
      * @param type
      *            the type of the static field
+     * @param clinit
+     *            a reference to the class/static constructor which should executed before access a static field
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmGlobalInstruction( boolean load, @Nonnull FunctionName name, AnyType type, int javaCodePos, int lineNumber ) {
+    WasmGlobalInstruction( boolean load, @Nonnull FunctionName name, AnyType type, @Nullable FunctionName clinit, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.load = load;
         this.name = name;
         this.type = type;
+        this.clinit = clinit;
     }
 
     /**
@@ -80,6 +86,9 @@ class WasmGlobalInstruction extends WasmInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        if( clinit != null ) {
+            writer.writeFunctionCall( clinit, clinit.signatureName );
+        }
         writer.writeGlobalAccess( load, name, type );
     }
 

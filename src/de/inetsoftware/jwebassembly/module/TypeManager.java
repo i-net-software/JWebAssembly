@@ -16,6 +16,8 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import static de.inetsoftware.jwebassembly.module.WasmCodeBuilder.CONSTRUCTOR;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -58,38 +60,39 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
  */
 public class TypeManager {
 
-    /** name of virtual function table, start with a point for an invalid Java identifier  */
-    static final String             FIELD_VTABLE = ".vtable";
+    /** name of virtual function table, start with a point for an invalid Java identifier */
+    static final String                     FIELD_VTABLE                       = ".vtable";
 
     /**
      * Name of field with system hash code, start with a point for an invalid Java identifier.
      */
-    static final String             FIELD_HASHCODE = ".hashcode";
+    static final String                     FIELD_HASHCODE                     = ".hashcode";
 
     /**
      * Name of field with array value.
      */
-    public static final String             FIELD_VALUE = ".array";
+    public static final String              FIELD_VALUE                        = ".array";
 
     /**
      * Byte position in the type description that contains the offset to the interfaces. Length 4 bytes.
      */
-    public static final int           TYPE_DESCRIPTION_INTERFACE_OFFSET  = 0;
+    public static final int                 TYPE_DESCRIPTION_INTERFACE_OFFSET  = 0;
 
     /**
      * Byte position in the type description that contains the offset to the instanceof list. Length 4 bytes.
      */
-    public static final int           TYPE_DESCRIPTION_INSTANCEOF_OFFSET = 4;
+    public static final int                 TYPE_DESCRIPTION_INSTANCEOF_OFFSET = 4;
 
     /**
-     * Byte position in the type description that contains the offset to class name idx in the string constant table. Length 4 bytes.
+     * Byte position in the type description that contains the offset to class name idx in the string constant table.
+     * Length 4 bytes.
      */
-    public static final int           TYPE_DESCRIPTION_TYPE_NAME         = 8;
+    public static final int                 TYPE_DESCRIPTION_TYPE_NAME         = 8;
 
     /**
      * Byte position in the type description that contains the type of the array (component type). Length 4 bytes.
      */
-    public static final int           TYPE_DESCRIPTION_ARRAY_TYPE        = 12;
+    public static final int                 TYPE_DESCRIPTION_ARRAY_TYPE        = 12;
 
     /**
      * The reserved position on start of the vtable:
@@ -97,73 +100,74 @@ public class TypeManager {
      * <li>offset of instanceof list
      * <li>offset of class name idx in the string constant table
      */
-    private static final int        VTABLE_FIRST_FUNCTION_INDEX = 4;
+    private static final int                VTABLE_FIRST_FUNCTION_INDEX        = 4;
 
-    private static final FunctionName CLASS_CONSTANT_FUNCTION = new FunctionName( "java/lang/Class.classConstant(I)Ljava/lang/Class;" ); 
-
-    /**
-     * Type id of primitive class
-     */
-    public static final int           BOOLEAN                            = 0;
+    private static final FunctionName       CLASS_CONSTANT_FUNCTION            = new FunctionName( "java/lang/Class.classConstant(I)Ljava/lang/Class;" );
 
     /**
      * Type id of primitive class
      */
-    public static final int           BYTE                               = 1;
+    public static final int                 BOOLEAN                            = 0;
 
     /**
      * Type id of primitive class
      */
-    public static final int           CHAR                               = 2;
+    public static final int                 BYTE                               = 1;
 
     /**
      * Type id of primitive class
      */
-    public static final int           DOUBLE                             = 3;
+    public static final int                 CHAR                               = 2;
 
     /**
      * Type id of primitive class
      */
-    public static final int           FLOAT                              = 4;
+    public static final int                 DOUBLE                             = 3;
 
     /**
      * Type id of primitive class
      */
-    public static final int           INT                                = 5;
+    public static final int                 FLOAT                              = 4;
 
     /**
      * Type id of primitive class
      */
-    public static final int           LONG                               = 6;
+    public static final int                 INT                                = 5;
 
     /**
      * Type id of primitive class
      */
-    public static final int           SHORT                              = 7;
+    public static final int                 LONG                               = 6;
 
     /**
      * Type id of primitive class
      */
-    public static final int           VOID                               = 8;
+    public static final int                 SHORT                              = 7;
+
+    /**
+     * Type id of primitive class
+     */
+    public static final int                 VOID                               = 8;
 
     /**
      * the list of primitive types. The order is important and must correlate with getPrimitiveClass.
      * 
      * @see ReplacementForClass#getPrimitiveClass(String)
      */
-    private static final String[]     PRIMITIVE_CLASSES                  = { "boolean", "byte", "char", "double", "float", "int", "long", "short", "void" };
+    private static final String[]           PRIMITIVE_CLASSES                  =
+                    { "boolean", "byte", "char", "double", "float", "int", "long", "short", "void" };
 
-    private final Map<Object, StructType> structTypes = new LinkedHashMap<>();
+    private final Map<Object, StructType>   structTypes                        = new LinkedHashMap<>();
 
-    private final Map<BlockType, BlockType> blockTypes = new LinkedHashMap<>();
+    private final Map<BlockType, BlockType> blockTypes                         = new LinkedHashMap<>();
 
-    private int                     typeIndexCounter;
+    private int                             typeIndexCounter;
 
-    private boolean                 isFinish;
+    private boolean                         isFinish;
 
-    final WasmOptions               options;
+    final WasmOptions                       options;
 
-    private int                     typeTableOffset;
+    private int                             typeTableOffset;
 
     private ClassFileLoader                 classFileLoader;
 
@@ -179,7 +183,9 @@ public class TypeManager {
 
     /**
      * Initialize the type manager
-     * @param classFileLoader for loading the class files
+     * 
+     * @param classFileLoader
+     *            for loading the class files
      */
     void init( ClassFileLoader classFileLoader ) {
         this.classFileLoader = classFileLoader;
@@ -260,6 +266,7 @@ public class TypeManager {
 
     /**
      * Get the function name to get a constant class.
+     * 
      * @return the function
      */
     @Nonnull
@@ -424,8 +431,8 @@ public class TypeManager {
     }
 
     /**
-     * Create the FunctionName for a virtual call. The function has 2 parameters (THIS,
-     * virtualfunctionIndex) and returns the index of the function.
+     * Create the FunctionName for a virtual call. The function has 2 parameters (THIS, virtualfunctionIndex) and
+     * returns the index of the function.
      * 
      * @return the name
      */
@@ -453,7 +460,7 @@ public class TypeManager {
         static int callInterface( OBJECT THIS, int classIndex, int virtualfunctionIndex ) {
             int table = THIS.vtable;
             table += i32_load[table];
-
+        
             do {
                 int nextClass = i32_load[table];
                 if( nextClass == classIndex ) {
@@ -476,8 +483,7 @@ public class TypeManager {
                                         + "local.set 3 " // save $table, the itable start location
                                         + "loop" //
                                         + "  local.get 3" // get $table
-                                        + "  i32.load offset=0 align=4"
-                                        + "  local.tee 4" // save $nextClass
+                                        + "  i32.load offset=0 align=4" + "  local.tee 4" // save $nextClass
                                         + "  local.get 1" // get $classIndex
                                         + "  i32.eq" //
                                         + "  if" // $nextClass == $classIndex
@@ -587,30 +593,30 @@ public class TypeManager {
      */
     public static class StructType implements AnyType {
 
-        private final String           name;
+        private final String                        name;
 
-        private final StructTypeKind   kind;
+        private final StructTypeKind                kind;
 
-        private final TypeManager      manager;
+        private final TypeManager                   manager;
 
-        private final int              classIndex;
+        private final int                           classIndex;
 
-        private int                    code = Integer.MAX_VALUE;
+        private int                                 code         = Integer.MAX_VALUE;
 
-        private HashSet<String>        neededFields = new HashSet<>();
+        private HashSet<String>                     neededFields = new HashSet<>();
 
-        private List<NamedStorageType> fields;
+        private List<NamedStorageType>              fields;
 
-        private List<FunctionName>     vtable;
+        private List<FunctionName>                  vtable;
 
-        private Set<StructType>        instanceOFs;
+        private Set<StructType>                     instanceOFs;
 
-        private Map<StructType,List<FunctionName>> interfaceMethods;
+        private Map<StructType, List<FunctionName>> interfaceMethods;
 
         /**
          * The offset to the vtable in the data section.
          */
-        private int                    vtableOffset;
+        private int                                 vtableOffset;
 
         /**
          * Create a reference to type
@@ -770,7 +776,7 @@ public class TypeManager {
 
             // calculate the vtable (the function indexes of the virtual methods)
             for( MethodInfo method : classFile.getMethods() ) {
-                if( method.isStatic() || "<init>".equals( method.getName() ) ) {
+                if( method.isStatic() || CONSTRUCTOR.equals( method.getName() ) ) {
                     continue;
                 }
                 FunctionName funcName = new FunctionName( method );
@@ -1017,6 +1023,7 @@ public class TypeManager {
 
         /**
          * Get kind of the StructType
+         * 
          * @return the type kind
          */
         public StructTypeKind getKind() {
@@ -1025,6 +1032,7 @@ public class TypeManager {
 
         /**
          * Get the name of the Java type
+         * 
          * @return the name
          */
         public String getName() {
@@ -1051,6 +1059,7 @@ public class TypeManager {
 
         /**
          * Get the fields of this struct
+         * 
          * @return the fields
          */
         public List<NamedStorageType> getFields() {
@@ -1189,7 +1198,7 @@ public class TypeManager {
             super( name, StructTypeKind.lambda, manager );
             this.paramFields = new ArrayList<>( params.size() );
             for( int i = 0; i < params.size(); i++ ) {
-                paramFields.add( new NamedStorageType( params.get( i ), "", "arg$" + (i+1) ) );
+                paramFields.add( new NamedStorageType( params.get( i ), "", "arg$" + (i + 1) ) );
             }
             this.interfaceType = interfaceType;
             this.interfaceMethodName = interfaceMethodName;
@@ -1199,10 +1208,12 @@ public class TypeManager {
                 protected boolean hasWasmCode() {
                     return true;
                 }
+
                 @Override
                 protected boolean istStatic() {
                     return false;
                 }
+
                 @Override
                 protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
                     WasmCodeBuilder codebuilder = watParser;
@@ -1290,12 +1301,15 @@ public class TypeManager {
 
         @Nonnull
         private final List<AnyType> params;
+
         @Nonnull
         private final List<AnyType> results;
-        private int code;
-        private String name;
 
-        public BlockType(List<AnyType> params, List<AnyType> results) {
+        private int                 code;
+
+        private String              name;
+
+        public BlockType( List<AnyType> params, List<AnyType> results ) {
             this.params = params;
             this.results = results;
         }

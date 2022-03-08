@@ -15,6 +15,8 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import static de.inetsoftware.jwebassembly.module.WasmCodeBuilder.CLASS_INIT;
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -42,10 +44,10 @@ class FunctionManager {
 
     private final Set<String>                      usedClasses = new LinkedHashSet<>();
 
-    private boolean isFinish;
+    private boolean                                isFinish;
 
     /**
-     * Finish the prepare. Now no new function should be added. 
+     * Finish the prepare. Now no new function should be added.
      */
     void prepareFinish() {
         isFinish = true;
@@ -108,8 +110,8 @@ class FunctionManager {
      * @param importAnannotation
      *            the annotation of the import
      */
-    void markAsImport( @Nonnull FunctionName name, Map<String,Object> importAnannotation ) {
-        markAsImport( name, (key) -> importAnannotation.get( key ) );
+    void markAsImport( @Nonnull FunctionName name, Map<String, Object> importAnannotation ) {
+        markAsImport( name, ( key ) -> importAnannotation.get( key ) );
     }
 
     /**
@@ -121,7 +123,7 @@ class FunctionManager {
      * @param importAnannotation
      *            the annotation of the import
      */
-    void markAsImport( @Nonnull FunctionName name, Function<String,Object> importAnannotation ) {
+    void markAsImport( @Nonnull FunctionName name, Function<String, Object> importAnannotation ) {
         getOrCreate( name ).importAnannotation = importAnannotation;
     }
 
@@ -260,7 +262,7 @@ class FunctionManager {
      */
     @Nonnull
     Iterator<FunctionName> getWriteLaterClinit() {
-        return iterator( entry -> entry.getKey().methodName.equals( "<clinit>" ) && entry.getValue().state != State.None );
+        return iterator( entry -> entry.getKey().methodName.equals( CLASS_INIT ) && entry.getValue().state != State.None );
     }
 
     /**
@@ -299,7 +301,9 @@ class FunctionManager {
 
     /**
      * get a iterator for function names
-     * @param filter the filter
+     * 
+     * @param filter
+     *            the filter
      * @return the iterator
      */
     @Nonnull
@@ -448,7 +452,7 @@ class FunctionManager {
      * 
      * @param name
      *            the name
-     * @return the index  in the itable
+     * @return the index in the itable
      */
     int getITableIndex( @Nonnull FunctionName name ) {
         return getOrCreate( name ).itableIdx;
@@ -458,7 +462,7 @@ class FunctionManager {
      * State of a function/method
      */
     private static class FunctionState {
-        private State                    state       = State.None;
+        private State                    state     = State.None;
 
         private MethodInfo               method;
 

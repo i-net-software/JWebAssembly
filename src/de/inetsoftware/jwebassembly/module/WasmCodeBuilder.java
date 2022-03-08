@@ -57,6 +57,12 @@ import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
  */
 public abstract class WasmCodeBuilder {
 
+    /** Java method name of of constructor */
+    static final String         CONSTRUCTOR = "<init>";
+
+    /** Java method name of static constructor or initialization method  */ 
+    static final String         CLASS_INIT = "<clinit>";
+
     private final LocaleVariableManager localVariables;
 
     private final List<WasmInstruction> instructions;
@@ -497,7 +503,16 @@ public abstract class WasmCodeBuilder {
     protected void addGlobalInstruction( boolean load, Member ref, int javaCodePos, int lineNumber ) {
         FunctionName name = new FunctionName( ref );
         AnyType type = new ValueTypeParser( ref.getType(), types ).next();
-        addGlobalInstruction( load, name, type, javaCodePos, lineNumber );
+        FunctionName clinit;
+        if( load ) {
+            clinit = new FunctionName( name.className, CLASS_INIT, "()V" );
+            if( !functions.isUsed( clinit ) ) {
+                clinit = null;
+            }
+        } else {
+            clinit = null;
+        }
+        addGlobalInstruction( load, name, type, clinit, javaCodePos, lineNumber );
     }
 
     /**
@@ -514,8 +529,8 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addGlobalInstruction( boolean load, FunctionName name, AnyType type, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmGlobalInstruction( load, name, type, javaCodePos, lineNumber ) );
+    protected void addGlobalInstruction( boolean load, FunctionName name, AnyType type, FunctionName clinit, int javaCodePos, int lineNumber ) {
+        instructions.add( new WasmGlobalInstruction( load, name, type, clinit, javaCodePos, lineNumber ) );
         functions.markClassAsUsed( name.className );
     }
 
@@ -655,7 +670,7 @@ public abstract class WasmCodeBuilder {
         name = functions.markAsNeeded( name, needThisParameter );
         WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types, needThisParameter );
 
-        if( "<init>".equals( name.methodName ) ) {
+        if( CONSTRUCTOR.equals( name.methodName ) ) {
             // check if there a factory for the constructor in JavaScript then we need to do some more complex patching
             Function<String, Object> importAnannotation = functions.getImportAnannotation( name );
             FunctionName factoryName = null;
@@ -667,7 +682,7 @@ public abstract class WasmCodeBuilder {
                 factoryName = new ImportSyntheticFunctionName( "String", "init", signature, importAnannotation );
             } else {
                 MethodInfo replace = functions.replace( name, null );
-                if( replace != null && !"<init>".equals( replace.getName() ) ) {
+                if( replace != null && !CONSTRUCTOR.equals( replace.getName() ) ) {
                     // the constructor was replaced with a factory method. Typical this method called then a JavaScript replacement
                     factoryName = new FunctionName( replace );
                 }

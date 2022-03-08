@@ -85,13 +85,13 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             reset( code.getLocalVariableTable(), method, null );
             branchManager.reset( code );
 
-            if( "<clinit>".equals( method.getName() ) ) {
+            if( CLASS_INIT.equals( method.getName() ) ) {
                 // Add a hook to run the class/static constructor only once
-                FunctionName name = new FunctionName( method.getClassName(), "<clisinit>", "" );
-                addGlobalInstruction( true, name, ValueType.i32, -1, -1 );
+                FunctionName name = new FunctionName( method.getClassName(), "<class_isInit>", "" );
+                addGlobalInstruction( true, name, ValueType.i32, null, -1, -1 );
                 addBlockInstruction( WasmBlockOperator.BR_IF, 0, -1, -1 );
                 addConstInstruction( 1, ValueType.i32, -1, -1 );
-                addGlobalInstruction( false, name, ValueType.i32, -1, -1 );
+                addGlobalInstruction( false, name, ValueType.i32, null, -1, -1 );
             }
 
             byteCode = code.getByteCode();

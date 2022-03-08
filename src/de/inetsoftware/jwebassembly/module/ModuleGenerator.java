@@ -15,6 +15,8 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import static de.inetsoftware.jwebassembly.module.WasmCodeBuilder.CLASS_INIT;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -387,7 +389,7 @@ public class ModuleGenerator {
             String className = iterator.next();
             ClassFile classFile = classFileLoader.get( className );
             if( classFile != null ) {
-                MethodInfo method = classFile.getMethod( "<clinit>", "()V" );
+                MethodInfo method = classFile.getMethod( CLASS_INIT, "()V" );
                 if( method != null ) {
                     functions.markAsNeeded( new FunctionName( method ), false );
                 }
