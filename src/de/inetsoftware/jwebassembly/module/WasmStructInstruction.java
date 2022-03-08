@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -198,6 +198,7 @@ class WasmStructInstruction extends WasmInstruction {
      */
     @Override
     public void writeTo( @Nonnull ModuleWriter writer ) throws IOException {
+        String comment = null;
         int idx = -1;
         switch( op ) {
             case GET:
@@ -225,6 +226,7 @@ class WasmStructInstruction extends WasmInstruction {
                         }
                     }
                 }
+                comment = fieldName.getName();
                 break;
             case INSTANCEOF:
             case CAST:
@@ -236,7 +238,7 @@ class WasmStructInstruction extends WasmInstruction {
             if( idx >= 0 ) {
                 writer.writeConst( idx, ValueType.i32 );
             }
-            writer.writeFunctionCall( functionName, null );
+            writer.writeFunctionCall( functionName, comment );
             if( op == StructOperator.CAST && options.useGC() ) {
                 writer.writeStructOperator( StructOperator.RTT_CANON, type, null, -1 );
                 writer.writeStructOperator( op, type, null, -1 );
