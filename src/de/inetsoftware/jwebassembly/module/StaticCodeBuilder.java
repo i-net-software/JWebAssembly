@@ -141,7 +141,16 @@ class StaticCodeBuilder {
         };
     }
 
-    private ScanState scan( FunctionName name, LinkedHashMap<String,FunctionName> constructors ) {
+    /**
+     * Scan for for references to other classes
+     * 
+     * @param name
+     *            the name of the static constructor (class initializer)
+     * @param constructors
+     *            all static constructors which have references or was not scanned
+     * @return the reference state
+     */
+    private ScanState scan( FunctionName name, LinkedHashMap<String, FunctionName> constructors ) {
         ScanState state = null;
         String className = name.className;
         String sourceFile = null;
@@ -195,12 +204,11 @@ class StaticCodeBuilder {
     }
 
     /**
-     * Scan a class initializer (static constructor). If it references another class with a static constructor which was
-     * not called before then it patch the code and call it before the other class is access.
+     * Patch static constructor (class initializer)
      * 
-     * @param name
-     *            name of the static constructor
-     * @param queue
+     * @param scan
+     *            the current scan
+     * @param scans
      *            a list with all static constructors which was not called
      */
     private void patch( ScanState scan, LinkedHashMap<String, ScanState> scans ) {
@@ -230,10 +238,11 @@ class StaticCodeBuilder {
                 continue; // field or method in own class
             }
 
-            // search if the other class has a static constructor
+            // search if the other class has a static constructor (class initializer)
             ScanState otherScan = scans.remove( otherClassName );
+            //TODO if there references in other branches then it is not called because removed
             if( otherScan != null ) {
-                // add a call to the other static consturctor
+                // add a call to the other static constructor (class initializer)
                 instructions.add( i, new WasmCallInstruction( otherScan.name, instr.getCodePosition(), instr.getLineNumber(), options.types, false ) );
                 i++;
 
@@ -248,6 +257,7 @@ class StaticCodeBuilder {
                             return true;
                         }
 
+                        @Override
                         protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
                             WasmCodeBuilder codebuilder = watParser;
                             watParser.reset( null, null, null );

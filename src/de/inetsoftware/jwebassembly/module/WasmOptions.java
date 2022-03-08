@@ -30,12 +30,16 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  */
 public class WasmOptions {
 
+    @Nonnull
     final FunctionManager         functions = new FunctionManager();
 
+    @Nonnull
     public final TypeManager      types     = new TypeManager( this );
 
+    @Nonnull
     public final StringManager    strings   = new StringManager( this );
 
+    @Nonnull
     final CodeOptimizer           optimizer = new CodeOptimizer();
 
     private final boolean         debugNames;
