@@ -29,10 +29,10 @@ import org.junit.runners.Parameterized.Parameters;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
-import de.inetsoftware.jwebassembly.runtime.StructsGC.Abc2;
 import de.inetsoftware.jwebassembly.web.DOMString;
 import de.inetsoftware.jwebassembly.web.JSObject;
 
+@SuppressWarnings( { "javadoc", "null", "rawtypes", "cast", "boxing" } )
 public class StructsNonGC extends AbstractBaseTest {
 
     @ClassRule
@@ -76,12 +76,11 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "lambda1" );
             addParam( list, script, "lambda2" );
             addParam( list, script, "lambda3" );
-// TODO too many classes are loaded that are currently not yet compilable
-//            addParam( list, script, "simpleName_Object" );
-//            addParam( list, script, "simpleName_Anonymous" );
-//            addParam( list, script, "simpleName_Array" );
-//            addParam( list, script, "simpleName_InnerClass" );
-//            addParam( list, script, "simpleName_LocalClass" );
+            addParam( list, script, "simpleName_Object" );
+            addParam( list, script, "simpleName_Anonymous" );
+            addParam( list, script, "simpleName_Array" );
+            addParam( list, script, "simpleName_InnerClass" );
+            addParam( list, script, "simpleName_LocalClass" );
             addParam( list, script, "isPrimitive_int" );
             addParam( list, script, "isPrimitive_Object" );
         }
@@ -251,42 +250,41 @@ public class StructsNonGC extends AbstractBaseTest {
             return JSObject.domString( clazz.getName() );
         }
 
-// TODO too many classes are loaded that are currently not yet compilable
-//        @Export
-//        static DOMString simpleName_Object() {
-//            Object obj = new Object();
-//            Class clazz = obj.getClass();
-//            return JSObject.domString( clazz.getSimpleName() );
-//        }
-//
-//        @Export
-//        static DOMString simpleName_Anonymous() {
-//            Object obj = new Object() {};
-//            Class clazz = obj.getClass();
-//            return JSObject.domString( clazz.getSimpleName() );
-//        }
-//
-//        @Export
-//        static DOMString simpleName_Array() {
-//            Object obj = new Object[0];
-//            Class clazz = obj.getClass();
-//            return JSObject.domString( clazz.getSimpleName() );
-//        }
-//
-//        @Export
-//        static DOMString simpleName_InnerClass() {
-//            Class clazz = TestClass.class;
-//            return JSObject.domString( clazz.getSimpleName() );
-//        }
-//
-//        @Export
-//        static DOMString simpleName_LocalClass() {
-//            class Foobar {}
-//            Object obj = new Foobar();
-//            Class clazz = obj.getClass();
-//            return JSObject.domString( clazz.getSimpleName() );
-//        }
-//
+        @Export
+        static DOMString simpleName_Object() {
+            Object obj = new Object();
+            Class clazz = obj.getClass();
+            return JSObject.domString( clazz.getSimpleName() );
+        }
+
+        @Export
+        static DOMString simpleName_Anonymous() {
+            Object obj = new Object() {};
+            Class clazz = obj.getClass();
+            return JSObject.domString( clazz.getSimpleName() );
+        }
+
+        @Export
+        static DOMString simpleName_Array() {
+            Object obj = new Object[0];
+            Class clazz = obj.getClass();
+            return JSObject.domString( clazz.getSimpleName() );
+        }
+
+        @Export
+        static DOMString simpleName_InnerClass() {
+            Class clazz = TestClass.class;
+            return JSObject.domString( clazz.getSimpleName() );
+        }
+
+        @Export
+        static DOMString simpleName_LocalClass() {
+            class Foobar {}
+            Object obj = new Foobar();
+            Class clazz = obj.getClass();
+            return JSObject.domString( clazz.getSimpleName() );
+        }
+
         @Export
         static boolean getComponentType() {
             Class<?> clazz = byte.class;
@@ -385,6 +383,7 @@ public class StructsNonGC extends AbstractBaseTest {
     static class Abc2 extends Abc {
         Abc2  abc;
 
+        @Override
         void bar() {
             a = 3;
         }

@@ -25,6 +25,7 @@ import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
 
+@SuppressWarnings( { "javadoc", "null", "rawtypes", "cast", "boxing", "unused" } )
 public class ControlFlowOperators extends AbstractBaseTest {
 
     @ClassRule
@@ -55,6 +56,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "whileLoopInElse_13" );
             addParam( list, script, "whileLoopInElseAfterReturn" );
             addParam( list, script, "whileLoopAfterIfWithReturn" );
+            addParam( list, script, "whileLoopInsideLoop" );
             addParam( list, script, "forLoop" );
             addParam( list, script, "conditionalOperator" );
             addParam( list, script, "conditionalOperator2" );
@@ -412,6 +414,26 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 }
             }
             return result;
+        }
+
+        @Export
+        public static int whileLoopInsideLoop() {
+            int i = 15;
+
+            MAIN: while( true ) {
+                while( i >= 9 ) {
+                    i--;
+                }
+                int start = i;
+
+                while( i > start ) {
+                    if( true ) {
+                        i--;
+                        continue MAIN;
+                    }
+                }
+                return start;
+            }
         }
 
         @Export

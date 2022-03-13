@@ -203,9 +203,18 @@ class BranchManager {
                             // if a condition form outside of the loop point inside the loop then it must be conditional return and a jump to the loop condition.
                             for( int n = b - 1; n >= 0; n-- ) {
                                 ParsedBlock prevBlock = parsedOperations.get( n );
-                                if( prevBlock.op == JavaBlockOperator.IF && prevBlock.startPosition < start && prevBlock.endPosition > start
-                                                && prevBlock.endPosition < parsedBlock.startPosition ) {
-                                    prevBlock.endPosition = start;
+                                switch( prevBlock.op ) {
+                                    case IF:
+                                        if( prevBlock.startPosition < start && prevBlock.endPosition > start && prevBlock.endPosition < parsedBlock.startPosition ) {
+                                            prevBlock.endPosition = start;
+                                        }
+                                        break;
+                                    case LOOP:
+                                        if( start == prevBlock.nextPosition ) {
+                                            loop.startPosition = prevBlock.startPosition;
+                                        }
+                                        break;
+                                    default:
                                 }
                             }
                         }
@@ -543,31 +552,16 @@ class BranchManager {
         }
 
         if( branch == null ) {
+            if( startBlock.endPosition > parent.endPos ) {
+                // we jump outside the parent. This is like a conditional break.
+                //TODO should be BR_IF
+                branch = new BranchNode( startPos - 1, startPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
+                parent.add( branch );
+                breakOperations.add( new BreakBlock( branch, startPos, startBlock.endPosition ) );
+                return;
+            }
             branch = new BranchNode( startPos - 1, endPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
             parent.add( branch );
-            if( startBlock.endPosition > parent.endPos ) {
-                int count = 0;
-                for( int j = 0; j < instructions.size(); j++ ) {
-                    WasmInstruction instr = instructions.get( j );
-                    int pos = instr.getCodePosition();
-                    if( pos < startPos ) {
-                        continue;
-                    }
-                    if( pos >= endPos ) {
-                        break;
-                    }
-                    if( instr.getType() == Type.Jump ) {
-                        continue;
-                    }
-                    count++;
-                }
-                if( count == 0 ) {
-                    // we jump outside the parent and there are no instructions. This is like a conditional break
-                    //TODO should be BR_IF
-                    breakOperations.add( new BreakBlock( branch, endPos, startBlock.endPosition ) );
-                    return;
-                }
-            }
         }
         startBlock.negateCompare();
 
@@ -1062,21 +1056,22 @@ class BranchManager {
      * @param parsedOperations
      *            the not consumed operations in the parent branch
      */
-    private void calculateGoto ( BranchNode parent, ParsedBlock gotoBlock, List<ParsedBlock> parsedOperations ) {
+    private void calculateGoto ( @Nonnull BranchNode parent, @Nonnull ParsedBlock gotoBlock, List<ParsedBlock> parsedOperations ) {
         int jump = gotoBlock.endPosition; // jump position of the GOTO  
         int start = gotoBlock.startPosition;
         if( start > jump ) {
             // back jump to a previous position like in loops
             int deep = 0;
-            while( parent != null ) {
-                if( parent.startOp == WasmBlockOperator.LOOP && parent.startPos == jump ) {
+            BranchNode node = parent;
+            do {
+                if( node.startOp == WasmBlockOperator.LOOP && node.startPos == jump ) {
                     // the loop instruction itself doesn’t result in an iteration, instead a br 0 instruction causes the loop to repeat
                     parent.add( new BranchNode( start, start, WasmBlockOperator.BR, null, deep ) ); // continue to the start of the loop
                     return;
                 }
-                parent = parent.parent;
+                node = node.parent;
                 deep++;
-            }
+            } while( node != null );
             throw new WasmException( "GOTO code without target loop/block. Jump from " + start + " to " + jump, gotoBlock.lineNumber );
         } else {
             if( gotoBlock.nextPosition == jump ) {
@@ -1380,6 +1375,12 @@ class BranchManager {
         BranchNode branch = breakBlock.branch;
         BranchNode parent = branch;
         while( parent != null && parent.elseEndPos < gotoEndPos ) {
+            deep++;
+            parent = parent.parent;
+        }
+
+        if( parent != null && parent.startOp == WasmBlockOperator.LOOP ) {
+            // a break in a LOOP is only a continue, we need to break to the outer block
             deep++;
             parent = parent.parent;
         }
