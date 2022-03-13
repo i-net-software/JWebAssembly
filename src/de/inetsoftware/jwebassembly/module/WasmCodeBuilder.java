@@ -524,6 +524,8 @@ public abstract class WasmCodeBuilder {
      *            reference to a static field
      * @param type
      *            the type of the static field
+     * @param clinit
+     *            a reference to the class/static constructor which should executed before access a static field
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
