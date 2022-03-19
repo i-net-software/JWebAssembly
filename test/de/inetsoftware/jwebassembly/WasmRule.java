@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -617,21 +617,28 @@ public class WasmRule extends TemporaryFolder {
             stdoutMessage += readStream( process.getInputStream(), false );
             errorMessage += readStream( process.getErrorStream(), false );
             int exitCode = process.exitValue();
+
+            // read the result from file
+            File resultFile = new File( getRoot(), "testresult.json" );
+            String result = null;
+            if( resultFile.exists() ) {
+                try( InputStreamReader jsonData = new InputStreamReader( new FileInputStream( new File( getRoot(), "testresult.json" ) ), StandardCharsets.UTF_8 ) ) {
+                    @SuppressWarnings( "unchecked" )
+                    Map<String, String> map = new Gson().fromJson( jsonData, Map.class );
+                    if( testData != null ) {
+                        testResults.put( script, map );
+                    }
+                    result = map.get( methodName );
+                }
+            }
+
             if( exitCode != 0 || !stdoutMessage.isEmpty() || !errorMessage.isEmpty() ) {
                 System.err.println( stdoutMessage );
                 System.err.println( errorMessage );
-                fail( stdoutMessage + '\n' + errorMessage + "\nExit code: " + exitCode );
+                fail( stdoutMessage + '\n' + errorMessage + '\n' + result + "\nExit code: " + exitCode );
             }
 
-            // read the result from file
-            try( InputStreamReader jsonData = new InputStreamReader( new FileInputStream( new File( getRoot(), "testresult.json" ) ), StandardCharsets.UTF_8 ) ) {
-                @SuppressWarnings( "unchecked" )
-                Map<String, String> map = new Gson().fromJson( jsonData, Map.class );
-                if( testData != null ) {
-                    testResults.put( script, map );
-                }
-                return map.get( methodName );
-            }
+            return result;
         } catch( Throwable ex ) {
             failed = true;
             ex.printStackTrace();
