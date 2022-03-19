@@ -606,6 +606,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
         functionType = new FunctionTypeEntry();
         locals.clear();
+        if( function.paramNames != null ) {
+            function.paramNames.clear();
+        }
     }
 
     /**
