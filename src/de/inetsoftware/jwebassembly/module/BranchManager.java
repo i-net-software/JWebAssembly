@@ -212,6 +212,7 @@ class BranchManager {
                                     case LOOP:
                                         if( start == prevBlock.nextPosition ) {
                                             loop.startPosition = prevBlock.startPosition;
+                                            parsedBlock.endPosition = prevBlock.startPosition;
                                         }
                                         break;
                                     default:
