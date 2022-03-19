@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2021 Volker Berlin (i-net software)
+   Copyright 2011 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Attributes.AttributeInfo;
+import de.inetsoftware.jwebassembly.JWebAssembly;
 
 /**
  * http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
@@ -383,11 +384,17 @@ public class ClassFile {
      * 
      * @param partialClassFile
      *            extension of the class
+     * @throws IOException
+     *             If any I/O error occur
      */
-    public void partial( ClassFile partialClassFile ) {
+    public void partial( ClassFile partialClassFile ) throws IOException {
         String origClassName = partialClassFile.thisClass.getName();
         ArrayList<MethodInfo> allMethods = new ArrayList<>( Arrays.asList( methods ) );
         for( MethodInfo m : partialClassFile.methods ) {
+            if( m.isNative() && m.getAnnotation( JWebAssembly.IMPORT_ANNOTATION ) == null ) {
+                // only a placeholder
+                continue;
+            }
             m.setDeclaringClassFile( origClassName, this );
             MethodInfo origMethod = getMethod( m.getName(), m.getType() );
             if( origMethod == null ) {
