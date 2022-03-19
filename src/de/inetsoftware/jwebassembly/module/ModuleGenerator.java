@@ -371,10 +371,10 @@ public class ModuleGenerator {
         types.scanTypeHierarchy();
 
         JWebAssembly.LOGGER.fine( "scan finish" );
+        writer.prepareFinish();
         types.prepareFinish( writer );
         functions.prepareFinish();
         strings.prepareFinish( writer );
-        writer.prepareFinish();
     }
 
     /**
