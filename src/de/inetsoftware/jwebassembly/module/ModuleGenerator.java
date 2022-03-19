@@ -190,19 +190,6 @@ public class ModuleGenerator {
             }
         }
 
-        if( classFile.isEnum() ) {
-            //temporary Hack because the generated Enum.valueOf(String) use Reflection which currently is not supported
-            for( MethodInfo method : classFile.getMethods() ) {
-                if( "valueOf".equals( method.getName() ) && method.getType().startsWith( "(Ljava/lang/String;)" )  ) {
-                    FunctionName valueOf = new FunctionName( method );
-                    String replaceForEnums = ReplacementForEnums.class.getName().replace( ".", "/" );
-                    ClassFile file = classFileLoader.get( replaceForEnums );
-                    MethodInfo method2 = file.getMethod( "valueOf_", "(Ljava/lang/String;)L" + replaceForEnums + ";" );
-                    functions.addReplacement( valueOf, method2 );
-                    break;
-                }
-            }
-        }
 
         iterateMethods( classFile, m -> prepareMethod( m ) );
     }
@@ -234,6 +221,17 @@ public class ModuleGenerator {
             MethodInfo method = null;
             ClassFile classFile = classFileLoader.get( next.className );
             if( classFile != null ) {
+
+                //temporary Hack because the generated Enum.valueOf(String) use Reflection which currently is not supported
+                if( classFile.isEnum() && "valueOf".equals( next.methodName ) && next.signature.startsWith( "(Ljava/lang/String;)" ) ) {
+                    System.err.println( next.signatureName );
+                    String replaceForEnums = ReplacementForEnums.class.getName().replace( ".", "/" );
+                    ClassFile file = classFileLoader.get( replaceForEnums );
+                    classFileLoader.partial( next.className, file );
+                    MethodInfo method2 = classFile.getMethod( "valueOf_", next.signature );
+                    functions.addReplacement( next, method2 );
+                }
+
                 sourceFile = classFile.getSourceFile();
                 className = classFile.getThisClass().getName();
                 method = classFile.getMethod( next.methodName, next.signature );

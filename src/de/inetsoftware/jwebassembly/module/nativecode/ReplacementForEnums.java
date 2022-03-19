@@ -1,5 +1,5 @@
 /*
-   Copyright 2021 Volker Berlin (i-net software)
+   Copyright 2021 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,20 +24,30 @@ import java.util.Map;
  *
  * @author Volker Berlin
  */
-public enum ReplacementForEnums {
-    ;
-    private transient Map<String, ReplacementForEnums> enumConstantDirectory;
+public abstract class ReplacementForEnums {
+
+    private static transient Map<String, ReplacementForEnums> enumConstantDirectory;
+
+    /**
+     * Placeholder for existing public method.
+     */
+    public native String name();
+
+    /**
+     * Placeholder for existing public method.
+     */
+    public native static ReplacementForEnums[] values();
 
     /**
      * Replacement code for generated Enum.valueOf( String )
      * @param name the enum name
      * @return The singleton instance for the name
      */
-    ReplacementForEnums valueOf_( String name ) {
+    static ReplacementForEnums valueOf_( String name ) {
         Map<String, ReplacementForEnums> map = enumConstantDirectory;
         if( map == null ) {
             ReplacementForEnums[] universe = values();
-            map = new HashMap<>( 2 * universe.length );
+            map = new HashMap<>( universe.length );
             for( ReplacementForEnums constant : universe ) {
                 map.put( constant.name(), constant );
             }
@@ -51,6 +61,6 @@ public enum ReplacementForEnums {
         if( name == null ) {
             throw new NullPointerException( "Name is null" );
         }
-        throw new IllegalArgumentException( "No enum constant " + getClass().getCanonicalName() + "." + name );
+        throw new IllegalArgumentException( "No enum constant " + ReplacementForEnums.class + "." + name );
     }
 }
