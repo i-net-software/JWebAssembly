@@ -317,9 +317,9 @@ class ReplacementForClass<T> {
             return getComponentType().getSimpleName() + "[]";
 
         String simpleName = getName();
-        int index = simpleName.lastIndexOf( "$" ) + 1;
+        int index = simpleName.lastIndexOf( '$' ) + 1;
         if( index == 0 ) { // top level class
-            return simpleName.substring( simpleName.lastIndexOf( "." ) + 1 ); // strip the package name
+            return simpleName.substring( simpleName.lastIndexOf( '.' ) + 1 ); // strip the package name
         }
 
         // Remove leading "\$[0-9]*" from the name
