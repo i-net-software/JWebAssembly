@@ -733,13 +733,9 @@ public class WasmRule extends TemporaryFolder {
         String command = nodeExecuable();
         // details see with command: node --v8-options
         ProcessBuilder processBuilder = new ProcessBuilder( command, //
-                        "--experimental-wasm-mv", // multi value
                         "--experimental-wasm-eh", // exception handling
-                        "--experimental-wasm-reftypes", //
                         "--experimental-wasm-typed-funcref", //
                         "--experimental-wasm-gc", //
-                        //"--experimental-wasm-bigint", //
-                        //"--experimental-wasm-bulk-memory", // bulk memory for WABT version 1.0.13, https://github.com/WebAssembly/wabt/issues/1311
                         nodeScript.getName() );
         if( IS_WINDOWS ) {
             processBuilder.command().add( 0, "cmd" );

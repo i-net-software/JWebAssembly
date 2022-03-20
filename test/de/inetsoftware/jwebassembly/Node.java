@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Volker Berlin (i-net software)
+ * Copyright 2020 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class Node {
 
     private static final String BASE_URL = "https://nodejs.org/download/v8-canary/";
 
-    private static final String REVISION = "16.0.0-v8-canary2021022354d779c836";
+    private static final String REVISION = "17.0.0-v8-canary20211019bcdcfc880b";
 
     /**
      * Check if there is a new version of the script engine
