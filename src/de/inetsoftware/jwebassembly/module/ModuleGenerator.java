@@ -224,7 +224,6 @@ public class ModuleGenerator {
 
                 //temporary Hack because the generated Enum.valueOf(String) use Reflection which currently is not supported
                 if( classFile.isEnum() && "valueOf".equals( next.methodName ) && next.signature.startsWith( "(Ljava/lang/String;)" ) ) {
-                    System.err.println( next.signatureName );
                     String replaceForEnums = ReplacementForEnums.class.getName().replace( ".", "/" );
                     ClassFile file = classFileLoader.get( replaceForEnums );
                     classFileLoader.partial( next.className, file );
