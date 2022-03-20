@@ -49,9 +49,9 @@ public interface AnyType {
     /**
      * Check if this is a sub type of given type.
      * 
-     * @param type
+     * @param other
      *            type to check
-     * @return true, if both are identical or the type is a sub type
+     * @return true, if both are identical or this is a sub type of <code>other</code>. Or if <code>other</code> is a parent type of this.
      */
-    public boolean isSubTypeOf( @Nonnull AnyType type );
+    public boolean isSubTypeOf( @Nonnull AnyType other );
 }

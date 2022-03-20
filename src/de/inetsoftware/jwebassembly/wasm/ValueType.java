@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ public enum ValueType implements AnyType {
     i16(-0x07),
     u16(-0x07),
     funcref(-0x10),
-    externref(-0x11),
-    anyref(-0x12),
+    externref(-0x11), //TODO rename to any
+    anyref(-0x12), // TODO obsolete
     eqref(-0x13),
     optref(-0x14),
     ref(-0x15),
@@ -76,6 +76,16 @@ public enum ValueType implements AnyType {
      */
     @Override
     public boolean isSubTypeOf( AnyType type ) {
-        return type == this;
+        if( type == this ) {
+            return true;
+        }
+        switch( this ) {
+            case externref:
+                return type.isRefType();
+            case eqref:
+                return type.isRefType() || type == externref;
+            default:
+                return false;
+        }
     }
 }
