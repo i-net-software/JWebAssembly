@@ -432,12 +432,12 @@ class LocaleVariableManager {
     /**
      * Get the ValueType of the variable.
      * 
-     * @param slot
-     *            the memory/slot index of the local variable in Java
+     * @param idx
+     *            the index of the local variable in WASM
      * @return the ValueType
      */
-    AnyType getValueType( int slot ) {
-        return variables[slot].valueType;
+    AnyType getValueType( int idx ) {
+        return variables[idx].valueType;
     }
 
     /**
