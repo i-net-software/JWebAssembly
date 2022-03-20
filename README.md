@@ -41,10 +41,10 @@ The project is not currently production-ready, but you can already run some test
 * [x] String support
 * [x] Simple Class object support
 * [x] static constructors
-* [ ] Enum support
+* [x] Enum support
 * [x] Optimizer - Optimize the WASM output of a single method after transpiling before writing to output
 * [x] Hello World sample [(live)](https://i-net-software.github.io/JWebAssembly/samples/HelloWorld/HelloWorld.html), [(source code)](https://github.com/i-net-software/JWebAssembly/blob/master/docs/samples/HelloWorld/HelloWorld.java)
-* [ ] Collection framework compile
+* [x] Collection framework compile
 
 #### Status of Required WebAssembly Features
 The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly. If you want know the status of your current browser then look for [your browser support](https://wasm-feature-detect.surma.technology/).
