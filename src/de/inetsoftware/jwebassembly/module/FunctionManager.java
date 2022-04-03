@@ -17,6 +17,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import static de.inetsoftware.jwebassembly.module.WasmCodeBuilder.CLASS_INIT;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -110,8 +111,17 @@ class FunctionManager {
      * @param importAnannotation
      *            the annotation of the import
      */
-    void markAsImport( @Nonnull FunctionName name, Map<String, Object> importAnannotation ) {
+    void markAsImport( @Nonnull FunctionName name, @Nonnull Map<String, Object> importAnannotation ) {
         markAsImport( name, ( key ) -> importAnannotation.get( key ) );
+
+        // register possible callbacks as needed methods
+        Object callbacks = importAnannotation.get( "callbacks" );
+        if( callbacks != null ) {
+            for( Object callback : (Object[])callbacks ) {
+                name = new FunctionName( (String)callback );
+                markAsExport( name, Collections.emptyMap() );
+            }
+        }
     }
 
     /**
@@ -125,6 +135,19 @@ class FunctionManager {
      */
     void markAsImport( @Nonnull FunctionName name, Function<String, Object> importAnannotation ) {
         getOrCreate( name ).importAnannotation = importAnannotation;
+    }
+
+    /**
+     * Mark the function as export function and as needed.
+     * 
+     * @param name
+     *            the function name
+     * @param exportAnannotation
+     *            the annotation of the export
+     */
+    void markAsExport( @Nonnull FunctionName name, @Nonnull Map<String, Object> exportAnannotation ) {
+        markAsNeeded( name, false );
+        getOrCreate( name ).exportAnannotation = exportAnannotation;
     }
 
     /**
@@ -228,6 +251,17 @@ class FunctionManager {
      */
     Function<String, Object> getImportAnannotation( FunctionName name ) {
         return getOrCreate( name ).importAnannotation;
+    }
+
+    /**
+     * Get the annotation of an export function
+     * 
+     * @param name
+     *            the function name
+     * @return the annotation or null
+     */
+    Map<String, Object> getExportAnannotation( FunctionName name ) {
+        return getOrCreate( name ).exportAnannotation;
     }
 
     /**
@@ -462,6 +496,7 @@ class FunctionManager {
      * State of a function/method
      */
     private static class FunctionState {
+
         private State                    state     = State.None;
 
         private MethodInfo               method;
@@ -469,6 +504,8 @@ class FunctionManager {
         private FunctionName             alias;
 
         private Function<String, Object> importAnannotation;
+
+        private Map<String, Object>      exportAnannotation;
 
         private int                      vtableIdx = -1;
 

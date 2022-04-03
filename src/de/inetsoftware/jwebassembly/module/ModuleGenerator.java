@@ -519,7 +519,7 @@ public class ModuleGenerator {
                 if( !method.isStatic() ) {
                     throw new WasmException( "Export method must be static: " + name.fullName, -1 );
                 }
-                functions.markAsNeeded( name, false );
+                functions.markAsExport( name, annotationValues );
                 return;
             }
         } catch( Exception ioex ) {
@@ -673,7 +673,7 @@ public class ModuleGenerator {
      *             if any IOException occur
      */
     private void writeExport( FunctionName name, MethodInfo method ) throws IOException {
-        Map<String,Object> export = method.getAnnotation( JWebAssembly.EXPORT_ANNOTATION );
+        Map<String,Object> export = functions.getExportAnannotation( name );
         if( export != null ) {
             String exportName = (String)export.get( "name" );
             if( exportName == null ) {
