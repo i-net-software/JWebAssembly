@@ -19,7 +19,9 @@ The difference to similar projects is that not a complete VM with GC and memory 
 The documentation can be found in the [wiki](https://github.com/i-net-software/JWebAssembly/wiki).
 
 ## Roadmap
-The project is not currently production-ready, but you can already run some tests.
+The compiler is feature complete for milestone 1. There is a release candidate. Please test it and report bugs if the compiled code has the same behavior as Java.
+
+Also the current browsers (Chrome, Edge, Firefox, Opera, ...) supports the [needed features](https://wasm-feature-detect.surma.technology/).
 
 ### Version 1.0 (Milestone 1)
 
@@ -46,26 +48,6 @@ The project is not currently production-ready, but you can already run some test
 * [x] Hello World sample [(live)](https://i-net-software.github.io/JWebAssembly/samples/HelloWorld/HelloWorld.html), [(source code)](https://github.com/i-net-software/JWebAssembly/blob/master/docs/samples/HelloWorld/HelloWorld.java)
 * [x] Collection framework compile
 
-#### Status of Required WebAssembly Features
-The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly. If you want know the status of your current browser then look for [your browser support](https://wasm-feature-detect.surma.technology/).
-
-| Feature                 | Importance | V8/Chrome | SpiderMonkey/FF | WABT   |
-| ----------------------- |----------- | --------- | --------------- | ------ |
-| [Mutable Globals][1]    | high       | yes       | yes             | yes    |
-| [float-to-int][2]       | high       | yes       | yes             | yes    |
-| [Sign-extension][3]     | high       | yes       | yes             | yes    |
-| [Reference Types][4]    | high       | yes       | yes             | yes    |
-| [JavaScript BigInt][5]  | medium     | yes       | yes             | yes    |
-| ~~[Multi-value][6]~~    | medium     | yes       | -               | yes    |
-
-- For V8 it based on the [V8 - node.js integrations builds](https://ci.chromium.org/p/v8/builders/luci.v8.ci/V8%20Linux64%20-%20node.js%20integration).
-- For SpiderMonkey it based on the nightly build of [jsshell](https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/).
-- For WABT it based on [libwabt.js](https://github.com/WebAssembly/wabt/blob/master/demo/libwabt.js) via node module wabt@nightly.
-
-To use it also some flags and switches are currently needed.
-
-Importance: All with high marked features are required for a hello word sample. For a first version that can be used for production.
-
 ### Version 2.0 (Milestone 2)
 
 #### Desired Features
@@ -85,12 +67,22 @@ Importance: All with high marked features are required for a hello word sample. 
 
 #### Status of Required WebAssembly Features
 
+The following table shows the status of future WebAssembly features required by JWebAssembly in nightly builds in various implementations. These features are already used by the trunk version of JWebAssembly. If you want know the status of your current browser then look for [your browser support](https://wasm-feature-detect.surma.technology/).
+
 | Feature                 | Importance | V8/Chrome | SpiderMonkey/FF | WABT   |
 | ----------------------- |----------- | --------- | --------------- | ------ |
 | [Garbage collection][7] | medium     | -         | [partly][11]    | -      |
 | [Exceptions][8]         | low        | partly    | -               | partly |
 | [Threads][9]            | low        | yes       | ?               | yes    |
 | [Tail call][10]         | very low   | yes       | ?               | yes    |
+
+- For V8 it based on the [V8 - node.js integrations builds](https://ci.chromium.org/p/v8/builders/luci.v8.ci/V8%20Linux64%20-%20node.js%20integration).
+- For SpiderMonkey it based on the nightly build of [jsshell](https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/).
+- For WABT it based on [libwabt.js](https://github.com/WebAssembly/wabt/blob/master/demo/libwabt.js) via node module wabt@nightly.
+
+To use it also some flags and switches are currently needed.
+
+Importance: All with high marked features are required for a hello word sample. For a first version that can be used for production.
 
 Required Java Version
 ----
