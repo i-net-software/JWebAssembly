@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,9 @@ public class ModuleGenerator {
     private final CodeOptimizer             optimizer;
 
     private final StaticCodeBuilder         staticCodeBuilder;
+
+    private final HashSet<String>           exportNames = new HashSet<>();
+
     /**
      * Create a new generator.
      * 
@@ -676,8 +680,12 @@ public class ModuleGenerator {
         Map<String,Object> export = functions.getExportAnannotation( name );
         if( export != null ) {
             String exportName = (String)export.get( "name" );
-            if( exportName == null ) {
+            if( exportName == null || exportName.isEmpty() ) {
                 exportName = method.getName();  // TODO naming conversion rule if no name was set
+            }
+            JWebAssembly.LOGGER.fine( "Export " + name.fullName + " as '" + exportName + "'" );
+            if( !exportNames.add( exportName ) ) {
+                throw new WasmException( "Duplicate export name '" + exportName + "' for " + name.fullName + ". Rename the method or use the 'name' attribute of the @Export annotation to create a unique export name.", -1 );
             }
             writer.writeExport( name, exportName );
         }
