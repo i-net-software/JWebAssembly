@@ -16,7 +16,7 @@ The difference to similar projects is that not a complete VM with GC and memory 
 [Contributions](https://github.com/i-net-software/JWebAssembly/blob/master/CONTRIBUTING.md) are very welcome. This large project will not work without [contributions](https://github.com/i-net-software/JWebAssembly/blob/master/CONTRIBUTING.md).
 
 ## Documentation
-The documentation can be found in the [wiki](https://github.com/i-net-software/JWebAssembly/wiki).
+The [documentation](https://github.com/i-net-software/JWebAssembly/wiki) can be found in the [wiki](https://github.com/i-net-software/JWebAssembly/wiki).
 
 ## Roadmap
 The compiler is feature complete for milestone 1. There is a release candidate. Please test it and report bugs if the compiled code has the same behavior as Java.
