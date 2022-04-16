@@ -77,9 +77,12 @@ public class WatParser extends WasmCodeBuilder {
                     case "local.tee":
                         addLocalInstruction( VariableOperator.tee, getInt( tokens, ++i), javaCodePos, lineNumber );
                         break;
-//                    case "get_global":
-//                        addGlobalInstruction( true, ref, javaCodePos );
-//                        break;
+                    case "global.get":
+                        addGlobalInstruction( true, get( tokens, ++i), javaCodePos, lineNumber );
+                        break;
+                    case "global.set":
+                        addGlobalInstruction( false, get( tokens, ++i), javaCodePos, lineNumber );
+                        break;
                     case "i32.const":
                         addConstInstruction( getInt( tokens, ++i), ValueType.i32, javaCodePos, lineNumber );
                         break;

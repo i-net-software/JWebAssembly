@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ConstantClass;
+import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
@@ -534,6 +535,33 @@ public abstract class WasmCodeBuilder {
     protected void addGlobalInstruction( boolean load, FunctionName name, AnyType type, FunctionName clinit, int javaCodePos, int lineNumber ) {
         instructions.add( new WasmGlobalInstruction( load, name, type, clinit, javaCodePos, lineNumber ) );
         functions.markClassAsUsed( name.className );
+    }
+
+    /**
+     * Add a global field access instruction
+     * 
+     * @param load
+     *            true: if load (get)
+     * @param fieldName
+     *            the fieldName like java/lang/System.err
+     * @param javaCodePos
+     *            the code position/offset in the Java method
+     * @param lineNumber
+     *            the line number in the Java source code
+     */
+    protected void addGlobalInstruction( boolean load, String fieldName, int javaCodePos, int lineNumber ) {
+        try {
+            if( fieldName.startsWith( "$" ) ) {
+                fieldName = fieldName.substring( 1 );
+            }
+            FunctionName name = new FunctionName( fieldName + "()V" );
+            ClassFile classFile = classFileLoader.get( name.className );
+            FieldInfo field = classFile.getField( name.methodName );
+            AnyType type = new ValueTypeParser( field.getType(), types ).next();
+            addGlobalInstruction( load, name, type, null, javaCodePos, lineNumber );
+        } catch( Exception ex ) {
+            throw WasmException.create( ex, lineNumber );
+        }
     }
 
     /**
