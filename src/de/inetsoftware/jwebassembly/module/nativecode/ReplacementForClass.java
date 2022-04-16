@@ -192,6 +192,17 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Replacement of the Java method forName(String)
+     * 
+     * @param name
+     *            the fully qualified name of the desired class.
+     * @return the {@code Class} object for the class with the specified name.
+     */
+    public static Class<?> forName(String name, boolean initialize, ClassLoader loader) throws ClassNotFoundException {
+        return forName( name );
+    }
+
+    /**
      * Replacement of the Java method newInstance()
      * 
      * @return a newly allocated instance of the class represented by this object.
@@ -470,4 +481,17 @@ class ReplacementForClass<T> {
      */
     @WasmTextCode( "unreachable" ) // TODO
     native Map<String, T> enumConstantDirectory();
+
+    /**
+     * Replacement of the Java method cast(Object)
+     *
+     * @param obj the object to be cast
+     * @return the object after casting, or null if obj is null
+     */
+    @SuppressWarnings("unchecked")
+    public T cast(Object obj) {
+        if (obj != null && !isInstance(obj))
+            throw new ClassCastException("Cannot cast " + obj.getClass().getName() + " to " + getName());
+        return (T) obj;
+    }
 }
