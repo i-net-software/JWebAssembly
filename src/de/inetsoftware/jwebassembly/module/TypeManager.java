@@ -95,10 +95,12 @@ public class TypeManager {
     public static final int                 TYPE_DESCRIPTION_ARRAY_TYPE        = 12;
 
     /**
-     * The reserved position on start of the vtable:
+     * The reserved index position of the first function in the vtable. For performance reasons the first function does not have the index 0 but this index.
+     * For the byte offset you have to multiply it by 4.
      * <li>offset of interface call table (itable)
      * <li>offset of instanceof list
      * <li>offset of class name idx in the string constant table
+     * <li>array component type
      */
     private static final int                VTABLE_FIRST_FUNCTION_INDEX        = 4;
 
@@ -1089,6 +1091,8 @@ public class TypeManager {
                  | Offset to the instanceof    [4 bytes] |
                  ├───────────────────────────────────────┤
                  | String id of the class name [4 bytes] |
+                 ├───────────────────────────────────────┤
+                 | array component type        [4 bytes] |
                  ├───────────────────────────────────────┤
                  | first vtable entry          [4 bytes] |
                  ├───────────────────────────────────────┤
