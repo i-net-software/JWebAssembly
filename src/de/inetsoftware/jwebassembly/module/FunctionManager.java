@@ -113,15 +113,6 @@ class FunctionManager {
      */
     void markAsImport( @Nonnull FunctionName name, @Nonnull Map<String, Object> importAnannotation ) {
         markAsImport( name, ( key ) -> importAnannotation.get( key ) );
-
-        // register possible callbacks as needed methods
-        Object callbacks = importAnannotation.get( "callbacks" );
-        if( callbacks != null ) {
-            for( Object callback : (Object[])callbacks ) {
-                name = new FunctionName( (String)callback );
-                markAsExport( name, Collections.emptyMap() );
-            }
-        }
     }
 
     /**
@@ -184,6 +175,18 @@ class FunctionManager {
             state.needThisParameter = needThisParameter;
             JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );
             usedClasses.add( name.className );
+
+            if( state.importAnannotation != null ) {
+                // register possible callbacks of imports as needed methods
+                Object callbacks = state.importAnannotation.apply( "callbacks" );
+                if( callbacks != null ) {
+                    for( Object callback : (Object[])callbacks ) {
+                        name = new FunctionName( (String)callback );
+                        markAsExport( name, Collections.emptyMap() );
+                    }
+                }
+
+            }
         }
         return state.alias == null ? name : state.alias;
     }
