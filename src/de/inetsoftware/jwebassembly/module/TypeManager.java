@@ -95,14 +95,20 @@ public class TypeManager {
     public static final int                 TYPE_DESCRIPTION_ARRAY_TYPE        = 12;
 
     /**
+     * Byte position in the type description that contains the offset to the fields. Length 4 bytes.
+     */
+    public static final int                 TYPE_DESCRIPTION_FIELDS_OFFSET     = 16;
+
+    /**
      * The reserved index position of the first function in the vtable. For performance reasons the first function does not have the index 0 but this index.
      * For the byte offset you have to multiply it by 4.
      * <li>offset of interface call table (itable)
      * <li>offset of instanceof list
      * <li>offset of class name idx in the string constant table
      * <li>array component type
+     * <li>offset of fields description
      */
-    private static final int                VTABLE_FIRST_FUNCTION_INDEX        = 4;
+    private static final int                VTABLE_FIRST_FUNCTION_INDEX        = 5;
 
     private static final FunctionName       CLASS_CONSTANT_FUNCTION            = new FunctionName( "java/lang/Class.classConstant(I)Ljava/lang/Class;" );
 
@@ -1094,6 +1100,8 @@ public class TypeManager {
                  ├───────────────────────────────────────┤
                  | array component type        [4 bytes] |
                  ├───────────────────────────────────────┤
+                 | Offset to field descript.   [4 bytes] |
+                 ├───────────────────────────────────────┤
                  | first vtable entry          [4 bytes] |
                  ├───────────────────────────────────────┤
                  |     .....                             |
@@ -1139,12 +1147,23 @@ public class TypeManager {
                 data.writeInt32( type.getClassIndex() );
             }
 
-            int classNameIdx = options.strings.get( getName().replace( '/', '.' ) );
+            int nameIdx = options.strings.get( getName().replace( '/', '.' ) );
             // header position TYPE_DESCRIPTION_TYPE_NAME
-            header.writeInt32( classNameIdx ); // string id of the className
+            header.writeInt32( nameIdx ); // string id of the className
 
             // header position TYPE_DESCRIPTION_ARRAY_TYPE
             header.writeInt32( getComponentClassIndex() );
+
+            // header position TYPE_DESCRIPTION_FIELDS_OFFSET
+            header.writeInt32( data.size() + VTABLE_FIRST_FUNCTION_INDEX * 4 );
+            if( kind == StructTypeKind.normal ) {
+                for( NamedStorageType field : fields ) {
+                    nameIdx = options.strings.get( field.getName() );
+                    //TODO adapt this format for the reflection API
+                    data.writeInt32( nameIdx );
+                    data.writeInt32( field.getType().getCode() );
+                }
+            }
 
             data.writeTo( dataStream );
         }
