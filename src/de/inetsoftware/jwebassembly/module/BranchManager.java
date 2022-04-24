@@ -555,10 +555,7 @@ class BranchManager {
         if( branch == null ) {
             if( startBlock.endPosition > parent.endPos ) {
                 // we jump outside the parent. This is like a conditional break.
-                //TODO should be BR_IF
-                branch = new BranchNode( startPos - 1, startPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
-                parent.add( branch );
-                breakOperations.add( new BreakBlock( branch, startPos, startBlock.endPosition ) );
+                breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, parent, startPos, startBlock.endPosition ) );
                 return;
             }
             branch = new BranchNode( startPos - 1, endPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
@@ -1081,7 +1078,7 @@ class BranchManager {
                 return;
             }
         }
-        breakOperations.add( new BreakBlock( parent, start, jump ) );
+        breakOperations.add( new BreakBlock( WasmBlockOperator.BR, parent, start, jump ) );
     }
 
     /**
@@ -1418,11 +1415,19 @@ class BranchManager {
             patchBrDeep( middleNode );
         }
 
+        WasmBlockOperator op = breakBlock.op;
         if( breakBlock.breakToElseBlock ) {
             // push zero that we switch into the ELSE block
+            if( op == WasmBlockOperator.BR_IF ) {
+                // we need to split it in a separate IF and BR instruction
+                BranchNode child = new BranchNode( breakBlock.breakPos - 1, breakBlock.breakPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
+                branch.add( child );
+                branch = child;
+                op = WasmBlockOperator.BR;
+            }
             insertConstBeforePosition( 0, breakBlock.breakPos, -1 );
         }
-        BranchNode breakNode = new BranchNode( breakBlock.breakPos, breakBlock.breakPos, WasmBlockOperator.BR, null, deep + 1 );
+        BranchNode breakNode = new BranchNode( breakBlock.breakPos, breakBlock.breakPos, op, null, deep + 1 );
         branch.add( breakNode );
     }
 
@@ -1836,17 +1841,21 @@ class BranchManager {
      */
     private static class BreakBlock {
 
-        private final int  breakPos;
+        private final WasmBlockOperator op;
 
-        private int        endPosition;
+        private final int               breakPos;
 
-        private BranchNode branch;
+        private int                     endPosition;
 
-        private boolean    breakToElseBlock;
+        private BranchNode              branch;
+
+        private boolean                 breakToElseBlock;
 
         /**
          * Create Break
          * 
+         * @param op
+         *            BR or BR_IF
          * @param branch
          *            the parent block which should contain the break
          * @param breakPos
@@ -1854,7 +1863,8 @@ class BranchManager {
          * @param endPosition
          *            the Jump position
          */
-        public BreakBlock( @Nonnull BranchNode branch, int breakPos, int endPosition ) {
+        public BreakBlock( @Nonnull WasmBlockOperator op, @Nonnull BranchNode branch, int breakPos, int endPosition ) {
+            this.op = op;
             this.breakPos = breakPos;
             this.endPosition = endPosition;
             this.branch = branch;
