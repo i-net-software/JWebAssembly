@@ -563,8 +563,13 @@ class BranchManager {
                         endPos = branch.endPos;
                     } else {
                         branch.elseEndPos = endPos;
-                        branch = new BranchNode( positions.elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
-                        parent.add( branch );
+                        if( positions.elsePos == endPos ) {
+                            // we does not need an empty else branch
+                            branch.endOp = WasmBlockOperator.END;
+                        } else {
+                            branch = new BranchNode( positions.elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
+                            parent.add( branch );
+                        }
                     }
                     break;
                 }
