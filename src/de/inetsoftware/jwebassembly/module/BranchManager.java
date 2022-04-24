@@ -422,6 +422,28 @@ class BranchManager {
     }
 
     /**
+     * Calculate the operations which are inside the given branch node.
+     * @param branch
+     *            the parent branch/block in the hierarchy.
+     * @param parsedOperations
+     *            the not consumed parsed operations of the parent block.
+     */
+    private void calculateSubOperations( BranchNode branch, List<ParsedBlock> parsedOperations ) {
+        int endPos = branch.endPos;
+        int idx = 0;
+        int size = parsedOperations.size();
+        for( ; idx < size; idx++ ) {
+            ParsedBlock parsedBlock = parsedOperations.get( idx );
+            if( parsedBlock.startPosition >= endPos ) {
+                break;
+            }
+        }
+        if( idx > 0 ) {
+            calculate( branch, parsedOperations.subList( 0, idx ) );
+        }
+    }
+
+    /**
      * Add a break to the node if the block jump to the continue position of an outer loop.
      * 
      * @param parent
@@ -563,18 +585,7 @@ class BranchManager {
         }
         startBlock.negateCompare();
 
-        /**
-         * Search the index in the stack to add the END operator
-         */
-        for( ; i < parsedOperations.size(); i++ ) {
-            ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.startPosition >= endPos ) {
-                break;
-            }
-        }
-        if( i > 0 ) {
-            calculate( branch, parsedOperations.subList( 0, i ) );
-        }
+        calculateSubOperations( branch, parsedOperations );
     }
 
     /**
@@ -1097,14 +1108,7 @@ class BranchManager {
         loopNode.continuePos = loopBlock.nextPosition;
         blockNode.add( loopNode );
 
-        int idx = 0;
-        for( ; idx < parsedOperations.size(); idx++ ) {
-            ParsedBlock parsedBlock = parsedOperations.get( idx );
-            if( parsedBlock.startPosition >= loopBlock.endPosition ) {
-                break;
-            }
-        }
-        calculate( loopNode, parsedOperations.subList( 0, idx ) );
+        calculateSubOperations( loopNode, parsedOperations );
         // add the "br 0" as last child to receive the right order
 //        loopNode.add( new BranchNode( loopBlock.endPosition, loopBlock.endPosition, WasmBlockOperator.BR, null, 0 ) ); // continue to the start of the loop
     }
@@ -1290,17 +1294,8 @@ class BranchManager {
      *            the not consumed operations in the parent branch
      */
     private void calculateTrySubOperations( BranchNode catchNode, BranchNode node, List<ParsedBlock> parsedOperations ) {
-        int idx;
         do {
-            for( idx = 0; idx < parsedOperations.size(); idx++ ) {
-                ParsedBlock parsedBlock = parsedOperations.get( idx );
-                if( parsedBlock.startPosition >= node.endPos ) {
-                    break;
-                }
-            }
-            if( idx > 0 ) {
-                calculate( node, parsedOperations.subList( 0, idx ) );
-            }
+            calculateSubOperations( node, parsedOperations );
             if( node == catchNode ) {
                 break;
             }
