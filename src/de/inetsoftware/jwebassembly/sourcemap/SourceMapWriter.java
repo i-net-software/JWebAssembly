@@ -77,7 +77,9 @@ public class SourceMapWriter {
 
         // sourceRoot
         if( sourceRoot != null && !sourceRoot.isEmpty() ) {
-            appendJsonField( out, "sourceRoot", sourceRoot );
+            out.append( ",\n" );
+            appendJsonField( out, "sourceRoot", "" );
+            appendQuoteString( out, sourceRoot );
         }
 
         // the source file names
