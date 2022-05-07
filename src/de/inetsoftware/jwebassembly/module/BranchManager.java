@@ -885,7 +885,7 @@ class BranchManager {
         for( int p = 0; p < parsedOperations.size(); p++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( p );
             int start = parsedBlock.startPosition;
-            if( startPosition >= lastPosition ) {
+            if( start >= lastPosition ) {
                 break;
             }
             if( parsedBlock.op != JavaBlockOperator.IF ) {
@@ -923,10 +923,11 @@ class BranchManager {
         }
 
         // handle the GOTO (breaks) at the end of the CASE blocks.
+        int lastBlockPosition = lastPosition;
         for( Iterator<ParsedBlock> it = parsedOperations.iterator(); it.hasNext(); ) {
             ParsedBlock parsedBlock = it.next();
             int start = parsedBlock.startPosition;
-            if( startPosition >= lastPosition ) {
+            if( start >= lastBlockPosition ) {
                 break;
             }
             switch( parsedBlock.op ) {

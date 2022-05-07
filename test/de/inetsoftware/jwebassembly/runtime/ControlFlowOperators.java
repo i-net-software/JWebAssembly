@@ -46,6 +46,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifMultipleDouble" );
             addParam( list, script, "ifCompare" );
             addParam( list, script, "switchDirect" );
+            addParam( list, script, "switchWithConditionMethodParams" );
             addParam( list, script, "endlessLoop" );
             addParam( list, script, "doWhileLoop" );
             addParam( list, script, "doWhileLoopTwoConditions" );
@@ -285,6 +286,20 @@ public class ControlFlowOperators extends AbstractBaseTest {
                     b = 9;
             }
             return b;
+        }
+
+        @Export
+        public static int switchWithConditionMethodParams() {
+            int last = 8;
+            switch( last ) {
+                case -2:
+                    last = -13;
+                    break;
+                default:
+                    last = tableSwitch( (last == 0 ? 0 : last) );
+                    break;
+            }
+            return last;
         }
 
         @Export
