@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -195,9 +195,13 @@ class WasmArrayInstruction extends WasmInstruction {
             case NEW_ARRAY_WITH_RTT:
                 return arrayType;
             case GET:
+                return type;
             case GET_S:
             case GET_U:
-                return type instanceof ValueType ? (ValueType)type : ValueType.externref;
+                if( type == ValueType.i8 || type == ValueType.i16 ) {
+                    return ValueType.i32;
+                }
+                return type;
             case SET:
                 return null;
             case LEN:
