@@ -967,23 +967,30 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
         int size = instructions.size();
         for( int i = 0; i < size; i++ ) {
             WasmInstruction instr = instructions.get( i );
-            if( instr.getType() == Type.Struct ) {
-                WasmStructInstruction structInst = (WasmStructInstruction)instr;
-                if( structInst.getOperator() == StructOperator.NULL ) {
-                    int count = 0;
-                    for( int s = i + 1; s < size; s++ ) {
-                        WasmInstruction nextInstr = instructions.get( s );
-                        count -= nextInstr.getPopCount();
-                        if( count < 0 ) {
-                            AnyType[] popValueTypes = nextInstr.getPopValueTypes();
-                            structInst.setStructType( (StructType)popValueTypes[-1 - count] );
-                            break;
-                        }
-                        if( nextInstr.getPushValueType() != null ) {
-                            count++;
+            try {
+                if( instr.getType() == Type.Struct ) {
+                    WasmStructInstruction structInst = (WasmStructInstruction)instr;
+                    if( structInst.getOperator() == StructOperator.NULL ) {
+                        int count = 0;
+                        for( int s = i + 1; s < size; s++ ) {
+                            WasmInstruction nextInstr = instructions.get( s );
+                            count -= nextInstr.getPopCount();
+                            if( count < 0 ) {
+                                AnyType[] popValueTypes = nextInstr.getPopValueTypes();
+                                AnyType type = popValueTypes[-1 - count];
+                                // is the fallback to java/lang/Object right? There can also be a NULL value for external.
+                                StructType structType = type instanceof StructType ? (StructType)type : getTypeManager().valueOf( "java/lang/Object" );
+                                structInst.setStructType( structType );
+                                break;
+                            }
+                            if( nextInstr.getPushValueType() != null ) {
+                                count++;
+                            }
                         }
                     }
                 }
+            } catch( Exception ex ) {
+                throw WasmException.create( ex, instr.getLineNumber() );
             }
         }
     }
