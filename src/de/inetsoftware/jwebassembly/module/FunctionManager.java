@@ -45,6 +45,8 @@ class FunctionManager {
 
     private final Set<String>                      usedClasses = new LinkedHashSet<>();
 
+    private int                                    neededCount;
+
     private boolean                                isFinish;
 
     /**
@@ -71,12 +73,12 @@ class FunctionManager {
     }
 
     /**
-     * Get the count of known functions
+     * Get the count of needed functions
      * 
      * @return the count
      */
-    int size() {
-        return states.size();
+    int getNeededCount() {
+        return neededCount;
     }
 
     /**
@@ -171,6 +173,7 @@ class FunctionManager {
             if( isFinish ) {
                 throw new WasmException( "Prepare was already finish: " + name.signatureName, -1 );
             }
+            neededCount++;
             state.state = State.Needed;
             state.needThisParameter = needThisParameter;
             JWebAssembly.LOGGER.fine( "\t\tcall: " + name.signatureName );

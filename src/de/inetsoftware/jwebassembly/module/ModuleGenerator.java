@@ -327,10 +327,10 @@ public class ModuleGenerator {
         int functCount;
         do {
             scanFunctions();
-            functCount = functions.size();              // scan the functions can find new needed types or only new needed fields in the known types
+            functCount = functions.getNeededCount();    // scan the functions can find new needed types or only new needed fields in the known types
             scanForClinit();
             types.scanTypeHierarchy();                  // scan the type hierarchy can find new functions
-        } while( functCount < functions.size() );
+        } while( functCount < functions.getNeededCount() );
 
         // write only the needed imports to the output
         for( Iterator<FunctionName> iterator = functions.getNeededImports(); iterator.hasNext(); ) {
