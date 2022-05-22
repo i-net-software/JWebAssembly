@@ -157,8 +157,8 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
-     * We need one value from the stack inside of a block. We need to find the WasmInstruction on which the block can
-     * start. If this a function call or numeric expression this can be complex to find the right point.
+     * We need a value (or several) from the stack inside a block. We need to find the WasmInstruction where the block
+     * can can begin. If it is a function call or a numeric expression, it can be complicated to find the right point.
      * 
      * @param count
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
@@ -169,8 +169,8 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
-     * We need one value from the stack inside of a block. We need to find the WasmInstruction on which the block can
-     * start. If this a function call or numeric expression this can be complex to find the right point.
+     * We need a value (or several) from the stack inside a block. We need to find the WasmInstruction where the block
+     * can can begin. If it is a function call or a numeric expression, it can be complicated to find the right point.
      * 
      * @param count
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
@@ -179,9 +179,26 @@ public abstract class WasmCodeBuilder {
      * @return the code position that push the last instruction
      */
     private int findBlockStart( int count, boolean codePosition ) {
+        return findBlockStart( count, codePosition, instructions, instructions.size() );
+    }
+
+    /**
+     * We need a value (or several) from the stack inside a block. We need to find the WasmInstruction where the block
+     * can can begin. If it is a function call or a numeric expression, it can be complicated to find the right point.
+     * 
+     * @param count
+     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
+     * @param codePosition
+     *            true, get the code position; false, get the index in the instructions
+     * @param instructions
+     *            the instruction list for searching
+     * @param idx
+     *            the start index for the search. Between 0 and instructions.size().
+     * @return the code position that push the last instruction
+     */
+    static int findBlockStart( int count, boolean codePosition, List<WasmInstruction> instructions, int idx ) {
         int valueCount = 0;
-        List<WasmInstruction> instructions = this.instructions;
-        for( int i = instructions.size() - 1; i >= 0; i-- ) {
+        for( int i = idx - 1; i >= 0; i-- ) {
             WasmInstruction instr = instructions.get( i );
             AnyType valueType = instr.getPushValueType();
             if( valueType != null ) {
@@ -192,7 +209,7 @@ public abstract class WasmCodeBuilder {
                 return codePosition ? instr.getCodePosition() : i;
             }
         }
-        throw new WasmException( "Start position not found", -1 ); // should never occur
+        throw new WasmException( "Block start position not found", -1 ); // should never occur
     }
 
     /**
