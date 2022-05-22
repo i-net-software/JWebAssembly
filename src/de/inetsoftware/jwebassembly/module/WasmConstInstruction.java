@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -128,5 +128,13 @@ class WasmConstInstruction extends WasmInstruction {
     @Override
     AnyType[] getPopValueTypes() {
         return null;
+    }
+
+    /**
+     * Only used for debugging
+     */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + ": " + value;
     }
 }

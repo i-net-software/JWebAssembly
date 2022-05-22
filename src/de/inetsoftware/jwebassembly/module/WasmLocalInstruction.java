@@ -150,4 +150,12 @@ class WasmLocalInstruction extends WasmInstruction {
     AnyType[] getPopValueTypes() {
         return op == get  ? null : new AnyType[] { localVariables.getValueType( getIndex() ) };
     }
+
+    /**
+     * Only used for debugging
+     */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + ": local." + op + ' ' + idx;
+    }
 }

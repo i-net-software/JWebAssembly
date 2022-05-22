@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2021 Volker Berlin (i-net software)
+   Copyright 2018 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -103,6 +103,7 @@ class WasmBlockInstruction extends WasmInstruction {
     AnyType getPushValueType() {
         switch( op ) {
             case IF:
+            case BLOCK:
                 return data != ValueType.empty ? (AnyType)data : null;
             case RETURN:
                 return (AnyType)data;
@@ -150,5 +151,13 @@ class WasmBlockInstruction extends WasmInstruction {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Only used for debugging
+     */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + ": " + op + (data == null || data == ValueType.empty ? "" : " " + data);
     }
 }
