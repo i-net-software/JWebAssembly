@@ -206,7 +206,11 @@ public abstract class WasmCodeBuilder {
             }
             valueCount -= instr.getPopCount();
             if( valueCount == count ) {
-                return codePosition ? instr.getCodePosition() : i;
+                int codePos = instr.getCodePosition();
+                if( i == 0 || instructions.get( i - 1 ).getCodePosition() < codePos ) {
+                    // if the same codePos is used from multiple instructions then it is not an atomic operation in Java
+                    return codePosition ? codePos : i;
+                }
             }
         }
         throw new WasmException( "Block start position not found", -1 ); // should never occur
@@ -911,14 +915,19 @@ public abstract class WasmCodeBuilder {
         if( useGC ) {
             // replace the the array wrapper on the stack with the native array 
             int idx;
+            int javaPos = javaCodePos;
             switch( op ) {
                 case GET:
                 case GET_S:
                 case GET_U:
-                    idx = StackInspector.findInstructionThatPushValue( instructions, 1, javaCodePos ).idx;
+                    StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions, 1, javaCodePos );
+                    idx = stackValue.idx;
+                    javaPos = stackValue.instr.getCodePosition();
                     break;
                 case SET:
-                    idx = StackInspector.findInstructionThatPushValue( instructions, 2, javaCodePos ).idx;
+                    stackValue = StackInspector.findInstructionThatPushValue( instructions, 2, javaCodePos );
+                    idx = stackValue.idx;
+                    javaPos = stackValue.instr.getCodePosition();
                     break;
                 case LEN:
                     idx = instructions.size();
@@ -928,7 +937,7 @@ public abstract class WasmCodeBuilder {
             }
             if( idx >= 0 ) {
                 ArrayType arrayType = types.arrayType( type );
-                instructions.add( idx, new WasmStructInstruction( StructOperator.GET, arrayType, arrayType.getNativeFieldName(), javaCodePos, lineNumber, types ) );
+                instructions.add( idx, new WasmStructInstruction( StructOperator.GET, arrayType, arrayType.getNativeFieldName(), javaPos, lineNumber, types ) );
             }
         }
 

@@ -80,6 +80,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifAndOr6" );
             addParam( list, script, "ifAndOr8" );
             addParam( list, script, "ifAndOrComplex" );
+            addParam( list, script, "ifAndOrComplex2" );
             addParam( list, script, "ifWithoutElseAndLoop" );
             addParam( list, script, "ifOrWithMulti" );
             addParam( list, script, "ifMultipleInsideThen" );
@@ -630,6 +631,25 @@ public class ControlFlowOperators extends AbstractBaseTest {
                 result = 13;
             } else {
                 result = 42;
+            }
+            return result;
+        }
+
+        @Export
+        private static int ifAndOrComplex2() {
+            int result = ifAndOrComplex2Impl( false, false, false );
+            result = result * 10 + ifAndOrComplex2Impl( true, false, false );
+            result = result * 10 + ifAndOrComplex2Impl( true, true, false );
+            result = result * 10 + ifAndOrComplex2Impl( true, false, true );
+            return result;
+        }
+
+        private static int ifAndOrComplex2Impl( boolean a, boolean b, boolean c ) {
+            int result = 13;
+            if( a && (b || c)) {
+                result = 42;
+            } else {
+                result = 17;
             }
             return result;
         }

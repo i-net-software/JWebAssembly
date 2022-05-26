@@ -276,7 +276,7 @@ class BranchManager {
                                         throw new WasmException( "Loop condition start not found. Jump from " + parsedBlock.startPosition + " to " + parsedBlock.endPosition, parsedBlock.lineNumber );
                                     }
                                 }
-                                convertToLoop( parsedBlock, conditionStart, conditionEnd );
+                                convertToLoop( parsedBlock, conditionStart, conditionEnd, parsedOperations.subList( b, parsedOperations.size() ) );
 
                                 // if conditions that point at the end of the loop for optimization must now point at start.
                                 for( n = b - 1; n >= 0; n-- ) {
@@ -297,7 +297,7 @@ class BranchManager {
                                         // occur with java.math.BigInteger.add(int[],int[]) in Java 8
                                         break;
                                     }
-                                    convertToLoop( parsedBlock, conditionStart, conditionEnd );
+                                    convertToLoop( parsedBlock, conditionStart, conditionEnd, parsedOperations.subList( b, parsedOperations.size() ) );
                                     parsedOperations.remove( n );
                                     parsedOperations.remove( n - 1 );
                                     break;
@@ -323,8 +323,32 @@ class BranchManager {
      *            the code position where condition code start
      * @param conditionEnd
      *            the end position
+     * @param parsedOperations
+     *            the parsed operations that span the loop
      */
-    private void convertToLoop( ParsedBlock gotoBlock, int conditionStart, int conditionEnd ) {
+    private void convertToLoop( ParsedBlock gotoBlock, int conditionStart, int conditionEnd, List<ParsedBlock> parsedOperations ) {
+        // add breaks to the instructions list if there are more as one condition before we move it
+        for( int b = 0; b < parsedOperations.size(); b++ ) {
+            ParsedBlock block = parsedOperations.get( b );
+            int nextPosition = block.nextPosition;
+            if( block.op == JavaBlockOperator.IF && nextPosition >= conditionStart && block.endPosition == conditionEnd ) {
+                int size = instructions.size();
+                for( int i = 0; i < size; i++ ) {
+                    WasmInstruction instr = instructions.get( i );
+                    int codePos = instr.getCodePosition();
+                    if( codePos >= conditionEnd ) {
+                        break;
+                    }
+                    if( codePos >= nextPosition ) {
+                        instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, nextPosition, gotoBlock.lineNumber  ) );
+                        break;
+                    }
+                }
+                parsedOperations.remove( b-- );
+            }
+        }
+
+        // move the loop conditions to the start of the loop
         int conditionNew = gotoBlock.startPosition;
         int nextPos = gotoBlock.nextPosition;
         int conditionIdx = -1;
@@ -349,7 +373,7 @@ class BranchManager {
         gotoBlock.op = JavaBlockOperator.LOOP;
         gotoBlock.nextPosition = conditionStart; // Jump position for Continue
         gotoBlock.endPosition = conditionEnd;
-        instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionNew, gotoBlock.lineNumber ) );
+        instructions.add( i, new WasmBlockInstruction( WasmBlockOperator.BR, 0, conditionStart, gotoBlock.lineNumber ) );
         instructions.add( conditionIdx++, new WasmBlockInstruction( WasmBlockOperator.BR_IF, 1, conditionNew, gotoBlock.lineNumber  ) );
     }
 
@@ -471,7 +495,17 @@ class BranchManager {
     }
 
     /**
-     * Calculate the ELSE and END position of an IF control structure.
+     * Calculate the IF ELSE and END control structure. The resulting code in WebAssembly look like:
+     * 
+     * <pre>
+     * block
+     *   block
+     *     ;; if part
+     *     br_if 0
+     *   end
+     *   ;; else part
+     * end
+     * </pre>
      * 
      * @param parent
      *            the parent branch
@@ -481,116 +515,76 @@ class BranchManager {
      *            the not consumed operations in the parent branch
      */
     private void calculateIf( BranchNode parent, IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
-        instructions.remove( startBlock.jump );
         IfPositions positions = searchElsePosition( startBlock, parsedOperations );
 
-        if( addBreakIfLoopContinue( parent, startBlock ) ) {
-            return;
-        }
+        BranchNode branch;
+        int endPos = positions.elsePos;
+        boolean createThenBlock = endPos <= parent.endPos;
+        if( createThenBlock ) {
+            // normal IF block
+            int startPos = startBlock.nextPosition;
 
-        BranchNode main = parent;
-        for( int i = 0; i < positions.ifCount; i++ ) {
-            IfParsedBlock parsedBlock = (IfParsedBlock)parsedOperations.remove( 0 );
-            instructions.remove( parsedBlock.jump );
-            if( startBlock.endPosition < positions.thenPos || startBlock.endPosition == positions.elsePos ) {
-                // AND concatenation (&& operator)
-                int pos = parsedBlock.startPosition + 1; 
-                main.add( new BranchNode( startBlock.nextPosition, pos, WasmBlockOperator.IF, null ) );
-                main.add( new BranchNode( pos, pos + 1, WasmBlockOperator.ELSE, WasmBlockOperator.END ) );
-                startBlock.negateCompare();
-                insertConstBeforePosition( 0, pos + 1, parsedBlock.lineNumber ); // 0 --> FALSE for the next if expression
-            } else {
-                // OR concatenation (|| operator)
-                int pos = startBlock.startPosition + 2; // startBlock.startPosition is the position of the compare operation which need before this if construct
-                main.add( new BranchNode( pos, startBlock.nextPosition, WasmBlockOperator.IF, null ) );
-                BranchNode node = new BranchNode( startBlock.nextPosition, positions.thenPos - 1, WasmBlockOperator.ELSE, WasmBlockOperator.END );
-                main.add( node );
-                main = node;
-                insertConstBeforePosition( 1, pos + 1, startBlock.lineNumber ); // 1 --> TRUE for the next if expression
-            }
-            startBlock = parsedBlock;
-        }
-
-        int i = 0;
-        int endPos = Math.min( startBlock.endPosition, parent.endPos );
-        int startPos = startBlock.nextPosition;
-        if( startPos > endPos ) {
-            // the condition in a do while(condition) loop
-            int breakDeep = calculateContinueDeep( parent, endPos );
-            instructions.add( findIdxOfCodePos( startPos ), new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, startPos - 1, startBlock.lineNumber ) );
-            return;
-        }
-
-        BranchNode branch = null;
-        for( ; i < parsedOperations.size(); i++ ) {
-            ParsedBlock parsedBlock = parsedOperations.get( i );
-            if( parsedBlock.nextPosition == positions.elsePos ) {
-                boolean endPosFound = false;
-                if( parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
-                    parsedOperations.remove( i );
-                    endPos = parsedBlock.endPosition;
-                    endPosFound = true;
-                } else if( parsedBlock.op == JavaBlockOperator.RETURN ) {
-                    for( int k = 0; k < i; k++ ) {
-                        ParsedBlock block = parsedOperations.get( k );
-                        if( block.op == JavaBlockOperator.IF ) {
-                            endPos = Math.max( endPos, block.endPosition );
-                        }
-                    }
-                    endPosFound = true;
-                }
-                if( endPosFound ) {
-                    // end position can not be outside of the parent
-                    endPos = Math.min( endPos, parent.endPos );
-
-                    branch = new BranchNode( startPos, positions.elsePos, WasmBlockOperator.IF, null );
-                    parent.add( branch );
-                    if( i > 0 ) {
-                        calculate( branch, parsedOperations.subList( 0, i ) );
-                        i = 0;
-                    }
-
-                    if( addBreakIfLoopContinue( branch, parsedBlock ) ) {
-                        branch.endOp = WasmBlockOperator.END;
-                        endPos = branch.endPos;
-                        break;
-                    }
-                    // if with block type signature must have an else block
-                    int breakDeep = calculateBreakDeep( parent, endPos );
-                    if( breakDeep > 0 ) {
-                        branch.endOp = WasmBlockOperator.END;
-                        branch.add( new BranchNode( positions.elsePos, endPos, WasmBlockOperator.BR, null, breakDeep + 1 ) );
-                        endPos = branch.endPos;
-                    } else {
-                        branch.elseEndPos = endPos;
-                        if( positions.elsePos == endPos ) {
-                            // we does not need an empty else branch
-                            branch.endOp = WasmBlockOperator.END;
-                        } else {
-                            branch = new BranchNode( positions.elsePos, endPos, WasmBlockOperator.ELSE, WasmBlockOperator.END );
-                            parent.add( branch );
-                        }
-                    }
-                    break;
-                }
-            }
-            if( parsedBlock.nextPosition >= positions.elsePos ) {
-                break;
-            }
-        }
-
-        if( branch == null ) {
-            if( startBlock.endPosition > parent.endPos ) {
-                // we jump outside the parent. This is like a conditional break.
-                breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, parent, startPos, startBlock.endPosition ) );
+            if( startPos > endPos ) {
+                // the condition in a do while(condition) loop
+                int breakDeep = calculateContinueDeep( parent, endPos );
+                instructions.add( findIdxOfCodePos( startPos ), new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, startPos - 1, startBlock.lineNumber ) );
                 return;
             }
-            branch = new BranchNode( startPos - 1, endPos, WasmBlockOperator.IF, WasmBlockOperator.END, ValueType.empty );
-            parent.add( branch );
-        }
-        startBlock.negateCompare();
 
-        calculateSubOperations( branch, parsedOperations );
+            // find the code position where the condition values are push on the stack
+            List<WasmInstruction> instructions = this.instructions;
+            int idx = instructions.indexOf( startBlock.instr );
+            startPos = WasmCodeBuilder.findBlockStart( 1, true, instructions, idx + 1 );
+            if( parent.overlapped( startPos ) ) {
+                branch = addMiddleNode( parent, parent.startPos, endPos );
+            } else {
+                branch = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                parent.add( branch );
+            }
+        } else {
+            branch = parent;
+            // a jump outside of the parent, we will create the block later
+        }
+        breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, branch, startBlock.nextPosition - 1, startBlock.endPosition ) );
+
+        for( int i = 0; i < positions.ifCount; i++ ) {
+            IfParsedBlock parsedBlock = (IfParsedBlock)parsedOperations.remove( 0 );
+            //instructions.remove( parsedBlock.jump );
+            breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, branch, parsedBlock.nextPosition - 1, parsedBlock.endPosition ) );
+        }
+
+        if( createThenBlock ) {
+            // handle jumps outside the then but inside calling parent
+            for( int i = 0; i < parsedOperations.size(); i++ ) {
+                ParsedBlock block = parsedOperations.get( i );
+                if( block.startPosition >= endPos ) {
+                    break;
+                }
+                if( block.op == JavaBlockOperator.GOTO || block.op == JavaBlockOperator.IF ) {
+                    int endPosition = block.endPosition;
+                    if( endPosition > endPos && endPosition < parent.endPos ) {
+                        BranchNode nodeParent = branch;
+                        BranchNode node;
+                        do {
+                            node = nodeParent; 
+                            nodeParent = nodeParent.parent;
+                        }
+                        while( nodeParent.endPos < endPosition );
+                        if( nodeParent.endPos == endPosition ) {
+                            continue;
+                        }
+                        nodeParent.remove( node );
+                        BranchNode elseBranch = new BranchNode( branch.startPos, endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                        elseBranch.add( node );
+                        nodeParent.add( elseBranch );
+                    }
+                }
+            }
+            while( branch != parent ) {
+                calculateSubOperations( branch, parsedOperations );
+                branch = branch.parent;
+            }
+        }
     }
 
     /**
@@ -731,6 +725,25 @@ class BranchManager {
             }
         }
         return size;
+    }
+
+    /**
+     * Find the deepest child node on the code position
+     * 
+     * @param parent
+     *            the node to start the search
+     * @param codePosition
+     *            the code position
+     * @return the deepest node on the position
+     */
+    @Nonnull
+    private BranchNode findChildNodeAt( @Nonnull BranchNode parent, int codePosition ) {
+        for( BranchNode node : parent ) {
+            if( node.startPos <= codePosition && codePosition <= node.endPos ) {
+                return findChildNodeAt( node, codePosition );
+            }
+        }
+        return parent;
     }
 
     /**
@@ -879,6 +892,7 @@ class BranchManager {
                 blockNode = node;
             }
             switchCase.block = blockCount;
+            switchCase.node = blockNode;
         }
 
         // add extra blocks for forward GOTO jumps like in SWITCH of Strings 
@@ -981,6 +995,12 @@ class BranchManager {
             }
             brTableNode.data = data;
         }
+
+        for( int i = 0; i < cases.length; i++ ) {
+            switchCase = cases[i];
+            calculateSubOperations( switchCase.node, parsedOperations );
+        }
+        calculateSubOperations( switchNode, parsedOperations );
     }
 
     /**
@@ -1059,6 +1079,7 @@ class BranchManager {
         long key;
         int position;
         int block;
+        BranchNode node;
     }
 
     /**
@@ -1371,16 +1392,19 @@ class BranchManager {
     private void calculateBreak( BreakBlock breakBlock ) {
         int deep = -1;
         int gotoEndPos = breakBlock.endPosition;
-        BranchNode branch = breakBlock.branch;
+        BranchNode branch = findChildNodeAt( breakBlock.branch, breakBlock.breakPos );
         BranchNode parent = branch;
+        int startPos = parent.startPos;
         while( parent != null && parent.elseEndPos < gotoEndPos ) {
             deep++;
+            startPos = parent.startPos;
             parent = parent.parent;
         }
 
-        if( parent != null && parent.startOp == WasmBlockOperator.LOOP ) {
+        if( parent != null && parent.startOp == WasmBlockOperator.LOOP && parent.elseEndPos == gotoEndPos ) {
             // a break in a LOOP is only a continue, we need to break to the outer block
             deep++;
+            startPos = parent.startPos;
             parent = parent.parent;
         }
 
@@ -1402,18 +1426,10 @@ class BranchManager {
                 }
             }
 
-            BranchNode middleNode = new BranchNode( parent.startPos, gotoEndPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-            while( !parent.isEmpty() ) {
-                BranchNode child = parent.get( 0 );
-                if( child.endPos > gotoEndPos ) {
-                    break;
-                }
-                middleNode.add( child );
-                parent.remove( 0 );
+            BranchNode middleNode = addMiddleNode( parent, startPos, gotoEndPos );
+            if( parent == branch ) {
+                branch = middleNode;
             }
-            parent.add( 0, middleNode );
-            parent = middleNode;
-            patchBrDeep( middleNode );
         }
 
         WasmBlockOperator op = breakBlock.op;
@@ -1430,6 +1446,38 @@ class BranchManager {
         }
         BranchNode breakNode = new BranchNode( breakBlock.breakPos, breakBlock.breakPos, op, null, deep + 1 );
         branch.add( breakNode );
+    }
+
+    /**
+     * Add a middle block node and move children in the range to the new middle node
+     * 
+     * @param parent
+     *            the parent node
+     * @param startPos
+     *            the start code position of the new node
+     * @param endPos
+     *            the end code position of the new node
+     * @return the new node
+     */
+    private BranchNode addMiddleNode( BranchNode parent, int startPos, int endPos ) {
+        BranchNode middleNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        int idx = 0;
+        for( Iterator<BranchNode> it = parent.iterator(); it.hasNext(); ) {
+            BranchNode child = it.next();
+            if( child.startPos < startPos ) {
+                idx++;
+                continue;
+            }
+            if( child.endPos > endPos ) {
+                break;
+            }
+            middleNode.add( child );
+            it.remove();
+        }
+        parent.add( idx, middleNode );
+        parent = middleNode;
+        patchBrDeep( middleNode );
+        return middleNode;
     }
 
     /**
@@ -1670,6 +1718,8 @@ class BranchManager {
         @Override
         public boolean add( BranchNode node ) {
             node.parent = this;
+            assert node.startOp == null || (node.startPos >= startPos && node.endPos <= endPos): "Node outside parent: " + this + " + " + node;
+//            assert !overlapped( node.startPos ) : "Node on wrong level: " + node + "; parent: " + this + "; last: " + get( size() - 1 );
             return super.add( node );
         }
 
@@ -1679,7 +1729,17 @@ class BranchManager {
         @Override
         public void add( int index, BranchNode node ) {
             node.parent = this;
+            assert node.startOp == null || (node.startPos >= startPos && node.endPos <= endPos): "Node outside parent: " + this + " + " + node;
             super.add( index, node );
+        }
+
+        /**
+         * If the given position overlapped with other existing child nodes 
+         * @param startPos the code position
+         * @return true, if the position is already consumed from a child
+         */
+        boolean overlapped( int startPos ) {
+            return size() > 0 && get( size() - 1 ).endPos > startPos;
         }
 
         /**
@@ -1736,6 +1796,9 @@ class BranchManager {
                     stack.push( ValueType.empty );
                     INSTRUCTIONS: for( int i = startIdx; i < instructions.size(); i++ ) {
                         WasmInstruction instr = instructions.get( i );
+                        if( instr.getType() == Type.Jump ) {
+                            continue;
+                        }
                         int codePos = instr.getCodePosition();
                         if( codePos > endPos ) {
                             break;
@@ -1821,6 +1884,24 @@ class BranchManager {
             }
             return idx;
         }
+
+        /**
+         * For remove().
+         * 
+         * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
+         */
+        @Override
+        public boolean equals( Object obj ) {
+            return this == obj;
+        }
+
+        /**
+         * Only used for debugging
+         */
+        @Override
+        public String toString() {
+            return startOp + "(" + startPos + '-' + endPos + ')';
+        }
     }
 
     /**
@@ -1864,7 +1945,7 @@ class BranchManager {
          * @param endPosition
          *            the Jump position
          */
-        public BreakBlock( @Nonnull WasmBlockOperator op, @Nonnull BranchNode branch, int breakPos, int endPosition ) {
+        BreakBlock( @Nonnull WasmBlockOperator op, @Nonnull BranchNode branch, int breakPos, int endPosition ) {
             this.op = op;
             this.breakPos = breakPos;
             this.endPosition = endPosition;
