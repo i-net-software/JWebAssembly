@@ -739,7 +739,8 @@ class BranchManager {
     @Nonnull
     private BranchNode findChildNodeAt( @Nonnull BranchNode parent, int codePosition ) {
         for( BranchNode node : parent ) {
-            if( node.startPos <= codePosition && codePosition <= node.endPos ) {
+            // the end position of a block is position of the first instruction outside of the block 
+            if( node.startPos <= codePosition && codePosition < node.endPos ) {
                 return findChildNodeAt( node, codePosition );
             }
         }
