@@ -39,7 +39,7 @@ import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ClassFile.Type;
 import de.inetsoftware.classparser.ConstantClass;
-import de.inetsoftware.classparser.ConstantMethodRef;
+import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
@@ -405,7 +405,7 @@ public class TypeManager {
      * @return the type
      */
     LambdaType lambdaType( @Nonnull BootstrapMethod method, ArrayList<AnyType> params, StructType interfaceType, String interfaceMethodName ) {
-        ConstantMethodRef implMethod = method.getImplMethod();
+        ConstantRef implMethod = method.getImplMethod();
         FunctionName methodName = new FunctionName( implMethod );
         String typeName = implMethod.getClassName() + "$$" + implMethod.getName() + "/" + Math.abs( implMethod.getName().hashCode() );
 
