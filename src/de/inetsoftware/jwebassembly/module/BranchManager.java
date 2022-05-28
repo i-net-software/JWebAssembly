@@ -1207,7 +1207,7 @@ class BranchManager {
                 }
             }
 
-            if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
+            if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition && parsedBlock.endPosition <= endPos ) {
                 parsedOperations.remove( idx );
                 endPos = parsedBlock.endPosition;
                 break;
