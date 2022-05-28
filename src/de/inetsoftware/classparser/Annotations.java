@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,19 +40,35 @@ public class Annotations {
         Map<String, Map<String, Object>> annotations = new HashMap<>();
         int count = input.readUnsignedShort();
         for( int i = 0; i < count; i++ ) {
-            String className = (String)constantPool.get( input.readUnsignedShort() );
-            className = className.substring( 1, className.length() - 1 ).replace( '/', '.' ); // has the form: "Lcom/package/ClassName;"
-            Map<String, Object> valuePairs = new HashMap<>();
-            annotations.put( className, valuePairs );
-
-            int valuePairCount = input.readUnsignedShort();
-            for( int p = 0; p < valuePairCount; p++ ) {
-                String key = (String)constantPool.get( input.readUnsignedShort() );
-                Object value = readElementValue( input, constantPool );
-                valuePairs.put( key, value );
-            }
+            readAnnotation( input, constantPool, annotations );
         }
         return annotations;
+    }
+
+    /**
+     * Read a single annotation and add it to the container
+     * 
+     * @param input
+     *            the stream of the RuntimeInvisibleAnnotations attribute
+     * @param constantPool
+     *            the ConstantPool of the class
+     * @param annotations
+     *            container for the annotation
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    private static void readAnnotation( DataInputStream input, ConstantPool constantPool, Map<String, Map<String, Object>> annotations ) throws IOException {
+        String className = (String)constantPool.get( input.readUnsignedShort() );
+        className = className.substring( 1, className.length() - 1 ).replace( '/', '.' ); // has the form: "Lcom/package/ClassName;"
+        Map<String, Object> valuePairs = new HashMap<>();
+        annotations.put( className, valuePairs );
+
+        int valuePairCount = input.readUnsignedShort();
+        for( int p = 0; p < valuePairCount; p++ ) {
+            String key = (String)constantPool.get( input.readUnsignedShort() );
+            Object value = readElementValue( input, constantPool );
+            valuePairs.put( key, value );
+        }
     }
 
     /**
@@ -77,8 +93,16 @@ public class Annotations {
             case 'J':
             case 'S':
             case 'Z':
-            case 's':
+            case 's': // String
+            case 'c': // Class
                 return constantPool.get( input.readUnsignedShort() );
+            case 'e': // enum constant
+                constantPool.get( input.readUnsignedShort() );        // enum type name
+                return constantPool.get( input.readUnsignedShort() ); // enum constant name
+            case '@': // annotation type
+                Map<String, Map<String, Object>> annotations = new HashMap<>();
+                readAnnotation( input, constantPool, annotations );
+                return annotations;
             case '[':
                 int count = input.readUnsignedShort();
                 Object[] values = new Object[count];
@@ -87,7 +111,6 @@ public class Annotations {
                 }
                 return values;
             default:
-                // TODO other possible values for type: e c @
                 throw new IOException( "Unknown annotation value type pool type: " + type );
         }
     }
