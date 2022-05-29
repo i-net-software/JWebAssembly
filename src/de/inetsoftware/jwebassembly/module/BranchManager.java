@@ -554,7 +554,7 @@ class BranchManager {
         }
 
         if( createThenBlock ) {
-            // handle jumps outside the then but inside calling parent
+            // handle jumps outside the then but inside calling parent and create the needed blocks in the hierarchy. Typical this is the ELSE block.
             for( int i = 0; i < parsedOperations.size(); i++ ) {
                 ParsedBlock block = parsedOperations.get( i );
                 if( block.startPosition >= endPos ) {
@@ -566,17 +566,14 @@ class BranchManager {
                         BranchNode nodeParent = branch;
                         BranchNode node;
                         do {
-                            node = nodeParent; 
+                            node = nodeParent;
                             nodeParent = nodeParent.parent;
-                        }
-                        while( nodeParent.endPos < endPosition );
+                        } while( nodeParent.endPos < endPosition );
                         if( nodeParent.endPos == endPosition ) {
+                            // there is already a block end on this position
                             continue;
                         }
-                        nodeParent.remove( node );
-                        BranchNode elseBranch = new BranchNode( branch.startPos, endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-                        elseBranch.add( node );
-                        nodeParent.add( elseBranch );
+                        addMiddleNode( nodeParent, branch.startPos, endPosition );
                     }
                 }
             }
@@ -1446,6 +1443,15 @@ class BranchManager {
             insertConstBeforePosition( 0, breakBlock.breakPos, -1 );
         }
         BranchNode breakNode = new BranchNode( breakBlock.breakPos, breakBlock.breakPos, op, null, deep + 1 );
+        // add the BranchNode on the right position
+        int childCount = branch.size();
+        for( int i = 0; i < childCount; i++ ) {
+            BranchNode child = branch.get( i );
+            if( child.endPos> breakBlock.breakPos ) {
+                branch.add( i, breakNode );
+                return;
+            }
+        }
         branch.add( breakNode );
     }
 
@@ -1720,7 +1726,7 @@ class BranchManager {
         public boolean add( BranchNode node ) {
             node.parent = this;
             assert node.startOp == null || (node.startPos >= startPos && node.endPos <= endPos): "Node outside parent: " + this + " + " + node;
-//            assert !overlapped( node.startPos ) : "Node on wrong level: " + node + "; parent: " + this + "; last: " + get( size() - 1 );
+            assert node.startOp == null || !overlapped( node.startPos ) : "Node on wrong level: " + node + "; parent: " + this + "; last: " + get( size() - 1 );
             return super.add( node );
         }
 
