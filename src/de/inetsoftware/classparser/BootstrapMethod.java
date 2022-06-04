@@ -56,6 +56,13 @@ public class BootstrapMethod {
         samMethodType = (String)constantPool.get( input.readUnsignedShort() );
         implMethod = (ConstantRef)constantPool.get( input.readUnsignedShort() );
         instantiatedMethodType = (String)constantPool.get( input.readUnsignedShort() );
+
+        // skip extra parameters
+        // argCount is 5 if the method is LambdaMetafactory.altMetafactory
+        // occur if the Lambda type has 2 types compound with "&" like in java.time.chrono.AbstractChronology
+        for( int i = 3; i < argCount; i++ ) {
+            System.err.println( constantPool.get( input.readUnsignedShort() ) );
+        }
     }
 
     /**
