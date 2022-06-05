@@ -787,7 +787,6 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             byteCode.skip( 4 - padding );
         }
         startPosition--;
-        int switchValuestartPosition = findBlockStartCodePosition( 1 );
 
         int defaultPosition = startPosition + byteCode.readInt();
         int[] keys;
@@ -846,7 +845,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 addNumericInstruction( NumericOperator.sub, ValueType.i32, codePos, lineNumber );
             }
         }
-        branchManager.addSwitchOperator( switchValuestartPosition, 0, lineNumber, keys, positions, defaultPosition );
+        branchManager.addSwitchOperator( startPosition, 0, lineNumber, keys, positions, defaultPosition );
     }
 
     /**

@@ -17,10 +17,12 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
@@ -104,7 +106,14 @@ class WasmBlockInstruction extends WasmInstruction {
         switch( op ) {
             case IF:
             case BLOCK:
-                return data != ValueType.empty ? (AnyType)data : null;
+                if( data == ValueType.empty || data == null ) {
+                    return null;
+                }
+                if( data instanceof BlockType ) {
+                    List<AnyType> results = ((BlockType)data).getResults();
+                    return results.isEmpty() ? null : results.get( 0 );
+                }
+                return (AnyType)data;
             case RETURN:
                 return (AnyType)data;
             default:
@@ -125,6 +134,8 @@ class WasmBlockInstruction extends WasmInstruction {
             case THROW:
             case RETHROW:
                 return 1;
+            case BLOCK:
+                return data instanceof BlockType ? ((BlockType)data).getParams().size() : 0;
             case RETURN:
                 return data == null ? 0 : 1;
             default:
@@ -146,6 +157,8 @@ class WasmBlockInstruction extends WasmInstruction {
             case THROW:
             case RETHROW:
                 return new AnyType[] { ValueType.exnref };
+            case BLOCK:
+                return data instanceof BlockType ? ((BlockType)data).getParams().toArray( new AnyType[0] ) : null;
             case RETURN:
                 return data == null ? null : new AnyType[] { (AnyType)data };
             default:

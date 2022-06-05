@@ -162,41 +162,13 @@ public abstract class WasmCodeBuilder {
      * 
      * @param count
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
-     * @return the code position that push the last instruction
-     */
-    int findBlockStartCodePosition( int count ) {
-        return findBlockStart( count, true );
-    }
-
-    /**
-     * We need a value (or several) from the stack inside a block. We need to find the WasmInstruction where the block
-     * can can begin. If it is a function call or a numeric expression, it can be complicated to find the right point.
-     * 
-     * @param count
-     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
-     * @param codePosition
-     *            true, get the code position; false, get the index in the instructions
-     * @return the code position that push the last instruction
-     */
-    private int findBlockStart( int count, boolean codePosition ) {
-        return findBlockStart( count, codePosition, instructions, instructions.size() );
-    }
-
-    /**
-     * We need a value (or several) from the stack inside a block. We need to find the WasmInstruction where the block
-     * can can begin. If it is a function call or a numeric expression, it can be complicated to find the right point.
-     * 
-     * @param count
-     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
-     * @param codePosition
-     *            true, get the code position; false, get the index in the instructions
      * @param instructions
      *            the instruction list for searching
      * @param idx
      *            the start index for the search. Between 0 and instructions.size().
      * @return the code position that push the last instruction
      */
-    static int findBlockStart( int count, boolean codePosition, List<WasmInstruction> instructions, int idx ) {
+    static int findBlockStart( int count, List<WasmInstruction> instructions, int idx ) {
         int valueCount = 0;
         for( int i = idx - 1; i >= 0; i-- ) {
             WasmInstruction instr = instructions.get( i );
@@ -204,12 +176,13 @@ public abstract class WasmCodeBuilder {
             if( valueType != null ) {
                 valueCount++;
             }
-            valueCount -= instr.getPopCount();
-            if( valueCount == count ) {
+            int popCount = instr.getPopCount();
+            valueCount -= popCount;
+            if( valueCount == count && popCount == 0 ) {
                 int codePos = instr.getCodePosition();
                 if( i == 0 || instructions.get( i - 1 ).getCodePosition() < codePos ) {
                     // if the same codePos is used from multiple instructions then it is not an atomic operation in Java
-                    return codePosition ? codePos : i;
+                    return codePos;
                 }
             }
         }

@@ -32,6 +32,7 @@ import de.inetsoftware.classparser.CodeInputStream;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -64,6 +65,7 @@ class BranchManager {
 
     private final ArrayList<BreakBlock>         breakOperations = new ArrayList<>();
 
+    private BlockType switchType;
 
     /**
      * Create a branch manager.
@@ -534,7 +536,7 @@ class BranchManager {
             // find the code position where the condition values are push on the stack
             List<WasmInstruction> instructions = this.instructions;
             int idx = instructions.indexOf( startBlock.instr );
-            startPos = WasmCodeBuilder.findBlockStart( 1, true, instructions, idx + 1 );
+            startPos = WasmCodeBuilder.findBlockStart( 1, instructions, idx + 1 );
             if( parent.overlapped( startPos ) ) {
                 branch = addMiddleNode( parent, parent.startPos, endPos );
             } else {
@@ -853,6 +855,10 @@ class BranchManager {
      *            the not consumed operations in the parent branch
      */
     private void calculateSwitch( BranchNode parent, SwitchParsedBlock switchBlock, List<ParsedBlock> parsedOperations ) {
+        BlockType switchType = this.switchType;
+        if( switchType == null ) {
+            this.switchType = switchType = options.types.blockType( Arrays.asList( ValueType.i32 ), Collections.emptyList() );
+        }
         int startPosition = ((ParsedBlock)switchBlock).startPosition;
         int posCount = switchBlock.positions.length;
         boolean isTable = switchBlock.keys == null;
@@ -883,7 +889,7 @@ class BranchManager {
                 }
                 lastPosition = currentPosition;
                 blockCount++;
-                BranchNode node = new BranchNode( startPosition, currentPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                BranchNode node = new BranchNode( startPosition, currentPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END, switchType );
                 if( blockNode != null ) {
                     node.add( blockNode );
                 }
@@ -914,7 +920,7 @@ class BranchManager {
                             while( parentNode != null && end > parentNode.endPos ) {
                                 parentNode = parentNode.parent;
                             }
-                            BranchNode middleNode = new BranchNode( startPosition, end, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                            BranchNode middleNode = new BranchNode( startPosition, end, WasmBlockOperator.BLOCK, WasmBlockOperator.END, switchType );
                             if( parentNode != null ) {
                                 BranchNode child = parentNode.remove( 0 );
                                 parentNode.add( middleNode );
@@ -980,7 +986,7 @@ class BranchManager {
         }
 
         // Create the main block around the switch
-        BranchNode switchNode = new BranchNode( startPosition, lastPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        BranchNode switchNode = new BranchNode( startPosition, lastPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END, switchType );
         switchNode.add( blockNode );
         parent.add( switchNode );
 
@@ -1467,7 +1473,8 @@ class BranchManager {
      * @return the new node
      */
     private BranchNode addMiddleNode( BranchNode parent, int startPos, int endPos ) {
-        BranchNode middleNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        Object data = parent.data == switchType && parent.startPos == startPos ? switchType : null;
+        BranchNode middleNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, data );
         int idx = 0;
         for( Iterator<BranchNode> it = parent.iterator(); it.hasNext(); ) {
             BranchNode child = it.next();
@@ -1510,7 +1517,6 @@ class BranchManager {
             } while( codePosition < nextCodePosition );
         }
         root.handle( byteCode.getCodePosition(), instructions, instructions.size(), byteCode.getLineNumber() );
-
         root.calculateBlockType( instructions );
     }
 
@@ -1725,9 +1731,20 @@ class BranchManager {
         @Override
         public boolean add( BranchNode node ) {
             node.parent = this;
-            assert node.startOp == null || (node.startPos >= startPos && node.endPos <= endPos): "Node outside parent: " + this + " + " + node;
-            assert node.startOp == null || !overlapped( node.startPos ) : "Node on wrong level: " + node + "; parent: " + this + "; last: " + get( size() - 1 );
-            return super.add( node );
+            assert node.startOp == null || (node.startPos >= startPos && node.endPos <= endPos) : "Node outside parent: " + this + " + " + node;
+
+            int size = size();
+            if( size > 0 && node.startOp != null ) {
+                int nodeStartPos = node.startPos;
+                for( int i = size - 1; i >= 0; i-- ) {
+                    if( get( i ).endPos <= nodeStartPos ) {
+                        super.add( i + 1, node );
+                        return true;
+                    }
+                }
+            }
+            super.add( 0, node );
+            return true;
         }
 
         /**
@@ -1746,7 +1763,16 @@ class BranchManager {
          * @return true, if the position is already consumed from a child
          */
         boolean overlapped( int startPos ) {
-            return size() > 0 && get( size() - 1 ).endPos > startPos;
+            for( int i = size() - 1; i >= 0; i-- ) {
+                BranchNode node = get( i );
+                if( node.endPos <= startPos ) {
+                    return false;
+                }
+                if( node.startPos < startPos ) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
@@ -1801,6 +1827,14 @@ class BranchManager {
                 try {
                     ArrayDeque<AnyType> stack = new ArrayDeque<>();
                     stack.push( ValueType.empty );
+
+                    BlockType blockType = startBlock.getData() instanceof BlockType ? (BlockType)startBlock.getData() : null;
+                    if( blockType != null ) {
+                        for( AnyType param : blockType.getParams() ) {
+                            stack.push( param );
+                        }
+                    }
+
                     INSTRUCTIONS: for( int i = startIdx; i < instructions.size(); i++ ) {
                         WasmInstruction instr = instructions.get( i );
                         if( instr.getType() == Type.Jump ) {
@@ -1852,7 +1886,13 @@ class BranchManager {
                             }
                         }
                     }
-                    startBlock.setData( stack.pop() );
+
+                    AnyType result = stack.pop();
+                    if( blockType == null ) {
+                        startBlock.setData( result );
+                    } else if( result != ValueType.empty) {
+                        throw new WasmException( "block with parameter has return parameter", startBlock.getLineNumber() );
+                    }
                 } catch( Throwable th ) {
                     throw WasmException.create( th, startBlock.getLineNumber() );
                 }

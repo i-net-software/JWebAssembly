@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,12 +84,8 @@ class WasmOutputStream extends LittleEndianOutputStream {
      *             if an I/O error occurs.
      */
     public void writeValueType( AnyType type ) throws IOException {
-        if( !type.isRefType() && !options.useGC() ) {
-            switch( (ValueType)type ) {
-                case eqref:
-                    type = ValueType.externref;
-                    break;
-            }
+        if( !options.useGC() && type == ValueType.eqref ) {
+            type = ValueType.externref;
         }
         writeVarint( type.getCode() );
     }

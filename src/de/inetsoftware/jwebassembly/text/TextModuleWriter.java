@@ -361,7 +361,7 @@ public class TextModuleWriter extends ModuleWriter {
      *             if any I/O error occur
      */
     private void writeTypeName( Appendable output, AnyType type ) throws IOException {
-        if( !type.isRefType() ) {
+        if( type instanceof ValueType ) {
             String name;
             switch( (ValueType)type ) {
                 case u16:
