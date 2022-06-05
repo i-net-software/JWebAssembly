@@ -321,4 +321,18 @@ class WasmStructInstruction extends WasmInstruction {
                 throw new WasmException( "Unknown array operation: " + op, -1 );
         }
     }
+
+    /**
+     * Only used for debugging
+     */
+    @Override
+    public String toString() {
+        switch( op ) {
+            case GET:
+                return "struct.get " + fieldName.getName();
+            case SET:
+                return "struct.set " + fieldName.getName();
+        }
+        return super.toString();
+    }
 }
