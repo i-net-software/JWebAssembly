@@ -910,6 +910,9 @@ class BranchManager {
                 continue;
             }
             int end = parsedBlock.endPosition;
+            if( end > parent.endPos ) {
+                break;
+            }
             if( start < end ) {
                 BranchNode branch = blockNode;
                 while( branch.size() > 0 ) {
@@ -942,6 +945,12 @@ class BranchManager {
 
         parent.add( blockNode );
 
+        blockNode = cases[0].node;
+        do {
+            calculateSubOperations( blockNode, parsedOperations );
+            blockNode = blockNode.parent;
+        } while( blockNode != parent );
+
         if( brTableNode != null ) {
             // sort back in the natural order and create a br_table 
             Arrays.sort( cases, ( a, b ) -> Long.compare( a.key, b.key ) );
@@ -951,12 +960,6 @@ class BranchManager {
             }
             brTableNode.data = data;
         }
-
-        blockNode = cases[0].node;
-        do {
-            calculateSubOperations( blockNode, parsedOperations );
-            blockNode = blockNode.parent;
-        } while( blockNode != parent );
     }
 
     /**
@@ -1699,6 +1702,7 @@ class BranchManager {
                 int nodeStartPos = node.startPos;
                 for( int i = size - 1; i >= 0; i-- ) {
                     if( get( i ).endPos <= nodeStartPos ) {
+                        assert !overlapped( i + 1, node ): "Node on wrong level: " + node + "; parent: " + this;
                         super.add( i + 1, node );
                         return true;
                     }
@@ -1715,7 +1719,33 @@ class BranchManager {
         public void add( int index, BranchNode node ) {
             node.parent = this;
             assert node.startOp == null || (node.startPos >= startPos && node.endPos <= endPos): "Node outside parent: " + this + " + " + node;
+            assert !overlapped( index, node ): "Node on wrong level: " + node + "; parent: " + this;
             super.add( index, node );
+        }
+
+        /**
+         * If the given node overlapped with other existing child nodes and should not be added.
+         * @param index the possible insert code position
+         * @param node the node
+         * @return true, if the position is already consumed from a child
+         */
+        private boolean overlapped( int index, @Nonnull BranchNode node ) {
+            if( node.startOp == null ) {
+                return false;
+            }
+            if( index > 0 ) {
+                BranchNode before = get( index - 1 );
+                if( before.endPos > node.startPos ) {
+                    return true;
+                }
+            }
+            if( index < size() ) {
+                BranchNode after = get( index );
+                if( node.endPos > after.startPos ) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
