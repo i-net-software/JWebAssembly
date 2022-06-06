@@ -940,55 +940,7 @@ class BranchManager {
             }
         }
 
-        // handle the GOTO (breaks) at the end of the CASE blocks.
-        int lastBlockPosition = lastPosition;
-        for( Iterator<ParsedBlock> it = parsedOperations.iterator(); it.hasNext(); ) {
-            ParsedBlock parsedBlock = it.next();
-            int start = parsedBlock.startPosition;
-            if( start >= lastBlockPosition ) {
-                break;
-            }
-            switch( parsedBlock.op ) {
-                case GOTO:
-                case IF:
-                    int end = parsedBlock.endPosition;
-                    if( start < end ) {
-                        BranchNode branch = blockNode;
-                        while( branch.size() > 0 ) {
-                            BranchNode node = branch.get( 0 );
-                            if( start > node.endPos ) {
-                                if( end >= branch.endPos ) {
-                                    blockCount = 0;
-                                    BranchNode parentNode = branch;
-                                    while( parentNode != null && end > parentNode.endPos ) {
-                                        parentNode = parentNode.parent;
-                                        blockCount++;
-                                    }
-                                    WasmBlockOperator startOp;
-                                    if( parsedBlock.op == JavaBlockOperator.GOTO ) {
-                                        startOp = WasmBlockOperator.BR;
-                                        lastPosition = Math.max( lastPosition, end );
-                                    } else {
-                                        startOp = WasmBlockOperator.BR_IF;
-                                        instructions.remove( ((IfParsedBlock)parsedBlock).jump );
-                                    }
-                                    start++;
-                                    branch.add( new BranchNode( start, start, startOp, null, blockCount ) );
-                                    it.remove();
-                                }
-                                break;
-                            }
-                            branch = node;
-                        }
-
-                    }
-            }
-        }
-
-        // Create the main block around the switch
-        BranchNode switchNode = new BranchNode( startPosition, lastPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END, switchType );
-        switchNode.add( blockNode );
-        parent.add( switchNode );
+        parent.add( blockNode );
 
         if( brTableNode != null ) {
             // sort back in the natural order and create a br_table 
@@ -1000,11 +952,11 @@ class BranchManager {
             brTableNode.data = data;
         }
 
-        for( int i = 0; i < cases.length; i++ ) {
-            switchCase = cases[i];
-            calculateSubOperations( switchCase.node, parsedOperations );
-        }
-        calculateSubOperations( switchNode, parsedOperations );
+        blockNode = cases[0].node;
+        do {
+            calculateSubOperations( blockNode, parsedOperations );
+            blockNode = blockNode.parent;
+        } while( blockNode != parent );
     }
 
     /**
@@ -1473,8 +1425,7 @@ class BranchManager {
      * @return the new node
      */
     private BranchNode addMiddleNode( BranchNode parent, int startPos, int endPos ) {
-        Object data = parent.data == switchType && parent.startPos == startPos ? switchType : null;
-        BranchNode middleNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, data );
+        BranchNode middleNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
         int idx = 0;
         for( Iterator<BranchNode> it = parent.iterator(); it.hasNext(); ) {
             BranchNode child = it.next();
@@ -1488,8 +1439,18 @@ class BranchManager {
             middleNode.add( child );
             it.remove();
         }
+
+        // use same input parameter if parent or child start on same position
+        if( parent.startPos == startPos ) {
+            middleNode.data = parent.data;
+        } else if( middleNode.size() > 0 ) {
+            BranchNode child = middleNode.get( 0 );
+            if( child.startPos == startPos ) {
+                middleNode.data = child.data;
+            }
+        }
+
         parent.add( idx, middleNode );
-        parent = middleNode;
         patchBrDeep( middleNode );
         return middleNode;
     }

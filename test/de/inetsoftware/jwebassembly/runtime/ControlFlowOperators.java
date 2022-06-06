@@ -47,6 +47,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "ifCompare" );
             addParam( list, script, "switchDirect" );
             addParam( list, script, "switchWithConditionMethodParams" );
+            addParam( list, script, "switchWithConditionSelect" );
             addParam( list, script, "endlessLoop" );
             addParam( list, script, "doWhileLoop" );
             addParam( list, script, "doWhileLoopTwoConditions" );
@@ -301,6 +302,42 @@ public class ControlFlowOperators extends AbstractBaseTest {
                     break;
             }
             return last;
+        }
+
+        @Export
+        private static int switchWithConditionSelect() {
+            boolean cond = true;
+            int c1 = 1;
+            int c2 = 2;
+            int b;
+            switch( cond ? c1 : c2 ) {
+                case 1:
+                    b = 17;
+                    switch( cond ? c1 : c2 ) {
+                        case 1:
+                            b = 13;
+                            break;
+                        case 2:
+                            b = 14;
+                            break;
+                    }
+                    break;
+                case 2:
+                case 1001:
+                    if( c1 == 1000 ) {
+                        b = 1000;
+                        break;
+                    } else {
+                        b = 1001;
+                    }
+                    //$FALL-THROUGH$
+                case Integer.MAX_VALUE:
+                    b = 3;
+                    break;
+                default:
+                    b = 9;
+            }
+            return b;
         }
 
         @Export
