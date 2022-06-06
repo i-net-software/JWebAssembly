@@ -197,7 +197,7 @@ class StaticCodeBuilder {
                     state.dependenciesClasses.add( otherClassName );
                 }
             }
-        } catch( IOException ex ) {
+        } catch( Throwable ex ) {
             throw WasmException.create( ex, sourceFile, className, name.methodName, instr == null ? -1 : instr.getLineNumber() );
         }
         return state;

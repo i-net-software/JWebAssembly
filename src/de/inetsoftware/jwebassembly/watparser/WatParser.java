@@ -330,7 +330,7 @@ public class WatParser extends WasmCodeBuilder {
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );
                 }
             }
-        } catch( Exception ex ) {
+        } catch( Throwable ex ) {
             throw WasmException.create( ex, lineNumber );
         }
     }

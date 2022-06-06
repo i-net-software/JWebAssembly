@@ -485,7 +485,7 @@ public class ModuleGenerator {
             for( MethodInfo method : methods ) {
                 handler.accept( method );
             }
-        } catch( IOException ioex ) {
+        } catch( Throwable ioex ) {
             throw WasmException.create( ioex, sourceFile, className, methodName, -1 );
         }
     }
@@ -526,7 +526,7 @@ public class ModuleGenerator {
                 functions.markAsExport( name, annotationValues );
                 return;
             }
-        } catch( Exception ioex ) {
+        } catch( Throwable ioex ) {
             throw WasmException.create( ioex, sourceFile, className, methodName, -1 );
         }
     }
@@ -604,7 +604,7 @@ public class ModuleGenerator {
                 }
                 throw new WasmException( "Abstract or native method can not be used: " + name.signatureName +"\nIf you want to use classes with native code, you must use a library that implements these native methods, such as 'de.inetsoftware:jwebassembly-api:+'.", -1 );
             }
-        } catch( Exception ioex ) {
+        } catch( Throwable ioex ) {
             int lineNumber = code == null ? -1 : code.getFirstLineNr();
             throw WasmException.create( ioex, sourceFile, className, methodName, lineNumber );
         }

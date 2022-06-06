@@ -98,7 +98,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
             AnyType returnType = new ValueTypeParser( method.getType().substring( method.getType().lastIndexOf( ')' ) + 1), getTypeManager() ).next();
             writeCode( byteCode, code.getConstantPool(), method.getDeclaringClassFile(), returnType );
             calculateVariables();
-        } catch( Exception ioex ) {
+        } catch( Throwable ioex ) {
             int lineNumber = byteCode == null ? -1 : byteCode.getLineNumber();
             throw WasmException.create( ioex, lineNumber );
         }
@@ -763,7 +763,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 patchTypeOfNullConst();
             }
 
-        } catch( Exception ex ) {
+        } catch( Throwable ex ) {
             throw WasmException.create( ex, lineNumber );
         }
     }
@@ -988,7 +988,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         }
                     }
                 }
-            } catch( Exception ex ) {
+            } catch( Throwable ex ) {
                 throw WasmException.create( ex, instr.getLineNumber() );
             }
         }

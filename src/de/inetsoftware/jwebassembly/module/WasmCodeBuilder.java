@@ -553,7 +553,7 @@ public abstract class WasmCodeBuilder {
             FieldInfo field = classFile.getField( name.methodName );
             AnyType type = new ValueTypeParser( field.getType(), types ).next();
             addGlobalInstruction( load, name, type, null, javaCodePos, lineNumber );
-        } catch( Exception ex ) {
+        } catch( Throwable ex ) {
             throw WasmException.create( ex, lineNumber );
         }
     }
@@ -865,7 +865,7 @@ public abstract class WasmCodeBuilder {
                     return new FunctionName( method );
                 }
             }
-        } catch( IOException ex ) {
+        } catch( Throwable ex ) {
             throw WasmException.create( ex, lineNumber );
         }
         throw new WasmException( "Not implemented NonGC polyfill function: " + name, lineNumber );
