@@ -1170,8 +1170,13 @@ class BranchManager {
                 endPos = parsedBlock.endPosition;
                 break;
             }
+
             if( parsedBlock.startPosition > gotoPos ) {
                 break;
+            }
+
+            if( gotoPos < parsedBlock.endPosition && endPos > parsedBlock.endPosition ) {
+                endPos = parsedBlock.endPosition;
             }
         }
  

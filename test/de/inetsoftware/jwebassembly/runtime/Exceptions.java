@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2021 Volker Berlin (i-net software)
+ * Copyright 2018 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "multiCatch" );
             addParam( list, script, "multiCatch2" );
             addParam( list, script, "serialCatch" );
+            addParam( list, script, "tryReturn" );
         }
         rule.setTestParameters( list );
         rule.setProperty( JWebAssembly.WASM_USE_EH, "true" );
@@ -245,6 +246,17 @@ public class Exceptions extends AbstractBaseTest {
             return r;
         }
 
+        @Export
+        static public int tryReturn() {
+            boolean flag = true;
+            try {
+                if( flag )
+                    return 13;
+            } finally {
+                flag = true;
+            }
+            return 42;
+        }
 
 //        @Export
 //        static int npe() {
