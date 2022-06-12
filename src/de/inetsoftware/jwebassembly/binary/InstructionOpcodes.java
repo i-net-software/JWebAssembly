@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,10 @@ interface InstructionOpcodes {
 
     /** locals with block scope, in order to handle reference types without default initialisation values */
     static final int LET                  = 0x17;
+
+    static final int DELEGATE             = 0x18;
+
+    static final int CATCH_ALL            = 0x19;
 
     static final int DROP      = 0x1A;
 
