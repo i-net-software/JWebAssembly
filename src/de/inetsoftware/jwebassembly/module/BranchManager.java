@@ -202,7 +202,7 @@ class BranchManager {
                         if( loop == null ) {
                             loop = new ParsedBlock( JavaBlockOperator.LOOP, start, 0, start, parsedBlock.lineNumber );
                             loops.put( start, loop );
-                            // if a condition form outside of the loop point inside the loop then it must be conditional return and a jump to the loop condition.
+                            // if a condition before the loop points to a position within the loop, then it must be a conditional return and a jump to the loop condition.
                             for( int n = b - 1; n >= 0; n-- ) {
                                 ParsedBlock prevBlock = parsedOperations.get( n );
                                 switch( prevBlock.op ) {
@@ -221,8 +221,20 @@ class BranchManager {
                                 }
                             }
                         }
-                        loop.nextPosition = parsedBlock.startPosition; // Jump position for Continue
-                        loop.endPosition = parsedBlock.nextPosition;
+                        if( loop.endPosition < parsedBlock.nextPosition ) {
+                            int nextPosition = parsedBlock.startPosition; // Jump position for Continue
+                            int endPosition = parsedBlock.nextPosition;
+                            // if a condition behind the loop points to a position inside the loop, the loop must be extended to avoid overlapping blocks.
+                            for( int n = b + 1; n < parsedOperations.size(); n++ ) {
+                                ParsedBlock block = parsedOperations.get( n );
+                                if( block.startPosition > endPosition && endPosition > block.endPosition && block.endPosition > start ) {
+                                    nextPosition = block.startPosition;
+                                    endPosition = block.nextPosition;
+                                }
+                            }
+                            loop.nextPosition = nextPosition; // Jump position for Continue
+                            loop.endPosition = endPosition;
+                        }
                         break;
                     default:
                         throw new WasmException( "Unimplemented loop code operation: " + parsedBlock.op, parsedBlock.lineNumber );
