@@ -1399,11 +1399,11 @@ public class TypeManager {
         }
 
         public List<AnyType> getParams() {
-            return Collections.unmodifiableList( params );
+            return params;
         }
 
         public List<AnyType> getResults() {
-            return Collections.unmodifiableList( results );
+            return results;
         }
 
         public void setName( String name ) {
