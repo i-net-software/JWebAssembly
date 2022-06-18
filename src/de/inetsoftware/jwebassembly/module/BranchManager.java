@@ -65,7 +65,7 @@ class BranchManager {
 
     private final ArrayList<BreakBlock>         breakOperations = new ArrayList<>();
 
-    private BlockType switchType;
+    private BlockType conditionType;
 
     /**
      * Create a branch manager.
@@ -777,23 +777,17 @@ class BranchManager {
     }
 
     /**
-     * Calculate the deep of a break. A GOTO or IF in Java can jump out multiple loops. We need to calculate how many levels we need to jump.
+     * Get the block type for condition like a SWITCH or IF. This is a block with a i32 as input parameter.
      * 
-     * @param parent
-     *            the current parent node.
-     * @param endPos
-     *            the end position of the jump
-     * @return the deep level for "br" or -1 if there is no parent node with this end position
+     * @return the block type
      */
-    private int calculateBreakDeep( BranchNode parent, int endPos ) {
-        int deep = -1;
-        boolean wasLoop = false;
-        while( parent != null && parent.elseEndPos <= endPos && parent.data == null ) {
-            deep++;
-            wasLoop |= parent.startOp == WasmBlockOperator.LOOP; // only in a loop we need to jump for exit
-            parent = parent.parent;
+    @Nonnull
+    private BlockType getConditionType() {
+        BlockType conditionType = this.conditionType;
+        if( conditionType == null ) {
+            this.conditionType = conditionType = options.types.blockType( Collections.singletonList( ValueType.i32 ), Collections.emptyList() );
         }
-        return wasLoop ? deep : -1;
+        return conditionType;
     }
 
     /**
@@ -867,10 +861,7 @@ class BranchManager {
      *            the not consumed operations in the parent branch
      */
     private void calculateSwitch( BranchNode parent, SwitchParsedBlock switchBlock, List<ParsedBlock> parsedOperations ) {
-        BlockType switchType = this.switchType;
-        if( switchType == null ) {
-            this.switchType = switchType = options.types.blockType( Arrays.asList( ValueType.i32 ), Collections.emptyList() );
-        }
+        BlockType switchType = getConditionType();
         int startPosition = ((ParsedBlock)switchBlock).startPosition;
         int posCount = switchBlock.positions.length;
         boolean isTable = switchBlock.keys == null;
@@ -1636,7 +1627,7 @@ class BranchManager {
     /**
      * Described a code branch/block node in a tree structure.
      */
-    private static class BranchNode extends ArrayList<BranchNode> {
+    private class BranchNode extends ArrayList<BranchNode> {
 
         private final int               startPos;
 
@@ -1898,8 +1889,9 @@ class BranchManager {
                     AnyType result = stack.pop();
                     if( blockType == null ) {
                         startBlock.setData( result );
-                    } else if( result != ValueType.empty) {
-                        throw new WasmException( "block with parameter has return parameter", startBlock.getLineNumber() );
+                    } else if( result != ValueType.empty ) {
+                        result = options.types.blockType( blockType.getParams(), Collections.singletonList( result ) );
+                        startBlock.setData( result );
                     }
                 } catch( Throwable th ) {
                     throw WasmException.create( th, startBlock.getLineNumber() );
