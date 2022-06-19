@@ -419,6 +419,8 @@ public class TextModuleWriter extends ModuleWriter {
         if( methodOutput == null ) {
             return;
         }
+        newline( methodOutput );
+        methodOutput.append( "    " );
         writeParam( methodOutput, kind, valueType, name );
     }
 
@@ -437,8 +439,7 @@ public class TextModuleWriter extends ModuleWriter {
      *             if any I/O error occur
      */
     private void writeParam( StringBuilder output, String kind, AnyType valueType, @Nullable String name ) throws IOException {
-        newline( output );
-        output.append( "    (" ).append( kind );
+        output.append( '(' ).append( kind );
         if( options.debugNames() ) {
             if( name != null ) {
                 output.append( " $" ).append( name );
