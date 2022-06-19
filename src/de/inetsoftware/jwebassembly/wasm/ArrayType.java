@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 - 2021 Volker Berlin (i-net software)
+ * Copyright 2019 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import de.inetsoftware.jwebassembly.module.TypeManager.StructTypeKind;
  */
 public class ArrayType extends StructType {
 
+    @Nonnull
     private AnyType arrayType;
 
     private AnyType nativeArrayType;
@@ -51,7 +52,7 @@ public class ArrayType extends StructType {
      * @param options
      *            compiler properties
      */
-    public ArrayType( AnyType arrayType, @Nonnull TypeManager manager, int componentClassIndex, WasmOptions options ) {
+    public ArrayType( @Nonnull AnyType arrayType, @Nonnull TypeManager manager, int componentClassIndex, @Nonnull WasmOptions options ) {
         this( getJavaClassName( arrayType ), StructTypeKind.array, manager, arrayType );
         this.componentClassIndex = componentClassIndex;
         if( options.useGC() ) {
@@ -76,7 +77,7 @@ public class ArrayType extends StructType {
      * @param arrayType
      *            the type of the array
      */
-    private ArrayType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, AnyType arrayType ) {
+    private ArrayType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, @Nonnull AnyType arrayType ) {
         super( name, kind, manager );
         this.arrayType = arrayType;
     }
@@ -125,6 +126,7 @@ public class ArrayType extends StructType {
      * The element type of the array
      * @return the type
      */
+    @Nonnull
     public AnyType getArrayType() {
         return arrayType;
     }
