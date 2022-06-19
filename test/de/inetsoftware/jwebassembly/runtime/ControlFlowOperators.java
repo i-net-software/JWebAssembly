@@ -60,6 +60,7 @@ public class ControlFlowOperators extends AbstractBaseTest {
             addParam( list, script, "whileLoopAfterIfWithReturn" );
             addParam( list, script, "whileLoopInsideLoop" );
             addParam( list, script, "whileTrueInsideWhileTrue" );
+            addParam( list, script, "whileTrueContinueWithSwitch" );
             addParam( list, script, "forLoop" );
             addParam( list, script, "conditionalOperator" );
             addParam( list, script, "conditionalOperator2" );
@@ -506,6 +507,25 @@ public class ControlFlowOperators extends AbstractBaseTest {
                         sw = 17;
                     }
                 }
+            }
+            return sw;
+        }
+
+        @Export
+        static int whileTrueContinueWithSwitch() {
+            int sw = 1;
+            LOOP:
+            while( true ) {
+                switch(sw) {
+                    case 1:
+                        sw++;
+                        continue LOOP;
+                    case 5:
+                        return sw;
+                    default:
+                        sw++;
+                }
+                break;
             }
             return sw;
         }

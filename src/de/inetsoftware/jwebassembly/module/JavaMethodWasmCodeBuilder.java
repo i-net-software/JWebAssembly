@@ -845,7 +845,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 addNumericInstruction( NumericOperator.sub, ValueType.i32, codePos, lineNumber );
             }
         }
-        branchManager.addSwitchOperator( startPosition, 0, lineNumber, keys, positions, defaultPosition );
+        branchManager.addSwitchOperator( startPosition, lineNumber, keys, positions, defaultPosition );
     }
 
     /**

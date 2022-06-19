@@ -154,8 +154,6 @@ class BranchManager {
      * 
      * @param startPosition
      *            the byte position of the start position
-     * @param offset
-     *            the relative jump position
      * @param lineNumber
      *            the current line number
      * @param keys
@@ -165,8 +163,8 @@ class BranchManager {
      * @param defaultPosition
      *            the code position of the default block
      */
-    void addSwitchOperator( int startPosition, int offset, int lineNumber, int[] keys, int[] positions, int defaultPosition ) {
-        allParsedOperations.add( new SwitchParsedBlock( startPosition, offset, lineNumber, keys, positions, defaultPosition ) );
+    void addSwitchOperator( int startPosition, int lineNumber, @Nullable int[] keys, @Nonnull int[] positions, int defaultPosition ) {
+        allParsedOperations.add( new SwitchParsedBlock( startPosition, lineNumber, keys, positions, defaultPosition ) );
     }
 
     /**
@@ -224,6 +222,7 @@ class BranchManager {
                         if( loop.endPosition < parsedBlock.nextPosition ) {
                             int nextPosition = parsedBlock.startPosition; // Jump position for Continue
                             int endPosition = parsedBlock.nextPosition;
+
                             // if a condition behind the loop points to a position inside the loop, the loop must be extended to avoid overlapping blocks.
                             for( int n = b + 1; n < parsedOperations.size(); n++ ) {
                                 ParsedBlock block = parsedOperations.get( n );
@@ -232,6 +231,21 @@ class BranchManager {
                                     endPosition = block.nextPosition;
                                 }
                             }
+
+                            // if there is a structure like a SWITCH that overlap the loop then we must be extended the loop to avoid this.
+                            for( int n = b - 1; n >= 0; n-- ) {
+                                ParsedBlock prevBlock = parsedOperations.get( n );
+                                switch( prevBlock.op ) {
+                                    case SWITCH:
+                                        if( start < prevBlock.startPosition && prevBlock.endPosition > endPosition ) {
+                                            nextPosition = prevBlock.endPosition;
+                                            endPosition = nextPosition;
+                                        }
+                                        break;
+                                    default:
+                                }
+                            }
+
                             loop.nextPosition = nextPosition; // Jump position for Continue
                             loop.endPosition = endPosition;
                         }
@@ -1600,11 +1614,18 @@ class BranchManager {
 
         private int   defaultPosition;
 
-        public SwitchParsedBlock( int startPosition, int offset, int lineNumber, int[] keys, int[] positions, int defaultPosition ) {
-            super( JavaBlockOperator.SWITCH, startPosition, offset, startPosition, lineNumber );
+        public SwitchParsedBlock( int startPosition, int lineNumber, @Nullable int[] keys, @Nonnull int[] positions, int defaultPosition ) {
+            super( JavaBlockOperator.SWITCH, startPosition, 0, startPosition, lineNumber );
             this.keys = keys;
             this.positions = positions;
             this.defaultPosition = defaultPosition;
+
+            // calculate the end position of the switch
+            int end = defaultPosition;
+            for( int i = positions.length - 1; i >= 0; i-- ) {
+                end = Math.max( defaultPosition, positions[i] );
+            }
+            this.endPosition = end;
         }
     }
 
