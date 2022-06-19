@@ -94,7 +94,7 @@ class BranchManager {
         root.clear();
         loops.clear();
         breakOperations.clear();
-        root.endPos = root.elseEndPos = code.getCodeSize();
+        root.endPos = code.getCodeSize();
         exceptionTable = code.getExceptionTable();
         for( TryCatchFinally ex : exceptionTable ) {
             allParsedOperations.add( new TryCatchParsedBlock( ex ) );
@@ -1372,20 +1372,20 @@ class BranchManager {
         BranchNode branch = findChildNodeAt( breakBlock.branch, breakBlock.breakPos );
         BranchNode parent = branch;
         int startPos = parent.startPos;
-        while( parent != null && parent.elseEndPos < gotoEndPos ) {
+        while( parent != null && parent.endPos < gotoEndPos ) {
             deep++;
             startPos = parent.startPos;
             parent = parent.parent;
         }
 
-        if( parent != null && parent.startOp == WasmBlockOperator.LOOP && parent.elseEndPos == gotoEndPos ) {
+        if( parent != null && parent.startOp == WasmBlockOperator.LOOP && parent.endPos == gotoEndPos ) {
             // a break in a LOOP is only a continue, we need to break to the outer block
             deep++;
             startPos = parent.startPos;
             parent = parent.parent;
         }
 
-        if( parent != null && parent.elseEndPos > gotoEndPos ) {
+        if( parent != null && parent.endPos > gotoEndPos ) {
 
             // check if we break into an ELSE block which is possible in Java with a GOTO, occur with concatenated conditional operators
             for( int i = 1; i < parent.size(); i++ ) {
@@ -1671,8 +1671,6 @@ class BranchManager {
          */
         private int                     startIdx;
 
-        private int                     elseEndPos;
-
         /** jump position for a CONTINUE in a loop */
         private int                     continuePos;
 
@@ -1708,7 +1706,7 @@ class BranchManager {
          */
         BranchNode( int startPos, int endPos, WasmBlockOperator startOp, WasmBlockOperator endOp, Object data ) {
             this.startPos = startPos;
-            this.endPos = this.elseEndPos = endPos;
+            this.endPos = endPos;
             this.startOp = startOp;
             this.endOp = endOp;
             this.data = data;
