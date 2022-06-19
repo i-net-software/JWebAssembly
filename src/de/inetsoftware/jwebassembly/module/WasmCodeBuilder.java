@@ -15,7 +15,6 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -157,39 +156,6 @@ public abstract class WasmCodeBuilder {
     }
 
     /**
-     * We need a value (or several) from the stack inside a block. We need to find the WasmInstruction where the block
-     * can can begin. If it is a function call or a numeric expression, it can be complicated to find the right point.
-     * 
-     * @param count
-     *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
-     * @param instructions
-     *            the instruction list for searching
-     * @param idx
-     *            the start index for the search. Between 0 and instructions.size().
-     * @return the code position that push the last instruction
-     */
-    static int findBlockStart( int count, List<WasmInstruction> instructions, int idx ) {
-        int valueCount = 0;
-        for( int i = idx - 1; i >= 0; i-- ) {
-            WasmInstruction instr = instructions.get( i );
-            AnyType valueType = instr.getPushValueType();
-            if( valueType != null ) {
-                valueCount++;
-            }
-            int popCount = instr.getPopCount();
-            valueCount -= popCount;
-            if( valueCount == count && popCount == 0 ) {
-                int codePos = instr.getCodePosition();
-                if( i == 0 || instructions.get( i - 1 ).getCodePosition() < codePos ) {
-                    // if the same codePos is used from multiple instructions then it is not an atomic operation in Java
-                    return codePos;
-                }
-            }
-        }
-        throw new WasmException( "Block start position not found", -1 ); // should never occur
-    }
-
-    /**
      * We need the value type from the stack.
      * 
      * @param count
@@ -210,7 +176,7 @@ public abstract class WasmCodeBuilder {
      *            the count of values on the stack back. 1 means the last value. 2 means the penultimate value.
      * @param javaCodePos
      *            current code position for which the stack is inspected
-     * @return
+     * @return the type
      */
     @Nonnull
     AnyType findArrayTypeFromStack( int count, int javaCodePos ) {

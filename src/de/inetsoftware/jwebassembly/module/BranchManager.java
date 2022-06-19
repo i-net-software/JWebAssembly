@@ -531,39 +531,35 @@ class BranchManager {
     private void calculateIf( BranchNode parent, IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
         IfPositions positions = searchElsePosition( startBlock, parsedOperations );
 
+        BlockType conditionType = getConditionType();
         BranchNode branch;
         int endPos = positions.elsePos;
+        int startPos = startBlock.nextPosition - 1;
         boolean createThenBlock = endPos <= parent.endPos;
         if( createThenBlock ) {
             // normal IF block
-            int startPos = startBlock.nextPosition;
 
             if( startPos > endPos ) {
                 // the condition in a do while(condition) loop
                 int breakDeep = calculateContinueDeep( parent, endPos );
-                instructions.add( findIdxOfCodePos( startPos ), new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, startPos - 1, startBlock.lineNumber ) );
+                instructions.add( findIdxOfCodePos( startPos + 1 ), new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, startPos, startBlock.lineNumber ) );
                 return;
             }
 
-            // find the code position where the condition values are push on the stack
-            List<WasmInstruction> instructions = this.instructions;
-            int idx = instructions.indexOf( startBlock.instr );
-            startPos = WasmCodeBuilder.findBlockStart( 1, instructions, idx + 1 );
             if( parent.overlapped( startPos ) ) {
                 branch = addMiddleNode( parent, parent.startPos, endPos );
             } else {
-                branch = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+                branch = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, conditionType );
                 parent.add( branch );
             }
         } else {
             branch = parent;
             // a jump outside of the parent, we will create the block later
         }
-        breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, branch, startBlock.nextPosition - 1, startBlock.endPosition ) );
+        breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, branch, startPos, startBlock.endPosition ) );
 
         for( int i = 0; i < positions.ifCount; i++ ) {
             IfParsedBlock parsedBlock = (IfParsedBlock)parsedOperations.remove( 0 );
-            //instructions.remove( parsedBlock.jump );
             breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, branch, parsedBlock.nextPosition - 1, parsedBlock.endPosition ) );
         }
 
