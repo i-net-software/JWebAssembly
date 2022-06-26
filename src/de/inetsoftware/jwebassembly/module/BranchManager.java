@@ -96,9 +96,6 @@ class BranchManager {
         breakOperations.clear();
         root.endPos = code.getCodeSize();
         exceptionTable = code.getExceptionTable();
-        for( TryCatchFinally ex : exceptionTable ) {
-            allParsedOperations.add( new TryCatchParsedBlock( ex ) );
-        }
     }
 
     /**
@@ -172,12 +169,55 @@ class BranchManager {
      */
     void calculate() {
         List<ParsedBlock> parsedOperations = allParsedOperations;
+        addTryCatchBlocks( parsedOperations );
         addLoops( parsedOperations );
-        Collections.sort( parsedOperations );
         normalizeEmptyThenBlocks( parsedOperations );
         calculate( root, parsedOperations );
         for( BreakBlock breakBlock : breakOperations ) {
             calculateBreak( breakBlock );
+        }
+    }
+
+    /**
+     * Add TryCatchParsedBlock to the parsed operations based on the excetion table from Java.
+     * 
+     * @param parsedOperations
+     *            the parsed operations
+     */
+    private void addTryCatchBlocks( List<ParsedBlock> parsedOperations ) {
+        int countOps = parsedOperations.size();
+
+        for( TryCatchFinally tryCatch : exceptionTable ) {
+            TryCatchParsedBlock node = new TryCatchParsedBlock( tryCatch );
+            parsedOperations.add( node );
+
+            int gotoPos = tryCatch.getHandler() - 3; //tryCatch.getEnd() points some time before and some time after the goto 
+            int endPos = root.endPos;
+
+            // find all try blocks and the end position of the last catch/finally handler 
+            int idx;
+            for( idx = 0; idx < countOps; idx++ ) {
+                ParsedBlock parsedBlock = parsedOperations.get( idx );
+
+                if( parsedBlock.startPosition == gotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition
+                                && parsedBlock.endPosition < endPos ) {
+                    endPos = parsedBlock.endPosition;
+                    break;
+                }
+
+                if( parsedBlock.startPosition > gotoPos ) {
+                    break;
+                }
+
+                if( gotoPos < parsedBlock.endPosition && endPos > parsedBlock.endPosition ) {
+                    endPos = parsedBlock.endPosition;
+                }
+            }
+            node.catchEndPosition = endPos; // we can not the endPosition here because this can change sorting of the blocks
+        }
+
+        if( countOps != parsedOperations.size() ) {
+            parsedOperations.sort( null );
         }
     }
 
@@ -237,8 +277,14 @@ class BranchManager {
                                 ParsedBlock prevBlock = parsedOperations.get( n );
                                 switch( prevBlock.op ) {
                                     case SWITCH:
-                                        if( start < prevBlock.startPosition && prevBlock.endPosition > endPosition ) {
+                                        if( start <= prevBlock.startPosition && prevBlock.endPosition > endPosition ) {
                                             nextPosition = prevBlock.endPosition;
+                                            endPosition = nextPosition;
+                                        }
+                                        break;
+                                    case TRY:
+                                        if( start <= prevBlock.startPosition && ((TryCatchParsedBlock)prevBlock).catchEndPosition > endPosition ) {
+                                            nextPosition = ((TryCatchParsedBlock)prevBlock).catchEndPosition;
                                             endPosition = nextPosition;
                                         }
                                         break;
@@ -338,7 +384,10 @@ class BranchManager {
             }
         }
 
-        parsedOperations.addAll( loops.values() );
+        if( loops.size() > 0 ) {
+            parsedOperations.addAll( loops.values() );
+            parsedOperations.sort( null );
+        }
     }
 
     /**
@@ -1634,6 +1683,7 @@ class BranchManager {
      */
     private static class TryCatchParsedBlock extends ParsedBlock {
         private final TryCatchFinally tryCatch;
+        private int catchEndPosition;
 
         TryCatchParsedBlock( TryCatchFinally tryCatch ) {
             super( JavaBlockOperator.TRY, tryCatch.getStart(), tryCatch.getEnd() - tryCatch.getStart(), tryCatch.getStart(), -1 );

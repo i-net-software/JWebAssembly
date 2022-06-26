@@ -58,6 +58,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "multiCatch2" );
             addParam( list, script, "serialCatch" );
             addParam( list, script, "tryReturn" );
+            addParam( list, script, "whileTrueTryFinally" );
         }
         rule.setTestParameters( list );
         rule.setProperty( JWebAssembly.WASM_USE_EH, "true" );
@@ -256,6 +257,23 @@ public class Exceptions extends AbstractBaseTest {
                 flag = true;
             }
             return 42;
+        }
+
+        @Export
+        static int whileTrueTryFinally() {
+            int sw = 1;
+            LOOP: while( true ) {
+                try {
+                    if( sw == 1 ) {
+                        sw = 2;
+                        continue LOOP;
+                    }
+                } finally {
+                    sw++;
+                }
+                break;
+            }
+            return sw;
         }
 
 //        @Export
