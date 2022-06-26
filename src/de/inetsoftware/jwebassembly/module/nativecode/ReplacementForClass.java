@@ -319,6 +319,13 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Replacement of the native Java method getModifiers()
+     */
+    public int getModifiers() {
+        return 0;
+    }
+
+    /**
      * Replacement of the Java method getSimpleName()
      * 
      * @return the simple name of the underlying class
