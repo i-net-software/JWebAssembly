@@ -602,7 +602,15 @@ public class ModuleGenerator {
                     strings.getStringConstantFunction();
                     return null;
                 }
-                throw new WasmException( "Abstract or native method can not be used: " + name.signatureName +"\nIf you want to use classes with native code, you must use a library that implements these native methods, such as 'de.inetsoftware:jwebassembly-api:+'.", -1 );
+
+                if( writer.options.ignoreNative() ) {
+                    JWebAssembly.LOGGER.severe( "Native method will throw an exception at runtime: " + name.signatureName );
+                    WatCodeSyntheticFunctionName nativeStub = new WatCodeSyntheticFunctionName( name.className, name.methodName, name.signature, "unreachable", (AnyType[])null );
+                    functions.markAsNeededAndReplaceIfExists( nativeStub );
+                    return null;
+                }
+
+                throw new WasmException( "Native methods cannot be compiled to WebAssembly: " + name.signatureName +"\nIf you want to use classes with native code, you must use a library that implements these native methods, such as 'de.inetsoftware:jwebassembly-api:+' or implements this native method self.", -1 );
             }
         } catch( Throwable ioex ) {
             int lineNumber = code == null ? -1 : code.getFirstLineNr();

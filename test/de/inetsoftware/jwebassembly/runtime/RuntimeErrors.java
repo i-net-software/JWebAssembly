@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2021 Volker Berlin (i-net software)
+ * Copyright 2017 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public class RuntimeErrors {
 
     @Test
     public void nativeMethod() throws IOException {
-        compileErrorTest( "Abstract or native method can not be used:", NativeMethod.class );
+        compileErrorTest( "Native methods cannot be compiled to WebAssembly:", NativeMethod.class );
     }
 
     static class NativeMethod {

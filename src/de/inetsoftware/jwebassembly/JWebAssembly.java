@@ -104,6 +104,11 @@ public class JWebAssembly {
     public static final String WASM_USE_EH = "wasm.use_eh";
 
     /**
+     * Compiler property to ignore all referenced native methods without declared replacement in a library and replace them with a stub that throws an exception at runtime.
+     */
+    public static final String IGNORE_NATIVE = "IgnoreNative";
+
+    /**
      * The logger instance
      */
     public static final Logger LOGGER = Logger.getAnonymousLogger( null );

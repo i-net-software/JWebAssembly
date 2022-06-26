@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 Volker Berlin (i-net software)
+   Copyright 2019 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -66,6 +66,10 @@ public abstract class ArraySyntheticFunctionName extends SyntheticFunctionName {
      */
     @Override
     public Iterator<AnyType> getSignature( TypeManager types ) {
-        return Arrays.asList( signatureTypes ).iterator();
+        if( signatureTypes != null ) {
+            return Arrays.asList( signatureTypes ).iterator();
+        } else {
+            return super.getSignature( types );
+        }
     }
 }

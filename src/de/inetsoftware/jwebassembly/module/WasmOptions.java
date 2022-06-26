@@ -48,6 +48,8 @@ public class WasmOptions {
 
     private final boolean         useEH;
 
+    private final boolean         ignoreNative;
+
     @Nonnull
     private final String          sourceMapBase;
 
@@ -76,6 +78,8 @@ public class WasmOptions {
         debugNames = Boolean.parseBoolean( properties.get( JWebAssembly.DEBUG_NAMES ) );
         useGC = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_GC, "false" ) );
         useEH = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.WASM_USE_EH, "false" ) );
+        ignoreNative = Boolean.parseBoolean( properties.getOrDefault( JWebAssembly.IGNORE_NATIVE, "false" ) );
+
         String base = properties.getOrDefault( JWebAssembly.SOURCE_MAP_BASE, "" );
         if( !base.isEmpty() && !base.endsWith( "/" ) ) {
             base += "/";
@@ -108,6 +112,15 @@ public class WasmOptions {
      */
     public boolean useEH() {
         return useEH;
+    }
+
+    /**
+     * Compiler property to add a stub for all referenced native methods that has no replacement.
+     * 
+     * @return true, if ignore missing native methods
+     */
+    public boolean ignoreNative() {
+        return ignoreNative;
     }
 
     /**
