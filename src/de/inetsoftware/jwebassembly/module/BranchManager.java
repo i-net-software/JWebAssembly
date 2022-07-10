@@ -609,7 +609,19 @@ class BranchManager {
                 return;
             }
 
-            if( parent.overlapped( startPos ) ) {
+            boolean overlapp = parent.overlapped( startPos );
+            if( !overlapp ) {
+                ArrayList<BreakBlock> breakOperations = this.breakOperations;
+                for( int i = breakOperations.size() - 1; i >= 0; i-- ) {
+                    BreakBlock breakBlock = breakOperations.get( i );
+                    int ep = breakBlock.endPosition;
+                    if( startPos < ep && ep < endPos && breakBlock.breakPos < startPos ) {
+                        overlapp = true;
+                        break;
+                    }
+                }
+            }
+            if( overlapp ) {
                 branch = addMiddleNode( parent, parent.startPos, endPos );
             } else {
                 branch = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, conditionType );
@@ -1353,7 +1365,7 @@ class BranchManager {
                 break;
             }
             node = node.parent;
-        } while( node != catchNode );
+        } while( true );
     }
 
     /**
@@ -1760,7 +1772,7 @@ class BranchManager {
             this.startOp = startOp;
             this.endOp = endOp;
             this.data = data;
-        }
+       }
 
         /**
          * {@inheritDoc}
