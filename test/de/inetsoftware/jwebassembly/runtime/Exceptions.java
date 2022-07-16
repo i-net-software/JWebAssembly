@@ -59,6 +59,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "serialCatch" );
             addParam( list, script, "tryReturn" );
             addParam( list, script, "whileTrueTryFinally" );
+            addParam( list, script, "ifMultipleInFinally" );
         }
         rule.setTestParameters( list );
         rule.setProperty( JWebAssembly.WASM_USE_EH, "true" );
@@ -274,6 +275,21 @@ public class Exceptions extends AbstractBaseTest {
                 break;
             }
             return sw;
+        }
+
+        @Export
+        private static int ifMultipleInFinally() throws Throwable {
+            int pos = 0;
+            try {
+                pos = 13;
+            } catch( Throwable ex ) {
+                pos = 42;
+            } finally {
+                if( pos < -13 || pos == 0 ) {
+                    return 17;
+                }
+            }
+            return pos;
         }
 
 //        @Export

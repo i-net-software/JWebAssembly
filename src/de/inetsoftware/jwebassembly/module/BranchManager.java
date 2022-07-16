@@ -1507,7 +1507,23 @@ class BranchManager {
      * @return the new node
      */
     private BranchNode addMiddleNode( BranchNode parent, int startPos, int endPos ) {
-        BranchNode middleNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+        Object data = null;
+        // use same input parameter if parent or child start on same position
+        if( parent.startPos == startPos ) {
+            WasmBlockOperator startOp = parent.startOp;
+            if( startOp != null ) {
+                switch( parent.startOp ) {
+                    case BLOCK:
+                        data = parent.data;
+                        break;
+                    case CATCH:
+                        // first instruction of a CATCH block ever saved the exception from the stack to a local variable that we start the middle block an instruction later
+                        startPos++;
+                }
+            }
+        }
+
+        BranchNode middleNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, data );
         int idx = 0;
         for( Iterator<BranchNode> it = parent.iterator(); it.hasNext(); ) {
             BranchNode child = it.next();
@@ -1520,17 +1536,12 @@ class BranchManager {
             }
             middleNode.add( child );
             it.remove();
-        }
 
-        // use same input parameter if parent or child start on same position
-        if( parent.startPos == startPos ) {
-            middleNode.data = parent.data;
-        } else if( middleNode.size() > 0 ) {
-            BranchNode child = middleNode.get( 0 );
-            if( child.startPos == startPos ) {
+            if( child.startPos == startPos && child.startOp == WasmBlockOperator.BLOCK ) {
                 middleNode.data = child.data;
             }
         }
+
 
         parent.add( idx, middleNode );
         patchBrDeep( middleNode );
