@@ -229,7 +229,7 @@ class ReplacementForClass<T> {
      * @return true, if type {@code cls} can be assigned to objects of this class
      */
     @WasmTextCode( "unreachable" ) // TODO
-    public native boolean isAssignableFrom( Class<?> cls );
+    public native boolean isAssignableFrom( ReplacementForClass<?> cls );
 
     /**
      * Replacement of the Java method isInterface()
@@ -500,5 +500,20 @@ class ReplacementForClass<T> {
         if (obj != null && !isInstance(obj))
             throw new ClassCastException("Cannot cast " + obj.getClass().getName() + " to " + getName());
         return (T) obj;
+    }
+
+    /**
+     * Replacement of the Java method asSubclass(Class)
+     *
+     * @param clazz
+     *            the class of the type to cast this class object to
+     * @return this
+     */
+    @SuppressWarnings( "unchecked" )
+    public <U> ReplacementForClass<? extends U> asSubclass( ReplacementForClass<U> clazz ) {
+        if( clazz.isAssignableFrom( this ) )
+            return (ReplacementForClass<? extends U>)this;
+        else
+            throw new ClassCastException( this.toString() );
     }
 }
