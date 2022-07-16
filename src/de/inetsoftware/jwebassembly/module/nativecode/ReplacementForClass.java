@@ -326,6 +326,13 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Gets the signers of this class.
+     */
+    public Object[] getSigners() {
+        return null;
+    }
+
+    /**
      * Replacement of the Java method getSimpleName()
      * 
      * @return the simple name of the underlying class
@@ -409,10 +416,47 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Returns an array containing {@code Method} objects reflecting all the
+     * public methods of the class or interface represented by this {@code
+     * Class} object
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Method[] getMethods();
+
+    /**
      * Replacement of the Java method getMethod()
      */
     @WasmTextCode( "unreachable" ) // TODO
     public native Method getMethod(String name, Class<?>... parameterTypes);
+
+    /**
+     * Returns a {@code Constructor} object that reflects the specified
+     * public constructor of the class represented by this {@code Class}
+     * object.
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Constructor<T> getConstructor(Class<?>... parameterTypes);
+
+    /**
+     * Returns an array of {@code Field} objects reflecting all the fields
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Field[] getDeclaredFields();
+
+    /**
+     * Returns an array containing {@code Method} objects reflecting all the
+     * declared methods of the class or interface represented by this {@code
+     * Class} object
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Method[] getDeclaredMethods();
+
+    /**
+     * Returns an array of {@code Constructor} objects reflecting all the
+     * constructors declared by the class represented by this
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Constructor<?>[] getDeclaredConstructors();
 
     /**
      * Replacement of the Java method getDeclaredField()
@@ -437,6 +481,13 @@ class ReplacementForClass<T> {
      */
     public InputStream getResourceAsStream(String name) {
         return null; //TODO
+    }
+
+    /**
+     * Returns the {@code ProtectionDomain} of this class.
+     */
+    public java.security.ProtectionDomain getProtectionDomain() {
+        return new java.security.ProtectionDomain(null, null);
     }
 
     /**
