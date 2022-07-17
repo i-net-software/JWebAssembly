@@ -391,15 +391,19 @@ public class ClassFile {
         String origClassName = partialClassFile.thisClass.getName();
         ArrayList<MethodInfo> allMethods = new ArrayList<>( Arrays.asList( methods ) );
         for( MethodInfo m : partialClassFile.methods ) {
-            if( m.isNative() && m.getAnnotation( JWebAssembly.IMPORT_ANNOTATION ) == null ) {
-                // only a placeholder
+            if( m.isNative() && m.getAnnotation( JWebAssembly.IMPORT_ANNOTATION ) == null && m.getAnnotation( JWebAssembly.TEXTCODE_ANNOTATION ) == null ) {
+                // only a placeholder, use the original
+                continue;
+            }
+            if( "<clinit>".equals( m.getName() ) ) {
+                // can be fatal to override the static constructor
                 continue;
             }
             m.setDeclaringClassFile( origClassName, this );
             MethodInfo origMethod = getMethod( m.getName(), m.getType() );
             if( origMethod == null ) {
                 allMethods.add( m );
-            } else if( origMethod.isNative() ) {
+            } else {
                 allMethods.set( allMethods.indexOf( origMethod ), m );
             }
         }
