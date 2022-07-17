@@ -635,7 +635,15 @@ class BranchManager {
 
         for( int i = 0; i < positions.ifCount; i++ ) {
             IfParsedBlock parsedBlock = (IfParsedBlock)parsedOperations.remove( 0 );
-            breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, branch, parsedBlock.nextPosition - 1, parsedBlock.endPosition ) );
+            int start = parsedBlock.nextPosition - 1;
+            int end = parsedBlock.endPosition;
+            if( start > end ) {
+                // the condition in a do while(condition) loop
+                int breakDeep = calculateContinueDeep( parent, end );
+                instructions.add( findIdxOfCodePos( start + 1 ), new WasmBlockInstruction( WasmBlockOperator.BR_IF, breakDeep, start, parsedBlock.lineNumber ) );
+            } else {
+                breakOperations.add( new BreakBlock( WasmBlockOperator.BR_IF, branch, start, end ) );
+            }
         }
 
         if( createThenBlock ) {
@@ -1783,6 +1791,7 @@ class BranchManager {
             this.startOp = startOp;
             this.endOp = endOp;
             this.data = data;
+            assert startPos <= endPos : "negative block size: " + this;
        }
 
         /**
@@ -2085,6 +2094,15 @@ class BranchManager {
             this.breakPos = breakPos;
             this.endPosition = endPosition;
             this.branch = branch;
+            assert breakPos < endPosition : "Continue not possible: " + this;
+        }
+
+        /**
+         * Only used for debugging
+         */
+        @Override
+        public String toString() {
+            return op + "(" + breakPos + "->" + endPosition + ")";
         }
     }
 }
