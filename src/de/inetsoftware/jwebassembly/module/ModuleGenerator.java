@@ -116,7 +116,6 @@ public class ModuleGenerator {
         scanLibraries( libraries );
 
         //register some synthetic functions
-        strings.getStringConstantFunction();
         types.getTypeTableMemoryOffsetFunctionName();
     }
 

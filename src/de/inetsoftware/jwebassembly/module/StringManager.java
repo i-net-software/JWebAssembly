@@ -82,7 +82,8 @@ public class StringManager extends LinkedHashMap<String, Integer> {
                                     return "i32.const " + stringMemoryOffset;
                                 }
                             };
-            functions.addReplacement( offsetFunction, null );
+            functions.markAsNeededAndReplaceIfExists( offsetFunction );
+            functions.markAsNeeded( stringConstantFunction, false );
         }
 
         return stringConstantFunction;
