@@ -36,6 +36,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Map;
 
+import de.inetsoftware.jwebassembly.api.annotation.Partial;
 import de.inetsoftware.jwebassembly.api.annotation.Replace;
 import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 import de.inetsoftware.jwebassembly.module.TypeManager;
@@ -46,7 +47,7 @@ import de.inetsoftware.jwebassembly.module.TypeManager;
  * @param <T> the type of the class modeled by this {@code Class}
  * @author Volker Berlin
  */
-@Replace( "java/lang/Class" )
+@Partial( "java/lang/Class" )
 class ReplacementForClass<T> {
 
     /**
@@ -55,6 +56,8 @@ class ReplacementForClass<T> {
     final int vtable;
 
     final int classIdx;
+
+    private static void registerNatives() {}
 
     /**
      * Create a instance

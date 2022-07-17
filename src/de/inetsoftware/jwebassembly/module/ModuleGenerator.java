@@ -114,6 +114,10 @@ public class ModuleGenerator {
         staticCodeBuilder = new StaticCodeBuilder( writer.options, classFileLoader, javaCodeBuilder );
 
         scanLibraries( libraries );
+
+        //register some synthetic functions
+        strings.getStringConstantFunction();
+        types.getTypeTableMemoryOffsetFunctionName();
     }
 
     /**
@@ -594,14 +598,6 @@ public class ModuleGenerator {
                 return null;
             } else {
                 FunctionName name = new FunctionName( method );
-                if( "java/lang/Class.typeTableMemoryOffset()I".equals( name.signatureName ) ) {
-                    strings.getStringConstantFunction(); // we will need also the string constant function for the Class Name, in the other case a program with only new Object().getClass().getName() will fail to compile 
-                    return types.getTypeTableMemoryOffsetFunctionName().getCodeBuilder( watParser );
-                }
-                if( "de/inetsoftware/jwebassembly/module/StringManager.stringsMemoryOffset()I".equals( name.signatureName ) ) {
-                    strings.getStringConstantFunction();
-                    return null;
-                }
 
                 if( writer.options.ignoreNative() ) {
                     JWebAssembly.LOGGER.severe( "Native method will throw an exception at runtime: " + name.signatureName );

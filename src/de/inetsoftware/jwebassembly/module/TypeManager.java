@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -268,7 +267,7 @@ public class TypeManager {
                                 return "i32.const " + typeTableOffset;
                             }
                         };
-        options.functions.markAsNeeded( offsetFunction, !offsetFunction.istStatic() );
+        options.functions.addReplacement( offsetFunction, null );
         return offsetFunction;
     }
 

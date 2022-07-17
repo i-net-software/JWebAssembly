@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 - 2021 Volker Berlin (i-net software)
+   Copyright 2019 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.util.LinkedHashMap;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.jwebassembly.api.annotation.WasmTextCode;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
@@ -83,8 +82,7 @@ public class StringManager extends LinkedHashMap<String, Integer> {
                                     return "i32.const " + stringMemoryOffset;
                                 }
                             };
-            functions.markAsNeededAndReplaceIfExists( offsetFunction );
-            functions.markAsNeeded( stringConstantFunction, false );
+            functions.addReplacement( offsetFunction, null );
         }
 
         return stringConstantFunction;
