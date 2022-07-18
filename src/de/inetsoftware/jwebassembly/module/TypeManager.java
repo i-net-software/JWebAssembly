@@ -223,7 +223,7 @@ public class TypeManager {
      *             if any I/O error occur on loading or writing
      */
     void scanTypeHierarchy() throws IOException {
-        for( StructType type : structTypes.values() ) {
+        for( StructType type : new ArrayList<>( structTypes.values() ) ) {
             type.scanTypeHierarchy( options.functions, this, classFileLoader );
         }
     }
