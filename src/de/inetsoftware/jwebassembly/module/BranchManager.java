@@ -191,8 +191,10 @@ class BranchManager {
             TryCatchParsedBlock node = new TryCatchParsedBlock( tryCatch );
             parsedOperations.add( node );
 
-            int gotoPos = tryCatch.getHandler() - 3; //tryCatch.getEnd() points some time before and some time after the goto 
+            int handlerPos = tryCatch.getHandler();
+            int gotoPos = handlerPos - 3; //tryCatch.getEnd() points some time before and some time after the goto 
             int endPos = root.endPos;
+
 
             // find all try blocks and the end position of the last catch/finally handler 
             int idx;
@@ -209,7 +211,7 @@ class BranchManager {
                     break;
                 }
 
-                if( gotoPos < parsedBlock.endPosition && endPos > parsedBlock.endPosition ) {
+                if( handlerPos < parsedBlock.endPosition && endPos > parsedBlock.endPosition ) {
                     endPos = parsedBlock.endPosition;
                 }
             }
@@ -1230,7 +1232,8 @@ class BranchManager {
         ArrayList<TryCatchFinally> catches = new ArrayList<>();
         catches.add( tryCatch );
 
-        int gotoPos = tryCatch.getHandler()-3; //tryCatch.getEnd() points some time before and some time after the goto 
+        int handlerPos = tryCatch.getHandler();
+        int gotoPos = handlerPos - 3; //tryCatch.getEnd() points some time before and some time after the goto 
         int endPos = parent.endPos;
 
         // find all try blocks and the end position of the last catch/finally handler 
@@ -1257,7 +1260,7 @@ class BranchManager {
                 break;
             }
 
-            if( gotoPos < parsedBlock.endPosition && endPos > parsedBlock.endPosition ) {
+            if( handlerPos < parsedBlock.endPosition && endPos > parsedBlock.endPosition ) {
                 endPos = parsedBlock.endPosition;
             }
         }
