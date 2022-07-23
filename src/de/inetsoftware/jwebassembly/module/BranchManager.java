@@ -143,7 +143,7 @@ class BranchManager {
     void addIfOperator( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
         JumpInstruction jump = new JumpInstruction( startPosition + offset, 1, null, startPosition, lineNumber );
         instructions.add( jump );
-        allParsedOperations.add( new IfParsedBlock( startPosition, offset, lineNumber, instr, jump ) );
+        allParsedOperations.add( new IfParsedBlock( startPosition, offset, lineNumber, instr ) );
     }
 
     /**
@@ -547,33 +547,6 @@ class BranchManager {
     }
 
     /**
-     * Add a break to the node if the block jump to the continue position of an outer loop.
-     * 
-     * @param parent
-     *            the container for adding the break
-     * @param startBlock
-     *            an IF or GOTO block.
-     * @return true, if the break was added
-     */
-    private boolean addBreakIfLoopContinue( BranchNode parent, ParsedBlock startBlock ) {
-        BranchNode main = parent;
-        int endPos = startBlock.endPosition;
-        int breakDeep = 0;
-        while( main != null ) {
-            if( main.startOp == WasmBlockOperator.LOOP && main.continuePos == endPos ) {
-                // possible operation values here are IF and GOTO
-                WasmBlockOperator op = startBlock.op == JavaBlockOperator.IF ? WasmBlockOperator.BR_IF : WasmBlockOperator.BR;
-                int startPos = startBlock.nextPosition;
-                parent.add( new BranchNode( startPos, startPos, op, null, breakDeep ) );
-                return true;
-            }
-            main = main.parent;
-            breakDeep++;
-        }
-        return false;
-    }
-
-    /**
      * Calculate the IF ELSE and END control structure. The resulting code in WebAssembly look like:
      * 
      * <pre>
@@ -725,6 +698,7 @@ class BranchManager {
                         newElsePositionFound = true;
                     }
                     break;
+                default:
             }
             if( parsedBlock.startPosition > endElse ) {
                 parsedOpCount = i;
@@ -783,7 +757,6 @@ class BranchManager {
         }
         IfPositions pos = new IfPositions();
         pos.ifCount = ifCount;
-        pos.thenPos = thenPos;
         pos.elsePos = elsePos;
         return pos;
     }
@@ -1175,7 +1148,6 @@ class BranchManager {
         BranchNode blockNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
         parent.add( blockNode );
         BranchNode loopNode = new BranchNode( loopBlock.startPosition, loopBlock.endPosition, WasmBlockOperator.LOOP, WasmBlockOperator.END );
-        loopNode.continuePos = loopBlock.nextPosition;
         blockNode.add( loopNode );
 
         calculateSubOperations( loopNode, parsedOperations );
@@ -1328,6 +1300,7 @@ class BranchManager {
             WasmLoadStoreInstruction ex = (WasmLoadStoreInstruction)instructions.get( instrPos );
 
             node.add( new BranchNode( 0, 0, null, null ) {
+                @Override
                 int handle(int codePosition, java.util.List<WasmInstruction> instructions, int idx, int lineNumber) {
                     if( codePosition == catchPos + 1 ) {
                         FunctionName instanceOf = options.getInstanceOf();
@@ -1530,6 +1503,8 @@ class BranchManager {
                     case CATCH:
                         // first instruction of a CATCH block ever saved the exception from the stack to a local variable that we start the middle block an instruction later
                         startPos++;
+                        break;
+                    default:
                 }
             }
         }
@@ -1624,8 +1599,6 @@ class BranchManager {
 
         private WasmNumericInstruction instr;
 
-        private JumpInstruction        jump;
-
         /**
          * Create new instance
          * 
@@ -1638,10 +1611,9 @@ class BranchManager {
          * @param instr
          *            the compare instruction
          */
-        private IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr, JumpInstruction jump ) {
+        private IfParsedBlock( int startPosition, int offset, int lineNumber, WasmNumericInstruction instr ) {
             super( JavaBlockOperator.IF, startPosition, offset, startPosition + 3, lineNumber );
             this.instr = instr;
-            this.jump = jump;
         }
 
         /**
@@ -1755,8 +1727,6 @@ class BranchManager {
          */
         private int                     startIdx;
 
-        /** jump position for a CONTINUE in a loop */
-        private int                     continuePos;
 
         /**
          * Create a new description.
@@ -1996,6 +1966,8 @@ class BranchManager {
                 } catch( Throwable th ) {
                     throw WasmException.create( th, startBlock.getLineNumber() );
                 }
+                break;
+                default:
             }
         }
 
@@ -2023,6 +1995,7 @@ class BranchManager {
                         case END:
                             count--;
                             break;
+                        default:
                     }
                 }
                 if( count == 0 ) {
@@ -2057,9 +2030,6 @@ class BranchManager {
     private static class IfPositions {
         /** Count of boolean operations in the IF top level condition. This can be (&&) or (||) operations.  */
         private int ifCount;
-
-        /** The position of the first instruction in the THEN part. */
-        private int thenPos;
 
         /** The position of the first instruction in the ELSE part. */
         private int elsePos;
