@@ -60,6 +60,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "tryReturn" );
             addParam( list, script, "whileTrueTryFinally" );
             addParam( list, script, "ifMultipleInFinally" );
+            addParam( list, script, "catchWithContinue" );
         }
         rule.setTestParameters( list );
         rule.setProperty( JWebAssembly.WASM_USE_EH, "true" );
@@ -290,6 +291,21 @@ public class Exceptions extends AbstractBaseTest {
                 }
             }
             return pos;
+        }
+
+        @Export
+        static private int catchWithContinue() {
+            int val = 0;
+
+            for( int i = 0; i < 10; i++ ) {
+                try {
+                    val = 42;
+                } catch( Throwable ex ) {
+                    continue;
+                }
+                val = 13;
+            }
+            return val;
         }
 
 //        @Export

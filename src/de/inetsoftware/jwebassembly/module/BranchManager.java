@@ -1246,6 +1246,7 @@ class BranchManager {
         calculate( tryNode, parsedOperations.subList( 0, idx ) );
 
         BranchNode catchNode = new BranchNode( catchPos, endPos, WasmBlockOperator.CATCH, WasmBlockOperator.END, 0 );
+        catchNode.tryPos = startPos;
         parent.add( catchNode );
 
         // Create a block/end structure for every CATCH without the first CATCH
@@ -1419,7 +1420,7 @@ class BranchManager {
         int startPos = parent.startPos;
         while( parent != null && parent.endPos < gotoEndPos ) {
             deep++;
-            startPos = parent.startPos;
+            startPos = parent.startOp == WasmBlockOperator.CATCH ? parent.tryPos : parent.startPos;
             parent = parent.parent;
         }
 
@@ -1727,6 +1728,10 @@ class BranchManager {
          */
         private int                     startIdx;
 
+        /**
+         * Position of related TRY block for CATCH block.
+         */
+        private int tryPos;
 
         /**
          * Create a new description.
