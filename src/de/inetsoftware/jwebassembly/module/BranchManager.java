@@ -1213,7 +1213,7 @@ class BranchManager {
         for( idx = 0; idx < parsedOperations.size(); idx++ ) {
             ParsedBlock parsedBlock = parsedOperations.get( idx );
 
-            if( parsedBlock.op == JavaBlockOperator.TRY ) {
+            if( parsedBlock.op == JavaBlockOperator.TRY && !tryCatch.isFinally() ) {
                 TryCatchFinally tryCatch2 = ((TryCatchParsedBlock)parsedBlock).tryCatch;
                 if( tryCatch.getStart() == tryCatch2.getStart() && tryCatch.getEnd() == tryCatch2.getEnd() ) {
                     catches.add( tryCatch2 );
@@ -1695,6 +1695,30 @@ class BranchManager {
         TryCatchParsedBlock( TryCatchFinally tryCatch ) {
             super( JavaBlockOperator.TRY, tryCatch.getStart(), tryCatch.getEnd() - tryCatch.getStart(), tryCatch.getStart(), -1 );
             this.tryCatch = tryCatch;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int compareTo( ParsedBlock o ) {
+            int compare = super.compareTo( o );
+            if( compare == 0 && o instanceof TryCatchParsedBlock ) {
+                // sort the finally block first as most outer block
+                TryCatchParsedBlock ot = (TryCatchParsedBlock)o;
+                if( tryCatch.isFinally() ) {
+                    if( !ot.tryCatch.isFinally() ) {
+                        return -1;
+                    }
+                } else {
+                    if( ot.tryCatch.isFinally() ) {
+                        return 1;
+                    }
+                }
+                // the other catch blocks in it natural order
+                return Integer.compare( tryCatch.getHandler(), ot.tryCatch.getHandler() );
+            }
+            return compare;
         }
     }
 
