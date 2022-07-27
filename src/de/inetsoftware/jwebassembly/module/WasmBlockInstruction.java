@@ -133,6 +133,8 @@ class WasmBlockInstruction extends WasmInstruction {
             case DROP:
             case THROW:
             case RETHROW:
+            case MONITOR_ENTER:
+            case MONITOR_EXIT:
                 return 1;
             case BLOCK:
                 return data instanceof BlockType ? ((BlockType)data).getParams().size() : 0;
