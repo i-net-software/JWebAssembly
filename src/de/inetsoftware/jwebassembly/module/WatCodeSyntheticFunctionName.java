@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 Volker Berlin (i-net software)
+   Copyright 2019 - 2022 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
      */
     @Override
     protected WasmCodeBuilder getCodeBuilder( WatParser watParser ) {
-        watParser.parse( getCode(), null, getSignature( null ), -1 );
+        watParser.parse( getCode(), null, getSignature( watParser.getTypeManager() ), -1 );
         return watParser;
     }
 }
