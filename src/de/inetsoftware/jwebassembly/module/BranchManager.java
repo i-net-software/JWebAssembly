@@ -1251,10 +1251,11 @@ class BranchManager {
 
         // Create a block/end structure for every CATCH without the first CATCH
         BranchNode node = catchNode;
+        TryCatchFinally tryCurrent = tryCatch;
         for( int i = catches.size()-1; i > 0; i-- ) {
             TryCatchFinally tryCat = catches.get( i );
 
-            if( tryCatch.getHandler() == tryCat.getHandler() ) {
+            if( tryCurrent.getHandler() == tryCat.getHandler() ) {
                 // multiple exception in catch block like "catch ( ArrayIndexOutOfBoundsException | IllegalArgumentException ex )"
                 continue;
             }
@@ -1277,7 +1278,10 @@ class BranchManager {
             node = block;
 
             int instrPos = findIdxOfCodePos( tryCat.getHandler() ) + 1;
+            assert (instructions.get( instrPos ) instanceof WasmLoadStoreInstruction) && ((WasmLoadStoreInstruction)instructions.get( instrPos )).getOperator() == VariableOperator.set : "Catch block does not start with astore instruction " + instructions.get( instrPos );
             instructions.remove( instrPos ); // every catch block store the exception from the stack but in WASM we can do this only once for all exceptions
+
+            tryCurrent = tryCat;
         }
 
         // calculate branch operations inside the CATCH/FINALLY blocks

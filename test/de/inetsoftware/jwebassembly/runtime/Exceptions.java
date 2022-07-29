@@ -57,6 +57,7 @@ public class Exceptions extends AbstractBaseTest {
             addParam( list, script, "emptyCatch" );
             addParam( list, script, "multiCatch" );
             addParam( list, script, "multiCatch2" );
+            addParam( list, script, "multiCatch3" );
             addParam( list, script, "serialCatch" );
             addParam( list, script, "tryReturn" );
             addParam( list, script, "whileTrueTryFinally" );
@@ -239,6 +240,18 @@ public class Exceptions extends AbstractBaseTest {
                 r = 1;
             }
             return r;
+        }
+
+        @Export
+        public static int multiCatch3() throws Throwable {
+            try {
+                new Throwable();
+                return 42;
+            } catch( IllegalStateException x ) {
+            } catch( IllegalArgumentException | NullPointerException x ) {
+                throw new Throwable( x );
+            }
+            return 13;
         }
 
         @Export
