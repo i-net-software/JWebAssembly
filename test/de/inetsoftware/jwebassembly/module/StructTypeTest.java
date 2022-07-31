@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Volker Berlin (i-net software)
+ * Copyright 2021 - 2022 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.junit.Before;
@@ -113,7 +112,7 @@ public class StructTypeTest {
         when( implMethod.getName() ).thenReturn( "" );
         BootstrapMethod method = mock( BootstrapMethod.class );
         when( method.getImplMethod() ).thenReturn( implMethod );
-        LambdaType lambda = manager.lambdaType( method, new ArrayList(), typeRunnable, "run" );
+        LambdaType lambda = manager.lambdaType( method, "()Ljava/lang/Runnable;", "run", -1 );
 
         assertTrue( lambda.isSubTypeOf( typeRunnable ) );
         assertFalse( typeRunnable.isSubTypeOf( lambda ) );
