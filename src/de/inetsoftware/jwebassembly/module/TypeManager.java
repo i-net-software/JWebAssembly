@@ -395,22 +395,35 @@ public class TypeManager {
      * 
      * @param method
      *            the name BootstrapMethod from the parsed class file
-     * @param params
-     *            the parameters of the constructor and type fields
-     * @param interfaceType
-     *            the implemented interface
+     * @param factorySignature
+     *            Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lambda expression
+     *            <code>Runnable run = () -&gt; foo();</code>
      * @param interfaceMethodName
      *            the name of the implemented method in the interface
+     * @param lineNumber
+     *            the line number in the Java source code
      * @return the type
      */
-    LambdaType lambdaType( @Nonnull BootstrapMethod method, ArrayList<AnyType> params, StructType interfaceType, String interfaceMethodName ) {
+    LambdaType lambdaType( @Nonnull BootstrapMethod method, String factorySignature, String interfaceMethodName, int lineNumber ) {
         ConstantRef implMethod = method.getImplMethod();
-        FunctionName methodName = new FunctionName( implMethod );
+        FunctionName syntheticLambdaFunctionName = new FunctionName( implMethod );
+
+        Iterator<AnyType> parser = new ValueTypeParser( factorySignature, this );
+        ArrayList<AnyType> params = new ArrayList<>();
+        do {
+            AnyType param = parser.next();
+            if( param == null ) {
+                break;
+            }
+            params.add( param );
+        } while( true );
+        StructType interfaceType = (StructType)parser.next();
+
         String typeName = implMethod.getClassName() + "$$" + implMethod.getName() + "/" + Math.abs( implMethod.getName().hashCode() );
 
         LambdaType type = (LambdaType)structTypes.get( typeName );
         if( type == null ) {
-            type = new LambdaType( typeName, method, params, interfaceType, methodName, interfaceMethodName, this );
+            type = new LambdaType( typeName, method, params, interfaceType, syntheticLambdaFunctionName, interfaceMethodName, this, lineNumber );
 
             structTypes.put( typeName, type );
         }
@@ -1215,8 +1228,10 @@ public class TypeManager {
          *            the name of the implemented method in the interface
          * @param manager
          *            the manager which hold all StructTypes
+         * @param lineNumber
+         *            the line number in the Java source code
          */
-        LambdaType( @Nonnull String name, @Nonnull BootstrapMethod method, ArrayList<AnyType> params, StructType interfaceType, FunctionName syntheticLambdaFunctionName, String interfaceMethodName, @Nonnull TypeManager manager ) {
+        LambdaType( @Nonnull String name, @Nonnull BootstrapMethod method, ArrayList<AnyType> params, StructType interfaceType, FunctionName syntheticLambdaFunctionName, String interfaceMethodName, @Nonnull TypeManager manager, int lineNumber ) {
             super( name, StructTypeKind.lambda, manager );
             this.paramFields = new ArrayList<>( params.size() );
             for( int i = 0; i < params.size(); i++ ) {
@@ -1246,10 +1261,10 @@ public class TypeManager {
                     }
                     watParser.reset( null, null, sig.iterator() );
 
-                    // first add the values from the Lambda constructor which is saves in the syntetic class
+                    // first add the values from the Lambda constructor which is saved in the synthetic class
                     for( int i = 0; i < paramFields.size(); i++ ) {
                         codebuilder.addLoadStoreInstruction( LambdaType.this, true, 0, 0, -1 );
-                        codebuilder.addStructInstruction( StructOperator.GET, name, paramFields.get( i ), 0, -1 );
+                        codebuilder.addStructInstruction( StructOperator.GET, name, paramFields.get( i ), 0, lineNumber );
                     }
 
                     // forward the parameter from the current call without the THIS parameter because the call lambda method is static
@@ -1258,10 +1273,20 @@ public class TypeManager {
                         if( anyType == null ) {
                             break;
                         }
-                        codebuilder.addLoadStoreInstruction( anyType, true, i, 0, -1 );
+                        codebuilder.addLoadStoreInstruction( anyType, true, i, 0, lineNumber );
                     }
 
-                    codebuilder.addCallInstruction( syntheticLambdaFunctionName, false, 0, -1 );
+                    boolean needThisParameter = false;
+                    try {
+                        // a lambda expression function is mostly static else it need access to field.
+                        ClassFile classFile = classFileLoader.get( syntheticLambdaFunctionName.className );
+                        MethodInfo methodInfo = classFile.getMethod( syntheticLambdaFunctionName.methodName, syntheticLambdaFunctionName.signature );
+                        needThisParameter = !methodInfo.isStatic();
+                    } catch( Exception ex ) {
+                        throw WasmException.create( ex, null, syntheticLambdaFunctionName.className, syntheticLambdaFunctionName.methodName, lineNumber );
+                    }
+
+                    codebuilder.addCallInstruction( syntheticLambdaFunctionName, needThisParameter, 0, lineNumber );
                     return watParser;
                 }
             };

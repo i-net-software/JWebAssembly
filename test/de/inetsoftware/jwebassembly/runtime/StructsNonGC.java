@@ -76,6 +76,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "lambda1" );
             addParam( list, script, "lambda2" );
             addParam( list, script, "lambda3" );
+            addParam( list, script, "lambdaWithInstanceAccess" );
             addParam( list, script, "simpleName_Object" );
             addParam( list, script, "simpleName_Anonymous" );
             addParam( list, script, "simpleName_Array" );
@@ -334,6 +335,18 @@ public class StructsNonGC extends AbstractBaseTest {
             int v2 = 7;
             DoubleUnaryOperator val = (x) -> x * v2 + v1;
             return val.applyAsDouble( 13 );
+        }
+
+        @Export
+        public static int lambdaWithInstanceAccess() {
+            TestClass test = new TestClass();
+            return test.lambdaWithInstanceAccessImpl();
+        }
+        private int field;
+        private int lambdaWithInstanceAccessImpl() {
+            field = 13;
+            IntSupplier val = () -> field;
+            return val.getAsInt();
         }
 
         @Export

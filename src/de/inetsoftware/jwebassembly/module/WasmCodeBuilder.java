@@ -36,7 +36,6 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
 import de.inetsoftware.jwebassembly.module.TypeManager.LambdaType;
-import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -650,13 +649,14 @@ public abstract class WasmCodeBuilder {
      * 
      * @param name
      *            the function name that should be called
-     *            @param needThisParameter true, if the hidden THIS parameter is needed, If it is an instance method call.
+     * @param needThisParameter
+     *            true, if the hidden THIS parameter is needed, If it is an instance method call.
      * @param javaCodePos
      *            the code position/offset in the Java method
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addCallInstruction( FunctionName name, boolean needThisParameter, int javaCodePos, int lineNumber ) {
+    protected void addCallInstruction( @Nonnull FunctionName name, boolean needThisParameter, int javaCodePos, int lineNumber ) {
         name = functions.markAsNeeded( name, needThisParameter );
         WasmCallInstruction instruction = new WasmCallInstruction( name, javaCodePos, lineNumber, types, needThisParameter );
 
@@ -970,7 +970,7 @@ public abstract class WasmCodeBuilder {
      * @param method
      *            the BootstrapMethod, described the method that should be executed
      * @param factorySignature
-     *            Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lamba expression
+     *            Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lambda expression
      *            <code>Runnable run = () -&gt; foo();</code>
      * @param interfaceMethodName
      *            The simple name of the generated method of the single function interface.
@@ -981,17 +981,7 @@ public abstract class WasmCodeBuilder {
      */
     protected void addInvokeDynamic( BootstrapMethod method, String factorySignature, String interfaceMethodName, int javaCodePos, int lineNumber ) {
         // Create the synthetic lambda class that hold the lambda expression.
-        ValueTypeParser parser = new ValueTypeParser( factorySignature, types );
-        ArrayList<AnyType> params = new ArrayList<>();
-        do {
-            AnyType param = parser.next();
-            if( param == null ) {
-                break;
-            }
-            params.add( param );
-        } while( true );
-        StructType interfaceType = (StructType)parser.next();
-        LambdaType type = types.lambdaType( method, params, interfaceType, interfaceMethodName );
+        LambdaType type = types.lambdaType( method, factorySignature, interfaceMethodName, lineNumber );
         functions.markAsNeeded( type.getLambdaMethod(), true );
         String lambdaTypeName = type.getName();
 
