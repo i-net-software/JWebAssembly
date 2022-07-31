@@ -77,6 +77,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "lambda2" );
             addParam( list, script, "lambda3" );
             addParam( list, script, "lambdaWithInstanceAccess" );
+            addParam( list, script, "lambdaInsideTryCatch" );
             addParam( list, script, "simpleName_Object" );
             addParam( list, script, "simpleName_Anonymous" );
             addParam( list, script, "simpleName_Array" );
@@ -347,6 +348,19 @@ public class StructsNonGC extends AbstractBaseTest {
             field = 13;
             IntSupplier val = () -> field;
             return val.getAsInt();
+        }
+
+        @Export
+        public static int lambdaInsideTryCatch() {
+            int result = 17;
+            int field = 13;
+            try {
+                IntSupplier val = () -> field;
+                result = val.getAsInt();
+            } catch( Throwable ex ) {
+                result = 42;
+            }
+            return result;
         }
 
         @Export

@@ -995,18 +995,22 @@ public abstract class WasmCodeBuilder {
             int idx = StackInspector.findInstructionThatPushValue( instructions, paramCount, javaCodePos ).idx;
             int pos = instructions.size();
             addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
-            if( !options.useGC() ) {
+            boolean extraDup = !options.useGC();
+            if( extraDup ) {
+                // Bringing forward the DUP operation of the parameter loop to get a slot
                 addDupInstruction( false, javaCodePos, lineNumber );
             }
-            int slot =  ((WasmLocalInstruction)findInstructionThatPushValue( 1, javaCodePos )).getSlot();
+            int slot = ((WasmLocalInstruction)findInstructionThatPushValue( 1, javaCodePos )).getSlot();
 
             // move the creating of the lambda instance before the parameters on the stack
             Collections.rotate( instructions.subList( idx, instructions.size() ), idx - pos );
 
             for( int i = 0; i < paramCount; i++ ) {
                 NamedStorageType field = paramFields.get( i );
-                idx = StackInspector.findInstructionThatPushValue( instructions, paramCount - i, javaCodePos ).idx;
-                instructions.add( idx, new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
+                if( i > 0 || !extraDup ) {
+                    idx = StackInspector.findInstructionThatPushValue( instructions, paramCount - i, javaCodePos ).idx;
+                    instructions.add( idx, new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
+                }
                 pos = instructions.size();
                 idx = paramCount - i - 1;
                 idx = idx == 0 ? pos : StackInspector.findInstructionThatPushValue( instructions, idx, javaCodePos ).idx;
