@@ -88,6 +88,7 @@ artifacts {
 
 test {
     systemProperty "file.encoding", "UTF-8"
+    enableAssertions = true
     testLogging {
         showStandardStreams = true
         showStackTraces = true
