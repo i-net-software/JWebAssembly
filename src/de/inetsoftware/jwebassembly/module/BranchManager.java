@@ -1254,13 +1254,14 @@ class BranchManager {
         TryCatchFinally tryCurrent = tryCatch;
         for( int i = catches.size()-1; i > 0; i-- ) {
             TryCatchFinally tryCat = catches.get( i );
+            int handler = tryCat.getHandler();
 
-            if( tryCurrent.getHandler() == tryCat.getHandler() ) {
+            if( tryCurrent.getHandler() == handler || tryCatch.getHandler() == handler ) {
                 // multiple exception in catch block like "catch ( ArrayIndexOutOfBoundsException | IllegalArgumentException ex )"
                 continue;
             }
 
-            int blockGotoPos = tryCat.getHandler()-3;
+            int blockGotoPos = handler - 3;
             for( idx = 0; idx < parsedOperations.size(); idx++ ) {
                 ParsedBlock parsedBlock = parsedOperations.get( idx );
                 if( parsedBlock.startPosition == blockGotoPos && parsedBlock.op == JavaBlockOperator.GOTO && parsedBlock.startPosition < parsedBlock.endPosition ) {
@@ -1272,12 +1273,12 @@ class BranchManager {
                 }
             }
 
-            BranchNode block = new BranchNode( catchPos + 1, tryCat.getHandler(), WasmBlockOperator.BLOCK, WasmBlockOperator.END );
-            block.add( new BranchNode( tryCat.getHandler(), tryCat.getHandler(), WasmBlockOperator.BR, null, catches.size() - i ) );
+            BranchNode block = new BranchNode( catchPos + 1, handler, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
+            block.add( new BranchNode( handler, handler, WasmBlockOperator.BR, null, catches.size() - i ) );
             node.add( 0, block );
             node = block;
 
-            int instrPos = findIdxOfCodePos( tryCat.getHandler() ) + 1;
+            int instrPos = findIdxOfCodePos( handler ) + 1;
             assert (instructions.get( instrPos ) instanceof WasmLoadStoreInstruction) && ((WasmLoadStoreInstruction)instructions.get( instrPos )).getOperator() == VariableOperator.set : "Catch block does not start with astore instruction " + instructions.get( instrPos );
             instructions.remove( instrPos ); // every catch block store the exception from the stack but in WASM we can do this only once for all exceptions
 
