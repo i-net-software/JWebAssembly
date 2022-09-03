@@ -46,22 +46,35 @@ public class BootstrapMethod {
      * Create an instance.
      */
     BootstrapMethod( DataInputStream input, ConstantPool constantPool ) throws IOException {
-        //TODO check that it is a known implementation type
         int ref = input.readUnsignedShort();
-        //ConstantMethodRef method = (ConstantMethodRef)constantPool.get( ref ); // ever: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+        ConstantMethodRef method = (ConstantMethodRef)constantPool.get( ref );
 
         int argCount = input.readUnsignedShort(); // ever: 3 parameters
+        String factory = method.getClassName() + "." + method.getName() + method.getType();
+        switch( factory ) {
+            case "java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;":
+            case "java/lang/invoke/LambdaMetafactory.altMetafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;":
+                // the 3 values
+                samMethodType = (String)constantPool.get( input.readUnsignedShort() );
+                implMethod = (ConstantRef)constantPool.get( input.readUnsignedShort() );
+                instantiatedMethodType = (String)constantPool.get( input.readUnsignedShort() );
 
-        // the 3 values
-        samMethodType = (String)constantPool.get( input.readUnsignedShort() );
-        implMethod = (ConstantRef)constantPool.get( input.readUnsignedShort() );
-        instantiatedMethodType = (String)constantPool.get( input.readUnsignedShort() );
+                // skip extra parameters
+                // argCount is 5 if the method is LambdaMetafactory.altMetafactory
+                // occur if the Lambda type has 2 types compound with "&" like in java.time.chrono.AbstractChronology
+                for( int i = 3; i < argCount; i++ ) {
+                    constantPool.get( input.readUnsignedShort() );
+                }
+                break;
 
-        // skip extra parameters
-        // argCount is 5 if the method is LambdaMetafactory.altMetafactory
-        // occur if the Lambda type has 2 types compound with "&" like in java.time.chrono.AbstractChronology
-        for( int i = 3; i < argCount; i++ ) {
-            constantPool.get( input.readUnsignedShort() );
+            case "java/lang/invoke/StringConcatFactory.makeConcatWithConstants(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;":
+                // occur in Java 11 in java/util/logging/Logger.findResourceBundle
+                String recipe = (String)constantPool.get( input.readUnsignedShort() );
+                //TODO
+                break;
+
+            default:
+                throw new IOException( "Unknown invoke dynamic bootstrap factory: " + factory );
         }
     }
 
