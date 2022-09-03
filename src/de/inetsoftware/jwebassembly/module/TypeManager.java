@@ -1015,29 +1015,50 @@ public class TypeManager {
 
             try {
                 ClassFile classFile = manager.classFileLoader.get( name );
-                if( classFile != null ) {
-                    for( ConstantClass interClass : classFile.getInterfaces() ) {
-                        if( interClass.getName().equals( structType.name ) ) {
-                            return true;
-                        }
+                String otherTypeName = structType.name;
+                while( classFile != null ) {
+                    if( isSubTypeOf( classFile, otherTypeName )) {
+                        return true;
                     }
 
-                    while( classFile != null ) {
-                        ConstantClass superClass = classFile.getSuperClass();
-                        if( superClass == null ) {
-                            break;
-                        }
-                        String superName = superClass.getName();
-                        if( superName.equals( structType.name ) ) {
-                            return true;
-                        }
-                        classFile = manager.classFileLoader.get( superName );
+                    ConstantClass superClass = classFile.getSuperClass();
+                    if( superClass == null ) {
+                        break;
                     }
+                    String superName = superClass.getName();
+                    if( superName.equals( otherTypeName ) ) {
+                        return true;
+                    }
+                    classFile = manager.classFileLoader.get( superName );
                 }
             } catch( IOException ex ) {
                 throw new UncheckedIOException( ex );
             }
 
+            return false;
+        }
+
+        /**
+         * Check for sub interface recursively.
+         * 
+         * @param classFile
+         *            the class file to check
+         * @param otherTypeName
+         *            the searching interface name
+         * @return true, if a sub interface
+         * @throws IOException
+         *             If any I/O error occur
+         */
+        private boolean isSubTypeOf( ClassFile classFile, String otherTypeName ) throws IOException {
+            for( ConstantClass iface : classFile.getInterfaces() ) {
+                if( iface.getName().equals( otherTypeName ) ) {
+                    return true;
+                }
+                ClassFile iClassFile = manager.classFileLoader.get( iface.getName() );
+                if( iClassFile != null && isSubTypeOf( iClassFile, otherTypeName ) ) {
+                    return true;
+                }
+            }
             return false;
         }
 
