@@ -25,12 +25,12 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 
 /**
- * WasmInstruction for constant values.
+ * WasmInstruction for constant number values.
  * 
  * @author Volker Berlin
  *
  */
-class WasmConstInstruction extends WasmInstruction {
+class WasmConstNumberInstruction extends WasmInstruction {
 
     private final Number    value;
 
@@ -48,7 +48,7 @@ class WasmConstInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmConstInstruction( Number value, ValueType valueType, int javaCodePos, int lineNumber ) {
+    WasmConstNumberInstruction( Number value, ValueType valueType, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.value = value;
         this.valueType = valueType;
@@ -64,7 +64,7 @@ class WasmConstInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmConstInstruction( Number value, int javaCodePos, int lineNumber ) {
+    WasmConstNumberInstruction( Number value, int javaCodePos, int lineNumber ) {
         this( value, getValueType( value ), javaCodePos, lineNumber );
     }
 

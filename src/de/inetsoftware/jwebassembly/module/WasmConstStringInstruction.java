@@ -29,7 +29,7 @@ import de.inetsoftware.jwebassembly.wasm.ValueType;
  * @author Volker Berlin
  *
  */
-class WasmStringInstruction extends WasmInstruction {
+class WasmConstStringInstruction extends WasmInstruction {
 
     @Nonnull
     private final String       value;
@@ -54,7 +54,7 @@ class WasmStringInstruction extends WasmInstruction {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    WasmStringInstruction( @Nonnull String value, StringManager strings, TypeManager types, int javaCodePos, int lineNumber ) {
+    WasmConstStringInstruction( @Nonnull String value, StringManager strings, TypeManager types, int javaCodePos, int lineNumber ) {
         super( javaCodePos, lineNumber );
         this.value = value;
         id = strings.get( value );
