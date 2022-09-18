@@ -552,7 +552,7 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addConstInstruction( Number value, ValueType valueType, int javaCodePos, int lineNumber ) {
-        instructions.add( new WasmConstInstruction( value, valueType, javaCodePos, lineNumber ) );
+        instructions.add( new WasmConstNumberInstruction( value, valueType, javaCodePos, lineNumber ) );
     }
 
     /**
@@ -567,15 +567,11 @@ public abstract class WasmCodeBuilder {
      */
     protected void addConstInstruction( Object value, int javaCodePos, int lineNumber ) {
         if( value.getClass() == String.class ) {
-            instructions.add( new WasmStringInstruction( (String)value, strings, types, javaCodePos, lineNumber ) );
+            instructions.add( new WasmConstStringInstruction( (String)value, strings, types, javaCodePos, lineNumber ) );
         } else if( value instanceof Number ) {
-            instructions.add( new WasmConstInstruction( (Number)value, javaCodePos, lineNumber ) );
+            instructions.add( new WasmConstNumberInstruction( (Number)value, javaCodePos, lineNumber ) );
         } else if( value instanceof ConstantClass ) {
-            String className = ((ConstantClass)value).getName();
-            Integer id = types.valueOf( className ).getClassIndex();
-            FunctionName name = types.getClassConstantFunction();
-            instructions.add( new WasmConstInstruction( id, ValueType.i32, javaCodePos, lineNumber ) );
-            addCallInstruction( name, false, javaCodePos, lineNumber );
+            instructions.add( new WasmConstClassInstruction( (ConstantClass)value, types, javaCodePos, lineNumber ) );
         } else {
             //TODO There can be MethodType and MethodHandle
             throw new WasmException( "Class constants are not supported. : " + value, lineNumber );

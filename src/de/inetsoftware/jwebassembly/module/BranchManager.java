@@ -772,7 +772,7 @@ class BranchManager {
      *            the line number for possible error messages
      */
     private void insertConstBeforePosition( int constant, int pos, int lineNumber ) {
-        instructions.add( findIdxOfCodePos( pos ), new WasmConstInstruction( constant, pos - 1, lineNumber ) );
+        instructions.add( findIdxOfCodePos( pos ), new WasmConstNumberInstruction( constant, pos - 1, lineNumber ) );
     }
 
     /**
@@ -1319,7 +1319,7 @@ class BranchManager {
                             String exceptionTypeName = tryCat.getType().getName();
                             StructType type = options.types.valueOf( exceptionTypeName );
                             instructions.add( idx++, new WasmLoadStoreInstruction( VariableOperator.get, ex.getSlot(), localVariables, catchPos, lineNumber ) );
-                            instructions.add( idx++, new WasmConstInstruction( type.getClassIndex(), catchPos, lineNumber ) );
+                            instructions.add( idx++, new WasmConstNumberInstruction( type.getClassIndex(), catchPos, lineNumber ) );
                             instructions.add( idx++, new WasmCallInstruction( instanceOf, catchPos, lineNumber, options.types, false, exceptionTypeName ) );
                             if( handler != tryCat.getHandler() ) {
                                 // if not multiple exception in catch block like "catch ( ArrayIndexOutOfBoundsException | IllegalArgumentException ex )"
