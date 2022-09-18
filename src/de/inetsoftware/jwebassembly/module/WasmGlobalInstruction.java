@@ -115,4 +115,12 @@ class WasmGlobalInstruction extends WasmInstruction {
     AnyType[] getPopValueTypes() {
         return load ? null : new AnyType[] { type };
     }
+
+    /**
+     * Only used for debugging
+     */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + ": global." + (load ? "get $" : "set $") + name.fullName;
+    }
 }
