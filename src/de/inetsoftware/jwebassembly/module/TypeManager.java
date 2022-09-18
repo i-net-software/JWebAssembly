@@ -316,11 +316,6 @@ public class TypeManager {
             } else {
                 checkStructTypesState( name );
                 type = new StructType( name, StructTypeKind.normal, this );
-
-                if( "java/lang/String".equals( name ) ) {
-                    // looks like strings are used, that register helper functions
-                    options.strings.getStringConstantFunction();
-                }
             }
 
             structTypes.put( name, type );
