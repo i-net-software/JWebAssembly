@@ -291,6 +291,8 @@ public class WatParser extends WasmCodeBuilder {
                         i = addMemoryInstruction( MemoryOperator.load8_u, ValueType.i32, tokens, i, lineNumber );
                         break;
                     case "struct.get":
+                    case "struct.set":
+                        StructOperator op = "struct.get".equals( tok ) ? StructOperator.GET : StructOperator.SET;
                         String typeName = get( tokens, ++i );
                         String fieldName = get( tokens, ++i );
                         NamedStorageType fieldNameType = null;
@@ -306,7 +308,7 @@ public class WatParser extends WasmCodeBuilder {
                         if( fieldNameType == null ) {
                             fieldNameType = new NamedStorageType( ValueType.externref, "", fieldName );
                         }
-                        addStructInstruction( StructOperator.GET, typeName, fieldNameType, javaCodePos, lineNumber );
+                        addStructInstruction( op, typeName, fieldNameType, javaCodePos, lineNumber );
                         break;
                     case "array.len":
                         typeName = get( tokens, ++i );
