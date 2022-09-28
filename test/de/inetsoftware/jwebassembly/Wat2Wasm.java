@@ -63,7 +63,7 @@ class Wat2Wasm {
             throw new IllegalStateException( "Unknown OS: " + os );
         }
 
-        URL url = new URL( "https://github.com/WebAssembly/wabt/releases/latest" );
+        URL url = new URL( "https://api.github.com/repos/WebAssembly/wabt/releases/latest" );
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         InputStream input = conn.getInputStream();
         String data = WasmRule.readStream( input, true );
@@ -72,7 +72,7 @@ class Wat2Wasm {
         Matcher matcher = pattern.matcher( data );
         Assert.assertTrue( data, matcher.find() );
         String downloadUrl = matcher.group();
-        url = new URL( url, downloadUrl );
+        url = new URL( "https://github.com" + downloadUrl );
         System.out.println( "\tDownload: " + url );
 
         conn = (HttpURLConnection)url.openConnection();
