@@ -50,6 +50,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
 
     private BranchManager branchManager;
 
+    private UnsafeManager unsafeManager;
     /**
      * Create an instance
      * 
@@ -67,6 +68,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
     void init( WasmOptions options, ClassFileLoader classFileLoader ) {
         super.init( options, classFileLoader );
         this.branchManager = new BranchManager( options, getInstructions(), getLocalVariables() );
+        this.unsafeManager = new UnsafeManager( options.functions );
     }
 
     /**
@@ -750,6 +752,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                 }
                 wide = false;
             }
+            unsafeManager.replaceUnsafe( getInstructions() );
             branchManager.calculate();
             branchManager.handle( byteCode ); // add branch operations
             if( returnType != null && !isEndsWithReturn() ) {

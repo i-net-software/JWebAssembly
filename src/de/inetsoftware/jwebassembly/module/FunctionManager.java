@@ -170,6 +170,10 @@ class FunctionManager {
     FunctionName markAsNeeded( @Nonnull FunctionName name, boolean needThisParameter ) {
         FunctionState state = getOrCreate( name );
         if( state.state == State.None ) {
+            if( "sun/misc/Unsafe".equals( name.className ) ) {
+                // Unsafe method call will be replaces by the UnsafeManager
+                return name;
+            }
             if( isFinish ) {
                 throw new WasmException( "Prepare was already finish: " + name.signatureName, -1 );
             }
