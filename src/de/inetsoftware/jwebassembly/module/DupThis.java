@@ -18,6 +18,8 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
@@ -28,6 +30,7 @@ import de.inetsoftware.jwebassembly.wasm.VariableOperator;
  */
 class DupThis extends WasmInstruction {
 
+    @Nonnull
     private WasmCallIndirectInstruction virtualCall;
 
     private int                         tempVarSlot;
@@ -46,11 +49,20 @@ class DupThis extends WasmInstruction {
      * @param javaCodePos
      *            the code position
      */
-    DupThis( WasmCallIndirectInstruction virtualCall, int tempVarSlot, LocaleVariableManager localVariables, int javaCodePos ) {
+    DupThis( @Nonnull WasmCallIndirectInstruction virtualCall, int tempVarSlot, LocaleVariableManager localVariables, int javaCodePos ) {
         super( javaCodePos, virtualCall.getLineNumber() );
         this.virtualCall = virtualCall;
         this.tempVarSlot = tempVarSlot;
         this.localVariables = localVariables;
+    }
+
+    /**
+     * Get the related virtual function call.
+     * @return the call
+     */
+    @Nonnull
+    WasmCallIndirectInstruction getValue() {
+        return virtualCall;
     }
 
     /**
