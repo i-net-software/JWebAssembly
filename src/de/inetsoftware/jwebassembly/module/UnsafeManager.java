@@ -65,10 +65,16 @@ import de.inetsoftware.jwebassembly.wasm.VariableOperator;
  */
 class UnsafeManager {
 
+    /** Unsafe class bane in Java 8 */
+    static final String                              UNSAFE_8  = "sun/misc/Unsafe";
+
+    /** Unsafe class bane in Java 11 */
+    static final String                              UNSAFE_11 = "jdk/internal/misc/Unsafe";
+
     @Nonnull
     private final FunctionManager                    functions;
 
-    private final HashMap<FunctionName, UnsafeState> unsafes = new HashMap<>();
+    private final HashMap<FunctionName, UnsafeState> unsafes   = new HashMap<>();
 
     /**
      * Create an instance of the manager
@@ -94,8 +100,11 @@ class UnsafeManager {
                 case CallVirtual:
                 case Call:
                     WasmCallInstruction callInst = (WasmCallInstruction)instr;
-                    if( "sun/misc/Unsafe".equals( callInst.getFunctionName().className ) ) {
-                        patch( instructions, i, callInst );
+                    switch( callInst.getFunctionName().className ) {
+                        case UNSAFE_8:
+                        case UNSAFE_11:
+                            patch( instructions, i, callInst );
+                            break;
                     }
                     break;
                 default:
@@ -117,18 +126,45 @@ class UnsafeManager {
         FunctionName name = callInst.getFunctionName();
         switch( name.signatureName ) {
             case "sun/misc/Unsafe.getUnsafe()Lsun/misc/Unsafe;":
+            case "jdk/internal/misc/Unsafe.getUnsafe()Ljdk/internal/misc/Unsafe;":
                 patch_getUnsafe( instructions, idx );
                 break;
             case "sun/misc/Unsafe.objectFieldOffset(Ljava/lang/reflect/Field;)J":
-                patch_objectFieldOffset( instructions, idx, callInst );
+                patch_objectFieldOffset_Java8( instructions, idx, callInst );
+                break;
+            case "jdk/internal/misc/Unsafe.objectFieldOffset(Ljava/lang/Class;Ljava/lang/String;)J":
+                patch_objectFieldOffset_Java11( instructions, idx, callInst );
+                break;
+            case "sun/misc/Unsafe.arrayBaseOffset(Ljava/lang/Class;)I":
+            case "jdk/internal/misc/Unsafe.arrayBaseOffset(Ljava/lang/Class;)I":
+                patch_arrayBaseOffset( instructions, idx, callInst );
+                break;
+            case "sun/misc/Unsafe.arrayIndexScale(Ljava/lang/Class;)I":
+            case "jdk/internal/misc/Unsafe.arrayIndexScale(Ljava/lang/Class;)I":
+                patch_arrayIndexScale( instructions, idx, callInst );
                 break;
             case "sun/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "sun/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
             case "sun/misc/Unsafe.putOrderedInt(Ljava/lang/Object;JI)V":
-                patchFunction( instructions, idx, callInst, name, 2 );
+            case "sun/misc/Unsafe.getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;":
+            case "jdk/internal/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
+            case "jdk/internal/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
+            case "jdk/internal/misc/Unsafe.putIntRelease(Ljava/lang/Object;JI)V":
+                patchFieldFunction( instructions, idx, callInst, name, 2 );
                 break;
             case "sun/misc/Unsafe.compareAndSwapInt(Ljava/lang/Object;JII)Z":
-                patchFunction( instructions, idx, callInst, name, 3 );
+            case "jdk/internal/misc/Unsafe.compareAndSetInt(Ljava/lang/Object;JII)Z":
+                patchFieldFunction( instructions, idx, callInst, name, 3 );
+                break;
+            case "jdk/internal/misc/Unsafe.getLongUnaligned(Ljava/lang/Object;J)J":
+            case "jdk/internal/misc/Unsafe.getIntUnaligned(Ljava/lang/Object;J)I":
+                patch_getLongUnaligned( instructions, idx, callInst, name );
+                break;
+            case "jdk/internal/misc/Unsafe.isBigEndian()Z":
+                patch_isBigEndian( instructions, idx, callInst );
+                break;
+            case "jdk/internal/misc/Unsafe.storeFence()V":
+                remove( instructions, idx, callInst );
                 break;
             default:
                 throw new WasmException( "Unsupported Unsafe method: " + name.signatureName, -1 );
@@ -146,10 +182,77 @@ class UnsafeManager {
     private void patch_getUnsafe( List<WasmInstruction> instructions, int idx ) {
         WasmInstruction instr = instructions.get( idx + 1 );
 
-        FunctionName fieldName = ((WasmGlobalInstruction)instr).getFieldName();
-        unsafes.putIfAbsent( fieldName, new UnsafeState() );
+        int to = idx + (instr.getType() == Type.Global ? 2 : 1);
 
-        nop( instructions, idx, idx + 2 );
+        nop( instructions, idx, to );
+    }
+
+    /**
+     * Find the field on which the offset is assign: long FIELD_OFFSET = UNSAFE.objectFieldOffset(...
+     * 
+     * @param instructions
+     *            the instruction list of a function/method
+     * @param idx
+     *            the index in the instructions
+     * @return the state
+     */
+    @Nonnull
+    private UnsafeState findUnsafeState( List<WasmInstruction> instructions, int idx ) {
+        // find the field on which the offset is assign: long FIELD_OFFSET = UNSAFE.objectFieldOffset(...
+        WasmInstruction instr;
+        INSTR: do {
+            instr = instructions.get( idx + 1 );
+            switch( instr.getType() ) {
+                case Convert:
+                    idx++;
+                    continue INSTR;
+                case Global:
+                    break;
+                default:
+                    throw new WasmException( "Unsupported assign operation for Unsafe filed offsetd: " + instr.getType(), -1 );
+            }
+            break;
+        } while( true );
+        FunctionName fieldNameWithOffset = ((WasmGlobalInstruction)instr).getFieldName();
+        UnsafeState state = unsafes.get( fieldNameWithOffset );
+        if( state == null ) {
+            unsafes.put( fieldNameWithOffset, state = new UnsafeState() );
+        }
+        return state;
+    }
+
+    /**
+     * Get the class name from the stack value. It is searching a WasmConstClassInstruction that produce the value of
+     * the stack value.
+     * 
+     * @param instructions
+     *            the instruction list of a function/method
+     * @param stackValue
+     *            the stack value (instruction and position that produce an stack value)
+     * @return the class name like: java/lang/String
+     */
+    @Nonnull
+    private static String getClassConst( List<WasmInstruction> instructions, StackValue stackValue ) {
+        WasmInstruction instr = stackValue.instr;
+        switch( instr.getType() ) {
+            case Local:
+                int slot = ((WasmLocalInstruction)instr).getSlot();
+                for( int i = stackValue.idx - 1; i >= 0; i-- ) {
+                    instr = instructions.get( i );
+                    if( instr.getType() == Type.Local ) {
+                        WasmLocalInstruction loadInstr = (WasmLocalInstruction)instr;
+                        if( loadInstr.getSlot() == slot && loadInstr.getOperator() == VariableOperator.set ) {
+                            stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, i ), 1, instr.getCodePosition() );
+                            instr = stackValue.instr;
+                            break;
+                        }
+
+                    }
+                }
+                break;
+            default:
+        }
+        return ((WasmConstClassInstruction)instr).getValue();
     }
 
     /**
@@ -162,20 +265,15 @@ class UnsafeManager {
      * @param callInst
      *            the method call to Unsafe
      */
-    private void patch_objectFieldOffset( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
-        // find the field on which the offset is assign: long FIELD_OFFSET = UNSAFE.objectFieldOffset(...
-        WasmInstruction instr = instructions.get( idx + 1 );
-        FunctionName fieldNameWithOffset = ((WasmGlobalInstruction)instr).getFieldName();
-        UnsafeState state = unsafes.get( fieldNameWithOffset );
-        if( state == null ) {
-            unsafes.put( fieldNameWithOffset, state = new UnsafeState() );
-        }
+    private void patch_objectFieldOffset_Java8( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+        UnsafeState state = findUnsafeState( instructions, idx );
 
         // objectFieldOffset() has 2 parameters THIS(Unsafe) and a Field
-        int from = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), 2, callInst.getCodePosition() ).idx;
+        List<WasmInstruction> paramInstructions = instructions.subList( 0, idx );
+        int from = StackInspector.findInstructionThatPushValue( paramInstructions, 2, callInst.getCodePosition() ).idx;
 
-        StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), 1, callInst.getCodePosition() );
-        instr = stackValue.instr;
+        StackValue stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, 1, callInst.getCodePosition() );
+        WasmInstruction instr = stackValue.instr;
         WasmCallInstruction fieldInst = (WasmCallInstruction)instr;
 
         FunctionName fieldFuncName = fieldInst.getFunctionName();
@@ -186,24 +284,7 @@ class UnsafeManager {
 
                 // find the class value on which getDeclaredField is called
                 stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, stackValue.idx ), 1, fieldInst.getCodePosition() );
-                instr = stackValue.instr;
-                switch( instr.getType() ) {
-                    case Local:
-                        int slot = ((WasmLocalInstruction)instr).getSlot();
-                        for( int i = stackValue.idx - 1; i >= 0; i-- ) {
-                            instr = instructions.get( i );
-                            if( instr.getType() == Type.Local ) {
-                                WasmLocalInstruction loadInstr = (WasmLocalInstruction)instr;
-                                if( loadInstr.getSlot() == slot && loadInstr.getOperator() == VariableOperator.set ) {
-                                    stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, i ), 1, fieldInst.getCodePosition() );
-                                    instr = stackValue.instr;
-                                }
-
-                            }
-                        }
-                        break;
-                }
-                state.typeName = ((WasmConstClassInstruction)instr).getValue();
+                state.typeName = getClassConst( instructions, stackValue );
                 break;
 
             default:
@@ -211,6 +292,76 @@ class UnsafeManager {
         }
 
         nop( instructions, from, idx + 2 );
+    }
+
+    /**
+     * Patch a method call to Unsafe.objectFieldOffset() and find the parameter for other patch operations.
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     */
+    private void patch_objectFieldOffset_Java11( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+        UnsafeState state = findUnsafeState( instructions, idx );
+
+        // objectFieldOffset() has 3 parameters THIS(Unsafe), class and the fieldname
+        List<WasmInstruction> paramInstructions = instructions.subList( 0, idx );
+        int from = StackInspector.findInstructionThatPushValue( paramInstructions, 3, callInst.getCodePosition() ).idx;
+
+        StackValue stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, 1, callInst.getCodePosition() );
+        state.fieldName = ((WasmConstStringInstruction)stackValue.instr).getValue();
+
+        // find the class value on which getDeclaredField is called
+        stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, 2, callInst.getCodePosition() );
+        state.typeName = getClassConst( instructions, stackValue );
+
+        nop( instructions, from, idx + 2 );
+    }
+
+    /**
+     * Patch a method call to Unsafe.arrayBaseOffset() and find the parameter for other patch operations.
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     */
+    private void patch_arrayBaseOffset( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+        UnsafeState state = findUnsafeState( instructions, idx );
+
+        // objectFieldOffset() has 2 parameters THIS(Unsafe) and a Class from an array
+        List<WasmInstruction> paramInstructions = instructions.subList( 0, idx );
+        int from = StackInspector.findInstructionThatPushValue( paramInstructions, 2, callInst.getCodePosition() ).idx;
+
+        StackValue stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, 1, callInst.getCodePosition() );
+        state.typeName = getClassConst( instructions, stackValue );
+
+        nop( instructions, from, idx );
+        // we put the constant value 0 on the stack, we does not need array base offset in WASM
+        instructions.set( idx, new WasmConstNumberInstruction( 0, callInst.getCodePosition(), callInst.getLineNumber() ) );
+    }
+
+    /**
+     * Patch method call to Unsafe.arrayIndexScale()
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     */
+    private void patch_arrayIndexScale( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+        int from = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), 2, callInst.getCodePosition() ).idx;
+
+        nop( instructions, from, idx );
+        // we put the constant value 1 on the stack because we does not want shift array positions
+        instructions.set( idx, new WasmConstNumberInstruction( 1, callInst.getCodePosition(), callInst.getLineNumber() ) );
     }
 
     /**
@@ -228,7 +379,7 @@ class UnsafeManager {
      *            the function parameter with the field offset. This must be a long (Java signature "J"). The THIS
      *            parameter has the index 0.
      */
-    private void patchFunction( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, FunctionName name, int fieldNameParam ) {
+    private void patchFieldFunction( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, FunctionName name, int fieldNameParam ) {
         StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), fieldNameParam, callInst.getCodePosition() );
         FunctionName fieldNameWithOffset = ((WasmGlobalInstruction)stackValue.instr).getFieldName();
         WatCodeSyntheticFunctionName func =
@@ -296,6 +447,58 @@ class UnsafeManager {
                 break;
             }
         }
+    }
+
+    /**
+     * Patch an unsafe function that access a field
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     */
+    private void patch_getLongUnaligned( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, FunctionName name ) {
+        WatCodeSyntheticFunctionName func = new WatCodeSyntheticFunctionName( "", name.methodName, name.signature, "unreachable", (AnyType[])null );
+        functions.markAsNeeded( func, false );
+        WasmCallInstruction call = new WasmCallInstruction( func, callInst.getCodePosition(), callInst.getLineNumber(), callInst.getTypeManager(), false );
+        instructions.set( idx, call );
+    }
+
+    /**
+     * Patch an unsafe function that access a field
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     */
+    private void patch_isBigEndian( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst ) {
+//        int from = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), 1, callInst.getCodePosition() ).idx;
+//
+//        nop( instructions, from, idx );
+
+        // on x86 use little endian
+        instructions.set( idx, new WasmConstNumberInstruction( 0, callInst.getCodePosition(), callInst.getLineNumber() ) );
+    }
+
+    /**
+     * Patch an unsafe function that access a field
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     */
+    private void remove( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst ) {
+        int from = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), 1, callInst.getCodePosition() ).idx;
+
+        nop( instructions, from, idx + 1 );
     }
 
     /**
