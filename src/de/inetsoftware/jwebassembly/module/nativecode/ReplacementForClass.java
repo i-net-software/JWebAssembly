@@ -336,6 +336,14 @@ class ReplacementForClass<T> {
     }
 
     /**
+     * Get the declaring class
+     * @return the declaring class for this class
+     */
+    private Class<?> getDeclaringClass0() {
+        return null;
+    }
+
+    /**
      * Replacement of the Java method getSimpleName()
      * 
      * @return the simple name of the underlying class

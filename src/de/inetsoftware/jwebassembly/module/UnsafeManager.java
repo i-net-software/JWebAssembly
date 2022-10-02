@@ -163,8 +163,15 @@ class UnsafeManager {
             case "jdk/internal/misc/Unsafe.isBigEndian()Z":
                 patch_isBigEndian( instructions, idx, callInst );
                 break;
+            case "jdk/internal/misc/Unsafe.shouldBeInitialized(Ljava/lang/Class;)Z":
+                replaceWithConstNumber( instructions, idx, callInst, 2, 0 );
+                break;
             case "jdk/internal/misc/Unsafe.storeFence()V":
-                remove( instructions, idx, callInst );
+                remove( instructions, idx, callInst, 1 );
+                break;
+            case "jdk/internal/misc/Unsafe.ensureClassInitialized(Ljava/lang/Class;)V":
+            case "jdk/internal/misc/Unsafe.unpark(Ljava/lang/Object;)V":
+                remove( instructions, idx, callInst, 2 );
                 break;
             default:
                 throw new WasmException( "Unsupported Unsafe method: " + name.signatureName, -1 );
@@ -495,8 +502,27 @@ class UnsafeManager {
      * @param callInst
      *            the method call to Unsafe
      */
-    private void remove( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst ) {
+    private void replaceWithConstNumber( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, int paramCount, int number ) {
         int from = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), 1, callInst.getCodePosition() ).idx;
+
+        nop( instructions, from, idx );
+
+        // on x86 use little endian
+        instructions.set( idx, new WasmConstNumberInstruction( number, callInst.getCodePosition(), callInst.getLineNumber() ) );
+    }
+
+    /**
+     * Patch an unsafe function that access a field
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     */
+    private void remove( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, int paramCount ) {
+        int from = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), paramCount, callInst.getCodePosition() ).idx;
 
         nop( instructions, from, idx + 1 );
     }
