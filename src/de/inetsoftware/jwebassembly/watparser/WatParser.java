@@ -113,6 +113,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "i64.const":
                         addConstInstruction( Long.parseLong( get( tokens, ++i ) ), ValueType.i64, javaCodePos, lineNumber );
                         break;
+                    case "i64.add":
+                        addNumericInstruction( NumericOperator.add, ValueType.i64, javaCodePos, lineNumber );
+                        break;
                     case "i64.eq":
                         addNumericInstruction( NumericOperator.eq, ValueType.i64, javaCodePos, lineNumber );
                         break;
