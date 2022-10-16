@@ -130,6 +130,7 @@ class UnsafeManager {
                 patch_getUnsafe( instructions, idx );
                 break;
             case "sun/misc/Unsafe.objectFieldOffset(Ljava/lang/reflect/Field;)J":
+            case "jdk/internal/misc/Unsafe.objectFieldOffset(Ljava/lang/reflect/Field;)J":
                 patch_objectFieldOffset_Java8( instructions, idx, callInst );
                 break;
             case "jdk/internal/misc/Unsafe.objectFieldOffset(Ljava/lang/Class;Ljava/lang/String;)J":
@@ -150,14 +151,21 @@ class UnsafeManager {
             case "jdk/internal/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.putIntRelease(Ljava/lang/Object;JI)V":
+            case "jdk/internal/misc/Unsafe.putObject(Ljava/lang/Object;JLjava/lang/Object;)V":
+            case "jdk/internal/misc/Unsafe.getObjectAcquire(Ljava/lang/Object;J)Ljava/lang/Object;":
                 patchFieldFunction( instructions, idx, callInst, name, 2 );
                 break;
             case "sun/misc/Unsafe.compareAndSwapInt(Ljava/lang/Object;JII)Z":
+            case "sun/misc/Unsafe.compareAndSwapLong(Ljava/lang/Object;JJJ)Z":
             case "jdk/internal/misc/Unsafe.compareAndSetInt(Ljava/lang/Object;JII)Z":
+            case "jdk/internal/misc/Unsafe.compareAndSetLong(Ljava/lang/Object;JJJ)Z":
+            case "jdk/internal/misc/Unsafe.compareAndSetObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z":
                 patchFieldFunction( instructions, idx, callInst, name, 3 );
                 break;
             case "jdk/internal/misc/Unsafe.getLongUnaligned(Ljava/lang/Object;J)J":
             case "jdk/internal/misc/Unsafe.getIntUnaligned(Ljava/lang/Object;J)I":
+            case "jdk/internal/misc/Unsafe.getCharUnaligned(Ljava/lang/Object;JZ)C":
+            case "jdk/internal/misc/Unsafe.getIntUnaligned(Ljava/lang/Object;JZ)I":
                 patch_getLongUnaligned( instructions, idx, callInst, name );
                 break;
             case "jdk/internal/misc/Unsafe.isBigEndian()Z":
@@ -172,6 +180,9 @@ class UnsafeManager {
             case "jdk/internal/misc/Unsafe.ensureClassInitialized(Ljava/lang/Class;)V":
             case "jdk/internal/misc/Unsafe.unpark(Ljava/lang/Object;)V":
                 remove( instructions, idx, callInst, 2 );
+                break;
+            case "jdk/internal/misc/Unsafe.park(ZJ)V":
+                remove( instructions, idx, callInst, 3 );
                 break;
             default:
                 throw new WasmException( "Unsupported Unsafe method: " + name.signatureName, -1 );
@@ -207,16 +218,26 @@ class UnsafeManager {
     private UnsafeState findUnsafeState( List<WasmInstruction> instructions, int idx ) {
         // find the field on which the offset is assign: long FIELD_OFFSET = UNSAFE.objectFieldOffset(...
         WasmInstruction instr;
+        idx++;
         INSTR: do {
-            instr = instructions.get( idx + 1 );
+            instr = instructions.get( idx );
             switch( instr.getType() ) {
                 case Convert:
                     idx++;
                     continue INSTR;
                 case Global:
                     break;
+                case Jump:
+                    int pos = ((JumpInstruction)instr).getJumpPosition();
+                    for( idx++; idx < instructions.size(); idx++) {
+                        instr = instructions.get( idx );
+                        if( instr.getCodePosition() >= pos ) {
+                            break;
+                        }
+                    }
+                    continue INSTR;
                 default:
-                    throw new WasmException( "Unsupported assign operation for Unsafe filed offsetd: " + instr.getType(), -1 );
+                    throw new WasmException( "Unsupported assign operation for Unsafe field offset: " + instr.getType(), -1 );
             }
             break;
         } while( true );
@@ -400,10 +421,12 @@ class UnsafeManager {
                                 }
                                 switch( name.methodName ) {
                                     case "compareAndSwapInt":
+                                    case "compareAndSwapLong":
+                                        AnyType[] paramTypes = callInst.getPopValueTypes();
                                         return "local.get 0" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
-                                                        + " local.get 2" // expected
-                                                        + " i32.eq" //
+                                                        + " local.get 2 " // expected
+                                                        + paramTypes[3] + ".eq" //
                                                         + " if" //
                                                         + "   local.get 0" // THIS
                                                         + "   local.get 3" // update
