@@ -147,16 +147,25 @@ class UnsafeManager {
             case "sun/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "sun/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
             case "sun/misc/Unsafe.putOrderedInt(Ljava/lang/Object;JI)V":
+            case "sun/misc/Unsafe.getAndAddLong(Ljava/lang/Object;JJ)J":
+            case "sun/misc/Unsafe.getAndSetLong(Ljava/lang/Object;JJ)J":
+            case "sun/misc/Unsafe.putOrderedLong(Ljava/lang/Object;JJ)V":
             case "sun/misc/Unsafe.getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;":
+            case "sun/misc/Unsafe.putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V":
             case "jdk/internal/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.putIntRelease(Ljava/lang/Object;JI)V":
+            case "jdk/internal/misc/Unsafe.getAndAddLong(Ljava/lang/Object;JJ)J":
+            case "jdk/internal/misc/Unsafe.getAndSetLong(Ljava/lang/Object;JJ)J":
+            case "jdk/internal/misc/Unsafe.putLongRelease(Ljava/lang/Object;JJ)V":
+            case "jdk/internal/misc/Unsafe.putLongVolatile(Ljava/lang/Object;JJ)V":
             case "jdk/internal/misc/Unsafe.putObject(Ljava/lang/Object;JLjava/lang/Object;)V":
             case "jdk/internal/misc/Unsafe.getObjectAcquire(Ljava/lang/Object;J)Ljava/lang/Object;":
                 patchFieldFunction( instructions, idx, callInst, name, 2 );
                 break;
             case "sun/misc/Unsafe.compareAndSwapInt(Ljava/lang/Object;JII)Z":
             case "sun/misc/Unsafe.compareAndSwapLong(Ljava/lang/Object;JJJ)Z":
+            case "sun/misc/Unsafe.compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z":
             case "jdk/internal/misc/Unsafe.compareAndSetInt(Ljava/lang/Object;JII)Z":
             case "jdk/internal/misc/Unsafe.compareAndSetLong(Ljava/lang/Object;JJJ)Z":
             case "jdk/internal/misc/Unsafe.compareAndSetObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z":
@@ -419,10 +428,10 @@ class UnsafeManager {
                                     // we are in the scan phase. The static code was not scanned yet.
                                     return "";
                                 }
+                                AnyType[] paramTypes = callInst.getPopValueTypes();
                                 switch( name.methodName ) {
                                     case "compareAndSwapInt":
                                     case "compareAndSwapLong":
-                                        AnyType[] paramTypes = callInst.getPopValueTypes();
                                         return "local.get 0" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
                                                         + " local.get 2 " // expected
@@ -438,17 +447,19 @@ class UnsafeManager {
                                                         + " return";
 
                                     case "getAndAddInt":
+                                    case "getAndAddLong":
                                         return "local.get 0" // THIS
                                                         + " local.get 0" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
                                                         + " local.tee 3" // temp
-                                                        + " local.get 2" // delta
-                                                        + " i32.add" //
+                                                        + " local.get 2 " // delta
+                                                        + paramTypes[3] + ".add" //
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName //
                                                         + " local.get 3" // temp
                                                         + " return";
 
                                     case "getAndSetInt":
+                                    case "getAndSetLong":
                                         return "local.get 0" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
                                                         + " local.get 0" // THIS
@@ -457,6 +468,7 @@ class UnsafeManager {
                                                         + " return";
 
                                     case "putOrderedInt":
+                                    case "putOrderedLong":
                                         return "local.get 0" // THIS
                                                         + " local.get 2" // x
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName;
