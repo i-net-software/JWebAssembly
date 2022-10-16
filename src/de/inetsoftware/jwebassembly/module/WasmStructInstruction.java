@@ -120,7 +120,9 @@ class WasmStructInstruction extends WasmInstruction {
                             js.append( type.getVTable() );
                         } else {
                             AnyType fieldType = storageType.getType();
-                            if( fieldType instanceof ValueType && fieldType != ValueType.externref ) {
+                            if( fieldType == ValueType.i64 ) {
+                                js.append( "0n" );
+                            } else if( fieldType instanceof ValueType && fieldType != ValueType.externref ) {
                                 js.append( '0' );
                             } else {
                                 js.append( "null" );
