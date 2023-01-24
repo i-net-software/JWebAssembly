@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2022 Volker Berlin (i-net software)
+   Copyright 2018 - 2023 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -226,6 +226,9 @@ public class WatParser extends WasmCodeBuilder {
                         break;
                     case "ref.is_null":
                         addNumericInstruction( NumericOperator.ifnull, ValueType.i32, javaCodePos, lineNumber );
+                        break;
+                    case "ref.eq":
+                        addNumericInstruction( NumericOperator.ref_eq, ValueType.i32, javaCodePos, lineNumber );
                         break;
                     case "table.get":
                         addTableInstruction( true, getInt( tokens, ++i), javaCodePos, lineNumber );

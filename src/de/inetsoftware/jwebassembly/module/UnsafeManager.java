@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Volker Berlin (i-net software)
+ * Copyright 2023 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
 /**
@@ -152,6 +153,7 @@ class UnsafeManager {
             case "sun/misc/Unsafe.putOrderedLong(Ljava/lang/Object;JJ)V":
             case "sun/misc/Unsafe.getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;":
             case "sun/misc/Unsafe.putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V":
+            case "sun/misc/Unsafe.getAndSetObject(Ljava/lang/Object;JLjava/lang/Object;)Ljava/lang/Object;":
             case "jdk/internal/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.putIntRelease(Ljava/lang/Object;JI)V":
@@ -432,10 +434,15 @@ class UnsafeManager {
                                 switch( name.methodName ) {
                                     case "compareAndSwapInt":
                                     case "compareAndSwapLong":
+                                    case "compareAndSwapObject":
+                                        AnyType type = paramTypes[3];
+                                        if( type.isRefType() ) {
+                                            type = ValueType.ref;
+                                        }
                                         return "local.get 0" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
                                                         + " local.get 2 " // expected
-                                                        + paramTypes[3] + ".eq" //
+                                                        + type + ".eq" //
                                                         + " if" //
                                                         + "   local.get 0" // THIS
                                                         + "   local.get 3" // update
@@ -460,6 +467,7 @@ class UnsafeManager {
 
                                     case "getAndSetInt":
                                     case "getAndSetLong":
+                                    case "getAndSetObject":
                                         return "local.get 0" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
                                                         + " local.get 0" // THIS
@@ -469,6 +477,7 @@ class UnsafeManager {
 
                                     case "putOrderedInt":
                                     case "putOrderedLong":
+                                    case "putOrderedObject":
                                         return "local.get 0" // THIS
                                                         + " local.get 2" // x
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName;
