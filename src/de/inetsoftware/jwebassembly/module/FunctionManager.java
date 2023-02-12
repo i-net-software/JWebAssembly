@@ -202,6 +202,14 @@ class FunctionManager {
     }
 
     /**
+     * If the function manager is finish
+     * @return the finish flag
+     */
+    boolean isFinish() {
+        return isFinish;
+    }
+
+    /**
      * Mark the a function as scanned in the prepare phase. This should only occur with needed functions.
      * 
      * @param name

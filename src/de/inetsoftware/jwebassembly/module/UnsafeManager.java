@@ -472,6 +472,9 @@ class UnsafeManager {
                                     }
                                 }
                                 if( state == null ) {
+                                    if( functions.isFinish() ) {
+                                        throw new RuntimeException( name.signatureName );
+                                    }
                                     // we are in the scan phase. The static code was not scanned yet.
                                     return "";
                                 }
