@@ -173,6 +173,7 @@ class FunctionManager {
             switch( name.className ) {
                 case UnsafeManager.UNSAFE_8:
                 case UnsafeManager.UNSAFE_11:
+                case UnsafeManager.VARHANDLE:
                     // Unsafe method call will be replaces by the UnsafeManager
                     return name;
             }

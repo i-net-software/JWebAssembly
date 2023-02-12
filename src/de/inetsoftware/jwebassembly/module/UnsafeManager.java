@@ -15,8 +15,11 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -72,6 +75,9 @@ class UnsafeManager {
     /** Unsafe class bane in Java 11 */
     static final String                              UNSAFE_11 = "jdk/internal/misc/Unsafe";
 
+    /** VARHANDLE as modern replacement of Unsafe */
+    static final String                              VARHANDLE = "java/lang/invoke/VarHandle";
+
     @Nonnull
     private final FunctionManager                    functions;
 
@@ -105,6 +111,9 @@ class UnsafeManager {
                         case UNSAFE_8:
                         case UNSAFE_11:
                             patch( instructions, i, callInst );
+                            break;
+                        case VARHANDLE:
+                            patchVarHandle( instructions, i, callInst );
                             break;
                     }
                     break;
@@ -145,14 +154,21 @@ class UnsafeManager {
             case "jdk/internal/misc/Unsafe.arrayIndexScale(Ljava/lang/Class;)I":
                 patch_arrayIndexScale( instructions, idx, callInst );
                 break;
+            case "sun/misc/Unsafe.getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;":
+            case "sun/misc/Unsafe.getInt(Ljava/lang/Object;J)I":
+                patchFieldFunction( instructions, idx, callInst, name, 1 );
+                break;
             case "sun/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "sun/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
             case "sun/misc/Unsafe.putOrderedInt(Ljava/lang/Object;JI)V":
+            case "sun/misc/Unsafe.putInt(Ljava/lang/Object;JI)V":
             case "sun/misc/Unsafe.getAndAddLong(Ljava/lang/Object;JJ)J":
             case "sun/misc/Unsafe.getAndSetLong(Ljava/lang/Object;JJ)J":
             case "sun/misc/Unsafe.putOrderedLong(Ljava/lang/Object;JJ)V":
-            case "sun/misc/Unsafe.getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;":
+            case "sun/misc/Unsafe.putLong(Ljava/lang/Object;JJ)V":
             case "sun/misc/Unsafe.putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V":
+            case "sun/misc/Unsafe.putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V":
+            case "sun/misc/Unsafe.putObject(Ljava/lang/Object;JLjava/lang/Object;)V":
             case "sun/misc/Unsafe.getAndSetObject(Ljava/lang/Object;JLjava/lang/Object;)Ljava/lang/Object;":
             case "jdk/internal/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
@@ -190,8 +206,10 @@ class UnsafeManager {
                 break;
             case "jdk/internal/misc/Unsafe.ensureClassInitialized(Ljava/lang/Class;)V":
             case "jdk/internal/misc/Unsafe.unpark(Ljava/lang/Object;)V":
+            case "sun/misc/Unsafe.unpark(Ljava/lang/Object;)V":
                 remove( instructions, idx, callInst, 2 );
                 break;
+            case "sun/misc/Unsafe.park(ZJ)V":
             case "jdk/internal/misc/Unsafe.park(ZJ)V":
                 remove( instructions, idx, callInst, 3 );
                 break;
@@ -415,17 +433,44 @@ class UnsafeManager {
      * @param name
      *            the calling function
      * @param fieldNameParam
-     *            the function parameter with the field offset. This must be a long (Java signature "J"). The THIS
-     *            parameter has the index 0.
+     *            the function parameter on the stack with the field offset on the stack. This must be a long (Java signature "J") for Unsafe. This is the parameter count from right.
      */
     private void patchFieldFunction( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, FunctionName name, int fieldNameParam ) {
         StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), fieldNameParam, callInst.getCodePosition() );
-        FunctionName fieldNameWithOffset = ((WasmGlobalInstruction)stackValue.instr).getFieldName();
+        WasmInstruction instr = stackValue.instr;
+
+        Set<FunctionName> fieldNames;
+        FunctionName fieldNameWithOffset = null;
+        if( instr.getType() == Type.Global ) {
+            fieldNameWithOffset = ((WasmGlobalInstruction)instr).getFieldName();
+            fieldNames = Collections.singleton( fieldNameWithOffset );
+        } else {
+            // java.util.concurrent.ConcurrentHashMap.tabAt() calculate a value with the field
+            fieldNames = new HashSet<>();
+            int pos2 = stackValue.idx;
+            stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), fieldNameParam + 1, callInst.getCodePosition() );
+            int i = stackValue.idx;
+            for( ; i < pos2; i++ ) {
+                instr = instructions.get( i );
+                if( instr.getType() != Type.Global ) {
+                    continue;
+                }
+                fieldNameWithOffset = ((WasmGlobalInstruction)instr).getFieldName();
+                fieldNames.add( fieldNameWithOffset );
+            }
+        }
+
         WatCodeSyntheticFunctionName func =
                         new WatCodeSyntheticFunctionName( fieldNameWithOffset.className, '.' + name.methodName, name.signature, "", (AnyType[])null ) {
                             @Override
                             protected String getCode() {
-                                UnsafeState state = unsafes.get( fieldNameWithOffset );
+                                UnsafeState state = null;
+                                for(FunctionName fieldNameWithOffset : fieldNames ) {
+                                    state = unsafes.get( fieldNameWithOffset );
+                                    if( state != null ) {
+                                        break;
+                                    }
+                                }
                                 if( state == null ) {
                                     // we are in the scan phase. The static code was not scanned yet.
                                     return "";
@@ -476,8 +521,12 @@ class UnsafeManager {
                                                         + " return";
 
                                     case "putOrderedInt":
+                                    case "putInt":
                                     case "putOrderedLong":
+                                    case "putLong":
                                     case "putOrderedObject":
+                                    case "putObjectVolatile":
+                                    case "putObject":
                                         return "local.get 0" // THIS
                                                         + " local.get 2" // x
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName;
@@ -492,7 +541,7 @@ class UnsafeManager {
 
         // a virtual method call has also a DUP of this because we need for virtual method dispatch the parameter 2 times.
         for( int i = idx; i >= 0; i-- ) {
-            WasmInstruction instr = instructions.get( i );
+            instr = instructions.get( i );
             if( instr.getType() == Type.DupThis && ((DupThis)instr).getValue() == callInst ) {
                 nop( instructions, i, i + 1 );
                 break;
@@ -585,6 +634,70 @@ class UnsafeManager {
         for( int i = from; i < to; i++ ) {
             WasmInstruction instr = instructions.get( i );
             instructions.set( i, new WasmNopInstruction( instr.getCodePosition(), instr.getLineNumber() ) );
+        }
+    }
+
+    private void patchVarHandle( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+        FunctionName name = callInst.getFunctionName();
+        switch( name.methodName ) {
+            case "getAndSet":
+                patchVarHandleFieldFunction( instructions, idx, callInst, name, 3 );
+                break;
+        }
+    }
+
+    /**
+     * Patch an unsafe function that access a field
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     * @param name
+     *            the calling function
+     * @param fieldNameParam
+     *            the function parameter with the field offset on the stack. This must be a long (Java signature "J") for Unsafe.
+     */
+    private void patchVarHandleFieldFunction( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, FunctionName name, int fieldNameParam ) {
+        StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), fieldNameParam, callInst.getCodePosition() );
+        FunctionName fieldNameWithOffset = ((WasmGlobalInstruction)stackValue.instr).getFieldName();
+        WatCodeSyntheticFunctionName func =
+                        new WatCodeSyntheticFunctionName( fieldNameWithOffset.className, '.' + name.methodName, name.signature, "", (AnyType[])null ) {
+                            @Override
+                            protected String getCode() {
+                                UnsafeState state = unsafes.get( fieldNameWithOffset );
+                                if( state == null ) {
+                                    // we are in the scan phase. The static code was not scanned yet.
+                                    return "";
+                                }
+                                AnyType[] paramTypes = callInst.getPopValueTypes();
+                                switch( name.methodName ) {
+                                    case "getAndSet":
+                                        return "local.get 1" // THIS
+                                                        + " struct.get " + state.typeName + ' ' + state.fieldName //
+                                                        + " local.get 1" // THIS
+                                                        + " local.get 2" // newValue
+                                                        + " struct.set " + state.typeName + ' ' + state.fieldName //
+                                                        + " return";
+
+                                }
+
+                                throw new RuntimeException( name.signatureName );
+                            }
+                        };
+        functions.markAsNeeded( func, false );
+        WasmCallInstruction call = new WasmCallInstruction( func, callInst.getCodePosition(), callInst.getLineNumber(), callInst.getTypeManager(), false );
+        instructions.set( idx, call );
+
+        // a virtual method call has also a DUP of this because we need for virtual method dispatch the parameter 2 times.
+        for( int i = idx; i >= 0; i-- ) {
+            WasmInstruction instr = instructions.get( i );
+            if( instr.getType() == Type.DupThis && ((DupThis)instr).getValue() == callInst ) {
+                nop( instructions, i, i + 1 );
+                break;
+            }
         }
     }
 

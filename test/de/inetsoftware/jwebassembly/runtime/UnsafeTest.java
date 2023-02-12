@@ -19,10 +19,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 import org.junit.ClassRule;
 import org.junit.runners.Parameterized.Parameters;
 
+import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
@@ -51,8 +54,14 @@ public class UnsafeTest extends AbstractBaseTest {
             addParam( list, script, "getAndAddLong" );
             addParam( list, script, "getAndSetLong" );
             addParam( list, script, "lazySetLong" );
+            addParam( list, script, "compareAndSwapReference" );
+            addParam( list, script, "getAndSetReference" );
+            addParam( list, script, "lazySetReference" );
         }
         rule.setTestParameters( list );
+        JWebAssembly.LOGGER.setLevel( Level.FINE );
+        rule.setProperty( JWebAssembly.IGNORE_NATIVE, "true" );
+
         return list;
     }
 
@@ -132,6 +141,34 @@ public class UnsafeTest extends AbstractBaseTest {
         @Export
         static long lazySetLong() {
             AtomicLong obj = new AtomicLong();
+            obj.lazySet( 42 );
+            return obj.get();
+        }
+
+        @Export
+        static int compareAndSwapReference() {
+            AtomicReference<Integer> obj = new AtomicReference<>();
+            if( obj.compareAndSet( null, 25 ) ) {
+                return obj.get();
+            } else {
+                return 42;
+            }
+        }
+
+        @Export
+        static int getAndSetReference() {
+            AtomicReference<Integer> obj = new AtomicReference<>();
+            obj.set( 13 );
+            if( obj.getAndSet( 25 ) == 13 ) {
+                return obj.get();
+            } else {
+                return 42;
+            }
+        }
+
+        @Export
+        static int lazySetReference() {
+            AtomicReference<Integer> obj = new AtomicReference<>();
             obj.lazySet( 42 );
             return obj.get();
         }
