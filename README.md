@@ -1,6 +1,7 @@
 # JWebAssembly
 
-[![Build Status](https://api.travis-ci.com/i-net-software/JWebAssembly.svg)](https://app.travis-ci.com/github/i-net-software/JWebAssembly)
+[![Github Build Status](https://github.com/i-net-software/JWebAssembly/actions/workflows/build.yml/badge.svg)](https://github.com/i-net-software/JWebAssembly/actions/workflows/build.yml)
+[![Travis Build Status](https://api.travis-ci.com/i-net-software/JWebAssembly.svg)](https://app.travis-ci.com/github/i-net-software/JWebAssembly)
 [![License](https://img.shields.io/github/license/i-net-software/jwebassembly.svg)](https://github.com/i-net-software/jwebassembly/blob/master/LICENSE.txt)
 [![Coverage Status](https://coveralls.io/repos/github/i-net-software/JWebAssembly/badge.svg?branch=master)](https://coveralls.io/github/i-net-software/JWebAssembly?branch=master)
 [![Maven](https://img.shields.io/maven-central/v/de.inetsoftware/jwebassembly-compiler.svg)](https://mvnrepository.com/artifact/de.inetsoftware/jwebassembly-compiler)
