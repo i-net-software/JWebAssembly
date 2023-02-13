@@ -20,12 +20,10 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 
 import org.junit.ClassRule;
 import org.junit.runners.Parameterized.Parameters;
 
-import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.ScriptEngine;
 import de.inetsoftware.jwebassembly.WasmRule;
 import de.inetsoftware.jwebassembly.api.annotation.Export;
@@ -59,8 +57,6 @@ public class UnsafeTest extends AbstractBaseTest {
             addParam( list, script, "lazySetReference" );
         }
         rule.setTestParameters( list );
-        JWebAssembly.LOGGER.setLevel( Level.FINE );
-        rule.setProperty( JWebAssembly.IGNORE_NATIVE, "true" );
 
         return list;
     }
