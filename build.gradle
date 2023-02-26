@@ -67,12 +67,12 @@ jar {
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.java
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
@@ -106,8 +106,8 @@ apply plugin: 'jacoco'
 jacocoTestReport {
     tasks.coveralls.dependsOn it
     reports {
-        xml.enabled = true  // coveralls plugin depends on xml format report
-        html.enabled = true
+        xml.required = true  // coveralls plugin depends on xml format report
+        html.required = true
     }
 }
 check.dependsOn tasks.coveralls

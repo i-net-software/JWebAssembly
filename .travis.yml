@@ -1,5 +1,6 @@
 dist: jammy
 language: java
+gradle: 6.9.3
 
 jdk:
   - openjdk8
