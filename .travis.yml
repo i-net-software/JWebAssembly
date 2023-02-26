@@ -10,7 +10,7 @@ before_install:
   - unzip -qq gradle-6.9.3-bin.zip
   - export GRADLE_HOME=$PWD/gradle-6.9.3
   - export PATH=$GRADLE_HOME/bin:$PATH
-  - chmod +x gradlew
+  - gradle -v
 
 deploy:
   # deploy to Github
