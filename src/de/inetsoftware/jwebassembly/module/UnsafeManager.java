@@ -75,6 +75,9 @@ class UnsafeManager {
     /** Unsafe class bane in Java 11 */
     static final String                              UNSAFE_11 = "jdk/internal/misc/Unsafe";
 
+    /** Wrapper for Unsafe */
+    static final String                              FIELDUPDATER = "java/util/concurrent/atomic/AtomicReferenceFieldUpdater";
+
     /** VARHANDLE as modern replacement of Unsafe */
     static final String                              VARHANDLE = "java/lang/invoke/VarHandle";
 
@@ -110,6 +113,7 @@ class UnsafeManager {
                     switch( callInst.getFunctionName().className ) {
                         case UNSAFE_8:
                         case UNSAFE_11:
+                        case FIELDUPDATER:
                             patch( instructions, i, callInst );
                             break;
                         case VARHANDLE:
@@ -144,7 +148,10 @@ class UnsafeManager {
                 patch_objectFieldOffset_Java8( instructions, idx, callInst );
                 break;
             case "jdk/internal/misc/Unsafe.objectFieldOffset(Ljava/lang/Class;Ljava/lang/String;)J":
-                patch_objectFieldOffset_Java11( instructions, idx, callInst );
+                patch_objectFieldOffset_Java11( instructions, idx, callInst, false );
+                break;
+            case "java/util/concurrent/atomic/AtomicReferenceFieldUpdater.newUpdater(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;":
+                patch_objectFieldOffset_Java11( instructions, idx, callInst, true );
                 break;
             case "sun/misc/Unsafe.arrayBaseOffset(Ljava/lang/Class;)I":
             case "jdk/internal/misc/Unsafe.arrayBaseOffset(Ljava/lang/Class;)I":
@@ -156,6 +163,7 @@ class UnsafeManager {
                 break;
             case "sun/misc/Unsafe.getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;":
             case "sun/misc/Unsafe.getInt(Ljava/lang/Object;J)I":
+            case "sun/misc/Unsafe.getLong(Ljava/lang/Object;J)J":
                 patchFieldFunction( instructions, idx, callInst, name, 1 );
                 break;
             case "sun/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
@@ -188,6 +196,9 @@ class UnsafeManager {
             case "jdk/internal/misc/Unsafe.compareAndSetLong(Ljava/lang/Object;JJJ)Z":
             case "jdk/internal/misc/Unsafe.compareAndSetObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z":
                 patchFieldFunction( instructions, idx, callInst, name, 3 );
+                break;
+            case "java/util/concurrent/atomic/AtomicReferenceFieldUpdater.compareAndSet(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z":
+                patchFieldFunction( instructions, idx, callInst, name, 4 );
                 break;
             case "jdk/internal/misc/Unsafe.getLongUnaligned(Ljava/lang/Object;J)J":
             case "jdk/internal/misc/Unsafe.getIntUnaligned(Ljava/lang/Object;J)I":
@@ -360,8 +371,10 @@ class UnsafeManager {
      *            the index in the instructions
      * @param callInst
      *            the method call to Unsafe
+     * @param isAtomicReferenceFieldUpdater
+     *            true, if is AtomicReferenceFieldUpdater
      */
-    private void patch_objectFieldOffset_Java11( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+    private void patch_objectFieldOffset_Java11( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst, boolean isAtomicReferenceFieldUpdater ) {
         UnsafeState state = findUnsafeState( instructions, idx );
 
         // objectFieldOffset() has 3 parameters THIS(Unsafe), class and the fieldname
@@ -372,7 +385,8 @@ class UnsafeManager {
         state.fieldName = ((WasmConstStringInstruction)stackValue.instr).getValue();
 
         // find the class value on which getDeclaredField is called
-        stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, 2, callInst.getCodePosition() );
+        int classParamIdx = isAtomicReferenceFieldUpdater ? 3 : 2;
+        stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, classParamIdx, callInst.getCodePosition() );
         state.typeName = getClassConst( instructions, stackValue );
 
         nop( instructions, from, idx + 2 );
@@ -483,6 +497,7 @@ class UnsafeManager {
                                     case "compareAndSwapInt":
                                     case "compareAndSwapLong":
                                     case "compareAndSwapObject":
+                                    case "compareAndSet": // AtomicReferenceFieldUpdater
                                         AnyType type = paramTypes[3];
                                         if( type.isRefType() ) {
                                             type = ValueType.ref;
