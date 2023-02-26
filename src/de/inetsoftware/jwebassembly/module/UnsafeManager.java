@@ -502,13 +502,13 @@ class UnsafeManager {
                                         if( type.isRefType() ) {
                                             type = ValueType.ref;
                                         }
-                                        return "local.get 0" // THIS
+                                        return "local.get 1" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
-                                                        + " local.get 2 " // expected
+                                                        + " local.get 3 " // expected
                                                         + type + ".eq" //
                                                         + " if" //
-                                                        + "   local.get 0" // THIS
-                                                        + "   local.get 3" // update
+                                                        + "   local.get 1" // THIS
+                                                        + "   local.get 4" // update
                                                         + "   struct.set " + state.typeName + ' ' + state.fieldName //
                                                         + "   i32.const 1" //
                                                         + "   return" //
@@ -518,23 +518,23 @@ class UnsafeManager {
 
                                     case "getAndAddInt":
                                     case "getAndAddLong":
-                                        return "local.get 0" // THIS
-                                                        + " local.get 0" // THIS
+                                        return "local.get 1" // THIS
+                                                        + " local.get 1" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
-                                                        + " local.tee 3" // temp
-                                                        + " local.get 2 " // delta
+                                                        + " local.tee 4" // temp
+                                                        + " local.get 3 " // delta
                                                         + paramTypes[3] + ".add" //
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName //
-                                                        + " local.get 3" // temp
+                                                        + " local.get 4" // temp
                                                         + " return";
 
                                     case "getAndSetInt":
                                     case "getAndSetLong":
                                     case "getAndSetObject":
-                                        return "local.get 0" // THIS
+                                        return "local.get 1" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
-                                                        + " local.get 0" // THIS
-                                                        + " local.get 2" // newValue
+                                                        + " local.get 1" // THIS
+                                                        + " local.get 3" // newValue
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName //
                                                         + " return";
 
@@ -545,15 +545,15 @@ class UnsafeManager {
                                     case "putOrderedObject":
                                     case "putObjectVolatile":
                                     case "putObject":
-                                        return "local.get 0" // THIS
-                                                        + " local.get 2" // x
+                                        return "local.get 1" // THIS
+                                                        + " local.get 3" // x
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName;
                                 }
 
                                 throw new RuntimeException( name.signatureName );
                             }
                         };
-        functions.markAsNeeded( func, false );
+        functions.markAsNeeded( func, true ); // original function has an THIS parameter of the Unsafe instance, we need to consume it
         WasmCallInstruction call = new WasmCallInstruction( func, callInst.getCodePosition(), callInst.getLineNumber(), callInst.getTypeManager(), false );
         instructions.set( idx, call );
 
