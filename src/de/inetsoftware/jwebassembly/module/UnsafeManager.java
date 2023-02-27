@@ -549,6 +549,11 @@ class UnsafeManager {
                                         return "local.get 1" // THIS
                                                         + " local.get 3" // x
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName;
+
+                                    case "getObjectVolatile":
+                                        return "local.get 1" // array
+                                                        + " local.get 2" // the array index
+                                                        + " array.get " + state.typeName;
                                 }
 
                                 throw new RuntimeException( name.signatureName );

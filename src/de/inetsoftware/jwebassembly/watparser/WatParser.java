@@ -337,6 +337,11 @@ public class WatParser extends WasmCodeBuilder {
                         typeName = get( tokens, ++i );
                         addStructInstruction( StructOperator.NEW_WITH_RTT, typeName, null, javaCodePos, lineNumber );
                         break;
+                    case "array.get":
+                        typeName = get( tokens, ++i );
+                        type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
+                        addArrayInstruction( ArrayOperator.GET, type, javaCodePos, lineNumber );
+                        break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );
                 }
