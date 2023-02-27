@@ -502,13 +502,14 @@ class UnsafeManager {
                                         if( type.isRefType() ) {
                                             type = ValueType.ref;
                                         }
+                                        int paramOffset = "java/util/concurrent/atomic/AtomicReferenceFieldUpdater".equals( name.className ) ? -1 : 0;
                                         return "local.get 1" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
-                                                        + " local.get 3 " // expected
-                                                        + type + ".eq" //
+                                                        + " local.get " + (3 + paramOffset) // expected
+                                                        + " " + type + ".eq" //
                                                         + " if" //
                                                         + "   local.get 1" // THIS
-                                                        + "   local.get 4" // update
+                                                        + "   local.get " + (4 + paramOffset) // update
                                                         + "   struct.set " + state.typeName + ' ' + state.fieldName //
                                                         + "   i32.const 1" //
                                                         + "   return" //

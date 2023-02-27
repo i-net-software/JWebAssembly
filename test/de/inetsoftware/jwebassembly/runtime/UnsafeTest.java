@@ -15,6 +15,8 @@
  */
 package de.inetsoftware.jwebassembly.runtime;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,6 +57,7 @@ public class UnsafeTest extends AbstractBaseTest {
             addParam( list, script, "compareAndSwapReference" );
             addParam( list, script, "getAndSetReference" );
             addParam( list, script, "lazySetReference" );
+            addParam( list, script, "atomicReferenceFieldUpdater" );
         }
         rule.setTestParameters( list );
 
@@ -167,6 +170,14 @@ public class UnsafeTest extends AbstractBaseTest {
             AtomicReference<Integer> obj = new AtomicReference<>();
             obj.lazySet( 42 );
             return obj.get();
+        }
+
+        @Export
+        static int atomicReferenceFieldUpdater() throws Throwable {
+            ByteArrayInputStream input = new ByteArrayInputStream( new byte[0] );
+            BufferedInputStream stream = new BufferedInputStream( input );
+            stream.close();
+            return 42;
         }
     }
 }
