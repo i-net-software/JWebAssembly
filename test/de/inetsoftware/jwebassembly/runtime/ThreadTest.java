@@ -53,10 +53,10 @@ public class ThreadTest extends AbstractBaseTest {
     static class TestClass {
 
         @Export
-        static DOMString currentThreadName() {
+        static boolean currentThreadName() {
             Thread thread = Thread.currentThread();
-            String name = thread.getName();
-            return JSObject.domString( name );
+            String name = thread.getName(); // with Gradle the name is "Test worker"
+            return name.isEmpty();
         }
 
         @Export
