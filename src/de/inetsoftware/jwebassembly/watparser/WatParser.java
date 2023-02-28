@@ -246,7 +246,8 @@ public class WatParser extends WasmCodeBuilder {
                             } while ( !")".equals( str ) );
                             builder.append( get( tokens, ++i ) );
                             FunctionName name = new FunctionName( builder.substring( 1 ) );
-                            addCallInstruction( name, false, javaCodePos, lineNumber );
+                            boolean needThisParameter = "<init>".equals( name.methodName ); // TODO should be do lookup to the classLoader
+                            addCallInstruction( name, needThisParameter, javaCodePos, lineNumber );
                         } catch( Exception ex ) {
                             throw WasmException.create( "The syntax for a function name is $package.ClassName.methodName(paramSignature)returnSignature", ex );
                         }
@@ -336,6 +337,10 @@ public class WatParser extends WasmCodeBuilder {
                     case "struct.new_with_rtt":
                         typeName = get( tokens, ++i );
                         addStructInstruction( StructOperator.NEW_WITH_RTT, typeName, null, javaCodePos, lineNumber );
+                        break;
+                    case "struct.new_default": // Create instance without executing the constructor, works also with nonGC output
+                        typeName = get( tokens, ++i );
+                        addStructInstruction( StructOperator.NEW_DEFAULT, typeName, null, javaCodePos, lineNumber );
                         break;
                     case "array.get":
                         typeName = get( tokens, ++i );
