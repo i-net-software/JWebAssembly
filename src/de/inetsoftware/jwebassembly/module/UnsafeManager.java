@@ -182,6 +182,8 @@ class UnsafeManager {
             case "sun/misc/Unsafe.getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;":
             case "sun/misc/Unsafe.getInt(Ljava/lang/Object;J)I":
             case "sun/misc/Unsafe.getLong(Ljava/lang/Object;J)J":
+            case "jdk/internal/misc/Unsafe.getInt(Ljava/lang/Object;J)I":
+            case "jdk/internal/misc/Unsafe.getLong(Ljava/lang/Object;J)J":
                 patchFieldFunction( instructions, idx, callInst, name, 1 );
                 break;
             case "sun/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
@@ -199,12 +201,15 @@ class UnsafeManager {
             case "jdk/internal/misc/Unsafe.getAndAddInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.getAndSetInt(Ljava/lang/Object;JI)I":
             case "jdk/internal/misc/Unsafe.putIntRelease(Ljava/lang/Object;JI)V":
+            case "jdk/internal/misc/Unsafe.putInt(Ljava/lang/Object;JI)V":
             case "jdk/internal/misc/Unsafe.getAndAddLong(Ljava/lang/Object;JJ)J":
             case "jdk/internal/misc/Unsafe.getAndSetLong(Ljava/lang/Object;JJ)J":
             case "jdk/internal/misc/Unsafe.putLongRelease(Ljava/lang/Object;JJ)V":
             case "jdk/internal/misc/Unsafe.putLongVolatile(Ljava/lang/Object;JJ)V":
+            case "jdk/internal/misc/Unsafe.putLong(Ljava/lang/Object;JJ)V":
             case "jdk/internal/misc/Unsafe.putObject(Ljava/lang/Object;JLjava/lang/Object;)V":
             case "jdk/internal/misc/Unsafe.getObjectAcquire(Ljava/lang/Object;J)Ljava/lang/Object;":
+            case "jdk/internal/misc/Unsafe.putObjectRelease(Ljava/lang/Object;JLjava/lang/Object;)V":
                 patchFieldFunction( instructions, idx, callInst, name, 2 );
                 break;
             case "sun/misc/Unsafe.compareAndSwapInt(Ljava/lang/Object;JII)Z":
@@ -533,8 +538,11 @@ class UnsafeManager {
                                 AnyType[] paramTypes = callInst.getPopValueTypes();
                                 switch( name.methodName ) {
                                     case "compareAndSwapInt":
+                                    case "compareAndSetInt":
                                     case "compareAndSwapLong":
+                                    case "compareAndSetLong":
                                     case "compareAndSwapObject":
+                                    case "compareAndSetObject":
                                     case "compareAndSet": // AtomicReferenceFieldUpdater
                                         AnyType type = paramTypes[3];
                                         if( type.isRefType() ) {
@@ -603,9 +611,11 @@ class UnsafeManager {
                                     case "putInt":
                                     case "putOrderedLong":
                                     case "putLong":
+                                    case "putLongVolatile":
                                     case "putOrderedObject":
                                     case "putObjectVolatile":
                                     case "putObject":
+                                    case "putObjectRelease":
                                         if( state.fieldName != null ) {
                                             // field access
                                             return "local.get 1" // THIS
