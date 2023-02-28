@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2022 Volker Berlin (i-net software)
+ * Copyright 2018 - 2023 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ public abstract class WasmCodeBuilder {
      * @param classFileLoader
      *            for loading the class files
      */
-    void init( WasmOptions options, ClassFileLoader classFileLoader ) {
+    void init( @Nonnull WasmOptions options, @Nonnull ClassFileLoader classFileLoader ) {
         this.localVariables.init( options.types );
         this.types = options.types;
         this.functions = options.functions;
@@ -250,8 +250,18 @@ public abstract class WasmCodeBuilder {
      * 
      * @return the type manager
      */
+    @Nonnull
     protected TypeManager getTypeManager() {
         return types;
+    }
+
+    /**
+     * For loading missing class declarations
+     * @return the loader
+     */
+    @Nonnull
+    protected ClassFileLoader getClassFileLoader() {
+        return classFileLoader;
     }
 
     /**

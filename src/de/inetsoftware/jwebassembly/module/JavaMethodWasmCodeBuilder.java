@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2022 Volker Berlin (i-net software)
+ * Copyright 2018 - 2023 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,10 +65,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
      * {@inheritDoc}
      */
     @Override
-    void init( WasmOptions options, ClassFileLoader classFileLoader ) {
+    void init( @Nonnull WasmOptions options, @Nonnull ClassFileLoader classFileLoader ) {
         super.init( options, classFileLoader );
         this.branchManager = new BranchManager( options, getInstructions(), getLocalVariables() );
-        this.unsafeManager = new UnsafeManager( options.functions );
+        this.unsafeManager = new UnsafeManager( options, classFileLoader );
     }
 
     /**

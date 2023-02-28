@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,6 +59,7 @@ public class UnsafeTest extends AbstractBaseTest {
             addParam( list, script, "getAndSetReference" );
             addParam( list, script, "lazySetReference" );
             addParam( list, script, "atomicReferenceFieldUpdater" );
+            addParam( list, script, "putLong" );
         }
         rule.setTestParameters( list );
 
@@ -177,6 +179,12 @@ public class UnsafeTest extends AbstractBaseTest {
             ByteArrayInputStream input = new ByteArrayInputStream( new byte[0] );
             BufferedInputStream stream = new BufferedInputStream( input );
             stream.close();
+            return 42;
+        }
+
+        @Export
+        static int putLong() {
+            ThreadLocalRandom.current().nextInt();
             return 42;
         }
     }

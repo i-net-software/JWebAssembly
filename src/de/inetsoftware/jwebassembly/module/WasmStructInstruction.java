@@ -229,6 +229,7 @@ class WasmStructInstruction extends WasmInstruction {
                     }
                 }
                 comment = fieldName.getName();
+                assert idx >=0;
                 break;
             case INSTANCEOF:
             case CAST:

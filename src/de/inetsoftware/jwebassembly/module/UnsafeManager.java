@@ -15,6 +15,7 @@
  */
 package de.inetsoftware.jwebassembly.module;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,10 +24,12 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
@@ -84,16 +87,27 @@ class UnsafeManager {
     @Nonnull
     private final FunctionManager                    functions;
 
+    @Nonnull
+    private final TypeManager                        types;
+
+    @Nonnull
+    private final ClassFileLoader                    classFileLoader;
+
     private final HashMap<FunctionName, UnsafeState> unsafes   = new HashMap<>();
+
 
     /**
      * Create an instance of the manager
      * 
-     * @param functions
-     *            The function manager to register the synthetic functions.
+     * @param options
+     *            compiler option/properties
+     * @param classFileLoader
+     *            for loading the class files
      */
-    UnsafeManager( @Nonnull FunctionManager functions ) {
-        this.functions = functions;
+    UnsafeManager( @Nonnull WasmOptions options, @Nonnull ClassFileLoader classFileLoader ) {
+        this.functions = options.functions;
+        this.types = options.types;
+        this.classFileLoader = classFileLoader;
     }
 
     /**
@@ -101,8 +115,10 @@ class UnsafeManager {
      * 
      * @param instructions
      *            the instruction list of a function/method
+     * @throws IOException
+     *             If any I/O error occur
      */
-    void replaceUnsafe( List<WasmInstruction> instructions ) {
+    void replaceUnsafe( @Nonnull List<WasmInstruction> instructions ) throws IOException {
         // search for Unsafe function calls
         for( int i = 0; i < instructions.size(); i++ ) {
             WasmInstruction instr = instructions.get( i );
@@ -135,8 +151,10 @@ class UnsafeManager {
      *            the index in the instructions
      * @param callInst
      *            the method call to Unsafe
+     * @throws IOException
+     *             If any I/O error occur
      */
-    private void patch( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+    private void patch( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) throws IOException {
         FunctionName name = callInst.getFunctionName();
         switch( name.signatureName ) {
             case "sun/misc/Unsafe.getUnsafe()Lsun/misc/Unsafe;":
@@ -332,8 +350,10 @@ class UnsafeManager {
      *            the index in the instructions
      * @param callInst
      *            the method call to Unsafe
+     * @throws IOException
+     *             If any I/O error occur
      */
-    private void patch_objectFieldOffset_Java8( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+    private void patch_objectFieldOffset_Java8( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) throws IOException {
         UnsafeState state = findUnsafeState( instructions, idx );
 
         // objectFieldOffset() has 2 parameters THIS(Unsafe) and a Field
@@ -359,6 +379,7 @@ class UnsafeManager {
                 throw new WasmException( "Unsupported Unsafe method to get target field: " + fieldFuncName.signatureName, -1 );
         }
 
+        useFieldName( state );
         nop( instructions, from, idx + 2 );
     }
 
@@ -373,8 +394,10 @@ class UnsafeManager {
      *            the method call to Unsafe
      * @param isAtomicReferenceFieldUpdater
      *            true, if is AtomicReferenceFieldUpdater
+     * @throws IOException
+     *             If any I/O error occur
      */
-    private void patch_objectFieldOffset_Java11( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst, boolean isAtomicReferenceFieldUpdater ) {
+    private void patch_objectFieldOffset_Java11( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst, boolean isAtomicReferenceFieldUpdater ) throws IOException {
         UnsafeState state = findUnsafeState( instructions, idx );
 
         // objectFieldOffset() has 3 parameters THIS(Unsafe), class and the fieldname
@@ -389,6 +412,7 @@ class UnsafeManager {
         stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, classParamIdx, callInst.getCodePosition() );
         state.typeName = getClassConst( instructions, stackValue );
 
+        useFieldName( state );
         nop( instructions, from, idx + 2 );
     }
 
@@ -433,6 +457,20 @@ class UnsafeManager {
         nop( instructions, from, idx );
         // we put the constant value 1 on the stack because we does not want shift array positions
         instructions.set( idx, new WasmConstNumberInstruction( 1, callInst.getCodePosition(), callInst.getLineNumber() ) );
+    }
+
+    /**
+     * Mark the field as used
+     * 
+     * @param state
+     *            the state
+     * @throws IOException
+     *             If any I/O error occur
+     */
+    private void useFieldName( @Nonnull UnsafeState state ) throws IOException {
+        FieldInfo fieldInfo = classFileLoader.get( state.typeName ).getField( state.fieldName );
+        NamedStorageType fieldName = new NamedStorageType( state.typeName, fieldInfo, types );
+        types.valueOf( state.typeName ).useFieldName( fieldName );
     }
 
     /**
@@ -550,10 +588,17 @@ class UnsafeManager {
                                                         + " local.get 3" // x
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName;
 
+                                    case "getInt":
+                                    case "getLong":
+                                        return "local.get 1" // THIS
+                                                        + " struct.get " + state.typeName + ' ' + state.fieldName //
+                                                        + " return";
+
                                     case "getObjectVolatile":
                                         return "local.get 1" // array
                                                         + " local.get 2" // the array index
-                                                        + " array.get " + state.typeName;
+                                                        + " array.get " + state.typeName
+                                                        + " return";
                                 }
 
                                 throw new RuntimeException( name.signatureName );
