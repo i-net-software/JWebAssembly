@@ -513,7 +513,7 @@ class UnsafeManager {
         }
 
         WatCodeSyntheticFunctionName func =
-                        new WatCodeSyntheticFunctionName( fieldNameWithOffset.className, '.' + name.methodName, name.signature, "", (AnyType[])null ) {
+                        new WatCodeSyntheticFunctionName( fieldNameWithOffset.className, '.' + fieldNameWithOffset.methodName + '.' + name.methodName, name.signature, "", (AnyType[])null ) {
                             @Override
                             protected String getCode() {
                                 UnsafeState state = null;
@@ -525,7 +525,7 @@ class UnsafeManager {
                                 }
                                 if( state == null ) {
                                     if( functions.isFinish() ) {
-                                        throw new RuntimeException( name.signatureName );
+                                        throw new RuntimeException( this.fullName + name.signature );
                                     }
                                     // we are in the scan phase. The static code was not scanned yet.
                                     return "";
@@ -540,20 +540,42 @@ class UnsafeManager {
                                         if( type.isRefType() ) {
                                             type = ValueType.ref;
                                         }
-                                        int paramOffset = "java/util/concurrent/atomic/AtomicReferenceFieldUpdater".equals( name.className ) ? -1 : 0;
-                                        return "local.get 1" // THIS
-                                                        + " struct.get " + state.typeName + ' ' + state.fieldName //
-                                                        + " local.get " + (3 + paramOffset) // expected
-                                                        + " " + type + ".eq" //
-                                                        + " if" //
-                                                        + "   local.get 1" // THIS
-                                                        + "   local.get " + (4 + paramOffset) // update
-                                                        + "   struct.set " + state.typeName + ' ' + state.fieldName //
-                                                        + "   i32.const 1" //
-                                                        + "   return" //
-                                                        + " end" //
-                                                        + " i32.const 1" //
-                                                        + " return";
+                                        if( state.fieldName != null ) {
+                                            // field access
+                                            int paramOffset = "java/util/concurrent/atomic/AtomicReferenceFieldUpdater".equals( name.className ) ? -1 : 0;
+                                            return "local.get 1" // THIS
+                                                            + " struct.get " + state.typeName + ' ' + state.fieldName //
+                                                            + " local.get " + (3 + paramOffset) // expected
+                                                            + " " + type + ".eq" //
+                                                            + " if" //
+                                                            + "   local.get 1" // THIS
+                                                            + "   local.get " + (4 + paramOffset) // update
+                                                            + "   struct.set " + state.typeName + ' ' + state.fieldName //
+                                                            + "   i32.const 1" //
+                                                            + "   return" //
+                                                            + " end" //
+                                                            + " i32.const 1" //
+                                                            + " return";
+                                        } else {
+                                            // array access
+                                            return "local.get 1" // THIS
+                                                            + " local.get 2" // the array index
+                                                            + " i32.wrap_i64" // long -> int
+                                                            + " array.get " + state.typeName //
+                                                            + " local.get 3 " // expected
+                                                            + " " + type + ".eq" //
+                                                            + " if" //
+                                                            + "   local.get 1" // THIS
+                                                            + "   local.get 2" // the array index
+                                                            + "   i32.wrap_i64" // long -> int
+                                                            + "   local.get 4 " // update
+                                                            + "   array.set " + state.typeName //
+                                                            + "   i32.const 1" //
+                                                            + "   return" //
+                                                            + " end" //
+                                                            + " i32.const 1" //
+                                                            + " return";
+                                        }
 
                                     case "getAndAddInt":
                                     case "getAndAddLong":
@@ -584,9 +606,19 @@ class UnsafeManager {
                                     case "putOrderedObject":
                                     case "putObjectVolatile":
                                     case "putObject":
-                                        return "local.get 1" // THIS
-                                                        + " local.get 3" // x
-                                                        + " struct.set " + state.typeName + ' ' + state.fieldName;
+                                        if( state.fieldName != null ) {
+                                            // field access
+                                            return "local.get 1" // THIS
+                                                            + " local.get 3" // x
+                                                            + " struct.set " + state.typeName + ' ' + state.fieldName;
+                                        } else {
+                                            // array access
+                                            return "local.get 1" // THIS
+                                                            + " local.get 2" // the array index
+                                                            + " i32.wrap_i64" // long -> int
+                                                            + " local.get 3" // x
+                                                            + " array.set " + state.typeName;
+                                        }
 
                                     case "getInt":
                                     case "getLong":
@@ -597,6 +629,7 @@ class UnsafeManager {
                                     case "getObjectVolatile":
                                         return "local.get 1" // array
                                                         + " local.get 2" // the array index
+                                                        + " i32.wrap_i64" // long -> int
                                                         + " array.get " + state.typeName
                                                         + " return";
                                 }
@@ -604,8 +637,9 @@ class UnsafeManager {
                                 throw new RuntimeException( name.signatureName );
                             }
                         };
-        functions.markAsNeeded( func, true ); // original function has an THIS parameter of the Unsafe instance, we need to consume it
-        WasmCallInstruction call = new WasmCallInstruction( func, callInst.getCodePosition(), callInst.getLineNumber(), callInst.getTypeManager(), false );
+        boolean needThisParameter = true;
+        functions.markAsNeeded( func, needThisParameter ); // original function has an THIS parameter of the Unsafe instance, we need to consume it
+        WasmCallInstruction call = new WasmCallInstruction( func, callInst.getCodePosition(), callInst.getLineNumber(), callInst.getTypeManager(), needThisParameter );
         instructions.set( idx, call );
 
         // a virtual method call has also a DUP of this because we need for virtual method dispatch the parameter 2 times.
