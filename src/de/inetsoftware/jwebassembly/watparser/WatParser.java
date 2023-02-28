@@ -110,6 +110,9 @@ public class WatParser extends WasmCodeBuilder {
                     case "i32.trunc_sat_f32_s":
                         addConvertInstruction( ValueTypeConvertion.f2i, javaCodePos, lineNumber );
                         break;
+                    case "i32.wrap_i64":
+                        addConvertInstruction( ValueTypeConvertion.l2i, javaCodePos, lineNumber );
+                        break;
                     case "i64.const":
                         addConstInstruction( Long.parseLong( get( tokens, ++i ) ), ValueType.i64, javaCodePos, lineNumber );
                         break;
@@ -343,9 +346,10 @@ public class WatParser extends WasmCodeBuilder {
                         addStructInstruction( StructOperator.NEW_DEFAULT, typeName, null, javaCodePos, lineNumber );
                         break;
                     case "array.get":
+                    case "array.set":
                         typeName = get( tokens, ++i );
                         type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
-                        addArrayInstruction( ArrayOperator.GET, type, javaCodePos, lineNumber );
+                        addArrayInstruction( "array.get".equals( tok ) ? ArrayOperator.GET : ArrayOperator.SET, type, javaCodePos, lineNumber );
                         break;
                     default:
                         throw new WasmException( "Unknown WASM token: " + tok, lineNumber );
