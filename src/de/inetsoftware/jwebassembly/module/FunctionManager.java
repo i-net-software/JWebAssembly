@@ -175,6 +175,7 @@ class FunctionManager {
                 case UnsafeManager.UNSAFE_11:
                 case UnsafeManager.FIELDUPDATER:
                 case UnsafeManager.VARHANDLE:
+                case UnsafeManager.METHOD_HANDLES:
                     // Unsafe method call will be replaces by the UnsafeManager
                     return name;
             }

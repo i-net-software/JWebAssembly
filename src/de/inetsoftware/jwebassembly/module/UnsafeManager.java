@@ -84,6 +84,8 @@ class UnsafeManager {
     /** VARHANDLE as modern replacement of Unsafe */
     static final String                              VARHANDLE = "java/lang/invoke/VarHandle";
 
+    static final String                              METHOD_HANDLES = "java/lang/invoke/MethodHandles$Lookup";
+
     @Nonnull
     private final FunctionManager                    functions;
 
@@ -137,6 +139,7 @@ class UnsafeManager {
                             patch( instructions, i, callInst );
                             break;
                         case VARHANDLE:
+                        case METHOD_HANDLES:
                             patchVarHandle( instructions, i, callInst );
                             break;
                     }
@@ -746,7 +749,7 @@ class UnsafeManager {
     }
 
     /**
-     * Patch an unsafe function that access a field
+     * Remove an unsafe function that access a field
      * 
      * @param instructions
      *            the instruction list
@@ -754,6 +757,8 @@ class UnsafeManager {
      *            the index in the instructions
      * @param callInst
      *            the method call to Unsafe
+     * @param paramCount
+     *            the count of params that must be removed from stack (including THIS if instance method)
      */
     private void remove( List<WasmInstruction> instructions, int idx, final WasmCallInstruction callInst, int paramCount ) {
         int from = StackInspector.findInstructionThatPushValue( instructions.subList( 0, idx ), paramCount, callInst.getCodePosition() ).idx;
@@ -778,13 +783,68 @@ class UnsafeManager {
         }
     }
 
-    private void patchVarHandle( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) {
+    private void patchVarHandle( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) throws IOException {
         FunctionName name = callInst.getFunctionName();
         switch( name.methodName ) {
-            case "getAndSet":
-                patchVarHandleFieldFunction( instructions, idx, callInst, name, 3 );
+            case "findVarHandle":
+                patch_findVarHandle( instructions, idx, callInst );
                 break;
+            case "arrayElementVarHandle": // java/lang/invoke/MethodHandles
+                UnsafeState state = findUnsafeState( instructions, idx );
+                int from = StackInspector.findInstructionThatPushValue( instructions, 2, callInst.getCodePosition() ).idx;
+
+                StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions, 1, callInst.getCodePosition() );
+                state.typeName = getClassConst( instructions, stackValue );
+                break;
+            case "getAndSet":
+            case "set":
+            case "getAcquire":
+            case "getAndAdd":
+            case "getAndBitwiseOr":
+            case "get":
+            case "compareAndSet":
+            case "weakCompareAndSet":
+            case "setVolatile":
+            case "setRelease":
+            case "setOpaque":
+                patchVarHandleFieldFunction( instructions, idx, callInst, name, callInst.getPopCount() );
+                break;
+            case "releaseFence":
+                nop( instructions, idx, idx + 1 );
+                break;
+            default:
+                throw new WasmException( "Unsupported VarHandle method: " + name.signatureName, -1 );
         }
+    }
+
+    /**
+     * Patch a method call to Unsafe.objectFieldOffset() and find the parameter for other patch operations.
+     * 
+     * @param instructions
+     *            the instruction list
+     * @param idx
+     *            the index in the instructions
+     * @param callInst
+     *            the method call to Unsafe
+     * @throws IOException
+     *             If any I/O error occur
+     */
+    private void patch_findVarHandle( List<WasmInstruction> instructions, int idx, WasmCallInstruction callInst ) throws IOException {
+        UnsafeState state = findUnsafeState( instructions, idx );
+
+        // objectFieldOffset() has 3 parameters THIS(Unsafe), class and the fieldname
+        List<WasmInstruction> paramInstructions = instructions.subList( 0, idx );
+        int from = StackInspector.findInstructionThatPushValue( paramInstructions, 4, callInst.getCodePosition() ).idx;
+
+        StackValue stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, 2, callInst.getCodePosition() );
+        state.fieldName = ((WasmConstStringInstruction)stackValue.instr).getValue();
+
+        // find the class value on which getDeclaredField is called
+        stackValue = StackInspector.findInstructionThatPushValue( paramInstructions, 3, callInst.getCodePosition() );
+        state.typeName = getClassConst( instructions, stackValue );
+
+        useFieldName( state );
+        nop( instructions, from, idx + 2 );
     }
 
     /**
@@ -815,6 +875,26 @@ class UnsafeManager {
                                 }
                                 AnyType[] paramTypes = callInst.getPopValueTypes();
                                 switch( name.methodName ) {
+                                    case "compareAndSet":
+                                    case "weakCompareAndSet":
+                                        AnyType type = paramTypes[3];
+                                        if( type.isRefType() ) {
+                                            type = ValueType.ref;
+                                        }
+                                        return "local.get 1" // THIS
+                                                        + " struct.get " + state.typeName + ' ' + state.fieldName //
+                                                        + " local.get 2 " // expected
+                                                        + " " + type + ".eq" //
+                                                        + " if" //
+                                                        + "   local.get 1" // THIS
+                                                        + "   local.get 3 " // update
+                                                        + "   struct.set " + state.typeName + ' ' + state.fieldName //
+                                                        + "   i32.const 1" //
+                                                        + "   return" //
+                                                        + " end" //
+                                                        + " i32.const 1" //
+                                                        + " return";
+
                                     case "getAndSet":
                                         return "local.get 1" // THIS
                                                         + " struct.get " + state.typeName + ' ' + state.fieldName //
@@ -823,6 +903,10 @@ class UnsafeManager {
                                                         + " struct.set " + state.typeName + ' ' + state.fieldName //
                                                         + " return";
 
+                                    case "set":
+                                        return "local.get 1" // THIS
+                                                        + " local.get 2" // x
+                                                        + " struct.set " + state.typeName + ' ' + state.fieldName;
                                 }
 
                                 throw new RuntimeException( name.signatureName );
