@@ -5,7 +5,7 @@ plugins {
     id 'com.github.kt3k.coveralls' version '2.11.0' // Coverage
 }
 
-sourceCompatibility = 1.8
+    sourceCompatibility = 1.8
 
 group 'de.inetsoftware'
 archivesBaseName = 'jwebassembly-compiler'
@@ -20,11 +20,11 @@ dependencies {
     // "compileOnly" will not add as dependency. this is different to "compile". 
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     //compileOnly 'de.inetsoftware:jwebassembly-api:+'
-    compileOnly 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
+    compileOnly 'com.github.i-net-software:jwebassembly-api:1500d4af1e' // jitpack snapshot currently not working 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
 
     testImplementation 'com.google.code.findbugs:jsr305:3.0.1'
     //testCompile 'de.inetsoftware:jwebassembly-api:+'
-    testImplementation 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
+    testImplementation 'com.github.i-net-software:jwebassembly-api:1500d4af1e' // jitpack snapshot currently not working 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
     testImplementation 'junit:junit:+'
     testImplementation 'org.mockito:mockito-core:4.+'
     testImplementation 'org.apache.commons:commons-compress:1.2'
