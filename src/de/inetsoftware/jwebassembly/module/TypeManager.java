@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2022 Volker Berlin (i-net software)
+   Copyright 2018 - 2023 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -871,7 +871,7 @@ public class TypeManager {
 
             // list classes of the hierarchy and its interfaces
             Set<String> interfaceNames = new LinkedHashSet<>();
-            for( ClassFile classFile = classFileLoader.get( name );; ) {
+            for( ClassFile classFile = classFileLoader.getClassFile( name );; ) {
                 classFiles.add( classFile );
                 listInterfaceTypes( classFile, types, classFileLoader, interfaceTypes, interfaceNames );
 
@@ -879,7 +879,7 @@ public class TypeManager {
                 if( superClass == null ) {
                     break;
                 }
-                classFile = classFileLoader.get( superClass.getName() );
+                classFile = classFileLoader.getClassFile( superClass.getName() );
             }
 
             // if the top most class abstract then there can be no instance. A itable we need only for an instance
@@ -890,7 +890,7 @@ public class TypeManager {
             // create the itables for all interfaces of this type
             for( StructType type : interfaceTypes ) {
                 String interName = type.name;
-                ClassFile interClassFile = classFileLoader.get( interName );
+                ClassFile interClassFile = classFileLoader.getClassFile( interName );
                 List<FunctionName> iMethods = null;
 
                 for( MethodInfo interMethod : interClassFile.getMethods() ) {
@@ -907,7 +907,7 @@ public class TypeManager {
                         if( method == null ) {
                             // search if there is a default implementation in an interface
                             for( String iClassName : interfaceNames ) {
-                                ClassFile iClassFile = classFileLoader.get( iClassName );
+                                ClassFile iClassFile = classFileLoader.getClassFile( iClassName );
                                 method = iClassFile.getMethod( iName.methodName, iName.signature );
                                 if( method != null ) {
                                     break;

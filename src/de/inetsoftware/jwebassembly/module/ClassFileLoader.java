@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 - 2022 Volker Berlin (i-net software)
+   Copyright 2020 - 2023 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ClassFile;
+import de.inetsoftware.jwebassembly.WasmException;
 
 /**
  * Cache and manager for the loaded ClassFiles
@@ -85,6 +86,26 @@ public class ClassFileLoader {
             cache.put( className, classFile );
         }
         return classFile;
+    }
+
+    /**
+     * Get the ClassFile from cache or load it. This returns ever a ClassFile or throw an exception if not found.
+     * 
+     * @param className
+     *            the class name like "java/lang/Object"
+     * @return the ClassFile or null
+     * @throws IOException
+     *             If any I/O error occur
+     * @throws WasmException
+     *             if the class was not found
+     */
+    @Nonnull
+    public ClassFile getClassFile( String className ) throws IOException, WasmException {
+        ClassFile classFile = get( className );
+        if( classFile != null ) {
+            return classFile;
+        }
+        throw new WasmException( "Missing class: " + className, -1 );
     }
 
     /**
