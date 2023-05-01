@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2021 Volker Berlin (i-net software)
+   Copyright 2011 - 2023 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -248,6 +248,7 @@ public class MethodInfo implements Member {
      */
     void setDeclaringClassFile( @Nonnull String origClassName, @Nonnull ClassFile classFile ) {
         description = description.replace( 'L' + origClassName + ';', 'L' + classFile.getThisClass().getName() + ';' );
+        description = description.replace( 'L' + origClassName + '<', 'L' + classFile.getThisClass().getName() + '<' ); // a class with additional generics information
         this.classFile = classFile;
     }
 }
