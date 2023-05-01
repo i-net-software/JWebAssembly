@@ -51,8 +51,6 @@ public class VarHandleTest extends AbstractBaseTest {
             addParam( list, script, "set" );
         }
         rule.setTestParameters( list );
-        JWebAssembly.LOGGER.setLevel( Level.FINE );
-        rule.setProperty( JWebAssembly.IGNORE_NATIVE, "true" );
 
         return list;
     }
