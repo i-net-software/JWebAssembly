@@ -5,7 +5,12 @@ plugins {
     id 'com.github.kt3k.coveralls' version '2.11.0' // Coverage
 }
 
+def majorJavaVersion = JavaVersion.current().getMajorVersion() as int
+if( majorJavaVersion < 11 ) {
     sourceCompatibility = 1.8
+} else {
+    sourceCompatibility = 11
+}
 
 group 'de.inetsoftware'
 archivesBaseName = 'jwebassembly-compiler'
@@ -43,6 +48,9 @@ sourceSets {
     test {
         java {
             srcDir 'test'
+            if( majorJavaVersion >= 11 ) {
+                srcDir 'test11'
+            }
         }
         resources {
             srcDir 'test'

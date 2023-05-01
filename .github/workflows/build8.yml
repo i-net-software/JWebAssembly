@@ -1,4 +1,4 @@
-name: build
+name: Build with Java 8
 
 on: [push, pull_request]
 
@@ -12,6 +12,6 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '8'
-        distribution: 'adopt'
+        distribution: 'temurin'
     - name: Build with Gradle
       run: gradle build --stacktrace
