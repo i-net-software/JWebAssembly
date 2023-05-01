@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 - 2022 Volker Berlin (i-net software)
+   Copyright 2020 - 2023 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -203,6 +203,20 @@ class ReplacementForClass<T> {
      */
     public static Class<?> forName(String name, boolean initialize, ClassLoader loader) throws ClassNotFoundException {
         return forName( name );
+    }
+
+    /**
+     * Replacement of the Java 9 method forName(Module,String)
+     * 
+     * @param module
+     *            the module
+     * @param name
+     *            the fully qualified name of the desired class.
+     * @return the {@code Class} object for the class with the specified name.
+     */
+    @Replace( "java/lang/Class.forName(Ljava/lang/Module;Ljava/lang/String;)Ljava/lang/Class;" )
+    public static Class<?> forName( Object module, String name ) {
+        return null;
     }
 
     /**
