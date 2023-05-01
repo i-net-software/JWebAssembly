@@ -28,6 +28,14 @@ import de.inetsoftware.jwebassembly.api.annotation.Replace;
 public class ReplacementForMethodHandles {
 
     /**
+     * Replacement for static code.
+     */
+    @Replace( "java/lang/invoke/MethodHandles.<clinit>()V" )
+    private static void init() {
+        // nothing
+    }
+
+    /**
      * Replacement for static lookup().
      */
     @Replace( "java/lang/invoke/MethodHandles.lookup()Ljava/lang/invoke/MethodHandles$Lookup;" )
