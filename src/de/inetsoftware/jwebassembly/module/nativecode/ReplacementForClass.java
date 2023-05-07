@@ -449,6 +449,14 @@ class ReplacementForClass<T> {
     public native Method[] getMethods();
 
     /**
+     * Returns an array containing {@code Constructor} objects reflecting
+     * all the public constructors of the class represented by this
+     * {@code Class} object.
+     */
+    @WasmTextCode( "unreachable" ) // TODO
+    public native Constructor<?>[] getConstructors();
+
+    /**
      * Replacement of the Java method getMethod()
      */
     @WasmTextCode( "unreachable" ) // TODO
