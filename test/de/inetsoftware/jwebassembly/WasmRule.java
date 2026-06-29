@@ -675,30 +675,18 @@ public class WasmRule extends TemporaryFolder {
      *             if the download failed
      */
     private ProcessBuilder spiderMonkeyCommand( boolean binary, ScriptEngine script ) throws IOException {
-        boolean gc = Boolean.valueOf( script.useGC );
         File scriptFile = scriptFiles.get( script );
         if( scriptFile == null ) {
             File file = compile( script );
-            if( gc ) {
-                if( binary ) {
-                    scriptFile = createScript( script, "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
-                } else {
-                    scriptFile = createScript( script, "SpiderMonkeyWatTest.js", "{test}", script.name() );
-                }
+            if( binary ) {
+                scriptFile = createScript( script, "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
             } else {
-                if( binary ) {
-                    scriptFile = createScript( script, "SpiderMonkeyTest.js", "{test.wasm}", file.getName() );
-                } else {
-                    scriptFile = createScript( script, "SpiderMonkeyWatTest.js", "{test}", script.name() );
-                }
+                scriptFile = createScript( script, "SpiderMonkeyWatTest.js", "{test}", script.name() );
             }
             scriptFiles.put( script, scriptFile );
         }
 
         ProcessBuilder process = new ProcessBuilder( spiderMonkey.getCommand(), scriptFile.getAbsolutePath() );
-        if( gc ) {
-            process.command().add( 1, "--wasm-gc" );
-        }
         return process;
     }
 
