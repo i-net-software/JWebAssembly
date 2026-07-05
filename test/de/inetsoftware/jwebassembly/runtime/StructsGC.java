@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package de.inetsoftware.jwebassembly.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
@@ -57,7 +56,6 @@ public class StructsGC extends AbstractBaseTest {
 
     @Test
     public void test() {
-        Assume.assumeFalse( getScriptEngine().name().startsWith( "SpiderMonkey" ) ); //TODO
         super.test();
     }
 

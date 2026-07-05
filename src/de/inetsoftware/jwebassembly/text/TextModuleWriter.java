@@ -65,6 +65,8 @@ public class TextModuleWriter extends ModuleWriter {
 
     private final StringBuilder            typeOutput       = new StringBuilder();
 
+    private final StringBuilder            structTypeOutput = new StringBuilder();
+
     private final ArrayList<String>        types            = new ArrayList<>();
 
     private StringBuilder                  methodOutput;
@@ -114,6 +116,8 @@ public class TextModuleWriter extends ModuleWriter {
     public void close() throws IOException {
         Appendable textOutput = target.getTextOutput();
         textOutput.append( "(module" );
+
+        textOutput.append( structTypeOutput );
 
         for( int i = 0; i < types.size(); i++ ) {
             newline( textOutput );
@@ -220,7 +224,7 @@ public class TextModuleWriter extends ModuleWriter {
 
         int oldInset = inset;
         inset = 1;
-        newline( output );
+        newline( structTypeOutput );
         String typeName = normalizeName( type.getName() );
         switch( typeName ) {
             case "java/lang/String":
@@ -230,33 +234,33 @@ public class TextModuleWriter extends ModuleWriter {
                 useTypeClass = true;
                 break;
         }
-        output.append( "(type $" ).append( typeName ).append( " (sub" );
+        structTypeOutput.append( "(type $" ).append( typeName ).append( " (sub" );
         StructType parentType = type.getParent();
         if( parentType != null ) {
-            output.append( " $" ).append( normalizeName( parentType.getName() ) );
+            structTypeOutput.append( " $" ).append( normalizeName( parentType.getName() ) );
         }
-        output.append( " (" );
+        structTypeOutput.append( " (" );
         if( type.getKind() == StructTypeKind.array_native ) {
-            output.append( "array (mut " );
-            writeTypeName( output, type.getFields().get( 0 ).getType() );
-            output.append( ")" );
+            structTypeOutput.append( "array (mut " );
+            writeTypeName( structTypeOutput, type.getFields().get( 0 ).getType() );
+            structTypeOutput.append( ")" );
         } else {
-            output.append( "struct" );
+            structTypeOutput.append( "struct" );
             inset++;
             for( NamedStorageType field : type.getFields() ) {
-                newline( output );
-                output.append( "(field" );
+                newline( structTypeOutput );
+                structTypeOutput.append( "(field" );
                 if( options.debugNames() && field.getName() != null ) {
-                    output.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
+                    structTypeOutput.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
                 }
-                output.append( " (mut " );
-                writeTypeName( output, field.getType() );
-                output.append( "))" );
+                structTypeOutput.append( " (mut " );
+                writeTypeName( structTypeOutput, field.getType() );
+                structTypeOutput.append( "))" );
             }
             inset--;
-            newline( output );
+            newline( structTypeOutput );
         }
-        output.append( ")))" );
+        structTypeOutput.append( ")))" );
         inset = oldInset;
         return 0;
     }
