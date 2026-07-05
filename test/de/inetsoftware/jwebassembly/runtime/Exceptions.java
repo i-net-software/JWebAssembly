@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2022 Volker Berlin (i-net software)
+ * Copyright 2018 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package de.inetsoftware.jwebassembly.runtime;
-
-import static org.junit.Assume.assumeFalse;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,7 +70,6 @@ public class Exceptions extends AbstractBaseTest {
 
     @Test
     public void test() {
-        assumeFalse( getScriptEngine().name().startsWith( "SpiderMonkey" ) ); //TODO https://bugzilla.mozilla.org/show_bug.cgi?id=1335652
         super.test();
     }
 

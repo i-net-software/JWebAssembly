@@ -647,7 +647,7 @@ public class ModuleGenerator {
                 switch( instruction.getType() ) {
                     case Block:
                         switch( ((WasmBlockInstruction)instruction).getOperation() ) {
-                            case TRY:
+                            case TRY_TABLE:
                             case CATCH:
                             case THROW:
                             case RETHROW:

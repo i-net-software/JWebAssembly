@@ -45,13 +45,7 @@ interface InstructionOpcodes {
 
     static final int ELSE      = 0x05;
 
-    static final int TRY                 = 0x06;
-
-    static final int CATCH               = 0x07;
-
     static final int THROW               = 0x08;
-
-    static final int RETHROW             = 0x09;
 
     static final int THROW_REF           = 0x0A;
 
@@ -91,19 +85,18 @@ interface InstructionOpcodes {
     /** tail calling a function through a ref */
     static final int RETURN_CALL_REF      = 0x15;
 
-    static final int DELEGATE             = 0x18;
+    static final int DROP                   = 0x1A;
 
-    static final int CATCH_ALL            = 0x19;
+    static final int SELECT                 = 0x1B;
 
-    static final int DROP      = 0x1A;
+    static final int TRY_TABLE              = 0x1F;
 
     /** converts a nullable reference to a non-nullable one or branches if null */
     static final int BR_ON_NULL             = 0xD5;
 
-    /**
-     * select one of two values based on condition
-     */
-    static final int SELECT    = 0x1B;
+    static final int BR_ON_CAST             = 0xFB18;
+
+    static final int BR_ON_CAST_FAIL        = 0xFB19;
 
     // === Variable access ===========
 

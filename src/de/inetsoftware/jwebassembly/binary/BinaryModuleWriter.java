@@ -1357,14 +1357,23 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             case UNREACHABLE:
                 codeStream.writeOpCode( UNREACHABLE );
                 break;
-            case TRY:
-                codeStream.writeOpCode( options.useEH() ? TRY : BLOCK );
-                codeStream.writeValueType( ValueType.empty ); // void; the return type of the try. currently we does not use it
+            case TRY_TABLE:
+                if( options.useEH() ) {
+                    codeStream.writeOpCode( TRY_TABLE );
+                    codeStream.writeValueType( ValueType.empty );
+                    codeStream.writeVaruint32( 1 ); // one catch clause
+                    codeStream.write( 0x00 ); // catch (push args on match)
+                    codeStream.writeVaruint32( 0 ); // tag index 0
+                    codeStream.writeVaruint32( 0 ); // label 0 (branch to end of try_table)
+                } else {
+                    codeStream.writeOpCode( BLOCK );
+                    codeStream.writeValueType( ValueType.empty );
+                }
                 break;
             case CATCH:
                 if( options.useEH() ) {
-                    codeStream.writeOpCode( CATCH );
-                    codeStream.writeVaruint32( (Integer)data );
+                    codeStream.writeOpCode( BLOCK );
+                    codeStream.writeValueType( ValueType.empty );
                 } else {
                     codeStream.writeOpCode( BR );
                     codeStream.writeVaruint32( 0 );
@@ -1379,7 +1388,11 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 }
                 break;
             case RETHROW:
-                codeStream.writeOpCode( RETHROW );
+                if( options.useEH() ) {
+                    codeStream.writeOpCode( THROW_REF );
+                } else {
+                    codeStream.writeOpCode( UNREACHABLE );
+                }
                 break;
             case MONITOR_ENTER:
             case MONITOR_EXIT:

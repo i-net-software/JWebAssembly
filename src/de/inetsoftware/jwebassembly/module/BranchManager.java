@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2022 Volker Berlin (i-net software)
+   Copyright 2018 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -65,7 +65,9 @@ class BranchManager {
 
     private final ArrayList<BreakBlock>         breakOperations = new ArrayList<>();
 
-    private BlockType conditionType;
+    private BlockType                           conditionType;
+
+    private BlockType                           tryTableType;
 
     /**
      * Create a branch manager.
@@ -845,6 +847,20 @@ class BranchManager {
     }
 
     /**
+     * Get the block type for try_table. This is a block with no input parameter and a externref as return.
+     * 
+     * @return the block type
+     */
+    @Nonnull
+    private BlockType getTryTableType() {
+        BlockType tryTableType = this.tryTableType;
+        if( tryTableType == null ) {
+            this.tryTableType = tryTableType = options.types.blockType(  Collections.emptyList(), Collections.singletonList( ValueType.externref ) );
+        }
+        return tryTableType;
+    }
+
+    /**
      * Calculate the blocks of a switch.
      * 
      * Sample: The follow Java code:
@@ -1241,16 +1257,21 @@ class BranchManager {
         int startPos = tryBlock.startPosition;
         int catchPos = tryCatch.getHandler();
 
-        BranchNode tryNode = new BranchNode( startPos, catchPos, WasmBlockOperator.TRY, null );
-        parent.add( tryNode );
+        BranchNode tryCatchNode, tryNode;
+        parent.add( tryCatchNode = new BranchNode( startPos, endPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END ) );
+        tryCatchNode.add( tryNode = new BranchNode( startPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, getTryTableType() ) );
+        tryNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR, null, 1 ) );
+        if( options.useEH() ) {
+            BranchNode tryTable = new BranchNode( startPos, catchPos, WasmBlockOperator.TRY_TABLE, WasmBlockOperator.END );
+            tryNode.add( tryTable );
+            tryNode = tryTable;
+        } else {
+            tryNode.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.UNREACHABLE, null ) );
+        }
         calculate( tryNode, parsedOperations.subList( 0, idx ) );
 
-        BranchNode catchNode = new BranchNode( catchPos, endPos, WasmBlockOperator.CATCH, WasmBlockOperator.END, 0 );
-        catchNode.tryPos = startPos;
-        parent.add( catchNode );
-
         // Create a block/end structure for every CATCH without the first CATCH
-        BranchNode node = catchNode;
+        BranchNode node = tryCatchNode;
         TryCatchFinally tryCurrent = tryCatch;
         for( int i = catches.size()-1; i > 0; i-- ) {
             TryCatchFinally tryCat = catches.get( i );
@@ -1275,7 +1296,7 @@ class BranchManager {
 
             BranchNode block = new BranchNode( catchPos + 1, handler, WasmBlockOperator.BLOCK, WasmBlockOperator.END );
             block.add( new BranchNode( handler, handler, WasmBlockOperator.BR, null, catches.size() - i ) );
-            node.add( 0, block );
+            node.add( block );
             node = block;
 
             int instrPos = findIdxOfCodePos( handler ) + 1;
@@ -1286,21 +1307,10 @@ class BranchManager {
         }
 
         // calculate branch operations inside the CATCH/FINALLY blocks
-        calculateTrySubOperations( catchNode, node, parsedOperations );
+        calculateTrySubOperations( tryCatchNode, node, parsedOperations );
 
         // Create the unboxing and the type check of the exceptions from the catch blocks 
-        if( tryCatch.isFinally() ) {
-            int instrPos = findIdxOfCodePos( catchPos ) + 1;
-            WasmInstruction instr = instructions.get( instrPos );
-            if( instr.getType() == Type.Block && ((WasmBlockInstruction)instr).getOperation() == WasmBlockOperator.DROP ) {
-                // occur with a RETURN in a finally block
-                // We does not need to unbox if the value will be drop
-            } else {
-                addUnboxExnref( catchNode, tryCatch );
-            }
-        } else {
-            addUnboxExnref( catchNode, tryCatch );
-
+        if( !tryCatch.isFinally() ) {
             // add a "if $exception instanceof type" check to the WASM code
             int instrPos = findIdxOfCodePos( catchPos ) + 1;
             WasmLoadStoreInstruction ex = (WasmLoadStoreInstruction)instructions.get( instrPos );
@@ -1356,32 +1366,6 @@ class BranchManager {
             }
             node = node.parent;
         } while( true );
-    }
-
-    /**
-     * Add an unboxing of the WASm exnref on the stack
-     * 
-     * @param catchNode
-     *            the catch node
-     * @param tryCatch
-     *            the catch or finally block
-     */
-    private void addUnboxExnref( BranchNode catchNode, TryCatchFinally tryCatch ) {
-        // unboxing the exnref on the stack to a reference of the exception
-        int catchPos = catchNode.startPos;
-        if( !options.useEH() ) {
-            BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.UNREACHABLE, null );
-            catchNode.add( 0, unBoxing );
-            return;
-        }
-//        AnyType excepType = getCatchType( tryCatch );
-//        BlockType blockType = options.types.blockType( Arrays.asList( ValueType.exnref ), Arrays.asList( excepType ) );
-//        BranchNode unBoxing = new BranchNode( catchPos, catchPos, WasmBlockOperator.BLOCK, WasmBlockOperator.END, blockType );
-//        catchNode.add( 0, unBoxing );
-//
-//        //TODO localVariables.getTempVariable( ValueType.exnref, catchPos, endPos ); https://github.com/WebAssembly/wabt/issues/1388
-//        unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.BR_ON_EXN, null, 0 ) );
-//        unBoxing.add( new BranchNode( catchPos, catchPos, WasmBlockOperator.RETHROW, null ) );
     }
 
     private AnyType getCatchType( TryCatchFinally tryCatch ) {
@@ -1529,7 +1513,8 @@ class BranchManager {
             middleNode.add( child );
             it.remove();
 
-            if( child.startPos == startPos && child.startOp == WasmBlockOperator.BLOCK ) {
+            if( child.startPos == startPos && child.startOp == WasmBlockOperator.BLOCK && child.data != tryTableType ) {
+                assert child.data == null || ((BlockType)child.data).getResults().size() == 0 : "Only input parameters should be accepted";
                 middleNode.data = child.data;
             }
         }
@@ -1968,7 +1953,7 @@ class BranchManager {
                                 case IF:
                                 case BLOCK:
                                 case LOOP:
-                                case TRY:
+                                case TRY_TABLE:
                                     // skip the content of the block, important to not count ELSE blocks
                                     i = findEndInstruction( instructions, i );
                                     break;
@@ -2023,7 +2008,7 @@ class BranchManager {
                         case IF:
                         case BLOCK:
                         case LOOP:
-                        case TRY:
+                        case TRY_TABLE:
                             count++;
                             break;
                         case END:

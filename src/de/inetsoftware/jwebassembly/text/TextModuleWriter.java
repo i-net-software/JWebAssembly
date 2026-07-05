@@ -858,20 +858,30 @@ public class TextModuleWriter extends ModuleWriter {
             case UNREACHABLE:
                 name = "unreachable";
                 break;
-            case TRY:
-                name = options.useEH() ? "try" : "block";
+            case TRY_TABLE:
+                if( options.useEH() ) {
+                    name = "try_table (catch 0 0)";
+                } else {
+                    name = "block";
+                }
                 insetAfter++;
                 break;
             case CATCH:
-                inset--;
-                name = options.useEH() ? "catch " + data : "br 0";
-                insetAfter++;
+                if( options.useEH() ) {
+                    name = "block";
+                    insetAfter++;
+                    return;
+                } else {
+                    inset--;
+                    name = "br 0";
+                    insetAfter++;
+                }
                 break;
             case THROW:
                 name = options.useEH() ? "throw 0" : "unreachable"; // currently there is only one tag/exception with externref
                 break;
             case RETHROW:
-                name = "rethrow";
+                name = "throw_ref";
                 break;
             case MONITOR_ENTER:
             case MONITOR_EXIT:
