@@ -1370,15 +1370,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                     codeStream.writeValueType( ValueType.empty );
                 }
                 break;
-            case CATCH:
-                if( options.useEH() ) {
-                    codeStream.writeOpCode( BLOCK );
-                    codeStream.writeValueType( ValueType.empty );
-                } else {
-                    codeStream.writeOpCode( BR );
-                    codeStream.writeVaruint32( 0 );
-                }
-                break;
             case THROW:
                 if( options.useEH() ) {
                     codeStream.writeOpCode( THROW );

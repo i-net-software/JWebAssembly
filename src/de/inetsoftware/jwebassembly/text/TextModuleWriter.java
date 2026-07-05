@@ -866,17 +866,6 @@ public class TextModuleWriter extends ModuleWriter {
                 }
                 insetAfter++;
                 break;
-            case CATCH:
-                if( options.useEH() ) {
-                    name = "block";
-                    insetAfter++;
-                    return;
-                } else {
-                    inset--;
-                    name = "br 0";
-                    insetAfter++;
-                }
-                break;
             case THROW:
                 name = options.useEH() ? "throw 0" : "unreachable"; // currently there is only one tag/exception with externref
                 break;

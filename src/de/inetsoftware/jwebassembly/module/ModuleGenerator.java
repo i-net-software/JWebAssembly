@@ -648,7 +648,6 @@ public class ModuleGenerator {
                     case Block:
                         switch( ((WasmBlockInstruction)instruction).getOperation() ) {
                             case TRY_TABLE:
-                            case CATCH:
                             case THROW:
                             case RETHROW:
                                 if( writer.options.useEH() ) {

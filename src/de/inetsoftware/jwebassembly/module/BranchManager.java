@@ -1409,7 +1409,7 @@ class BranchManager {
         int startPos = parent.startPos;
         while( parent != null && parent.endPos < gotoEndPos ) {
             deep++;
-            startPos = parent.startOp == WasmBlockOperator.CATCH ? parent.tryPos : parent.startPos;
+            startPos = parent.startPos;
             parent = parent.parent;
         }
 
@@ -1489,10 +1489,6 @@ class BranchManager {
                 switch( parent.startOp ) {
                     case BLOCK:
                         data = parent.data;
-                        break;
-                    case CATCH:
-                        // first instruction of a CATCH block ever saved the exception from the stack to a local variable that we start the middle block an instruction later
-                        startPos++;
                         break;
                     default:
                 }
@@ -1741,11 +1737,6 @@ class BranchManager {
          * The position of the startBlock in the instructions
          */
         private int                     startIdx;
-
-        /**
-         * Position of related TRY block for CATCH block.
-         */
-        private int tryPos;
 
         /**
          * Create a new description.

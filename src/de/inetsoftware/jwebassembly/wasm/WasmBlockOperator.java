@@ -36,7 +36,6 @@ public enum WasmBlockOperator {
     LOOP,
     UNREACHABLE,
     TRY_TABLE,
-    CATCH,
     THROW,
     RETHROW,
     MONITOR_ENTER,
