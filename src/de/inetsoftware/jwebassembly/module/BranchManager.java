@@ -42,7 +42,30 @@ import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 import de.inetsoftware.jwebassembly.wasm.WasmBlockOperator;
 
 /**
- * This calculate the goto offsets from Java back to block operations
+ * This class calculates the offsets from Java bytecode jump instructions (e.g., GOTO, try/catch) to WebAssembly block
+ * operations (such as block/end, loop/end, if/else/end, and try-table). Unlike Java bytecode, WebAssembly does not
+ * support arbitrary GOTO operations. Since the compiled Java bytecode relies heavily on GOTOs, this class reconstructs
+ * the original high-level block structure of the source code.
+ * <p>
+ * 
+ * For every method the follow process is run:
+ * <ul>
+ * <li>First call {@link #reset(Code)}. This clear also the {@link #instructions} list.
+ * <li>Then for Java Byte Code is parsed. Every instruction which can be converted 1:1 will be added to the
+ * {@link #instructions} list in {@link JavaMethodWasmCodeBuilder} which have a reference. This operations know original
+ * Java Byte Code positions. its The structure operations will be added with one of the addXYZ methods. This add
+ * {@link ParsedBlock} objects to the {@link #breakOperations}.
+ * <li>The the method {@link #calculate()} is called. In this method:
+ * <ul>
+ * <li>The try catch structure from {@link #exceptionTable} is added also to the {@link #breakOperations}.
+ * <li>Then the loops are detected. Multiple IF and GOTO {@link ParsedBlock} are reduced to one {@link ParsedBlock} with
+ * a LOOP operation.
+ * <li>Now it generate a tree {@link BranchNode} as intermediate layer. This BranchNode represented WebAssembly block
+ * operations.
+ * </ul>
+ * <li>Finally in the method {@link #handle(CodeInputStream)} it iterate over the tree an patch/inject the
+ * {@link #instructions}.
+ * </ul>
  * 
  * @author Volker Berlin
  *
@@ -51,12 +74,14 @@ class BranchManager {
 
     private final ArrayList<ParsedBlock>        allParsedOperations = new ArrayList<>();
 
+    /** Root of tree which represented the WebAssembly block structure. The body of one WebAssembly function. */
     private final BranchNode                    root                = new BranchNode( 0, Integer.MAX_VALUE, null, null );
 
     private final HashMap<Integer, ParsedBlock> loops               = new HashMap<>();
 
     private final WasmOptions                   options;
 
+    /** list with converted WebAssembly code instructions */
     private final List<WasmInstruction>         instructions;
 
     private final LocaleVariableManager         localVariables;
@@ -79,7 +104,7 @@ class BranchManager {
      * @param localVariables
      *            the local variables
      */
-    public BranchManager( WasmOptions options, List<WasmInstruction> instructions, LocaleVariableManager localVariables ) {
+    BranchManager( WasmOptions options, List<WasmInstruction> instructions, LocaleVariableManager localVariables ) {
         this.options = options;
         this.instructions = instructions;
         this.localVariables = localVariables;
@@ -181,7 +206,7 @@ class BranchManager {
     }
 
     /**
-     * Add TryCatchParsedBlock to the parsed operations based on the excetion table from Java.
+     * Add TryCatchParsedBlock to the parsed operations based on the exception table from Java.
      * 
      * @param parsedOperations
      *            the parsed operations
@@ -471,7 +496,7 @@ class BranchManager {
      * are changed to: if (!condition) { .... }
      * </pre>
      * The THEN block contains only a single GOTO operation. This operation is removed and the IF condition is negate.
-     * The removing of the GOTO operation make it easer to convert it to a valid WebAssembly structure without GOTO.
+     * The removing of the GOTO operation make it easier to convert it to a valid WebAssembly structure without GOTO.
      * 
      * @param parsedOperations
      *            the parsed operations
@@ -655,12 +680,14 @@ class BranchManager {
     }
 
     /**
-     * Search the start positions of the THEN and ELSE branch from an IF control structure.
+     * Search the start positions of the THEN and ELSE branch from an parsed Java IF control block. The IfParsedBlock
+     * has only an offset and one jump position. We need to look for GOTO to detect an ELSE. And we need to look for IF
+     * to detect multiple conditions in the IF expression.
      * 
      * @param startBlock
      *            the start block of the IF control structure
      * @param parsedOperations
-     *            the not consumed operations in the parent branch
+     *            the not consumed (resolved) operations in the parent branch
      * @return the calculated positions
      */
     private IfPositions searchElsePosition( IfParsedBlock startBlock, List<ParsedBlock> parsedOperations ) {
@@ -778,11 +805,11 @@ class BranchManager {
     }
 
     /**
-     * Find the index of the instruction with the given code position.
+     * Find the index of the instruction with the given Java code position.
      * 
      * @param codePosition
-     *            the java position
-     * @return the index
+     *            a position (offset) in the original Java Code
+     * @return the index of the first WebAssembly instruction on this Java Code position
      */
     private int findIdxOfCodePos( int codePosition ) {
         int size = instructions.size();
@@ -1105,7 +1132,7 @@ class BranchManager {
     }
 
     /**
-     * Helper structure for caculateSwitch
+     * Helper structure for method calculateSwitch
      */
     private static class SwitchCase {
         long key;
@@ -1368,7 +1395,13 @@ class BranchManager {
         } while( true );
     }
 
-    private AnyType getCatchType( TryCatchFinally tryCatch ) {
+    /**
+     * Get the WebAssembly type of the catched exception. 
+     * @param tryCatch the parsed Java try/catch/finally block.
+     * @return the registered WebAssembly type
+     */
+    @Nonnull
+    private AnyType getCatchType( @Nonnull TryCatchFinally tryCatch ) {
         if( options.useGC() ) {
             ConstantClass excepClass = tryCatch.getType();
             String excepName = excepClass != null ? excepClass.getName() : "java/lang/Throwable";
@@ -1548,7 +1581,8 @@ class BranchManager {
     }
 
     /**
-     * Description of single block/branch from the parsed Java byte code. The parsed branches are plain.
+     * Description of single block/branch from the parsed Java byte code. The original parsed Java Code is plain. On
+     * parsing the Java code for every jump a ParsedBlock is created. The ParsedBlock are accumulate on a list.
      */
     private static class ParsedBlock implements Comparable<ParsedBlock> {
         private JavaBlockOperator op;
@@ -1604,7 +1638,7 @@ class BranchManager {
         }
 
         /**
-         * Negate the compare operation.
+         * Negate the compare operation of this instruction. For example from an != operator it convert to == operator.
          */
         private void negateCompare() {
             NumericOperator newOp;
@@ -1656,7 +1690,7 @@ class BranchManager {
 
         private int   defaultPosition;
 
-        public SwitchParsedBlock( int startPosition, int lineNumber, @Nullable int[] keys, @Nonnull int[] positions, int defaultPosition ) {
+        private SwitchParsedBlock( int startPosition, int lineNumber, @Nullable int[] keys, @Nonnull int[] positions, int defaultPosition ) {
             super( JavaBlockOperator.SWITCH, startPosition, 0, startPosition, lineNumber );
             this.keys = keys;
             this.positions = positions;
@@ -1709,7 +1743,8 @@ class BranchManager {
     }
 
     /**
-     * Described a code branch/block node in a tree structure.
+     * Describes a code branch/block node in a generated tree structure. The {@link BranchManager#calculate()} method
+     * generates the BranchNode tree from a list of {@link ParsedBlock} objects.
      */
     private class BranchNode extends ArrayList<BranchNode> {
 
@@ -1858,11 +1893,11 @@ class BranchManager {
          * Handle branches on the current codePosition
          * 
          * @param codePosition
-         *            current code position
+         *            current code position in Java Code, important for calculating jump position
          * @param instructions
          *            the target for instructions
          * @param idx
-         *            index in the current instruction
+         *            index in the current instructions
          * @param lineNumber
          *            the line number in the Java source code
          * @return the new index in the instructions
