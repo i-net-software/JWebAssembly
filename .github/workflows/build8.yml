@@ -26,3 +26,7 @@ jobs:
 
     - name: Build with Gradle
       run: gradle build --stacktrace
+
+    - name: Publish JUnit Test Report
+      uses: mikepenz/action-junit-report@v6
+      if: success() || failure()
