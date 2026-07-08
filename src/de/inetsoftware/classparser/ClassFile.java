@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2022 Volker Berlin (i-net software)
+   Copyright 2011 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.Attributes.AttributeInfo;
@@ -41,6 +42,7 @@ public class ClassFile {
 
     private final int             majorVersion;
 
+    @Nonnull
     private final ConstantPool    constantPool;
 
     private final int             accessFlags;
@@ -121,7 +123,7 @@ public class ClassFile {
     }
 
     /**
-     * Create a replaced instance.
+     * Create a replaced instance. This is a class which is annotated with @Replace.
      * 
      * @param className
      *            the class name that should be replaced
@@ -339,7 +341,7 @@ public class ClassFile {
     private MethodInfo[] readMethods( DataInputStream input ) throws IOException {
         MethodInfo[] methods = new MethodInfo[input.readUnsignedShort()];
         for( int i = 0; i < methods.length; i++ ) {
-            methods[i] = new MethodInfo( input, constantPool, this );
+            methods[i] = new MethodInfo( input, this );
         }
         return methods;
     }
@@ -380,7 +382,7 @@ public class ClassFile {
     }
 
     /**
-     * Extends this class with the methods and fields of the partial class.
+     * Extends/merge this class with the methods and fields of the partial class. This is a class which is annotated with @Partial.
      * 
      * @param partialClassFile
      *            extension of the class

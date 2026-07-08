@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2023 Volker Berlin (i-net software)
+   Copyright 2011 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -45,7 +45,9 @@ public class MethodInfo implements Member {
 
     private Exceptions         exceptions;
 
-    private ClassFile          classFile;
+    private final ClassFile    classFile;
+
+    private String             className;
 
     private Map<String,Map<String,Object>> annotations;
 
@@ -55,20 +57,20 @@ public class MethodInfo implements Member {
      *
      * @param input
      *            the stream of the class file
-     * @param constantPool
-     *            the ConstantPool of the class
      * @param classFile
      *            the declaring class file
      * @throws IOException
      *             if an I/O error occurs
      */
-    MethodInfo( DataInputStream input, ConstantPool constantPool, ClassFile classFile ) throws IOException {
+    MethodInfo( DataInputStream input, ClassFile classFile ) throws IOException {
+        ConstantPool constantPool = classFile.getConstantPool();
         this.accessFlags = input.readUnsignedShort();
         this.name = (String)constantPool.get( input.readUnsignedShort() );
         this.description = (String)constantPool.get( input.readUnsignedShort() );
         this.constantPool = constantPool;
         this.attributes = new Attributes( input, constantPool );
         this.classFile = classFile;
+        this.className = classFile.getThisClass().getName();
     }
 
     /**
@@ -150,7 +152,7 @@ public class MethodInfo implements Member {
      */
     @Override
     public String getClassName() {
-        return getDeclaringClassFile().getThisClass().getName();
+        return className;
     }
 
     /**
@@ -231,14 +233,6 @@ public class MethodInfo implements Member {
     }
 
     /**
-     * Get the constant pool of the the current class.
-     * @return the constant pool
-     */
-    public ConstantPool getConstantPool() {
-        return constantPool;
-    }
-
-    /**
      * Replace the reference to the ClassFile
      * 
      * @param origClassName
@@ -249,6 +243,6 @@ public class MethodInfo implements Member {
     void setDeclaringClassFile( @Nonnull String origClassName, @Nonnull ClassFile classFile ) {
         description = description.replace( 'L' + origClassName + ';', 'L' + classFile.getThisClass().getName() + ';' );
         description = description.replace( 'L' + origClassName + '<', 'L' + classFile.getThisClass().getName() + '<' ); // a class with additional generics information
-        this.classFile = classFile;
+        className = classFile.getThisClass().getName();
     }
 }
