@@ -27,8 +27,8 @@ import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ConstantMethodRef;
+import de.inetsoftware.classparser.LambdaMetaFactoryBootstrap;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.module.TypeManager.LambdaType;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
@@ -112,7 +112,7 @@ public class StructTypeTest {
 
         ConstantMethodRef implMethod = mock( ConstantMethodRef.class );
         when( implMethod.getName() ).thenReturn( "" );
-        BootstrapMethod method = mock( BootstrapMethod.class );
+        LambdaMetaFactoryBootstrap method = mock( LambdaMetaFactoryBootstrap.class );
         when( method.getImplMethod() ).thenReturn( implMethod );
         LambdaType lambda = manager.lambdaType( method, "()Ljava/lang/Runnable;", "run", -1 );
 

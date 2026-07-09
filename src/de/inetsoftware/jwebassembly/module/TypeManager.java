@@ -34,12 +34,12 @@ import java.util.function.ToIntFunction;
 
 import javax.annotation.Nonnull;
 
-import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ClassFile.Type;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.ConstantRef;
 import de.inetsoftware.classparser.FieldInfo;
+import de.inetsoftware.classparser.LambdaMetaFactoryBootstrap;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.jwebassembly.JWebAssembly;
 import de.inetsoftware.jwebassembly.WasmException;
@@ -407,7 +407,7 @@ public class TypeManager {
      * Create a lambda type
      * 
      * @param method
-     *            the name BootstrapMethod from the parsed class file
+     *            the BootstrapMethod from the parsed class file
      * @param factorySignature
      *            Get the signature of the factory method. For example "()Ljava.lang.Runnable;" for the lambda expression
      *            <code>Runnable run = () -&gt; foo();</code>
@@ -417,7 +417,7 @@ public class TypeManager {
      *            the line number in the Java source code
      * @return the type
      */
-    LambdaType lambdaType( @Nonnull BootstrapMethod method, String factorySignature, String interfaceMethodName, int lineNumber ) {
+    LambdaType lambdaType( @Nonnull LambdaMetaFactoryBootstrap method, String factorySignature, String interfaceMethodName, int lineNumber ) {
         ConstantRef implMethod = method.getImplMethod();
         FunctionName syntheticLambdaFunctionName = new FunctionName( implMethod );
 
@@ -1278,7 +1278,7 @@ public class TypeManager {
          * @param lineNumber
          *            the line number in the Java source code
          */
-        LambdaType( @Nonnull String name, @Nonnull BootstrapMethod method, ArrayList<AnyType> params, StructType interfaceType, FunctionName syntheticLambdaFunctionName, String interfaceMethodName, @Nonnull TypeManager manager, int lineNumber ) {
+        LambdaType( @Nonnull String name, @Nonnull LambdaMetaFactoryBootstrap method, ArrayList<AnyType> params, StructType interfaceType, FunctionName syntheticLambdaFunctionName, String interfaceMethodName, @Nonnull TypeManager manager, int lineNumber ) {
             super( name, StructTypeKind.lambda, manager, manager.valueOf( "java/lang/Object" ) );
             this.paramFields = new ArrayList<>( params.size() );
             for( int i = 0; i < params.size(); i++ ) {

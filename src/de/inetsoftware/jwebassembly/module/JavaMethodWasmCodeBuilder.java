@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2023 Volker Berlin (i-net software)
+ * Copyright 2018 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -662,11 +662,10 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                         idx = byteCode.readUnsignedShort(); // ever zero
                         idx = dynamic.getBootstrapMethodIndex();
                         BootstrapMethod method = classFile.getBootstrapMethod( idx );
-                        String name = dynamic.getType();
-                        addInvokeDynamic( method, name, dynamic.getName(), codePos, lineNumber );
+                        addInvokeDynamic( method, dynamic.getType(), dynamic.getName(), codePos, lineNumber );
                         break;
                     case 187: // new
-                        name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
+                        String name = ((ConstantClass)constantPool.get( byteCode.readUnsignedShort() )).getName();
                         addStructInstruction( StructOperator.NEW_DEFAULT, name, null, codePos, lineNumber );
                         break;
                     case 188: // newarray

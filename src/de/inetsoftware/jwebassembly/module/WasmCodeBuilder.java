@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2023 Volker Berlin (i-net software)
+ * Copyright 2018 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.FieldInfo;
+import de.inetsoftware.classparser.LambdaMetaFactoryBootstrap;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
@@ -960,45 +961,53 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addInvokeDynamic( BootstrapMethod method, String factorySignature, String interfaceMethodName, int javaCodePos, int lineNumber ) {
-        // Create the synthetic lambda class that hold the lambda expression.
-        LambdaType type = types.lambdaType( method, factorySignature, interfaceMethodName, lineNumber );
-        functions.markAsNeeded( type.getLambdaMethod(), true );
-        String lambdaTypeName = type.getName();
+        switch( method.getFactoryClassName() ) {
+            case "java/lang/invoke/LambdaMetafactory":
+                // Create the synthetic lambda class that hold the lambda expression.
+                LambdaType type = types.lambdaType( (LambdaMetaFactoryBootstrap)method, factorySignature, interfaceMethodName, lineNumber );
+                functions.markAsNeeded( type.getLambdaMethod(), true );
+                String lambdaTypeName = type.getName();
 
-        // Create the instance of the synthetic lambda class and save the parameters in fields  
-        ArrayList<NamedStorageType> paramFields = type.getParamFields();
-        int paramCount = paramFields.size();
-        if( paramCount == 0 ) {
-            addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
-        } else {
-            // Lambda with parameters from the stack
-            int idx = StackInspector.findInstructionThatPushValue( instructions, paramCount, javaCodePos ).idx;
-            int pos = instructions.size();
-            addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
-            boolean extraDup = !options.useGC();
-            if( extraDup ) {
-                // Bringing forward the DUP operation of the parameter loop to get a slot
-                addDupInstruction( false, javaCodePos, lineNumber );
-            }
-            int slot = ((WasmLocalInstruction)findInstructionThatPushValue( 1, javaCodePos )).getSlot();
+                // Create the instance of the synthetic lambda class and save the parameters in fields  
+                ArrayList<NamedStorageType> paramFields = type.getParamFields();
+                int paramCount = paramFields.size();
+                if( paramCount == 0 ) {
+                    addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
+                } else {
+                    // Lambda with parameters from the stack
+                    int idx = StackInspector.findInstructionThatPushValue( instructions, paramCount, javaCodePos ).idx;
+                    int pos = instructions.size();
+                    addStructInstruction( StructOperator.NEW_DEFAULT, lambdaTypeName, null, javaCodePos, lineNumber );
+                    boolean extraDup = !options.useGC();
+                    if( extraDup ) {
+                        // Bringing forward the DUP operation of the parameter loop to get a slot
+                        addDupInstruction( false, javaCodePos, lineNumber );
+                    }
+                    int slot = ((WasmLocalInstruction)findInstructionThatPushValue( 1, javaCodePos )).getSlot();
 
-            // move the creating of the lambda instance before the parameters on the stack
-            Collections.rotate( instructions.subList( idx, instructions.size() ), idx - pos );
-
-            for( int i = 0; i < paramCount; i++ ) {
-                NamedStorageType field = paramFields.get( i );
-                if( i > 0 || !extraDup ) {
-                    idx = StackInspector.findInstructionThatPushValue( instructions, paramCount - i, javaCodePos ).idx;
-                    instructions.add( idx, new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
-                }
-                pos = instructions.size();
-                idx = paramCount - i - 1;
-                idx = idx == 0 ? pos : StackInspector.findInstructionThatPushValue( instructions, idx, javaCodePos ).idx;
-                addStructInstruction( StructOperator.SET, lambdaTypeName, field, javaCodePos, lineNumber );
-                if( idx < pos ) {
+                    // move the creating of the lambda instance before the parameters on the stack
                     Collections.rotate( instructions.subList( idx, instructions.size() ), idx - pos );
+
+                    for( int i = 0; i < paramCount; i++ ) {
+                        NamedStorageType field = paramFields.get( i );
+                        if( i > 0 || !extraDup ) {
+                            idx = StackInspector.findInstructionThatPushValue( instructions, paramCount - i, javaCodePos ).idx;
+                            instructions.add( idx, new WasmLoadStoreInstruction( VariableOperator.get, slot, localVariables, javaCodePos, lineNumber ) );
+                        }
+                        pos = instructions.size();
+                        idx = paramCount - i - 1;
+                        idx = idx == 0 ? pos : StackInspector.findInstructionThatPushValue( instructions, idx, javaCodePos ).idx;
+                        addStructInstruction( StructOperator.SET, lambdaTypeName, field, javaCodePos, lineNumber );
+                        if( idx < pos ) {
+                            Collections.rotate( instructions.subList( idx, instructions.size() ), idx - pos );
+                        }
+                    }
                 }
-            }
+                return;
+
+            case "java/lang/invoke/StringConcatFactory":
+                throw new UnsupportedOperationException( "TODO" );
+
         }
     }
 

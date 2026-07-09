@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 - 2022 Volker Berlin (i-net software)
+   Copyright 2020 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,54 +24,33 @@ import java.io.IOException;
  * 
  * @author Volker Berlin
  */
-public class BootstrapMethod {
+public abstract class BootstrapMethod {
+
+    private final String factoryClassName;
 
     /**
-     * Signature and return type of method to be implemented by the function object.
+     * Create an instance via the appropriate subclass based on the bootstrap factory type.
+     * 
+     * @param input
+     *            the data stream of the class file
+     * @param constantPool
+     *            the constant pool of the class file
+     * @return a BootstrapMethod subclass instance
+     * @throws IOException
+     *             if any error occur
      */
-    private String      samMethodType;
-
-    /**
-     * A direct method handle describing the implementation method which should be called
-     */
-    private ConstantRef implMethod;
-
-    /**
-     * The signature and return type that should be enforced dynamically at invocation time. This may be the same as
-     * {@code samMethodType}, or may be a specialization of it.
-     */
-    private String      instantiatedMethodType;
-
-    /**
-     * Create an instance.
-     */
-    BootstrapMethod( DataInputStream input, ConstantPool constantPool ) throws IOException {
+    public static BootstrapMethod create( DataInputStream input, ConstantPool constantPool ) throws IOException {
         int ref = input.readUnsignedShort();
-        ConstantMethodRef method = (ConstantMethodRef)constantPool.get( ref );
+        ConstantMethodRef factoryMethod = (ConstantMethodRef)constantPool.get( ref );
 
-        int argCount = input.readUnsignedShort(); // ever: 3 parameters
-        String factory = method.getClassName() + "." + method.getName() + method.getType();
+        String factory = factoryMethod.getClassName() + "." + factoryMethod.getName() + factoryMethod.getType();
         switch( factory ) {
             case "java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;":
             case "java/lang/invoke/LambdaMetafactory.altMetafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;":
-                // the 3 values
-                samMethodType = (String)constantPool.get( input.readUnsignedShort() );
-                implMethod = (ConstantRef)constantPool.get( input.readUnsignedShort() );
-                instantiatedMethodType = (String)constantPool.get( input.readUnsignedShort() );
-
-                // skip extra parameters
-                // argCount is 5 if the method is LambdaMetafactory.altMetafactory
-                // occur if the Lambda type has 2 types compound with "&" like in java.time.chrono.AbstractChronology
-                for( int i = 3; i < argCount; i++ ) {
-                    constantPool.get( input.readUnsignedShort() );
-                }
-                break;
+                return new LambdaMetaFactoryBootstrap( input, constantPool, factoryMethod );
 
             case "java/lang/invoke/StringConcatFactory.makeConcatWithConstants(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;":
-                // occur in Java 11 in java/util/logging/Logger.findResourceBundle
-                String recipe = (String)constantPool.get( input.readUnsignedShort() );
-                //TODO
-                break;
+                return new StringConcatFactoryBootstrap( input, constantPool, factoryMethod );
 
             default:
                 throw new IOException( "Unknown invoke dynamic bootstrap factory: " + factory );
@@ -79,21 +58,19 @@ public class BootstrapMethod {
     }
 
     /**
-     * Signature and return type of method to be implemented by the function object.
-     * 
-     * @see java.lang.invoke.LambdaMetafactory#metafactory parameter samMethodType
-     * @return the signature
+     * Create an instance.
+     * @param factoryMethod the factory method
      */
-    public String getSamMethodType() {
-        return samMethodType;
+    BootstrapMethod( ConstantMethodRef factoryMethod ) {
+        factoryClassName = factoryMethod.getClassName();
     }
 
     /**
-     * The real method in the parent class that implements the lambda expression
+     * The name of the bootstrap factory class, e.g. {@code java/lang/invoke/LambdaMetafactory}.
      * 
-     * @return the method (ConstantMethodRef or ConstantInterfaceRef)
+     * @return the fully qualified class name
      */
-    public ConstantRef getImplMethod() {
-        return implMethod;
+    public final String getFactoryClassName() {
+        return factoryClassName;
     }
 }

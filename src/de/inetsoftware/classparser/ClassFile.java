@@ -233,7 +233,7 @@ public class ClassFile {
                 int count = input.readUnsignedShort();
                 bootstrapMethods = new BootstrapMethod[count];
                 for( int i = 0; i < count; i++ ) {
-                    bootstrapMethods[i] = new BootstrapMethod( input, constantPool );
+                    bootstrapMethods[i] = BootstrapMethod.create( input, constantPool );
                 }
             }
         }
