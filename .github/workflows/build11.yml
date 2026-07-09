@@ -30,3 +30,5 @@ jobs:
     - name: Publish JUnit Test Report
       uses: mikepenz/action-junit-report@v6
       if: success() || failure()
+      with:
+        report_paths: '**/build/test-results/test/TEST-*.xml'
