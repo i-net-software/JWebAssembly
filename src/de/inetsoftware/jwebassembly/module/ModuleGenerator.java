@@ -59,6 +59,19 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
  */
 public class ModuleGenerator {
 
+    private static final int JAVA_VERSION;
+    static {
+        String version = System.getProperty( "java.version" );
+        if( version.startsWith( "1." ) ) {
+            version = version.substring( 2 );
+        }
+        int idx = version.indexOf( '.' );
+        if( idx > 0 ) {
+            version = version.substring( 0, idx );
+        }
+        JAVA_VERSION = Integer.parseInt( version );
+    }
+
     private final ModuleWriter              writer;
 
     private final JavaScriptWriter          javaScript;
@@ -185,7 +198,7 @@ public class ModuleGenerator {
         Map<String,Object> annotationValues;
         if( (annotationValues = classFile.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
             String signatureName = (String)annotationValues.get( "value" );
-            if( signatureName != null ) {
+            if( signatureName != null && isVersionMatch( annotationValues ) ) {
                 classFileLoader.replace( signatureName, classFile );
             }
         }
@@ -193,7 +206,7 @@ public class ModuleGenerator {
         // check if this class extends another class with partial code
         if( (annotationValues = classFile.getAnnotation( JWebAssembly.PARTIAL_ANNOTATION )) != null ) {
             String signatureName = (String)annotationValues.get( "value" );
-            if( signatureName != null ) {
+            if( signatureName != null && isVersionMatch( annotationValues ) ) {
                 classFileLoader.partial( signatureName, classFile );
             }
         }
@@ -319,6 +332,29 @@ public class ModuleGenerator {
             }
         }
         return false;
+    }
+
+    /**
+     * Check if an annotation's version constraints match the current Java version.
+     * @param annotationValues the annotation values map
+     * @return true if the version matches or no constraints are set
+     */
+    private static boolean isVersionMatch( Map<String, Object> annotationValues ) {
+        Object minObj = annotationValues.get( "minVersion" );
+        Object maxObj = annotationValues.get( "maxVersion" );
+        if( minObj instanceof Integer ) {
+            int minVersion = (Integer)minObj;
+            if( minVersion > 0 && JAVA_VERSION < minVersion ) {
+                return false;
+            }
+        }
+        if( maxObj instanceof Integer ) {
+            int maxVersion = (Integer)maxObj;
+            if( maxVersion > 0 && JAVA_VERSION > maxVersion ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -511,10 +547,12 @@ public class ModuleGenerator {
             }
             Map<String,Object> annotationValues;
             if( (annotationValues = method.getAnnotation( JWebAssembly.REPLACE_ANNOTATION )) != null ) {
-                functions.needThisParameter( name); // register this class that process the annotation of this replacement function not a second time. iSKnown() returns true now.
-                String signatureName = (String)annotationValues.get( "value" );
-                name = new FunctionName( signatureName );
-                functions.addReplacement( name, method );
+                if( isVersionMatch( annotationValues ) ) {
+                    functions.needThisParameter( name); // register this class that process the annotation of this replacement function not a second time. iSKnown() returns true now.
+                    String signatureName = (String)annotationValues.get( "value" );
+                    name = new FunctionName( signatureName );
+                    functions.addReplacement( name, method );
+                }
             }
             if( (annotationValues = method.getAnnotation( JWebAssembly.IMPORT_ANNOTATION )) != null ) {
                 if( !method.isStatic() ) {
