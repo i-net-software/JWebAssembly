@@ -67,7 +67,7 @@ public class TextModuleWriter extends ModuleWriter {
 
     private final StringBuilder            structTypeOutput = new StringBuilder();
 
-    private final ArrayList<String>        types            = new ArrayList<>();
+    private final ArrayList<String>        functionTypes            = new ArrayList<>();
 
     private StringBuilder                  methodOutput;
 
@@ -119,9 +119,9 @@ public class TextModuleWriter extends ModuleWriter {
 
         textOutput.append( structTypeOutput );
 
-        for( int i = 0; i < types.size(); i++ ) {
+        for( int i = 0; i < functionTypes.size(); i++ ) {
             newline( textOutput );
-            textOutput.append( "(type $t" ).append( Integer.toString( i ) ).append( " (func" ).append( types.get( i ) ).append( "))" );
+            textOutput.append( "(type $t" ).append( Integer.toString( i ) ).append( " (func" ).append( functionTypes.get( i ) ).append( "))" );
         }
 
         textOutput.append( imports );
@@ -279,8 +279,8 @@ public class TextModuleWriter extends ModuleWriter {
         }
         String name = output.toString();
         type.setName( name );
-        types.add( name );
-        return types.size() - 1;
+        functionTypes.add( name );
+        return functionTypes.size() - 1;
     }
 
     /**
@@ -476,10 +476,10 @@ public class TextModuleWriter extends ModuleWriter {
     @Override
     protected void writeMethodParamFinish( @Nonnull FunctionName name ) throws IOException {
         String typeStr = typeOutput.toString();
-        int idx = types.indexOf( typeStr );
+        int idx = functionTypes.indexOf( typeStr );
         if( idx < 0 ) {
-            idx = types.size();
-            types.add( typeStr );
+            idx = functionTypes.size();
+            functionTypes.add( typeStr );
         }
         getFunction( name ).typeId = idx;
 
