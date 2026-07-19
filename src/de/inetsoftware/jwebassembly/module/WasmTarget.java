@@ -26,6 +26,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * The target for the different outputs
@@ -107,7 +108,7 @@ public class WasmTarget implements Closeable {
      * 
      * @return the URL string or null.
      */
-    @Nonnull
+    @Nullable
     public String getSourceMappingURL() {
         if( file != null ) {
             return file.getName() + ".map";
