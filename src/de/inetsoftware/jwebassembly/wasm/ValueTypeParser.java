@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2019 Volker Berlin (i-net software)
+ * Copyright 2018 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ public class ValueTypeParser implements Iterator<AnyType> {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean hasNext() {
         return idx < sig.length();
     }
@@ -61,8 +62,17 @@ public class ValueTypeParser implements Iterator<AnyType> {
      * 
      * @return next type or null
      */
+    @Override
     public AnyType next() {
         return next( false );
+    }
+
+    /**
+     * The current index in the parsed signature
+     * @return the index
+     */
+    public int getIndex() {
+        return idx;
     }
 
     /**

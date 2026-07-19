@@ -34,7 +34,9 @@ public class StringConcatFactoryBootstrap extends BootstrapMethod {
     StringConcatFactoryBootstrap( DataInputStream input, ConstantPool constantPool, ConstantMethodRef factoryMethod ) throws IOException {
         super( factoryMethod );
 
-        // occur in Java 11 in java/util/logging/Logger.findResourceBundle
+        // occur in Java 11
+        int argCount = input.readUnsignedShort();
+        assert argCount == 1;
         recipe = (String)constantPool.get( input.readUnsignedShort() );
     }
 

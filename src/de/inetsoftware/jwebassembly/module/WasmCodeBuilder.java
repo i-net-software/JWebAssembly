@@ -33,6 +33,7 @@ import de.inetsoftware.classparser.LambdaMetaFactoryBootstrap;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.classparser.StringConcatFactoryBootstrap;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
@@ -1005,9 +1006,88 @@ public abstract class WasmCodeBuilder {
                 }
                 return;
 
-            case "java/lang/invoke/StringConcatFactory":
-                throw new UnsupportedOperationException( "TODO" );
+            case "java/lang/invoke/StringConcatFactory": {
+                // Simulate StringBuilder: new StringBuilder().append(...)...append(...).toString()
+                String recipe = ((StringConcatFactoryBootstrap)method).getRecipe();
 
+                // Get AnyType for each param (for temp variable creation)
+                ValueTypeParser parser = new ValueTypeParser( factorySignature, types );
+                ArrayList<AnyType> paramTypes = new ArrayList<>();
+                ArrayList<String> paramDescs = new ArrayList<>();
+                do {
+                    int idx = parser.getIndex();
+                    AnyType param = parser.next();
+                    if( param == null ) {
+                        break;
+                    }
+                    paramTypes.add( param );
+                    paramDescs.add( factorySignature.substring( idx, parser.getIndex() ) );
+                } while( true );
+
+                // Save arguments from stack into temp variables (reverse order, top of stack first)
+                int numParams = paramTypes.size();
+                int[] tempSlots = new int[numParams];
+                for( int i = numParams - 1; i >= 0; i-- ) {
+                    AnyType paramType = paramTypes.get( i );
+                    tempSlots[i] = getTempVariable( paramType, javaCodePos, javaCodePos + 1 );
+                    instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, tempSlots[i], localVariables, javaCodePos, lineNumber ) );
+                }
+
+                // Create StringBuilder instance
+                addStructInstruction( StructOperator.NEW_DEFAULT, "java/lang/StringBuilder", null, javaCodePos, lineNumber );
+                addDupInstruction( false, javaCodePos, lineNumber );
+                addCallInstruction( new FunctionName( "java/lang/StringBuilder", "<init>", "()V" ), true, javaCodePos, lineNumber );
+
+                // Process the recipe: literal chars and \1..\paramCount tags for arguments
+                StringBuilder literalBuf = new StringBuilder();
+                for( int i = 0; i < recipe.length(); i++ ) {
+                    char ch = recipe.charAt( i );
+                    if( ch == 1 || ch == 2 ) {
+                        // flush accumulated literal
+                        if( literalBuf.length() > 0 ) {
+                            addConstInstruction( literalBuf.toString(), javaCodePos, lineNumber );
+                            addCallInstruction( new FunctionName( "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;" ), true, javaCodePos, lineNumber );
+                            literalBuf.setLength( 0 );
+                        }
+                        // append argument from temp variable
+                        int argNum = ch - 1;
+                        instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, tempSlots[argNum], localVariables, javaCodePos, lineNumber ) );
+                        String jvmDesc = paramDescs.get( argNum );
+                        addCallInstruction( new FunctionName( "java/lang/StringBuilder", "append", getStringBuilderAppendSignature( jvmDesc ) ), true, javaCodePos, lineNumber );
+                    } else {
+                        literalBuf.append( ch );
+                    }
+                }
+                // flush remaining literal
+                if( literalBuf.length() > 0 ) {
+                    addConstInstruction( literalBuf.toString(), javaCodePos, lineNumber );
+                    addCallInstruction( new FunctionName( "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;" ), true, javaCodePos, lineNumber );
+                }
+
+                // Call toString()
+                addCallInstruction( new FunctionName( "java/lang/StringBuilder", "toString", "()Ljava/lang/String;" ), true, javaCodePos, lineNumber );
+                return;
+            }
+
+        }
+    }
+
+    /**
+     * Get the StringBuilder.append() method signature for the given JVM type descriptor.
+     * Maps primitive types to the correct append overload (byte/short widen to int).
+     */
+    private static String getStringBuilderAppendSignature( @Nonnull String jvmDesc ) {
+        switch( jvmDesc ) {
+            case "Z": return "(Z)Ljava/lang/StringBuilder;";
+            case "C": return "(C)Ljava/lang/StringBuilder;";
+            case "B": // byte and short widen to int
+            case "S":
+            case "I": return "(I)Ljava/lang/StringBuilder;";
+            case "J": return "(J)Ljava/lang/StringBuilder;";
+            case "F": return "(F)Ljava/lang/StringBuilder;";
+            case "D": return "(D)Ljava/lang/StringBuilder;";
+            case "Ljava/lang/String;": return "(Ljava/lang/String;)Ljava/lang/StringBuilder;";
+            default: return "(Ljava/lang/Object;)Ljava/lang/StringBuilder;";
         }
     }
 
