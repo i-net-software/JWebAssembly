@@ -1296,7 +1296,6 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 func = abstracts.get( signatureName );
                 if( func == null ) {
                     func = new Function();
-                    func.id = functions.size() + imports.size();
                     functions.put( signatureName, func );
                 }
             }
