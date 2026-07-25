@@ -244,7 +244,8 @@ public class TypeManager {
     void prepareFinish( ModuleWriter writer ) throws IOException {
         isFinish = true;
         for( StructType type : structTypes.values() ) {
-            type.writeStructType( writer );
+            JWebAssembly.LOGGER.fine( "write type: " + type.name );
+            type.code = writer.writeStructType( type );
         }
 
         for( BlockType type : blockTypes.values() ) {
@@ -736,19 +737,6 @@ public class TypeManager {
                     allNeededFields = new HashSet<>();
                     listStructFields( name, functions, types, classFileLoader, allNeededFields );
             }
-        }
-
-        /**
-         * Write this struct type and initialize internal structures
-         * 
-         * @param writer
-         *            the targets for the types
-         * @throws IOException
-         *             if any I/O error occur on loading or writing
-         */
-        private void writeStructType( ModuleWriter writer ) throws IOException {
-            JWebAssembly.LOGGER.fine( "write type: " + name );
-            code = writer.writeStructType( this );
         }
 
         /**
