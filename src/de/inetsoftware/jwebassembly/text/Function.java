@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package de.inetsoftware.jwebassembly.text;
 
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
+
 /**
  * A function in the wasm.
  * 
@@ -24,7 +26,7 @@ class Function {
 
     int                 id;
 
-    int                 typeId = -1; // -1 not init, use an invalid value to fail hard if it used without init
+    BlockType           type;
 
     final StringBuilder output = new StringBuilder();
 

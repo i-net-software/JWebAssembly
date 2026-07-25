@@ -61,9 +61,11 @@ public class TextModuleWriter extends ModuleWriter {
 
     private final StringBuilder            output           = new StringBuilder();
 
-    private final ArrayList<String>        methodParamNames = new ArrayList<>();
+    private final ArrayList<String>        methodParamNames   = new ArrayList<>();
 
-    private final StringBuilder            typeOutput       = new StringBuilder();
+    private final ArrayList<AnyType>       methodParamTypes   = new ArrayList<>();
+
+    private final ArrayList<AnyType>       methodResultTypes  = new ArrayList<>();
 
     private final StringBuilder            structTypeOutput = new StringBuilder();
 
@@ -419,7 +421,8 @@ public class TextModuleWriter extends ModuleWriter {
                 imports.append( "(start $" ).append( normalizeName( name ) ).append( ")" );
                 break;
         }
-        typeOutput.setLength( 0 );
+        methodParamTypes.clear();
+        methodResultTypes.clear();
         methodParamNames.clear();
     }
 
@@ -428,10 +431,13 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodParam( String kind, AnyType valueType, @Nullable String name ) throws IOException {
-        if( kind != "local" ) {
-            typeOutput.append( '(' ).append( kind ).append( ' ' );
-            writeTypeName( typeOutput, valueType );
-            typeOutput.append( ')' );
+        switch( kind ) {
+            case "param":
+                methodParamTypes.add( valueType );
+                break;
+            case "result":
+                methodResultTypes.add( valueType );
+                break;
         }
         if( methodOutput == null ) {
             return;
@@ -475,13 +481,7 @@ public class TextModuleWriter extends ModuleWriter {
      */
     @Override
     protected void writeMethodParamFinish( @Nonnull FunctionName name ) throws IOException {
-        String typeStr = typeOutput.toString();
-        int idx = functionTypes.indexOf( typeStr );
-        if( idx < 0 ) {
-            idx = functionTypes.size();
-            functionTypes.add( typeStr );
-        }
-        getFunction( name ).typeId = idx;
+        getFunction( name ).type = options.types.blockType( new ArrayList<>( methodParamTypes ), new ArrayList<>( methodResultTypes ) );
 
         if( isImport ) {
             isImport = false;
@@ -805,7 +805,7 @@ public class TextModuleWriter extends ModuleWriter {
         callIndirect = true;
 
         newline( methodOutput );
-        methodOutput.append( "call_indirect (type $t" ).append( getFunction( name ).typeId ).append( ")  ;; " ).append( name.signatureName );
+        methodOutput.append( "call_indirect (type $t" ).append( getFunction( name ).type.getCode() ).append( ")  ;; " ).append( name.signatureName );
     }
 
     /**
