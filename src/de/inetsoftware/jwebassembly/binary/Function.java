@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.sourcemap.SourceMapping;
 
 /**
@@ -30,7 +31,7 @@ class Function extends SectionEntry {
 
     int                      id;
 
-    int                      typeId;
+    BlockType                type;
 
     List<String>             paramNames;
 
@@ -43,7 +44,7 @@ class Function extends SectionEntry {
      */
     @Override
     void writeSectionEntry( WasmOutputStream stream ) throws IOException {
-        stream.writeVaruint32( this.typeId );
+        stream.writeVaruint32( this.type.getCode() );
     }
 
     /**

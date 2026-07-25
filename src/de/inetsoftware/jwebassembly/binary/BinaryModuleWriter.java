@@ -655,12 +655,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeMethodParamFinish(FunctionName name) throws IOException {
-        int typeId = functionTypes.indexOf( functionType );
-        if( typeId < 0 ) {
-            typeId = functionTypes.size();
-            functionTypes.add( functionType );
-        }
-        function.typeId = typeId;
+        function.type = options.types.blockType( functionType.params, functionType.results );
     }
 
     /**
@@ -1275,7 +1270,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
         Function func = getFunction( name );
         codeStream.writeOpCode( CALL_INDIRECT );
-        codeStream.writeVaruint32( func.typeId );
+        codeStream.writeVaruint32( func.type.getCode() );
         codeStream.writeVaruint32( 0 ); // table 0
     }
 

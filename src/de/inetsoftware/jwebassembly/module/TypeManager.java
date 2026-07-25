@@ -454,7 +454,7 @@ public class TypeManager {
      * @return the type
      */
     @Nonnull
-    BlockType blockType( List<AnyType> params, List<AnyType> results ) {
+    public BlockType blockType( List<AnyType> params, List<AnyType> results ) {
         BlockType blockType = new BlockType( params, results );
         BlockType type = blockTypes.get( blockType );
         if( type != null ) {
