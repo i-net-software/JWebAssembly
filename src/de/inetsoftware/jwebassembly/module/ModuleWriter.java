@@ -71,35 +71,24 @@ public abstract class ModuleWriter implements Closeable {
     protected abstract void prepareFinish();
 
     /**
-     * Reserve a type ID for a struct type. Must be called before writeStructType.
-     * 
-     * @param type
-     *            the type to declare/write
-     * @return type ID
-     */
-    protected abstract int createStructTypeCode( @Nonnull StructType type );
-
-    /**
      * Write a type/struct.
      * 
      * @param type
      *            the type to declare/write
-     * @return type ID
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract int writeStructType( @Nonnull StructType type ) throws IOException;
+    protected abstract void writeStructType( @Nonnull StructType type ) throws IOException;
 
     /**
      * Write a block type.
      * 
      * @param type
      *            the type
-     * @return type ID
      * @throws IOException
      *             if any I/O error occur
      */
-    protected abstract int writeBlockType( @Nonnull BlockType type ) throws IOException;
+    protected abstract void writeBlockType( @Nonnull BlockType type ) throws IOException;
 
     /**
      * Mark to write exceptions

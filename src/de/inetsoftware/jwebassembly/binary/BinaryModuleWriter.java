@@ -500,33 +500,15 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * {@inheritDoc}
      */
     @Override
-    protected int createStructTypeCode( StructType type ) {
-        if( type.getKind() == StructTypeKind.primitive ) {
-            return -9; // Should never use
-        }
-
-        if( !options.useGC() ) {
-            return ValueType.externref.getCode();
-        }
-
-        int typeId = functionTypes.size();
-        functionTypes.add( type.getKind() == StructTypeKind.array_native ? new ArrayTypeEntry( type ) : new StructTypeEntry( type ) );
-        return typeId;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int writeStructType( StructType type ) throws IOException {
+    protected void writeStructType( StructType type ) throws IOException {
         type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id, options );
 
         if( type.getKind() == StructTypeKind.primitive ) {
-            return -9; // Should never use
+            return;
         }
 
         if( !options.useGC() ) {
-            return ValueType.externref.getCode();
+            return;
         }
 
         switch( type.getName() ) {
@@ -538,19 +520,18 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
         }
 
-        return type.getCode();
+        functionTypes.add( type.getKind() == StructTypeKind.array_native ? new ArrayTypeEntry( type ) : new StructTypeEntry( type ) );
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected int writeBlockType( BlockType type ) throws IOException {
+    protected void writeBlockType( BlockType type ) throws IOException {
         FunctionTypeEntry entry = new FunctionTypeEntry();
         entry.params.addAll( type.getParams() );
         entry.results.addAll( type.getResults() );
         functionTypes.add( entry );
-        return functionTypes.size() - 1;
     }
 
     /**

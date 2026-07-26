@@ -69,6 +69,8 @@ public class TextModuleWriter extends ModuleWriter {
 
     private final StringBuilder            structTypeOutput = new StringBuilder();
 
+    private int                            structTypeCount;
+
     private final ArrayList<String>        functionTypes            = new ArrayList<>();
 
     private StringBuilder                  methodOutput;
@@ -123,7 +125,7 @@ public class TextModuleWriter extends ModuleWriter {
 
         for( int i = 0; i < functionTypes.size(); i++ ) {
             newline( textOutput );
-            textOutput.append( "(type $t" ).append( Integer.toString( i ) ).append( " (func" ).append( functionTypes.get( i ) ).append( "))" );
+            textOutput.append( "(type $t" ).append( Integer.toString( i + structTypeCount ) ).append( " (func" ).append( functionTypes.get( i ) ).append( "))" );
         }
 
         textOutput.append( imports );
@@ -205,23 +207,15 @@ public class TextModuleWriter extends ModuleWriter {
      * {@inheritDoc}
      */
     @Override
-    protected int createStructTypeCode( StructType type ) {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int writeStructType( StructType type ) throws IOException {
+    protected void writeStructType( StructType type ) throws IOException {
         type.writeToStream( dataStream, (funcName) -> getFunction( funcName ).id, options );
 
         if( type.getKind() == StructTypeKind.primitive ) {
-            return -9; // Should never use
+            return;
         }
 
         if( !options.useGC() ) {
-            return ValueType.externref.getCode();
+            return;
         }
 
         int oldInset = inset;
@@ -264,14 +258,14 @@ public class TextModuleWriter extends ModuleWriter {
         }
         structTypeOutput.append( ")))" );
         inset = oldInset;
-        return 0;
+        structTypeCount++;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected int writeBlockType( BlockType type ) throws IOException {
+    protected void writeBlockType( BlockType type ) throws IOException {
         StringBuilder output = new StringBuilder();
         for( AnyType valueType : type.getParams() ) {
             writeParam( output, "param", valueType, null );
@@ -282,7 +276,6 @@ public class TextModuleWriter extends ModuleWriter {
         String name = output.toString();
         type.setName( name );
         functionTypes.add( name );
-        return functionTypes.size() - 1;
     }
 
     /**

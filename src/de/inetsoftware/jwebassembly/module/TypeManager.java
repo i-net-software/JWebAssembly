@@ -243,13 +243,18 @@ public class TypeManager {
      */
     void prepareFinish( ModuleWriter writer ) throws IOException {
         isFinish = true;
+        int id = 0;
         for( StructType type : structTypes.values() ) {
             JWebAssembly.LOGGER.fine( "write type: " + type.name );
-            type.code = writer.writeStructType( type );
+            writer.writeStructType( type );
+            type.code = type.getKind() == StructTypeKind.primitive //
+                            ? -9 // Should never use
+                            : options.useGC() ? id++ : ValueType.externref.getCode();
         }
 
         for( BlockType type : blockTypes.values() ) {
-            type.code = writer.writeBlockType( type );
+            writer.writeBlockType( type );
+            type.code = id++;
         }
 
         // write type table
@@ -635,7 +640,7 @@ public class TypeManager {
 
         private final int                           classIndex;
 
-        private int                                 code         = Integer.MAX_VALUE;
+        private int                                 code;
 
         private HashSet<String>                     neededFields = new HashSet<>();
 
@@ -676,7 +681,6 @@ public class TypeManager {
                 default:
                     this.classIndex = manager.typeIndexCounter++;
             }
-            code = manager.moduleWriter.createStructTypeCode( this );
         }
 
         /**
