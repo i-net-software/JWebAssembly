@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -244,12 +245,20 @@ public class TypeManager {
     void prepareFinish( ModuleWriter writer ) throws IOException {
         isFinish = true;
         int id = 0;
-        for( StructType type : structTypes.values() ) {
-            JWebAssembly.LOGGER.fine( "write type: " + type.name );
-            writer.writeStructType( type );
+        ArrayList<StructType> types = new ArrayList<>( structTypes.values() );
+        for( StructType type : types ) {
             type.code = type.getKind() == StructTypeKind.primitive //
                             ? -9 // Should never use
                             : options.useGC() ? id++ : ValueType.externref.getCode();
+        }
+
+        if( options.useGC() ) {
+            resortTypes( types );
+        }
+
+        for( StructType type : types ) {
+            JWebAssembly.LOGGER.fine( "write type: " + type.name );
+            writer.writeStructType( type );
         }
 
         for( BlockType type : blockTypes.values() ) {
@@ -263,6 +272,98 @@ public class TypeManager {
         typeTableOffset = writer.dataStream.size();
         for( StructType type : structTypes.values() ) {
             dataStream.writeInt32( type.vtableOffset );
+        }
+    }
+
+    /**
+     * WebAssembly 3.0 required that a StructType referenced only already declared types. Sorts the types so that all
+     * referenced types have already been declared. If this is not possible due to recursive dependencies, the first and
+     * last elements of a recursive group are marked. Since the types are already in the correct order for the most
+     * part, a type of bubble sort is used.
+     * 
+     * @param types
+     *            the registered types with its fields and parents
+     */
+    private void resortTypes( @Nonnull ArrayList<StructType> types ) {
+        int lastCode = 0;
+        int lastMaxSubcode = 0;
+        int repeatCount = 0;
+        for( int t = PRIMITIVE_CLASSES.length; t < types.size(); t++ ) {
+            StructType type = types.get( t );
+            int code = type.code;
+            int maxSubcode = maxSubcode( type );
+            int diff = maxSubcode - code;
+            if( diff > 0 ) {
+                int t2 = t + diff;
+                if( code == lastCode && maxSubcode == lastMaxSubcode ) {
+                    // no more reduce possible
+                    if( diff < ++repeatCount ) {
+                        resortParentHierachy( types.subList( t, t2 + 1 ) );
+                        types.get( t ).startRecursive = true;
+                        types.get( t2 ).endRecursive = true;
+                        t += diff;
+                        continue;
+                    }
+                } else {
+                    repeatCount = 1;
+                }
+                // try to reduce the recursive group through rotate
+                lastCode = code;
+                lastMaxSubcode = maxSubcode;
+                List<StructType> subList = types.subList( t, t2 + 1 );
+                Collections.rotate( subList, -1 );
+                for( StructType movedType : subList ) {
+                    movedType.code = code++;
+                }
+                t--;
+            }
+        }
+    }
+
+    /**
+     * Maximum sub type code
+     * 
+     * @param type
+     *            the starting type
+     * @return the code or -1 if subtype was found with a higher/later code
+     */
+    private int maxSubcode( StructType type ) {
+        int code = type.getCode();
+        int maxSubcode = -1;
+        //f=0 for StructTypeKind.array_native
+        for( int f = 0; f < type.fields.size(); f++ ) {
+            AnyType subtype = type.fields.get( f ).getType();
+            int subcode = subtype.getCode();
+            if( subcode >= code ) {
+                maxSubcode = Math.max( maxSubcode, subcode );
+                if( subcode > code ) {
+                    maxSubcode = Math.max( maxSubcode, maxSubcode( (StructType)subtype ) );
+                }
+            }
+        }
+        if( type.parent != null && type.parent.code > code ) {
+            maxSubcode = Math.max( maxSubcode, type.parent.code );
+        }
+        return maxSubcode;
+    }
+
+    /**
+     * Within a recursive group the parent types must define before the extended types. Through the reducing of group it
+     * can occur that a parent move to bottom.
+     * 
+     * @param recursiveTypes
+     *            the recursive group
+     */
+    void resortParentHierachy( @Nonnull List<StructType> recursiveTypes ) {
+        for( int t = 0; t < recursiveTypes.size(); t++ ) {
+            StructType type = recursiveTypes.get( t );
+            int code = type.code;
+            StructType parent = type.parent;
+            if( parent != null && parent.code > code ) {
+                Collections.swap( recursiveTypes, t, t + parent.code - code );
+                type.code = parent.code;
+                parent.code = code;
+            }
         }
     }
 
@@ -657,7 +758,10 @@ public class TypeManager {
          */
         private int                                 vtableOffset;
 
-        private StructType parent;
+        private StructType                          parent;
+
+        private boolean                             startRecursive;
+        private boolean                             endRecursive;
 
         /**
          * Create a reference to type
@@ -1234,6 +1338,22 @@ public class TypeManager {
         @Override
         public String toString() {
             return "$" + name;
+        }
+
+        /**
+         * If a recursive group start.
+         * @return true, if this type is the first type of a recursive group
+         */
+        public boolean isStartRecursive() {
+            return startRecursive;
+        }
+
+        /**
+         * If a recursive group end.
+         * @return true, if this type the last type of a recursive group
+         */
+        public boolean isEndRecursive() {
+            return endRecursive;
         }
     }
 

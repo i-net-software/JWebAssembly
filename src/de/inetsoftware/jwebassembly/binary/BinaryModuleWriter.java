@@ -73,6 +73,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private List<TypeEntry>             functionTypes       = new ArrayList<>();
 
+    private RecursiveGroupEntry         recursiveGroup;
+
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
     private List<AnyType>               locals              = new ArrayList<>();
@@ -520,7 +522,20 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 break;
         }
 
-        functionTypes.add( type.getKind() == StructTypeKind.array_native ? new ArrayTypeEntry( type ) : new StructTypeEntry( type ) );
+        if( type.isStartRecursive() ) {
+            functionTypes.add( recursiveGroup = new RecursiveGroupEntry() );
+        }
+
+        TypeEntry entry = type.getKind() == StructTypeKind.array_native ? new ArrayTypeEntry( type ) : new StructTypeEntry( type );
+        if( recursiveGroup == null ) {
+            functionTypes.add( entry );
+        } else {
+            recursiveGroup.add( entry );
+        }
+
+        if( type.isEndRecursive() ) {
+            recursiveGroup = null;
+        }
     }
 
     /**

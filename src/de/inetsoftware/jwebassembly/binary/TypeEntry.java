@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Volker Berlin (i-net software)
+ * Copyright 2019 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,16 +50,4 @@ abstract class TypeEntry extends SectionEntry {
      *             if any I/O error occur
      */
     abstract void writeSectionEntryDetails( WasmOutputStream stream ) throws IOException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public abstract int hashCode();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public abstract boolean equals( Object obj );
 }
