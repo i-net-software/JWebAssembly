@@ -944,8 +944,9 @@ public class TextModuleWriter extends ModuleWriter {
                 operation = "set";
                 break;
             case LEN:
-                operation = "len";
-                break;
+                newline( methodOutput );
+                methodOutput.append( "array.len" ); // without type
+                return;
             case NEW_ARRAY:
                 operation = "new_default";
                 break;

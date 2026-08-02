@@ -324,13 +324,11 @@ public class WatParser extends WasmCodeBuilder {
                         addStructInstruction( op, typeName, fieldNameType, javaCodePos, lineNumber );
                         break;
                     case "array.len":
-                        typeName = get( tokens, ++i );
-                        AnyType type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
-                        addArrayInstruction( ArrayOperator.LEN, type, javaCodePos, lineNumber );
+                        addArrayInstruction( ArrayOperator.LEN, null, javaCodePos, lineNumber );
                         break;
                     case "array.new_default":
                         typeName = get( tokens, ++i );
-                        type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
+                        AnyType type = ((ArrayType)getTypeManager().valueOf( typeName )).getArrayType();
                         addArrayInstruction( ArrayOperator.NEW_ARRAY, type, javaCodePos, lineNumber );
                         break;
                     case "struct.new":

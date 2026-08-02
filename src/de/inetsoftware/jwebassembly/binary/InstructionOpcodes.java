@@ -496,7 +496,7 @@ interface InstructionOpcodes {
 
     static final int STRUCT_SET             = 0xFB05;
 
-
+    // === array opcodes ===== https://webassembly.github.io/spec/core/binary/instructions.html#aggregate-instructions
 
     static final int ARRAY_NEW              = 0xFB06;
 

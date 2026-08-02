@@ -851,6 +851,7 @@ public abstract class WasmCodeBuilder {
                     javaPos = stackValue.instr.getCodePosition();
                     break;
                 case LEN:
+                    //TODO type is null
                     idx = instructions.size();
                     break;
                 default:

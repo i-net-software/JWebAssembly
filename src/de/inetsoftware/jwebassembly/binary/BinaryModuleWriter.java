@@ -1408,8 +1408,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 opCode = ARRAY_SET;
                 break;
             case LEN:
-                opCode = ARRAY_LEN;
-                break;
+                codeStream.writeOpCode( ARRAY_LEN ); // without type
+                return;
             case NEW_ARRAY:
                 opCode = ARRAY_NEW_DEFAULT;
                 break;
