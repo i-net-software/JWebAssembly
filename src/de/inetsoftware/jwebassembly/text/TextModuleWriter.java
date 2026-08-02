@@ -964,8 +964,9 @@ public class TextModuleWriter extends ModuleWriter {
         String operation;
         switch( op ) {
             case NEW:
+                operation = "struct.new";
+                break;
             case NEW_DEFAULT:
-                newline( methodOutput );
                 operation = "struct.new_default";
                 break;
             case GET:

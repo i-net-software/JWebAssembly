@@ -1428,6 +1428,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         int opCode;
         switch(op) {
             case NEW:
+                opCode = STRUCT_NEW;
+                break;
             case NEW_DEFAULT:
                 opCode = STRUCT_NEW_DEFAULT;
                 break;
