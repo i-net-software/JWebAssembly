@@ -78,7 +78,7 @@ public class ArrayType extends StructType {
      *            the type of the array
      */
     private ArrayType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, @Nonnull AnyType arrayType ) {
-        super( name, kind, manager, manager.valueOf( "java/lang/Object" ) );
+        super( name, kind, manager, kind == StructTypeKind.array_native ? null : manager.valueOf( "java/lang/Object" ) );
         this.arrayType = arrayType;
     }
 

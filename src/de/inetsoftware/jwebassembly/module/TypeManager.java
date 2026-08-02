@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.function.ToIntFunction;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.ClassFile;
 import de.inetsoftware.classparser.ClassFile.Type;
@@ -772,8 +773,9 @@ public class TypeManager {
          *            the type kind
          * @param manager
          *            the manager which hold all StructTypes
+         * @param parent the parent type (extends from) 
          */
-        protected StructType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, StructType parent ) {
+        protected StructType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, @Nullable StructType parent ) {
             this.name = name;
             this.kind = kind;
             this.manager = manager;
