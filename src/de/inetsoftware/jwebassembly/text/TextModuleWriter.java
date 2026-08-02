@@ -221,6 +221,11 @@ public class TextModuleWriter extends ModuleWriter {
         int oldInset = inset;
         inset = 1;
         newline( structTypeOutput );
+        if( type.isStartRecursive() ) {
+            structTypeOutput.append( "(rec" );
+            inset++;
+            newline( structTypeOutput );
+        }
         String typeName = normalizeName( type.getName() );
         switch( typeName ) {
             case "java/lang/String":
@@ -257,6 +262,11 @@ public class TextModuleWriter extends ModuleWriter {
             newline( structTypeOutput );
         }
         structTypeOutput.append( ")))" );
+        if( type.isEndRecursive() ) {
+            inset--;
+            newline( structTypeOutput );
+            structTypeOutput.append( ")" );
+        }
         inset = oldInset;
         structTypeCount++;
     }
