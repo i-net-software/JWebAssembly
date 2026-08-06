@@ -248,11 +248,18 @@ public class TextModuleWriter extends ModuleWriter {
         } else {
             structTypeOutput.append( "struct" );
             inset++;
+
+            HashSet<String> debugNames = options.debugNames() ? new HashSet<>() : null;
             for( NamedStorageType field : type.getFields() ) {
                 newline( structTypeOutput );
                 structTypeOutput.append( "(field" );
-                if( options.debugNames() && field.getName() != null ) {
-                    structTypeOutput.append( " $" ).append( typeName ).append(  '.' ).append( field.getName() );
+                if( debugNames != null ) {
+                    String name = field.getName();
+                    if( debugNames.add( name ) ) {
+                        structTypeOutput.append( " $" ).append( name );
+                    } else {
+                        structTypeOutput.append( " $" ).append( field.geClassName() ).append(  '.' ).append( name );
+                    }
                 }
                 structTypeOutput.append( " (mut " );
                 writeTypeName( structTypeOutput, field.getType() );
