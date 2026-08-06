@@ -986,7 +986,6 @@ public class TextModuleWriter extends ModuleWriter {
                 break;
             case CAST:
                 operation = "ref.cast";
-                type = null;
                 break;
             default:
                 throw new Error( "Unknown operator: " + op );
@@ -994,7 +993,12 @@ public class TextModuleWriter extends ModuleWriter {
         newline( methodOutput );
         methodOutput.append( operation );
         if( type != null ) {
-            methodOutput.append( ' ' ).append( normalizeName( type.toString() ) );
+            if( op != StructOperator.CAST ) {
+                methodOutput.append( ' ' ).append( normalizeName( type.toString() ) );
+            } else {
+                methodOutput.append( ' ' );
+                writeTypeName( methodOutput, type );
+            }
         }
         if( idx >= 0 ) {
             methodOutput.append(  ' ' ).append( idx );

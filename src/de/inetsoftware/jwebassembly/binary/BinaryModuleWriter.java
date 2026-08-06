@@ -1444,10 +1444,8 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
                 type = options.useGC() ? type : ValueType.externref;
                 break;
             case CAST:
-                codeStream.writeOpCode( REF_NULL_CAST );
-//                codeStream.writeValueType( options.types.valueOf( "java/lang/Object" ) );
-//                codeStream.writeValueType( type );
-                return;
+                opCode = REF_NULL_CAST;
+                break;
             default:
                 throw new Error( "Unknown operator: " + op );
         }
