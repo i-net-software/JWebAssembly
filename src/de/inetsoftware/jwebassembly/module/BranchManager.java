@@ -874,7 +874,7 @@ class BranchManager {
     }
 
     /**
-     * Get the block type for try_table. This is a block with no input parameter and a externref as return.
+     * Get the block type for try_table. This is a block with no input parameter and a exception as return.
      * 
      * @return the block type
      */
@@ -882,7 +882,8 @@ class BranchManager {
     private BlockType getTryTableType() {
         BlockType tryTableType = this.tryTableType;
         if( tryTableType == null ) {
-            this.tryTableType = tryTableType = options.types.blockType(  Collections.emptyList(), Collections.singletonList( ValueType.externref ) );
+            AnyType exceptionType = options.useGC() ? options.types.valueOf( "java/lang/Throwable" ) : ValueType.externref;
+            this.tryTableType = tryTableType = options.types.blockType( Collections.emptyList(), Collections.singletonList( exceptionType ) );
         }
         return tryTableType;
     }
