@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 - 2023 Volker Berlin (i-net software)
+   Copyright 2020 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ public class ClassFileLoader {
 
     private final ClassLoader                       bootLoader;
 
+    private final HashMap<String,String>            partialToTargetClassNames = new HashMap<>();
+
     /**
      * Create a new instance
      * 
@@ -71,7 +73,7 @@ public class ClassFileLoader {
      *             If any I/O error occur
      */
     @Nullable
-    public ClassFile get( String className ) throws IOException {
+    public ClassFile get( @Nonnull String className ) throws IOException {
         ClassFile classFile = replace.get( className );
         if( classFile != null ) {
             return classFile;
@@ -93,14 +95,14 @@ public class ClassFileLoader {
      * 
      * @param className
      *            the class name like "java/lang/Object"
-     * @return the ClassFile or null
+     * @return the ClassFile
      * @throws IOException
      *             If any I/O error occur
      * @throws WasmException
      *             if the class was not found
      */
     @Nonnull
-    public ClassFile getClassFile( String className ) throws IOException, WasmException {
+    public ClassFile getClassFile( @Nonnull String className ) throws IOException, WasmException {
         ClassFile classFile = get( className );
         if( classFile != null ) {
             return classFile;
@@ -151,13 +153,26 @@ public class ClassFileLoader {
      * @param className
      *            the name of the class to replace like "java/lang/String"
      * @param partialClassFile
-     *            the partial ClassFile
+     *            the partial ClassFile with replacement code
      * @throws IOException
      *             If any I/O error occur
      */
-    void partial( String className, ClassFile partialClassFile ) throws IOException {
+    void partial( @Nonnull String className, @Nonnull ClassFile partialClassFile ) throws IOException {
         ClassFile classFile = get( className );
         replace.put( className, classFile );
         classFile.partial( partialClassFile );
+        partialToTargetClassNames.put( partialClassFile.getThisClass().getName(), className );
+    }
+
+    /**
+     * Resolve a class name that is replaced by a partial class (annotated with @Partial) to the target class name.
+     * 
+     * @param className
+     *            the class name to resolve
+     * @return the target class name if this is a replacement else the given class name
+     */
+    @Nonnull
+    String getTargetClassName( @Nonnull String className ) {
+        return partialToTargetClassNames.getOrDefault( className, className );
     }
 }

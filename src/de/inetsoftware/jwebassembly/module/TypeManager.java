@@ -421,7 +421,8 @@ public class TypeManager {
      * @return the struct type
      */
     @Nonnull
-    public StructType valueOf( String name ) {
+    public StructType valueOf( @Nonnull String name ) {
+        name = classFileLoader.getTargetClassName( name );
         StructType type = structTypes.get( name );
         if( type == null ) {
             if( name.startsWith( "[" ) ) {
