@@ -481,19 +481,15 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
         // field source language list
         stream.writeString( "language" );
-        stream.writeVaruint32( 1 ); // field_value_count; number of value strings that follow
-        stream.writeString( "Java bytecode" );
+        stream.writeVaruint32( 1 ); // field_value_count; number of values that follow
+        stream.writeString( "Java" );
+        stream.writeString( System.getProperty( "java.version" ) ); // version of the language
 
         // field individual tool list
         stream.writeString( "processed-by" );
-        if( version == null ) {
-            stream.writeVaruint32( 1 ); // field_value_count; number of value strings that follow
-            stream.writeString( "JWebAssembly" );
-        } else {
-            stream.writeVaruint32( 2 ); // field_value_count; number of value strings that follow
-            stream.writeString( "JWebAssembly" );
-            stream.writeString( version );
-        }
+        stream.writeVaruint32( 1 ); // field_value_count; number of values that follow
+        stream.writeString( "JWebAssembly" );
+        stream.writeString( version == null ? "" : version ); // version of the tool
 
         wasm.writeSection( SectionType.Custom, stream );
     }
