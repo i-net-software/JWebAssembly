@@ -75,6 +75,9 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
 
     private RecursiveGroupEntry         recursiveGroup;
 
+    /** Index offset in the `functionTypes` list by recursive groups. */
+    private int                         typesIndexOffset;
+
     private Map<String, Function>       functions           = new LinkedHashMap<>();
 
     private List<AnyType>               locals              = new ArrayList<>();
@@ -530,6 +533,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
 
         if( type.isEndRecursive() ) {
+            typesIndexOffset += recursiveGroup.size() - 1;
             recursiveGroup = null;
         }
     }
@@ -550,15 +554,16 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      */
     @Override
     protected void writeException() throws IOException {
-        if( exceptionSignatureIndex <= 0 ) {
+        if( exceptionSignatureIndex < 0 ) {
             FunctionTypeEntry type = new FunctionTypeEntry();
             AnyType eventType = options.useGC() ? options.types.valueOf( "java/lang/Throwable" ) : ValueType.externref;
             type.params.add( eventType );
-            exceptionSignatureIndex = functionTypes.indexOf( type );
-            if( exceptionSignatureIndex < 0 ) {
-                exceptionSignatureIndex = functionTypes.size();
+            int idx = functionTypes.indexOf( type );
+            if( idx < 0 ) {
+                idx = functionTypes.size();
                 functionTypes.add( type );
             }
+            exceptionSignatureIndex = idx + typesIndexOffset;
         }
     }
 
