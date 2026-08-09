@@ -214,6 +214,10 @@ public class TextModuleWriter extends ModuleWriter {
             return;
         }
 
+        if( type.getKind() == StructTypeKind.Interface ) {
+            return;
+        }
+
         if( !options.useGC() ) {
             return;
         }
@@ -370,6 +374,11 @@ public class TextModuleWriter extends ModuleWriter {
         return name.replace( '[', '/' ).replace( ";", "" );
     }
 
+    @Nonnull
+    private String normalizeName( StructType type ) {
+        return type.getKind() == StructTypeKind.Interface ? "$java/lang/Object" : normalizeName( type.toString() );
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -410,8 +419,7 @@ public class TextModuleWriter extends ModuleWriter {
             }
             output.append( name );
         } else if( options.useGC() ) {
-            //output.append( ValueType.eqref.toString() );
-            output.append( "(ref null " ).append( normalizeName( type.toString() ) ).append( ')' );
+            output.append( "(ref null " ).append( normalizeName( (StructType)type ) ).append( ')' );
         } else {
             output.append( ValueType.externref.toString() );
         }
@@ -658,7 +666,7 @@ public class TextModuleWriter extends ModuleWriter {
                     throw new WasmException( "Not supported storage type: " + type, -1 );
             }
         } else {
-            output.append( "ref.null " ).append( options.useGC() ? normalizeName( type.toString() ) : "extern" );
+            output.append( "ref.null " ).append( options.useGC() ? normalizeName( (StructType)type ) : "extern" );
         }
     }
 
@@ -1001,7 +1009,7 @@ public class TextModuleWriter extends ModuleWriter {
         methodOutput.append( operation );
         if( type != null ) {
             if( op != StructOperator.CAST ) {
-                methodOutput.append( ' ' ).append( normalizeName( type.toString() ) );
+                methodOutput.append( ' ' ).append( normalizeName( (StructType)type ) );
             } else {
                 methodOutput.append( ' ' );
                 writeTypeName( methodOutput, type );

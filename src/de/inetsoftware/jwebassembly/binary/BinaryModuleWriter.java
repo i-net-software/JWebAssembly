@@ -508,6 +508,10 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
             return;
         }
 
+        if( type.getKind() == StructTypeKind.Interface ) {
+            return;
+        }
+
         if( !options.useGC() ) {
             return;
         }

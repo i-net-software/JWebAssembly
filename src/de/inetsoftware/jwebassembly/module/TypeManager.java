@@ -166,9 +166,9 @@ public class TypeManager {
     private static final String[]           PRIMITIVE_CLASSES                  =
                     { "boolean", "byte", "char", "double", "float", "int", "long", "short", "void" };
 
-    private final Map<Object, StructType>   structTypes                        = new LinkedHashMap<>();
+    private final Map<Object, StructType>   structTypes                        = new LinkedHashMap<>( 1000 );
 
-    private final Map<BlockType, BlockType> blockTypes                         = new LinkedHashMap<>();
+    private final Map<BlockType, BlockType> blockTypes                         = new LinkedHashMap<>( 1000 );
 
     private int                             typeIndexCounter;
 
@@ -245,20 +245,39 @@ public class TypeManager {
      */
     void prepareFinish( ModuleWriter writer ) throws IOException {
         isFinish = true;
+        boolean useGC = options.useGC();
         int id = 0;
         ArrayList<StructType> types = new ArrayList<>( structTypes.values() );
-        for( StructType type : types ) {
-            type.code = type.getKind() == StructTypeKind.primitive //
-                            ? -9 // Should never use
-                            : options.useGC() ? id++ : ValueType.externref.getCode();
+        ArrayList<StructType> interfaces = new ArrayList<>( types.size() );
+        for( int t = 0; t < types.size(); t++ ) {
+            StructType type = types.get( t );
+            switch( type.getKind() ) {
+                case primitive:
+                    type.code = -9; // Should never use
+                    break;
+                case Interface:
+                    // exclude it from resort
+                    interfaces.add( type );
+                    types.remove( t );
+                    t--;
+                    break;
+                default:
+                    type.code = useGC ? id++ : ValueType.externref.getCode();
+            }
         }
 
-        if( options.useGC() ) {
+
+        if( useGC ) {
             resortTypes( types );
         }
+        types.addAll( interfaces );
+        int interfaceCode = (useGC ? structTypes.get( "java/lang/Object" ) : ValueType.externref).getCode();
 
         for( StructType type : types ) {
             JWebAssembly.LOGGER.fine( "write type: " + type.name );
+            if( type.getKind() == StructTypeKind.Interface ) {
+                type.code = interfaceCode;
+            }
             writer.writeStructType( type );
         }
 
@@ -431,18 +450,17 @@ public class TypeManager {
                 checkStructTypesState( name );
                 ClassFile classFile;
                 try {
-                    classFile = classFileLoader.get( name );
+                    classFile = classFileLoader.getClassFile( name );
                 } catch( IOException ex ) {
                     throw new UncheckedIOException( ex );
                 }
                 StructType parent = null;
-                if( classFile != null ) {
-                    ConstantClass superClass = classFile.getSuperClass();
-                    if( superClass != null ) {
-                        parent = valueOf( superClass.getName() );
-                    }
+                ConstantClass superClass = classFile.getSuperClass();
+                if( superClass != null ) {
+                    parent = valueOf( superClass.getName() );
                 }
-                type = new StructType( name, StructTypeKind.normal, this, parent );
+                StructTypeKind kind = classFile.getType() == Type.Interface ? StructTypeKind.Interface : StructTypeKind.normal;
+                type = new StructType( name, kind, this, parent );
             }
 
             structTypes.put( name, type );
@@ -725,7 +743,7 @@ public class TypeManager {
      * @author Volker Berlin
      */
     public static enum StructTypeKind {
-        primitive, normal, array, array_native, lambda;
+        primitive, normal, array, array_native, lambda, Interface;
     }
 
     /**
@@ -1125,7 +1143,9 @@ public class TypeManager {
                 return false;
             }
             StructType structType = (StructType)type;
-            if( kind != structType.kind ) {
+            if( kind != structType.kind && 
+                !((kind == StructTypeKind.normal || kind == StructTypeKind.Interface) &&
+                (structType.kind == StructTypeKind.normal || structType.kind == StructTypeKind.Interface)) ) {
                 return false;
             }
 
