@@ -684,7 +684,7 @@ class UnsafeManager {
         instructions.set( idx, call );
 
         // a virtual method call has also a DUP of this because we need for virtual method dispatch the parameter 2 times.
-        for( int i = idx; i >= 0; i-- ) {
+        for( int i = stackValue.idx; i >= 0; i-- ) {
             instr = instructions.get( i );
             if( instr.getType() == Type.DupThis && ((DupThis)instr).getValue() == callInst ) {
                 nop( instructions, i, i + 1 );
