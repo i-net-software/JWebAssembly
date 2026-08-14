@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 - 2022 Volker Berlin (i-net software)
+   Copyright 2019 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -28,6 +30,7 @@ import de.inetsoftware.jwebassembly.watparser.WatParser;
  */
 class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
 
+    @Nonnull
     private final String    code;
 
     /**
@@ -40,7 +43,7 @@ class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
      * @param signatureTypes
      *            the method signature, first the parameters, then null and the the return types
      */
-    public WatCodeSyntheticFunctionName( String name, String code, AnyType... signatureTypes ) {
+    public WatCodeSyntheticFunctionName( String name, @Nonnull String code, AnyType... signatureTypes ) {
         super( "", name, signatureTypes );
         this.code = code;
     }
@@ -60,6 +63,25 @@ class WatCodeSyntheticFunctionName extends ArraySyntheticFunctionName {
      *            the method signature, first the parameters, then null and the the return types
      */
     public WatCodeSyntheticFunctionName( String className, String name, String signature, @Nonnull String code, AnyType... signatureTypes ) {
+        super( className, name, signature, signatureTypes );
+        this.code = code;
+    }
+
+    /**
+     * Create a new instance.
+     * 
+     * @param className
+     *            the Java class name
+     * @param name
+     *            the function name
+     * @param code
+     *            the WAT code (WASM in text form)
+     * @param signature
+     *            the string signature
+     * @param signatureTypes
+     *            the method signature, first the parameters, then null and the the return types
+     */
+    public WatCodeSyntheticFunctionName( String className, String name, String signature, @Nonnull String code, List<AnyType> signatureTypes ) {
         super( className, name, signature, signatureTypes );
         this.code = code;
     }

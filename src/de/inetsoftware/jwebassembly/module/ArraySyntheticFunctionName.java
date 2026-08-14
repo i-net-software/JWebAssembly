@@ -1,5 +1,5 @@
 /*
-   Copyright 2019 - 2022 Volker Berlin (i-net software)
+   Copyright 2019 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package de.inetsoftware.jwebassembly.module;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 
@@ -28,7 +29,7 @@ import de.inetsoftware.jwebassembly.wasm.AnyType;
  */
 public abstract class ArraySyntheticFunctionName extends SyntheticFunctionName {
 
-    private final AnyType[] signatureTypes;
+    private final List<AnyType> signatureTypes;
 
     /**
      * Create a new instance.
@@ -54,9 +55,26 @@ public abstract class ArraySyntheticFunctionName extends SyntheticFunctionName {
      * @param signature
      *            the string signature
      * @param signatureTypes
-     *            the method signature, first the parameters, then null and the the return types
+     *            the method signature, first the parameters, then null and the return types
      */
     public ArraySyntheticFunctionName( String className, String name, String signature, AnyType... signatureTypes ) {
+        super( className, name, signature );
+        this.signatureTypes = signatureTypes != null ? Arrays.asList( signatureTypes ) : null;
+    }
+
+    /**
+     * Create a new instance.
+     * 
+     * @param className
+     *            the Java class name
+     * @param name
+     *            the function name
+     * @param signature
+     *            the string signature
+     * @param signatureTypes
+     *            the method signature, first the parameters, then null and the return types
+     */
+    public ArraySyntheticFunctionName( String className, String name, String signature, List<AnyType> signatureTypes ) {
         super( className, name, signature );
         this.signatureTypes = signatureTypes;
     }
@@ -67,7 +85,7 @@ public abstract class ArraySyntheticFunctionName extends SyntheticFunctionName {
     @Override
     public Iterator<AnyType> getSignature( TypeManager types ) {
         if( signatureTypes != null ) {
-            return Arrays.asList( signatureTypes ).iterator();
+            return signatureTypes.iterator();
         } else {
             return super.getSignature( types );
         }

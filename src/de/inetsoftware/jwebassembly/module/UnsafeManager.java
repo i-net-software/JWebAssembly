@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Volker Berlin (i-net software)
+ * Copyright 2023 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package de.inetsoftware.jwebassembly.module;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.NamedStorageType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
+import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 import de.inetsoftware.jwebassembly.wasm.VariableOperator;
 
 /**
@@ -542,10 +544,17 @@ class UnsafeManager {
             }
         }
 
+        // this is the second position that we need to patch the signature
+        List<AnyType> signatureTypes = new ArrayList<>();
+        for( ValueTypeParser it = new ValueTypeParser( name.signature, types ); it.hasNext(); ) {
+            signatureTypes.add( it.next() );
+        }
+        signatureTypes.add( 1, types.valueOf( fieldNameWithOffset.className ) );
+
         UnsafeState state_ = state;
 
         WatCodeSyntheticFunctionName func =
-                        new WatCodeSyntheticFunctionName( fieldNameWithOffset.className, '.' + fieldNameWithOffset.methodName + '.' + name.methodName, name.signature, "", (AnyType[])null ) {
+                        new WatCodeSyntheticFunctionName( fieldNameWithOffset.className, '.' + fieldNameWithOffset.methodName + '.' + name.methodName, name.signature, "", signatureTypes ) {
                             @Override
                             protected String getCode() {
                                 UnsafeState state = state_;
@@ -678,7 +687,7 @@ class UnsafeManager {
                                 throw new RuntimeException( name.signatureName );
                             }
                         };
-        boolean needThisParameter = true;
+        boolean needThisParameter = false;
         functions.markAsNeeded( func, needThisParameter ); // original function has an THIS parameter of the Unsafe instance, we need to consume it
         WasmCallInstruction call = new WasmCallInstruction( func, callInst.getCodePosition(), callInst.getLineNumber(), callInst.getTypeManager(), needThisParameter );
         instructions.set( idx, call );
