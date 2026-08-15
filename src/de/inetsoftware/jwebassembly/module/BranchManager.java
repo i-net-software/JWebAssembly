@@ -1982,7 +1982,7 @@ class BranchManager {
                                 case LOOP:
                                 case TRY_TABLE:
                                     // skip the content of the block, important to not count ELSE blocks
-                                    i = findEndInstruction( instructions, i );
+                                    i = StackInspector.findEndInstruction( instructions, i );
                                     break;
                                 case END:
                                 case ELSE:
@@ -2015,40 +2015,6 @@ class BranchManager {
                 break;
                 default:
             }
-        }
-
-        /**
-         * Find the END instruction of the block.
-         * 
-         * @param instructions
-         *            the list of instructions
-         * @param idx
-         *            the index of the block start
-         * @return the END index
-         */
-        private int findEndInstruction( List<WasmInstruction> instructions, int idx ) {
-            int count = 0;
-            for( ; idx < instructions.size(); idx++ ) {
-                WasmInstruction instr = instructions.get( idx );
-                if( instr.getType() == Type.Block ) {
-                    switch( ((WasmBlockInstruction)instr).getOperation() ) {
-                        case IF:
-                        case BLOCK:
-                        case LOOP:
-                        case TRY_TABLE:
-                            count++;
-                            break;
-                        case END:
-                            count--;
-                            break;
-                        default:
-                    }
-                }
-                if( count == 0 ) {
-                    break;
-                }
-            }
-            return idx;
         }
 
         /**

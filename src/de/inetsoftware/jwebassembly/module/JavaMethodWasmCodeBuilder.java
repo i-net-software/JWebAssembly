@@ -987,6 +987,13 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
                             if( nextInstr.getPushValueType() != null ) {
                                 count++;
                             }
+                            if( nextInstr.getType() == Type.Block ) {
+                                WasmBlockInstruction blockInstr = (WasmBlockInstruction)nextInstr;
+                                if( blockInstr.getOperation() == WasmBlockOperator.BR ) {
+                                    int deep = (Integer)blockInstr.getData();
+                                    s = de.inetsoftware.jwebassembly.module.StackInspector.findEndInstruction( instructions, s, deep + 1 );
+                                }
+                            }
                         }
                     }
                 }

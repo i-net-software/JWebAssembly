@@ -102,4 +102,52 @@ class StackInspector {
         /** the instruction that push the stack value */
         WasmInstruction instr;
     }
+
+    /**
+     * Find the END instruction of the block.
+     * 
+     * @param instructions
+     *            the list of instructions
+     * @param idx
+     *            the index of the block start
+     * @return the END index
+     */
+    static int findEndInstruction( List<WasmInstruction> instructions, int idx ) {
+        return findEndInstruction( instructions, idx, 0 );
+    }
+
+    /**
+     * Find the END instruction of the block.
+     * 
+     * @param instructions
+     *            the list of instructions
+     * @param idx
+     *            the index of the instruction
+     * @param count
+     *            the count of END instructions, if this 0 then the idx must point on a block start
+     * @return the END index
+     */
+    static int findEndInstruction( List<WasmInstruction> instructions, int idx, int count ) {
+        for( ; idx < instructions.size(); idx++ ) {
+            WasmInstruction instr = instructions.get( idx );
+            if( instr.getType() == Type.Block ) {
+                switch( ((WasmBlockInstruction)instr).getOperation() ) {
+                    case IF:
+                    case BLOCK:
+                    case LOOP:
+                    case TRY_TABLE:
+                        count++;
+                        break;
+                    case END:
+                        count--;
+                        break;
+                    default:
+                }
+            }
+            if( count == 0 ) {
+                break;
+            }
+        }
+        return idx;
+    }
 }
