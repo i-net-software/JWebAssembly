@@ -55,6 +55,8 @@ import com.google.gson.Gson;
  */
 public class WasmRule extends TemporaryFolder {
 
+    private static final String       SCRIPT_ERROR = "SCRIPT_ERROR";
+
     private static final boolean      IS_WINDOWS   = System.getProperty( "os.name" ).toLowerCase().indexOf( "win" ) >= 0;
 
     private static final SpiderMonkey spiderMonkey = new SpiderMonkey();
@@ -596,12 +598,19 @@ public class WasmRule extends TemporaryFolder {
                 // data are available as block data
                 Map<String, String> resultMap = testResults.get( script );
                 if( resultMap != null ) {
+                    String scriptError = resultMap.get( SCRIPT_ERROR );
+                    if( scriptError != null ) {
+                        fail( scriptError );
+                    }
                     return resultMap.get( methodName );
                 }
             } else {
                 // block data then write single test data
                 writeJsonTestData( Collections.singletonMap( methodName, params ) );
             }
+
+            File resultFile = new File( getRoot(), "testresult.json" );
+            resultFile.delete();
 
             processBuilder = createCommand( script );
             processBuilder.directory( getRoot() );
@@ -623,7 +632,6 @@ public class WasmRule extends TemporaryFolder {
             int exitCode = process.exitValue();
 
             // read the result from file
-            File resultFile = new File( getRoot(), "testresult.json" );
             String result = null;
             if( resultFile.exists() ) {
                 try( InputStreamReader jsonData = new InputStreamReader( new FileInputStream( new File( getRoot(), "testresult.json" ) ), StandardCharsets.UTF_8 ) ) {
@@ -639,7 +647,13 @@ public class WasmRule extends TemporaryFolder {
             if( exitCode != 0 || !stdoutMessage.isEmpty() || !errorMessage.isEmpty() ) {
                 System.err.println( stdoutMessage );
                 System.err.println( errorMessage );
-                fail( stdoutMessage + '\n' + errorMessage + '\n' + result + "\nExit code: " + exitCode );
+                String scriptError = stdoutMessage + '\n' + errorMessage + '\n' + result + "\nExit code: " + exitCode;
+                Map<String, String> resultMap = testResults.get( script );
+                if( resultMap == null ) {
+                    testResults.put( script, resultMap = new HashMap<>() );
+                }
+                resultMap.put( SCRIPT_ERROR, scriptError );
+                fail( scriptError );
             }
 
             return result;
