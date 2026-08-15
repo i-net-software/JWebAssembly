@@ -841,13 +841,13 @@ public abstract class WasmCodeBuilder {
                 case GET:
                 case GET_S:
                 case GET_U:
-                    StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions, 1, javaCodePos );
-                    idx = stackValue.idx;
+                    StackValue stackValue = StackInspector.findInstructionThatPushValue( instructions, 2, javaCodePos );
+                    idx = stackValue.idx + 1;
                     javaPos = stackValue.instr.getCodePosition();
                     break;
                 case SET:
-                    stackValue = StackInspector.findInstructionThatPushValue( instructions, 2, javaCodePos );
-                    idx = stackValue.idx;
+                    stackValue = StackInspector.findInstructionThatPushValue( instructions, 3, javaCodePos );
+                    idx = stackValue.idx + 1;
                     javaPos = stackValue.instr.getCodePosition();
                     break;
                 case LEN:

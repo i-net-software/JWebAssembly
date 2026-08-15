@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2023 Volker Berlin (i-net software)
+ * Copyright 2018 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ public class ArrayOperations extends AbstractBaseTest {
             addParam( list, script, "arrayNewInstance_getLength" );
             addParam( list, script, "isArrayOfArray" );
             addParam( list, script, "isArrayOfObject" );
+            addParam( list, script, "calculatedArrayIndex" );
         }
         rule.setTestParameters( list );
         return list;
@@ -367,6 +368,14 @@ public class ArrayOperations extends AbstractBaseTest {
             Object obj = new Object();
             Class<?> clazz = obj.getClass();
             return clazz.isArray();
+        }
+
+        @Export
+        static int calculatedArrayIndex() {
+            int off = 1;
+            int[] data = { 1, 2, 3 };
+            int val = data[off + 1];
+            return val;
         }
     }
 }
