@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import de.inetsoftware.jwebassembly.ScriptEngine;
@@ -44,6 +43,7 @@ public class StructsGC extends AbstractBaseTest {
             addParam( list, script, "isNotNull" );
             addParam( list, script, "isSame" );
             addParam( list, script, "isNotSame" );
+            addParam( list, script, "nullInTenary" );
             addParam( list, script, "simple" );
             addParam( list, script, "callSuperMethod" );
             //TODO addParam( list, script, "callVirtualMethod" );
@@ -52,11 +52,6 @@ public class StructsGC extends AbstractBaseTest {
         }
         rule.setTestParameters( list );
         return list;
-    }
-
-    @Test
-    public void test() {
-        super.test();
     }
 
     static class TestClass {
@@ -85,6 +80,13 @@ public class StructsGC extends AbstractBaseTest {
             Object val1 = null;
             Object val2 = null;
             return val1 != val2;
+        }
+
+        @Export
+        static boolean nullInTenary() {
+            Abc2 abc = new Abc2();
+            abc.abc = abc != null ? null : null;
+            return abc.abc == null;
         }
 
         @Export

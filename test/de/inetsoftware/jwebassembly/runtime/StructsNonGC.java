@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 - 2022 Volker Berlin (i-net software)
+ * Copyright 2018 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ public class StructsNonGC extends AbstractBaseTest {
             addParam( list, script, "isNotNull" );
             addParam( list, script, "isSame" );
             addParam( list, script, "isNotSame" );
+            addParam( list, script, "nullInTenary" );
             addParam( list, script, "simple" );
             addParam( list, script, "callSuperMethod" );
             addParam( list, script, "callVirtualMethod" );
@@ -116,6 +117,13 @@ public class StructsNonGC extends AbstractBaseTest {
             Object val1 = null;
             Object val2 = null;
             return val1 != val2;
+        }
+
+        @Export
+        static boolean nullInTenary() {
+            Abc2 abc = new Abc2();
+            abc.abc = abc != null ? null : null;
+            return abc.abc == null;
         }
 
         @Export

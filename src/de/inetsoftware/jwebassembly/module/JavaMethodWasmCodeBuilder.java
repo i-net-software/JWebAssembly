@@ -763,6 +763,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
 
             if( nullConstants && getOptions().useGC() ) {
                 patchTypeOfNullConst();
+                branchManager.recalculateBlockTypes(); // possible optimizing, we need this only if a block type has a result of ValueType.eqref
             }
 
         } catch( Throwable ex ) {

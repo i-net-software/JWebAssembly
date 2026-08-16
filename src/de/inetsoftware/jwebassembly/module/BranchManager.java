@@ -1582,6 +1582,13 @@ class BranchManager {
     }
 
     /**
+     * Recalculate block types after null constants have been patched.
+     */
+    void recalculateBlockTypes() {
+        root.calculateBlockType( instructions );
+    }
+
+    /**
      * Description of single block/branch from the parsed Java byte code. The original parsed Java Code is plain. On
      * parsing the Java code for every jump a ParsedBlock is created. The ParsedBlock are accumulate on a list.
      */
