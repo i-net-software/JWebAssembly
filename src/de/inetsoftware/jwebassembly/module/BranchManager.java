@@ -1397,21 +1397,6 @@ class BranchManager {
     }
 
     /**
-     * Get the WebAssembly type of the catched exception. 
-     * @param tryCatch the parsed Java try/catch/finally block.
-     * @return the registered WebAssembly type
-     */
-    @Nonnull
-    private AnyType getCatchType( @Nonnull TryCatchFinally tryCatch ) {
-        if( options.useGC() ) {
-            ConstantClass excepClass = tryCatch.getType();
-            String excepName = excepClass != null ? excepClass.getName() : "java/lang/Throwable";
-            return options.types.valueOf( excepName );
-        }
-        return ValueType.externref;
-    }
-
-    /**
      * Get the catch type if there are a start of a catch block on the code position.
      * 
      * @param codePosition
@@ -1422,7 +1407,14 @@ class BranchManager {
     AnyType getCatchType( int codePosition ) {
         for( TryCatchFinally tryCatch : exceptionTable ) {
             if( tryCatch.getHandler() == codePosition ) {
-                return getCatchType( tryCatch );
+                if( options.useGC() ) {
+                    /*
+                     * The try_table in WASM produces Throwable (the common supertype), so the exception local
+                     * must be typed as Throwable to avoid a type mismatch when storing the caught exception.
+                     */
+                    return options.types.valueOf( "java/lang/Throwable" );
+                }
+                return ValueType.externref;
             }
         }
         return null;
