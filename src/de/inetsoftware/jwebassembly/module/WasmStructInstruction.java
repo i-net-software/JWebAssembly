@@ -233,7 +233,9 @@ class WasmStructInstruction extends WasmInstruction {
                 break;
             case INSTANCEOF:
             case CAST:
-                idx = type.getClassIndex();
+                if( functionName != null ) {
+                    idx = type.getClassIndex();
+                }
                 break;
             default:
         }

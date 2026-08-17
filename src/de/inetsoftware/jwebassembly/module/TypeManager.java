@@ -174,6 +174,7 @@ public class TypeManager {
 
     private boolean                         isFinish;
 
+    @Nonnull
     final WasmOptions                       options;
 
     private int                             typeTableOffset;
@@ -188,7 +189,7 @@ public class TypeManager {
      * @param options
      *            compiler properties
      */
-    TypeManager( WasmOptions options ) {
+    TypeManager( @Nonnull WasmOptions options ) {
         this.options = options;
     }
 
@@ -521,11 +522,28 @@ public class TypeManager {
             }
 
             type = new ArrayType( arrayType, this, componentClassIndex, options );
-            if( options.useGC() ) {
-                StructType nativeArrayType = (StructType)type.getNativeArrayType();
-                structTypes.put( nativeArrayType.getName(), nativeArrayType );
-            }
             structTypes.put( arrayType, type );
+        }
+        return type;
+    }
+
+    /**
+     * Get the native array type for the given component type. Only one instance can exist for each
+     * component type, because the native wasm GC array type is shared for all object arrays.
+     * 
+     * @param name
+     *            the native type name
+     * @param componentType
+     *            the component type of the native array
+     * @return the native array type
+     */
+    @Nonnull
+    public ArrayType nativeArrayType( @Nonnull String name, @Nonnull AnyType componentType ) {
+        ArrayType type = (ArrayType)structTypes.get( name );
+        if( type == null ) {
+            checkStructTypesState( name );
+            type = new ArrayType( name, StructTypeKind.array_native, this, componentType );
+            structTypes.put( name, type );
         }
         return type;
     }

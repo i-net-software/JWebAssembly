@@ -44,7 +44,7 @@ public class ArrayType extends StructType {
      * Create a new array type
      * 
      * @param arrayType
-     *            the type of the array
+     *            the type of the array component
      * @param manager
      *            the manager which hold all StructTypes
      * @param componentClassIndex
@@ -53,12 +53,21 @@ public class ArrayType extends StructType {
      *            compiler properties
      */
     public ArrayType( @Nonnull AnyType arrayType, @Nonnull TypeManager manager, int componentClassIndex, @Nonnull WasmOptions options ) {
-        this( getJavaClassName( arrayType ), StructTypeKind.array, manager, arrayType );
+        super( getJavaClassName( arrayType ), StructTypeKind.array, manager, getParentType( manager, arrayType ) );
+        this.arrayType = arrayType;
         this.componentClassIndex = componentClassIndex;
         if( options.useGC() ) {
-            String nativeName = '_' + getName();
-            this.nativeArrayType = new ArrayType( nativeName, StructTypeKind.array_native, manager, arrayType );
-            //structTypes.put( name, nativeArrayType );
+            AnyType componentType;
+            String nativeName;
+            if( arrayType.isRefType() ) {
+                // because missing covariance in WASM the component of the native array must be java/lang/Object for every reference type
+                componentType = manager.valueOf( "java/lang/Object" );
+                nativeName = "_[java/lang/Object;";
+            } else {
+                componentType = arrayType;
+                nativeName = '_' + getName();
+            }
+            this.nativeArrayType = manager.nativeArrayType( nativeName, componentType );
         } else {
             this.nativeArrayType = arrayType;
         }
@@ -77,8 +86,8 @@ public class ArrayType extends StructType {
      * @param arrayType
      *            the type of the array
      */
-    private ArrayType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, @Nonnull AnyType arrayType ) {
-        super( name, kind, manager, kind == StructTypeKind.array_native ? null : manager.valueOf( "java/lang/Object" ) );
+    public ArrayType( @Nonnull String name, @Nonnull StructTypeKind kind, @Nonnull TypeManager manager, @Nonnull AnyType arrayType ) {
+        super( name, kind, manager, kind == StructTypeKind.array_native ? null : getParentType( manager, arrayType ) );
         this.arrayType = arrayType;
     }
 
@@ -120,6 +129,25 @@ public class ArrayType extends StructType {
             return "[" + getJavaClassName( ((ArrayType)arrayType).arrayType );
         }
         return "[L" + ((StructType)arrayType).getName() + ";";
+    }
+
+    /**
+     * Get the parent type of the object array
+     * 
+     * @param manager
+     *            the manager which hold all StructTypes
+     * @param arrayType
+     *            the type of the array component
+     * @return the parent type
+     */
+    private static StructType getParentType( @Nonnull TypeManager manager, @Nonnull AnyType arrayType ) {
+        if( arrayType instanceof StructType ) {
+            StructType parent = ((StructType)arrayType).getParent();
+            if( parent != null ) {
+                return manager.arrayType( parent );
+            }
+        }
+        return manager.valueOf( "java/lang/Object" );
     }
 
     /**
@@ -181,6 +209,7 @@ public class ArrayType extends StructType {
                 return "java/lang/Object".equals( structType.getName() );
             case array:
                 return arrayType.isSubTypeOf( ((ArrayType)structType).arrayType );
+            default:
         }
         return false;
     }

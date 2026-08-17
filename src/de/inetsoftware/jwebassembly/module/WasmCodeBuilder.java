@@ -38,6 +38,7 @@ import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.javascript.NonGC;
 import de.inetsoftware.jwebassembly.module.StackInspector.StackValue;
 import de.inetsoftware.jwebassembly.module.TypeManager.LambdaType;
+import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.module.WasmInstruction.Type;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ArrayOperator;
@@ -846,6 +847,7 @@ public abstract class WasmCodeBuilder {
                     javaPos = stackValue.instr.getCodePosition();
                     break;
                 case SET:
+                    // TODO add also a StructOperator.CAST before SET to prevent a value in the array of wrong type like after GET
                     stackValue = StackInspector.findInstructionThatPushValue( instructions, 3, javaCodePos );
                     idx = stackValue.idx + 1;
                     javaPos = stackValue.instr.getCodePosition();
@@ -869,6 +871,15 @@ public abstract class WasmCodeBuilder {
         if( name != null ) {
             functions.markAsNeeded( name, !name.istStatic() );
             functions.markAsImport( name, name.getAnnotation() );
+        }
+        if( useGC ) {
+            switch( op ) {
+                case GET:
+                    // because missing covariance the native array of every reference type use java/lang/Object as compomnet type. If the component type of the java array is different we need to cast
+                    if( type.isRefType() && type != types.valueOf( "java/lang/Object" ) ) {
+                        instructions.add( new WasmStructInstruction( StructOperator.CAST, (StructType)type, null, javaCodePos, lineNumber, types ) );
+                    }
+            }
         }
     }
 
