@@ -1,5 +1,5 @@
 /*
-   Copyright 2011 - 2021 Volker Berlin (i-net software)
+   Copyright 2011 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,8 +30,10 @@ import de.inetsoftware.classparser.Attributes.AttributeInfo;
  */
 public class Code {
 
+    @Nonnull
     private static final TryCatchFinally[] NO_TRY_CATCHES = new TryCatchFinally[0];
 
+    @Nonnull
     private final ConstantPool      constantPool;
 
     private final int               maxStack;
@@ -40,6 +42,7 @@ public class Code {
 
     private final byte[]            codeData;
 
+    @Nonnull
     private final TryCatchFinally[] exceptionTable;
 
     private final Attributes        attributes;
@@ -47,6 +50,8 @@ public class Code {
     private LineNumberTable         lineNumberTable;
 
     private LocalVariableTable      localVariableTable;
+
+    private StackMapTable           stackMapTable;
 
     /**
      * The code of a method attribute. http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.3
@@ -81,6 +86,7 @@ public class Code {
      * @throws IOException
      *             if an I/O error occurs
      */
+    @Nonnull
     private static TryCatchFinally[] readExceptionTable( DataInputStream input, @Nonnull ConstantPool constantPool ) throws IOException {
         int tryCatchCount = input.readUnsignedShort();
         if( tryCatchCount > 0 ) {
@@ -185,6 +191,25 @@ public class Code {
             localVariableTable = new LocalVariableTable( maxLocals );
         }
         return localVariableTable;
+    }
+
+    /**
+     * Get the stack map table of this method.
+     * 
+     * @return the table or null
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    @Nullable
+    public StackMapTable getStackMapTable() throws IOException {
+        if( stackMapTable != null ) {
+            return stackMapTable;
+        }
+        AttributeInfo data = attributes.get( "StackMapTable" );
+        if( data != null ) {
+            stackMapTable = new StackMapTable( data.getDataInputStream(), constantPool );
+        }
+        return stackMapTable;
     }
 
     public int getFirstLineNr() throws IOException {

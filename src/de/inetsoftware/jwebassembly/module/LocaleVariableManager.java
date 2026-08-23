@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 - 2022 Volker Berlin (i-net software)
+   Copyright 2018 - 2026 Volker Berlin (i-net software)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 */
 package de.inetsoftware.jwebassembly.module;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -26,9 +27,11 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.LocalVariable;
 import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.MethodInfo;
+import de.inetsoftware.classparser.StackMapTable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
@@ -78,19 +81,36 @@ class LocaleVariableManager {
     /**
      * Reset the manager to an initial state.
      * 
-     * @param variableTable
-     *            variable table of the Java method.
+     * @param code
+     *            the Java method code, used to get LocalVariableTable and StackMapTable (can be null)
      * @param method
      *            the method with signature as fallback for a missing variable table. If null signature is used and the method must be static.
      * @param signature
      *            alternative for method signature, can be null if method is set
      */
-    void reset( LocalVariableTable variableTable, MethodInfo method, Iterator<AnyType> signature ) {
+    void reset( Code code, MethodInfo method, Iterator<AnyType> signature ) {
         size = 0;
 
+        LocalVariableTable variableTable;
+        try {
+            variableTable = code != null ? code.getLocalVariableTable() : null;
+        } catch( IOException ex ) {
+            throw WasmException.create( ex );
+        }
+        StackMapTable stackMapTable = null;
         int maxLocals;
         if( variableTable == null ) {
             maxLocals = 0;
+            if( code != null ) {
+                try {
+                    stackMapTable = code.getStackMapTable();
+                    if( stackMapTable != null ) {
+                        maxLocals = getMaxLocalsFromStackMapTable( stackMapTable );
+                    }
+                } catch( IOException ex ) {
+                    throw WasmException.create( ex );
+                }
+            }
         } else {
             maxLocals = variableTable.getMaxLocals();
 
@@ -124,6 +144,13 @@ class LocaleVariableManager {
                 return Integer.compare( v1.startPos, v2.startPos );
 
             } );
+        }
+
+        // if no LocalVariableTable but we have StackMapTable, use it to initialize variables
+        if( variableTable == null && size == 0 && code != null ) {
+            if( stackMapTable != null ) {
+                initializeFromStackMapTable( stackMapTable );
+            }
         }
 
         // reduce all duplications if there are no conflicts and expands startPos and endPos
@@ -479,6 +506,90 @@ class LocaleVariableManager {
             for( ; i < variables.length; i++ ) {
                 variables[i] = new Variable();
             }
+        }
+    }
+
+    /**
+     * Get the maximum number of locals from StackMapTable frames.
+     * 
+     * @param stackMapTable
+     *            the stack map table
+     * @return the maximum number of locals
+     */
+    private int getMaxLocalsFromStackMapTable( StackMapTable stackMapTable ) {
+        int maxLocals = 0;
+        for( StackMapTable.StackMapFrame frame : stackMapTable.getFrames() ) {
+            int localsCount = frame.getLocals().length;
+            if( localsCount > maxLocals ) {
+                maxLocals = localsCount;
+            }
+        }
+        return maxLocals;
+    }
+
+    /**
+     * Initialize variables from StackMapTable frames.
+     * 
+     * @param stackMapTable
+     *            the stack map table
+     */
+    private void initializeFromStackMapTable( StackMapTable stackMapTable ) {
+        // Use the first full_frame or the frame with the most locals to initialize variables
+        StackMapTable.StackMapFrame bestFrame = null;
+        int maxLocals = 0;
+
+        for( StackMapTable.StackMapFrame frame : stackMapTable.getFrames() ) {
+            int localsCount = frame.getLocals().length;
+            if( localsCount > maxLocals ) {
+                maxLocals = localsCount;
+                bestFrame = frame;
+                if( frame.getFrameType() == 255 ) {
+                    // full_frame has complete type information, prefer it
+                    break;
+                }
+            }
+        }
+
+        if( bestFrame != null && maxLocals > 0 ) {
+            ensureCapacity( maxLocals );
+            StackMapTable.VerificationType[] locals = bestFrame.getLocals();
+            for( int i = 0; i < locals.length; i++ ) {
+                StackMapTable.VerificationType vt = locals[i];
+                AnyType type = verificationTypeToAnyType( vt );
+                if( type != null ) {
+                    resetAddVar( type, i );
+                }
+            }
+        }
+    }
+
+    /**
+     * Convert a verification type to AnyType.
+     * 
+     * @param vt
+     *            the verification type
+     * @return the AnyType or null if unknown
+     */
+    private AnyType verificationTypeToAnyType( StackMapTable.VerificationType vt ) {
+        switch( vt.getTag() ) {
+            case 1: // Integer
+                return ValueType.i32;
+            case 2: // Float
+                return ValueType.f32;
+            case 3: // Double
+                return ValueType.f64;
+            case 4: // Long
+                return ValueType.i64;
+            case 5: // Null
+                return ValueType.eqref;
+            case 6: // UninitializedThis
+                return types.valueOf( "java/lang/Object" );
+            case 7: // Object
+                return types.valueOf( vt.getClassName() );
+            case 8: // Uninitialized
+                return types.valueOf( "java/lang/Object" );
+            default:
+                return null;
         }
     }
 

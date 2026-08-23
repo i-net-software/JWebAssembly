@@ -84,7 +84,7 @@ class JavaMethodWasmCodeBuilder extends WasmCodeBuilder {
     void buildCode( @Nonnull Code code, MethodInfo method ) {
         CodeInputStream byteCode = null;
         try {
-            reset( code.getLocalVariableTable(), method, null );
+            reset( code, method, null );
             branchManager.reset( code );
 
             if( CLASS_INIT.equals( method.getName() ) ) {

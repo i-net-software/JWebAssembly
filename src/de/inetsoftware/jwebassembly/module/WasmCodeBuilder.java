@@ -27,10 +27,10 @@ import javax.annotation.Nullable;
 
 import de.inetsoftware.classparser.BootstrapMethod;
 import de.inetsoftware.classparser.ClassFile;
+import de.inetsoftware.classparser.Code;
 import de.inetsoftware.classparser.ConstantClass;
 import de.inetsoftware.classparser.FieldInfo;
 import de.inetsoftware.classparser.LambdaMetaFactoryBootstrap;
-import de.inetsoftware.classparser.LocalVariableTable;
 import de.inetsoftware.classparser.Member;
 import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.classparser.StringConcatFactoryBootstrap;
@@ -270,16 +270,16 @@ public abstract class WasmCodeBuilder {
     /**
      * Reset the code builder.
      * 
-     * @param variableTable
-     *            variable table of the Java method.
+     * @param code
+     *            the Java method code
      * @param method
      *            the method with signature as fallback for a missing variable table. If null signature is used and the method must be static.
      * @param signature
      *            alternative for method signature, can be null if method is set
      */
-    protected void reset( LocalVariableTable variableTable, MethodInfo method, Iterator<AnyType> signature ) {
+    protected void reset( Code code, MethodInfo method, Iterator<AnyType> signature ) {
         instructions.clear();
-        localVariables.reset( variableTable, method, signature );
+        localVariables.reset( code, method, signature );
     }
 
     /**
