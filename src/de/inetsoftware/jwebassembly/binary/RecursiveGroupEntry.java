@@ -50,6 +50,15 @@ class RecursiveGroupEntry extends TypeEntry {
     }
 
     /**
+     * Get the types of this group.
+     * 
+     * @return the types
+     */
+    List<TypeEntry> getEntries() {
+        return entries;
+    }
+
+    /**
      * Get the number of types in this group.
      * 
      * @return the count

@@ -392,14 +392,24 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         stream.writeVaruint32( section.size() );
         section.writeTo( stream );
 
-        // write function parameter names
+        // write parameter and local variable names
         stream.write( 2 ); // 2 - Local names
         section.reset();
         section.writeVaruint32( imports.size() + functions.size() );
-        writeDebugParameternNames( imports.entrySet(), section );
-        writeDebugParameternNames( functions.entrySet(), section );
+        WasmOutputStream localNames = new WasmOutputStream( options );
+        writeDebugLocalNames( imports.entrySet(), localNames );
+        writeDebugLocalNames( functions.entrySet(), localNames );
         stream.writeVaruint32( section.size() );
         section.writeTo( stream );
+ 
+        // write type names
+        writeDebugTypeNames( stream, 4 );
+
+        // write global names
+        writeDebugGlobalNames( stream );
+
+        // write field names
+        writeDebugTypeNames( stream, 10 );
 
         wasm.writeSection( SectionType.Custom, stream );
     }
@@ -424,7 +434,7 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
     }
 
     /**
-     * Write parameter names to the custom "name" section.
+     * Write parameter and local variable names to the custom "name" section.
      * 
      * @param entries
      *            the functions
@@ -433,18 +443,132 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
      * @throws IOException
      *             if any I/O error occur
      */
-    private void writeDebugParameternNames( Set<? extends Entry<String, ? extends Function>> entries, WasmOutputStream section ) throws IOException {
+    private void writeDebugLocalNames( Set<? extends Entry<String, ? extends Function>> entries, WasmOutputStream section ) throws IOException {
         for( Entry<String, ? extends Function> entry : entries ) {
             Function func = entry.getValue();
             section.writeVaruint32( func.id ); // function index
-            List<String> paramNames = func.paramNames;
-            int count = paramNames == null ? 0 : paramNames.size();
-            section.writeVaruint32( count ); // count of locals
-            for( int i = 0; i < count; i++ ) {
-                section.writeVaruint32( i );
-                section.writeString( paramNames.get( i ) );
+            Map<Integer,String> paramNames = func.paramNames;
+            if( paramNames == null ) {
+                section.writeVaruint32( 0 ); // count of named parameters and locals
+            } else {
+                section.writeVaruint32( paramNames.size() ); // count of named parameters and locals
+                for( Entry<Integer, String> name : paramNames.entrySet() ) {
+                    section.writeVaruint32( name.getKey() ); // the index of the parameter or local
+                    section.writeString( name.getValue() );
+                }
             }
         }
+    }
+
+    /**
+     * Write the type or field names of the struct types to the custom "name" section.
+     * 
+     * @param stream
+     *            the target
+     * @param subsectionId
+     *            4 - Type names, 10 - Field names
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeDebugTypeNames( WasmOutputStream stream, int subsectionId ) throws IOException {
+        WasmOutputStream section = new WasmOutputStream( options );
+        WasmOutputStream entries = new WasmOutputStream( options );
+        int count = 0;
+        int typeIndex = 0;
+        boolean fields = subsectionId == 10;
+        for( TypeEntry typeEntry : functionTypes ) {
+            if( typeEntry instanceof RecursiveGroupEntry ) {
+                for( TypeEntry entry : ((RecursiveGroupEntry)typeEntry).getEntries() ) {
+                    count += writeDebugTypeName( typeIndex++, entry, fields, entries );
+                }
+            } else {
+                count += writeDebugTypeName( typeIndex++, typeEntry, fields, entries );
+            }
+        }
+        if( count == 0 ) {
+            return;
+        }
+        section.writeVaruint32( count );
+        entries.writeTo( section );
+
+        stream.write( subsectionId );
+        stream.writeVaruint32( section.size() );
+        section.writeTo( stream );
+    }
+
+    /**
+     * Write the name of a single type or the names of its fields.
+     * 
+     * @param typeIndex
+     *            the index of the type in the type section
+     * @param entry
+     *            the type entry
+     * @param fields
+     *            true, if the field names should be written instead of the type name
+     * @param section
+     *            the target
+     * @return 1, if an entry was written, otherwise 0
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private int writeDebugTypeName( int typeIndex, TypeEntry entry, boolean fields, WasmOutputStream section ) throws IOException {
+        StructType type;
+        if( entry instanceof StructTypeEntry ) {
+            type = ((StructTypeEntry)entry).getType();
+        } else if( entry instanceof ArrayTypeEntry ) {
+            type = ((ArrayTypeEntry)entry).getType();
+        } else {
+            return 0; // a function/block type has no name
+        }
+        if( fields ) {
+            List<NamedStorageType> list = type.getFields();
+            if( list == null ) {
+                return 0;
+            }
+            WasmOutputStream temp = new WasmOutputStream( options );
+            int fieldCount = 0;
+            for( int i = 0; i < list.size(); i++ ) {
+                String fieldName = list.get( i ).getName();
+                if( fieldName != null ) {
+                    temp.writeVaruint32( i );
+                    temp.writeString( fieldName );
+                    fieldCount++;
+                }
+            }
+            if( fieldCount == 0 ) {
+                return 0;
+            }
+            section.writeVaruint32( typeIndex );
+            section.writeVaruint32( fieldCount );
+            temp.writeTo( section );
+        } else {
+            section.writeVaruint32( typeIndex );
+            section.writeString( type.getName() );
+        }
+        return 1;
+    }
+
+    /**
+     * Write the global names to the custom "name" section.
+     * 
+     * @param stream
+     *            the target
+     * @throws IOException
+     *             if any I/O error occur
+     */
+    private void writeDebugGlobalNames( WasmOutputStream stream ) throws IOException {
+        if( globals.isEmpty() ) {
+            return;
+        }
+        stream.write( 7 ); // 7 - Global names
+        WasmOutputStream section = new WasmOutputStream( options );
+        section.writeVaruint32( globals.size() );
+        for( Entry<String, Global> entry : globals.entrySet() ) {
+            section.writeVaruint32( entry.getValue().id ); // global index
+            section.writeString( entry.getKey() ); // the full Java field name
+        }
+        stream.writeVaruint32( section.size() );
+        section.writeTo( stream );
     }
 
     /**
@@ -645,9 +769,18 @@ public class BinaryModuleWriter extends ModuleWriter implements InstructionOpcod
         }
         if( options.debugNames() && name != null ) {
             if( function.paramNames == null ) {
-                function.paramNames = new ArrayList<>();
+                function.paramNames = new LinkedHashMap<>();
             }
-            function.paramNames.add( name );
+            int index;
+            switch( kind ) {
+                case "param":
+                    index = functionType.params.size() - 1;
+                    break;
+                default:
+                    // a local variable is indexed after the parameters
+                    index = functionType.params.size() + locals.size() - 1;
+            }
+            function.paramNames.put( index, name );
         }
     }
 

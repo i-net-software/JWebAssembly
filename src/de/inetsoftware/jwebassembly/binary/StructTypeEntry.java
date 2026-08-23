@@ -42,6 +42,15 @@ class StructTypeEntry extends TypeEntry {
     }
 
     /**
+     * Get the struct type.
+     * 
+     * @return the type
+     */
+    StructType getType() {
+        return type;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

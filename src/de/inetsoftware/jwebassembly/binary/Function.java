@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2019 Volker Berlin (i-net software)
+ * Copyright 2017 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package de.inetsoftware.jwebassembly.binary;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 import de.inetsoftware.jwebassembly.module.TypeManager.BlockType;
 import de.inetsoftware.jwebassembly.sourcemap.SourceMapping;
@@ -33,7 +33,11 @@ class Function extends SectionEntry {
 
     BlockType                type;
 
-    List<String>             paramNames;
+    /**
+     * The names of the parameters and local variables. The key is the index in the wasm local index space where the
+     * parameters are indexed first and after them the local variables.
+     */
+    Map<Integer, String>     paramNames;
 
     WasmOutputStream         functionsStream;
 
