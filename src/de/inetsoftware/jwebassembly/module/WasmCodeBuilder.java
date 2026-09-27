@@ -191,7 +191,7 @@ public abstract class WasmCodeBuilder {
         if( stackValue.instr instanceof WasmLoadStoreInstruction ) {
             int slot = ((WasmLoadStoreInstruction)stackValue.instr).getSlot();
             ArrayType arrayType = types.arrayType( types.valueOf( "java/lang/Object" ) );
-            localVariables.use( arrayType, slot, javaCodePos );
+            localVariables.use( arrayType, true, slot, javaCodePos );
             return arrayType.getArrayType();
         }
         return ValueType.eqref;
@@ -303,8 +303,8 @@ public abstract class WasmCodeBuilder {
      * @param lineNumber
      *            the line number in the Java source code
      */
-    protected void addLoadStoreInstruction( AnyType valueType, boolean load, @Nonnegative int javaIdx, int javaCodePos, int lineNumber ) {
-        localVariables.use( valueType, javaIdx, javaCodePos );
+    protected void addLoadStoreInstruction( @Nonnull AnyType valueType, boolean load, @Nonnegative int javaIdx, int javaCodePos, int lineNumber ) {
+        localVariables.use( valueType, load, javaIdx, javaCodePos );
         instructions.add( new WasmLoadStoreInstruction( load ? VariableOperator.get : VariableOperator.set, javaIdx, localVariables, javaCodePos, lineNumber ) );
     }
 

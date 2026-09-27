@@ -34,6 +34,7 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.classparser.StackMapTable;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
+import de.inetsoftware.jwebassembly.wasm.StackMapTableParser;
 import de.inetsoftware.jwebassembly.wasm.ValueType;
 import de.inetsoftware.jwebassembly.wasm.ValueTypeParser;
 
@@ -57,6 +58,8 @@ class LocaleVariableManager {
 
     private final HashSet<String>    names      = new HashSet<>();
 
+    private StackMapTableParser      stackMap;
+
     /**
      * Create a new instance.
      */
@@ -74,8 +77,9 @@ class LocaleVariableManager {
      * @param types
      *            the type manager
      */
-    void init( TypeManager types ) {
+    void init( @Nonnull TypeManager types ) {
         this.types = types;
+        this.stackMap = new StackMapTableParser( types );
     }
 
     /**
@@ -88,30 +92,21 @@ class LocaleVariableManager {
      * @param signature
      *            alternative for method signature, can be null if method is set
      */
-    void reset( Code code, MethodInfo method, Iterator<AnyType> signature ) {
+    void reset( @Nullable Code code, MethodInfo method, Iterator<AnyType> signature ) {
         size = 0;
+        stackMap.reset( null, 0 );
 
         LocalVariableTable variableTable;
-        try {
-            variableTable = code != null ? code.getLocalVariableTable() : null;
-        } catch( IOException ex ) {
-            throw WasmException.create( ex );
-        }
-        StackMapTable stackMapTable = null;
         int maxLocals;
-        if( variableTable == null ) {
+        if( code == null ) {
             maxLocals = 0;
-            if( code != null ) {
-                try {
-                    stackMapTable = code.getStackMapTable();
-                    if( stackMapTable != null ) {
-                        maxLocals = getMaxLocalsFromStackMapTable( stackMapTable );
-                    }
-                } catch( IOException ex ) {
-                    throw WasmException.create( ex );
-                }
-            }
+            variableTable = null;
         } else {
+            try {
+                variableTable = code.getLocalVariableTable();
+            } catch( IOException ex ) {
+                throw WasmException.create( ex );
+            }
             maxLocals = variableTable.getMaxLocals();
 
             /**
@@ -144,12 +139,17 @@ class LocaleVariableManager {
                 return Integer.compare( v1.startPos, v2.startPos );
 
             } );
-        }
 
-        // if no LocalVariableTable but we have StackMapTable, use it to initialize variables
-        if( variableTable == null && size == 0 && code != null ) {
-            if( stackMapTable != null ) {
-                initializeFromStackMapTable( stackMapTable );
+            if( size == 0 && maxLocals > 0 ) {
+                try {
+                    StackMapTable stackMapTable = code.getStackMapTable();
+                    if( stackMapTable != null ) {
+                        int nextSlot = resetFromSignature( method, signature );
+                        stackMap.reset( stackMapTable, nextSlot );
+                    }
+                } catch( IOException ex ) {
+                    throw WasmException.create( ex );
+                }
             }
         }
 
@@ -189,24 +189,7 @@ class LocaleVariableManager {
 
         // add missing slots from signature
         if( (maxLocals > 0 || variableTable == null) && size == 0 && (method != null || signature != null )) {
-            Iterator<AnyType> parser = signature == null ? new ValueTypeParser( method.getType(), types ) : signature;
-            int slot = 0;
-            if( method != null && !method.isStatic() ) {
-                // the first parameter is THIS
-                resetAddVar( types.valueOf( method.getClassName() ), 0 );
-                slot++;
-            }
-            while( true ) {
-                AnyType type = parser.next();
-                if( type == null ) {
-                    break;
-                }
-                resetAddVar( type, slot++ );
-                if( type == ValueType.i64 || type == ValueType.f64 ) {
-                    // 64bit values use two slots in Java
-                    slot++;
-                }
-            }
+            resetFromSignature( method, signature );
         }
 
         // add all missing slots that we can add self temporary variables
@@ -244,6 +227,34 @@ class LocaleVariableManager {
     }
 
     /**
+     * Add the variables from the signature
+     * @param method the current method
+     * @param signature the signature
+     * @return the next slot
+     */
+    private int resetFromSignature( MethodInfo method, @Nullable Iterator<AnyType> signature ) {
+        Iterator<AnyType> parser = signature == null ? new ValueTypeParser( method.getType(), types ) : signature;
+        int slot = 0;
+        if( method != null && !method.isStatic() ) {
+            // the first parameter is THIS
+            resetAddVar( types.valueOf( method.getClassName() ), 0 );
+            slot++;
+        }
+        while( true ) {
+            AnyType type = parser.next();
+            if( type == null ) {
+                break;
+            }
+            resetAddVar( type, slot++ );
+            if( type == ValueType.i64 || type == ValueType.f64 ) {
+                // 64bit values use two slots in Java
+                slot++;
+            }
+        }
+        return slot;
+    }
+
+    /**
      * Find a unique variable name.
      * 
      * @param name
@@ -271,23 +282,33 @@ class LocaleVariableManager {
      * 
      * @param valueType
      *            the type of the local variable
+     * @param load
+     *            true: if load
      * @param slot
      *            the memory/slot index of the local variable
      * @param javaCodePos
      *            the code position/offset in the Java method
      */
-    void use( AnyType valueType, int slot, int javaCodePos ) {
+    void use( @Nonnull AnyType valueType, boolean load, int slot, int javaCodePos ) {
+        AnyType type = stackMap.getType( slot, javaCodePos );
+        if( type != null ) {
+            valueType = type;
+        }
         int idx = get( slot, javaCodePos );
-        useImpl( valueType, idx, javaCodePos );
+        useImpl( valueType, load, idx, javaCodePos );
     }
 
-    private void useImpl( AnyType valueType, int idx, int javaCodePos ) {
+    private void useImpl( @Nonnull AnyType valueType, boolean load, int idx, int javaCodePos ) {
         Variable var = variables[idx];
         if( var.valueType != null && var.valueType != valueType ) {
             if( var.valueType.isSubTypeOf( valueType ) ) {
                 return;
             }
             if( valueType.isSubTypeOf( var.valueType ) ) {
+                if( !load && var.valueType != ValueType.anyref && var.valueType != types.valueOf( "java/lang/Object" )) {
+                    //TODO this is a bad hack
+                    return;
+                }
                 // set the more specific type
             } else if( var.endPos == Integer.MAX_VALUE && javaCodePos > 0 ) {
                 // seems the slot was reused with a different type, in WASM we need to use 2 variables in this case
@@ -297,7 +318,7 @@ class LocaleVariableManager {
                 var = variables[idx];
                 var.startPos = javaCodePos;
             } else if( types.isFinish() ) {
-                throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot " + var.idx
+                throw new WasmException( "Redefine local variable '" + var.name + "' type from " + var.valueType + " to " + valueType + " in slot " + var.idx + " at PC " + javaCodePos
                                 + ". Compile the Java code with debug information to correct this problem.", -1 );
             } else {
                 return; // in the scan phase not all types are known
@@ -310,7 +331,7 @@ class LocaleVariableManager {
         while( size <= wasmIdx ) {
             resetAddVar( null, size );
         }
-        useImpl( valueType, wasmIdx, 0 );
+        variables[wasmIdx].valueType = valueType;
     }
 
     /**
@@ -510,90 +531,6 @@ class LocaleVariableManager {
     }
 
     /**
-     * Get the maximum number of locals from StackMapTable frames.
-     * 
-     * @param stackMapTable
-     *            the stack map table
-     * @return the maximum number of locals
-     */
-    private int getMaxLocalsFromStackMapTable( StackMapTable stackMapTable ) {
-        int maxLocals = 0;
-        for( StackMapTable.StackMapFrame frame : stackMapTable.getFrames() ) {
-            int localsCount = frame.getLocals().length;
-            if( localsCount > maxLocals ) {
-                maxLocals = localsCount;
-            }
-        }
-        return maxLocals;
-    }
-
-    /**
-     * Initialize variables from StackMapTable frames.
-     * 
-     * @param stackMapTable
-     *            the stack map table
-     */
-    private void initializeFromStackMapTable( StackMapTable stackMapTable ) {
-        // Use the first full_frame or the frame with the most locals to initialize variables
-        StackMapTable.StackMapFrame bestFrame = null;
-        int maxLocals = 0;
-
-        for( StackMapTable.StackMapFrame frame : stackMapTable.getFrames() ) {
-            int localsCount = frame.getLocals().length;
-            if( localsCount > maxLocals ) {
-                maxLocals = localsCount;
-                bestFrame = frame;
-                if( frame.getFrameType() == 255 ) {
-                    // full_frame has complete type information, prefer it
-                    break;
-                }
-            }
-        }
-
-        if( bestFrame != null && maxLocals > 0 ) {
-            ensureCapacity( maxLocals );
-            StackMapTable.VerificationType[] locals = bestFrame.getLocals();
-            for( int i = 0; i < locals.length; i++ ) {
-                StackMapTable.VerificationType vt = locals[i];
-                AnyType type = verificationTypeToAnyType( vt );
-                if( type != null ) {
-                    resetAddVar( type, i );
-                }
-            }
-        }
-    }
-
-    /**
-     * Convert a verification type to AnyType.
-     * 
-     * @param vt
-     *            the verification type
-     * @return the AnyType or null if unknown
-     */
-    private AnyType verificationTypeToAnyType( StackMapTable.VerificationType vt ) {
-        switch( vt.getTag() ) {
-            case 1: // Integer
-                return ValueType.i32;
-            case 2: // Float
-                return ValueType.f32;
-            case 3: // Double
-                return ValueType.f64;
-            case 4: // Long
-                return ValueType.i64;
-            case 5: // Null
-                return ValueType.eqref;
-            case 6: // UninitializedThis
-                return types.valueOf( "java/lang/Object" );
-            case 7: // Object
-                return types.valueOf( vt.getClassName() );
-            case 8: // Uninitialized
-                return types.valueOf( "java/lang/Object" );
-            default:
-                return null;
-        }
-    }
-
-    /**
      * The state of a single local variable slot.
      */
     static class Variable implements Comparable<Variable> {
@@ -624,7 +561,8 @@ class LocaleVariableManager {
          */
         @Override
         public int compareTo( Variable o ) {
-            return Integer.compare( idx, o.idx );
+            int compare = Integer.compare( idx, o.idx );
+            return compare != 0 ? compare : Integer.compare( startPos, o.startPos );
         }
     }
 }

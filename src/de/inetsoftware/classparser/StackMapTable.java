@@ -60,20 +60,36 @@ public class StackMapTable {
     }
 
     /**
+     * Frame type enum as defined in JVM specification.
+     */
+    public enum FrameType {
+        SAME_FRAME, SAME_LOCALS_1_STACK_ITEM_FRAME, SAME_LOCALS_1_STACK_ITEM_FRAME_EXTENDED, CHOP_FRAME, SAME_FRAME_EXTENDED, APPEND_FRAME, FULL_FRAME;
+    }
+
+    /**
      * A single stack map frame.
      */
     public static class StackMapFrame {
 
-        private final int             frameType;
-        private final int             offsetDelta;
-        private final VerificationType[] locals;
-        private final VerificationType[] stack;
+        @Nonnull
+        private static final VerificationType[]   EMPTY_TYPES = new VerificationType[0];
 
-        private StackMapFrame( int frameType, int offsetDelta, VerificationType[] locals, VerificationType[] stack ) {
+        private final FrameType                   frameType;
+
+        private final int                         offsetDelta;
+
+        private final @Nonnull VerificationType[] locals;
+
+        private final @Nonnull VerificationType[] stack;
+
+        private int                               k;
+
+        private StackMapFrame( @Nonnull FrameType frameType, int offsetDelta, @Nonnull VerificationType[] locals, @Nonnull VerificationType[] stack, int k ) {
             this.frameType = frameType;
             this.offsetDelta = offsetDelta;
             this.locals = locals;
             this.stack = stack;
+            this.k = k;
         }
 
         /**
@@ -91,26 +107,28 @@ public class StackMapTable {
             int frameType = input.readUnsignedByte();
             if( frameType <= 63 ) {
                 // same_frame
-                return new StackMapFrame( frameType, frameType, new VerificationType[0], new VerificationType[0] );
+                return new StackMapFrame( FrameType.SAME_FRAME, frameType, EMPTY_TYPES, EMPTY_TYPES, 0 );
             } else if( frameType <= 127 ) {
                 // same_locals_1_stack_item_frame
                 int offsetDelta = frameType - 64;
-                VerificationType stackType = VerificationType.read( input, constantPool );
-                return new StackMapFrame( frameType, offsetDelta, new VerificationType[0], new VerificationType[]{ stackType } );
+                VerificationType[] stack = { VerificationType.read( input, constantPool ) };
+                return new StackMapFrame( FrameType.SAME_LOCALS_1_STACK_ITEM_FRAME, offsetDelta, EMPTY_TYPES, stack, 0 );
+            } else if( frameType <= 246 ) {
+                // unknown / reserved
             } else if( frameType == 247 ) {
                 // same_locals_1_stack_item_frame_extended
                 int offsetDelta = input.readUnsignedShort();
-                VerificationType stackType = VerificationType.read( input, constantPool );
-                return new StackMapFrame( frameType, offsetDelta, new VerificationType[0], new VerificationType[]{ stackType } );
+                VerificationType[] stack = { VerificationType.read( input, constantPool ) };
+                return new StackMapFrame( FrameType.SAME_LOCALS_1_STACK_ITEM_FRAME_EXTENDED, offsetDelta, EMPTY_TYPES, stack, 0 );
             } else if( frameType <= 250 ) {
                 // chop_frame
                 int offsetDelta = input.readUnsignedShort();
                 int k = 251 - frameType;
-                return new StackMapFrame( frameType, offsetDelta, new VerificationType[0], new VerificationType[0] );
+                return new StackMapFrame( FrameType.CHOP_FRAME, offsetDelta, EMPTY_TYPES, EMPTY_TYPES, k );
             } else if( frameType == 251 ) {
                 // same_frame_extended
                 int offsetDelta = input.readUnsignedShort();
-                return new StackMapFrame( frameType, offsetDelta, new VerificationType[0], new VerificationType[0] );
+                return new StackMapFrame( FrameType.SAME_FRAME_EXTENDED, offsetDelta, EMPTY_TYPES, EMPTY_TYPES, 0 );
             } else if( frameType <= 254 ) {
                 // append_frame
                 int offsetDelta = input.readUnsignedShort();
@@ -119,7 +137,7 @@ public class StackMapTable {
                 for( int i = 0; i < k; i++ ) {
                     locals[i] = VerificationType.read( input, constantPool );
                 }
-                return new StackMapFrame( frameType, offsetDelta, locals, new VerificationType[0] );
+                return new StackMapFrame( FrameType.APPEND_FRAME, offsetDelta, locals, EMPTY_TYPES, 0 );
             } else if( frameType == 255 ) {
                 // full_frame
                 int offsetDelta = input.readUnsignedShort();
@@ -133,7 +151,7 @@ public class StackMapTable {
                 for( int i = 0; i < numStack; i++ ) {
                     stack[i] = VerificationType.read( input, constantPool );
                 }
-                return new StackMapFrame( frameType, offsetDelta, locals, stack );
+                return new StackMapFrame( FrameType.FULL_FRAME, offsetDelta, locals, stack, 0 );
             }
             throw new IOException( "Unknown frame type: " + frameType );
         }
@@ -143,7 +161,7 @@ public class StackMapTable {
          * 
          * @return the frame type
          */
-        public int getFrameType() {
+        public FrameType getFrameType() {
             return frameType;
         }
 
@@ -175,6 +193,14 @@ public class StackMapTable {
         public VerificationType[] getStack() {
             return stack;
         }
+
+        /**
+         * Count of removed variables (not slots) for type CHOP_FRAME
+         * @return count of removed slots
+         */
+        public int getK() {
+            return k;
+        }
     }
 
     /**
@@ -182,14 +208,29 @@ public class StackMapTable {
      */
     public static class VerificationType {
 
-        private final int    tag;
-        private final String className;
-        private final int    offset;
+        private static final @Nonnull VerificationType TOP         = new VerificationType( 0, null );
 
-        private VerificationType( int tag, String className, int offset ) {
+        private static final @Nonnull VerificationType INTEGER     = new VerificationType( 1, null );
+
+        private static final @Nonnull VerificationType FLOAT       = new VerificationType( 2, null );
+
+        private static final @Nonnull VerificationType DOUBLE      = new VerificationType( 3, null );
+
+        private static final @Nonnull VerificationType LONG        = new VerificationType( 4, null );
+
+        private static final @Nonnull VerificationType NULL        = new VerificationType( 5, null );
+
+        private static final @Nonnull VerificationType UNINIT_THIS = new VerificationType( 6, null );
+
+        private static final @Nonnull VerificationType UNINIT      = new VerificationType( 8, null );
+
+        private final int                              tag;
+
+        private final String                           className;
+
+        private VerificationType( int tag, String className ) {
             this.tag = tag;
             this.className = className;
-            this.offset = offset;
         }
 
         /**
@@ -203,25 +244,31 @@ public class StackMapTable {
          * @throws IOException
          *             if an I/O error occurs
          */
-        static VerificationType read( DataInputStream input, ConstantPool constantPool ) throws IOException {
+        private static VerificationType read( DataInputStream input, ConstantPool constantPool ) throws IOException {
             int tag = input.readUnsignedByte();
             switch( tag ) {
                 case 0: // Top
+                    return TOP;
                 case 1: // Integer
+                    return INTEGER;
                 case 2: // Float
+                    return FLOAT;
                 case 3: // Double
+                    return DOUBLE;
                 case 4: // Long
+                    return LONG;
                 case 5: // Null
+                    return NULL;
                 case 6: // UninitializedThis
-                    return new VerificationType( tag, null, -1 );
+                    return UNINIT_THIS;
                 case 7: // Object
                     int classIdx = input.readUnsignedShort();
                     ConstantClass classConstant = (ConstantClass)constantPool.get( classIdx );
                     String className = classConstant.getName();
-                    return new VerificationType( tag, className, -1 );
+                    return new VerificationType( tag, className );
                 case 8: // Uninitialized
                     int offset = input.readUnsignedShort();
-                    return new VerificationType( tag, null, offset );
+                    return UNINIT;
                 default:
                     throw new IOException( "Unknown verification type tag: " + tag );
             }
@@ -244,24 +291,6 @@ public class StackMapTable {
         @Nullable
         public String getClassName() {
             return className;
-        }
-
-        /**
-         * Get the offset for uninitialized types.
-         * 
-         * @return the offset or -1
-         */
-        public int getOffset() {
-            return offset;
-        }
-
-        /**
-         * Check if this is a 64-bit type (long or double).
-         * 
-         * @return true if 64-bit type
-         */
-        public boolean is64Bit() {
-            return tag == 3 || tag == 4; // Double or Long
         }
     }
 }
