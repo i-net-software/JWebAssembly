@@ -176,7 +176,7 @@ public class Code {
      * @throws IOException
      *             if any I/O error occur
      */
-    @Nullable
+    @Nonnull
     public LocalVariableTable getLocalVariableTable() throws IOException {
         if( localVariableTable != null ) {
             return localVariableTable;
