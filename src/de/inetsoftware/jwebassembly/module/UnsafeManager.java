@@ -549,7 +549,15 @@ class UnsafeManager {
         for( ValueTypeParser it = new ValueTypeParser( name.signature, types ); it.hasNext(); ) {
             signatureTypes.add( it.next() );
         }
-        signatureTypes.add( 1, types.valueOf( fieldNameWithOffset.className ) );
+        String valueType = fieldNameWithOffset.className;
+        for(FunctionName fieldNameWithOffset_ : fieldNames ) {
+            UnsafeState st = unsafes.get( fieldNameWithOffset_ );
+            if( st != null && st.typeName != null ) {
+                valueType = st.typeName; // if not found then we are in the scan phase. The static code was not scanned yet.
+                break;
+            }
+        }
+        signatureTypes.add( 1, types.valueOf( valueType ) );
 
         UnsafeState state_ = state;
 
