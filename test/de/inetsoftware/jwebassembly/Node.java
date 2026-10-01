@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 - 2022 Volker Berlin (i-net software)
+ * Copyright 2020 - 2026 Volker Berlin (i-net software)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,7 @@ public class Node {
         String ext;
         final String os = System.getProperty( "os.name", "" ).toLowerCase();
         if( os.contains( "windows" ) ) {
-            boolean is32 = "32".equals( System.getProperty( "sun.arch.data.model" ) );
-            fileName = is32 ? "win-x86" : "win-x64";
+            fileName = "win-x64";
             ext = "zip";
         } else if( os.contains( "mac" ) ) {
             fileName = "darwin-x64";
