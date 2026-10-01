@@ -109,6 +109,7 @@ class StaticCodeBuilder {
             }
         } while( scanAgain);
 
+/*
         // scan for recursions between the classes
         for( Iterator<ScanState> it = scans.values().iterator(); it.hasNext(); ) {
             ScanState scan = it.next();
@@ -116,6 +117,7 @@ class StaticCodeBuilder {
             patch( scan, scans );
             clinits.add( scan.name );
         }
+*/
 
         return new SyntheticFunctionName( "", "<start>", "()V" ) {
             /**
@@ -191,8 +193,10 @@ class StaticCodeBuilder {
                     if( state == null ) {
                         state = new ScanState();
                         state.name = name;
+/*
                         state.instructions = new ArrayList<>( instructions );
                         state.localVariables = javaCodeBuilder.getLocalVariables().getCopy();
+*/
                     }
                     state.dependenciesClasses.add( otherClassName );
                 }
@@ -211,6 +215,7 @@ class StaticCodeBuilder {
      * @param scans
      *            a list with all static constructors which was not called
      */
+/*
     private void patch( ScanState scan, LinkedHashMap<String, ScanState> scans ) {
         FunctionName name = scan.name;
         String className = name.className;
@@ -274,11 +279,14 @@ class StaticCodeBuilder {
             }
         }
     }
+*/
 
     private static class ScanState {
         private final HashSet<String> dependenciesClasses = new HashSet<>();
         private FunctionName name;
+/*
         private List<WasmInstruction> instructions;
         private Variable[] localVariables;
+*/
     }
 }

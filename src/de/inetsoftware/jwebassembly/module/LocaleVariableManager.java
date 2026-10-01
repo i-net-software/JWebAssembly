@@ -493,6 +493,7 @@ class LocaleVariableManager {
      * 
      * @return the state
      */
+/*
     @Nonnull
     Variable[] getCopy() {
         Variable[] copy = Arrays.copyOf( variables, size );
@@ -501,6 +502,7 @@ class LocaleVariableManager {
         }
         return copy;
     }
+*/
 
     /**
      * Set a previous copy
@@ -508,12 +510,13 @@ class LocaleVariableManager {
      * @param copy
      *            the previous state
      */
+/*
     void setCopy( @Nonnull Variable[] copy ) {
         size = copy.length;
         ensureCapacity( size );
         System.arraycopy( copy, 0, variables, 0, size );
     }
-
+*/
     /**
      * Ensure that there is enough capacity.
      * 
