@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -563,6 +564,21 @@ class UnsafeManager {
 
         WatCodeSyntheticFunctionName func =
                         new WatCodeSyntheticFunctionName( fieldNameWithOffset.className, '.' + fieldNameWithOffset.methodName + '.' + name.methodName, name.signature, "", signatureTypes ) {
+                            @Override
+                            public Iterator<AnyType> getSignature( TypeManager types ) {
+                                // The first instance of this function name is used. If it was created in the scan
+                                // phase before the static code with the field offset was scanned then the type of the
+                                // object parameter was not known. We update it now.
+                                for( FunctionName fieldNameWithOffset_ : fieldNames ) {
+                                    UnsafeState st = unsafes.get( fieldNameWithOffset_ );
+                                    if( st != null && st.typeName != null ) {
+                                        signatureTypes.set( 1, types.valueOf( st.typeName ) );
+                                        break;
+                                    }
+                                }
+                                return super.getSignature( types );
+                            }
+
                             @Override
                             protected String getCode() {
                                 UnsafeState state = state_;
