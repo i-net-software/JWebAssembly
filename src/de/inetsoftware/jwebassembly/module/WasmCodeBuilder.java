@@ -414,6 +414,24 @@ public abstract class WasmCodeBuilder {
      *            the line number in the Java source code
      */
     protected void addDupX1Instruction( int javaCodePos, int lineNumber ) {
+        StackValue stackValue1 = StackInspector.findInstructionThatPushValue( instructions, 1, javaCodePos );
+        if( options.useGC() && isNullConstant( stackValue1.instr ) && localVariables.isLinearCode( stackValue1.instr.getCodePosition(), javaCodePos ) ) {
+            // for example: return field = null; or a = b = null;
+            // A temporary variable for the null value would have the type java/lang/Object which does not match the
+            // consumer. That we remove the null constant and add new null constants. The type of the null constants
+            // is set from its consumer in patchTypeOfNullConst().
+            // The instructions after the null constant does not consume the null and there is no jump target between.
+            // That moving the null constant does not change the semantic.
+            instructions.remove( stackValue1.idx );
+            AnyType type2 = findValueTypeFromStack( 1, javaCodePos );
+            int varSlot2 = getTempVariable( type2, javaCodePos, javaCodePos + 1 );
+            instructions.add( new WasmLoadStoreInstruction( VariableOperator.set, varSlot2, localVariables, javaCodePos, lineNumber ) );
+            addStructInstruction( StructOperator.NULL, "java/lang/Object", null, javaCodePos, lineNumber );
+            instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot2, localVariables, javaCodePos, lineNumber ) );
+            addStructInstruction( StructOperator.NULL, "java/lang/Object", null, javaCodePos, lineNumber );
+            return;
+        }
+
         AnyType type1 = findValueTypeFromStack( 1, javaCodePos );
         AnyType type2 = findValueTypeFromStack( 2, javaCodePos );
 
@@ -428,6 +446,17 @@ public abstract class WasmCodeBuilder {
         instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot1, localVariables, javaCodePos, lineNumber ) );
         instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot2, localVariables, javaCodePos, lineNumber ) );
         instructions.add( new WasmLoadStoreInstruction( VariableOperator.get, varSlot1, localVariables, javaCodePos, lineNumber ) );
+    }
+
+    /**
+     * If the instruction is a null constant (aconst_null).
+     *
+     * @param instr
+     *            the instruction
+     * @return true, if a null constant
+     */
+    private static boolean isNullConstant( @Nonnull WasmInstruction instr ) {
+        return instr.getType() == Type.Struct && ((WasmStructInstruction)instr).getOperator() == StructOperator.NULL;
     }
 
     /**
