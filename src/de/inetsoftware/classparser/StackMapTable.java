@@ -222,15 +222,20 @@ public class StackMapTable {
 
         private static final @Nonnull VerificationType UNINIT_THIS = new VerificationType( 6, null );
 
-        private static final @Nonnull VerificationType UNINIT      = new VerificationType( 8, null );
-
         private final int                              tag;
 
         private final String                           className;
 
+        private final int                              offset;
+
         private VerificationType( int tag, String className ) {
+            this( tag, className, -1 );
+        }
+
+        private VerificationType( int tag, String className, int offset ) {
             this.tag = tag;
             this.className = className;
+            this.offset = offset;
         }
 
         /**
@@ -268,7 +273,7 @@ public class StackMapTable {
                     return new VerificationType( tag, className );
                 case 8: // Uninitialized
                     int offset = input.readUnsignedShort();
-                    return UNINIT;
+                    return new VerificationType( tag, null, offset );
                 default:
                     throw new IOException( "Unknown verification type tag: " + tag );
             }
@@ -291,6 +296,15 @@ public class StackMapTable {
         @Nullable
         public String getClassName() {
             return className;
+        }
+
+        /**
+         * Get the code position of the "new" instruction that has created the object for the type Uninitialized.
+         *
+         * @return the code position or -1
+         */
+        public int getOffset() {
+            return offset;
         }
     }
 }

@@ -107,7 +107,7 @@ public abstract class WasmCodeBuilder {
      *            for loading the class files
      */
     void init( @Nonnull WasmOptions options, @Nonnull ClassFileLoader classFileLoader ) {
-        this.localVariables.init( options.types );
+        this.localVariables.init( options );
         this.types = options.types;
         this.functions = options.functions;
         this.strings = options.strings; 
