@@ -2002,6 +2002,10 @@ class BranchManager {
                     }
 
                     AnyType result = stack.pop();
+                    if( result != ValueType.empty && result.isRefType() ) {
+                        // a ternary operation can produce different types in its branches, for example: c ? new TreeBin() : node
+                        result = joinBranchTypes( instructions, result );
+                    }
                     if( blockType == null ) {
                         startBlock.setData( result );
                     } else if( result != ValueType.empty ) {
@@ -2017,8 +2021,107 @@ class BranchManager {
         }
 
         /**
+         * Join the type of the fall through value with the values of all BR instructions that leave this block with a
+         * value. The result is the common super type.
+         *
+         * @param instructions
+         *            the instructions of the function
+         * @param result
+         *            the type of the fall through value at the end of the block
+         * @return the common super type
+         */
+        @Nonnull
+        private AnyType joinBranchTypes( List<WasmInstruction> instructions, @Nonnull AnyType result ) {
+            int depth = 0;
+            for( int i = startIdx; i < instructions.size(); i++ ) {
+                WasmInstruction instr = instructions.get( i );
+                if( instr.getType() != Type.Block ) {
+                    continue;
+                }
+                WasmBlockInstruction blockInstr = (WasmBlockInstruction)instr;
+                switch( blockInstr.getOperation() ) {
+                    case IF:
+                    case BLOCK:
+                    case LOOP:
+                    case TRY_TABLE:
+                        depth++;
+                        break;
+                    case END:
+                        if( depth == 0 ) {
+                            return result;
+                        }
+                        depth--;
+                        break;
+                    case BR:
+                        if( (Integer)blockInstr.getData() == depth ) {
+                            AnyType type = findTopValueType( instructions, i );
+                            if( type != null ) {
+                                result = joinTypes( result, type );
+                            }
+                        }
+                        break;
+                    default:
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Find the type of the value on the top of the stack before the given instruction. Only the linear code in the
+         * same block is inspected.
+         *
+         * @param instructions
+         *            the instructions of the function
+         * @param idx
+         *            the index of the instruction
+         * @return the type or null if not found
+         */
+        @Nullable
+        private AnyType findTopValueType( List<WasmInstruction> instructions, int idx ) {
+            int needed = 1;
+            for( int i = idx - 1; i >= startIdx; i-- ) {
+                WasmInstruction instr = instructions.get( i );
+                if( instr.getType() == Type.Block || instr.getType() == Type.Jump ) {
+                    return null; // not linear code
+                }
+                if( instr.getPushValueType() != null && --needed == 0 ) {
+                    return instr.getPushValueType();
+                }
+                needed += instr.getPopCount();
+            }
+            return null;
+        }
+
+        /**
+         * Get the common super type of two reference types.
+         *
+         * @param type1
+         *            first type
+         * @param type2
+         *            second type
+         * @return the common super type
+         */
+        @Nonnull
+        private AnyType joinTypes( @Nonnull AnyType type1, @Nonnull AnyType type2 ) {
+            if( type1 == type2 || type2 == ValueType.eqref || type2.isSubTypeOf( type1 ) ) {
+                return type1;
+            }
+            if( type1 == ValueType.eqref || type1.isSubTypeOf( type2 ) ) {
+                return type2;
+            }
+            if( type1 instanceof StructType ) {
+                for( StructType parent = ((StructType)type1).getParent(); parent != null; parent = parent.getParent() ) {
+                    if( type2.isSubTypeOf( parent ) ) {
+                        return parent;
+                    }
+                }
+            }
+            return type1;
+        }
+
+        /**
          * For remove().
-         * 
+         *
          * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
          */
         @Override
