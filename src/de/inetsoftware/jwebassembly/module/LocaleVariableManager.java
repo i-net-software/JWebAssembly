@@ -41,6 +41,7 @@ import de.inetsoftware.classparser.MethodInfo;
 import de.inetsoftware.classparser.StackMapTable;
 import de.inetsoftware.classparser.StackMapTable.StackMapFrame;
 import de.inetsoftware.classparser.StackMapTable.VerificationType;
+import de.inetsoftware.classparser.TryCatchFinally;
 import de.inetsoftware.jwebassembly.WasmException;
 import de.inetsoftware.jwebassembly.module.TypeManager.StructType;
 import de.inetsoftware.jwebassembly.wasm.AnyType;
@@ -88,6 +89,15 @@ class LocaleVariableManager {
     /** slot based: the second slot of a long or double is null */
     private final ArrayList<Variable>        locals       = new ArrayList<>();
 
+    /** the locals of all code positions that jump forward to a code position (branch target or catch handler) */
+    private final HashMap<Integer, ArrayList<Variable[]>> incoming = new HashMap<>();
+
+    /** the locals after applying the stack map frame at a code position, needed for backward jumps */
+    private final HashMap<Integer, Variable[]> frameStates = new HashMap<>();
+
+    /** if the previous instruction can continue with the next instruction */
+    private boolean                          fallThrough;
+
     private Code                             code;
 
     private String                           className;
@@ -126,6 +136,9 @@ class LocaleVariableManager {
         positions.clear();
         stack.clear();
         locals.clear();
+        incoming.clear();
+        frameStates.clear();
+        fallThrough = true;
         this.code = code;
         this.className = method != null ? method.getClassName() : null;
 
@@ -164,6 +177,14 @@ class LocaleVariableManager {
                 int nextFrameCodePos = frames != null && frames.length > 0 ? frames[0].getOffsetDelta() : -1;
                 boolean wide = false;
 
+                // the code positions of the catch blocks
+                TryCatchFinally[] exceptionTable = code.getExceptionTable();
+                HashSet<Integer> handlers = new HashSet<>();
+                for( TryCatchFinally tryCatch : exceptionTable ) {
+                    handlers.add( tryCatch.getHandler() );
+                }
+                AnyType throwable = handlers.isEmpty() ? null : types.valueOf( "java/lang/Throwable" );
+
                 while( byteCode.available() > 0 ) {
                     int codePos = byteCode.getCodePosition();
                     lineNumber = byteCode.getLineNumber();
@@ -199,12 +220,27 @@ class LocaleVariableManager {
 
                         // the stack of all frame types is complete defined in the frame
                         stack.clear();
-                        for( VerificationType vt : frame.getStack() ) {
-                            push( getAnyType( vt ) );
+                        if( handlers.contains( codePos ) ) {
+                            // The try_table in WebAssembly delivers ever a Throwable (common supertype of all catches).
+                            // The StackMapTable contains the declared catch type, for example Exception. The local
+                            // variable must be able to hold the Throwable. See BranchManager.getCatchType()
+                            push( throwable );
+                        } else {
+                            for( VerificationType vt : frame.getStack() ) {
+                                push( getAnyType( vt ) );
+                            }
                         }
 
                         if( framePos < frames.length ) {
                             nextFrameCodePos += frames[framePos].getOffsetDelta() + 1;
+                        }
+                    }
+                    fallThrough = true;
+
+                    // every instruction in a try block can jump to the catch handler with the current locals
+                    for( TryCatchFinally tryCatch : exceptionTable ) {
+                        if( tryCatch.getStart() <= codePos && codePos < tryCatch.getEnd() ) {
+                            addIncoming( tryCatch.getHandler(), codePos );
                         }
                     }
 
@@ -550,7 +586,7 @@ class LocaleVariableManager {
                         case 158: // ifle
                         case 198: // ifnull
                         case 199: // ifnonnull
-                            byteCode.readShort();
+                            addIncoming( codePos + byteCode.readShort(), codePos );
                             stack.pop();
                             break;
                         case 159: // if_icmpeq
@@ -561,18 +597,20 @@ class LocaleVariableManager {
                         case 164: // if_icmple
                         case 165: // if_acmpeq
                         case 166: // if_acmpne
-                            byteCode.readShort();
+                            addIncoming( codePos + byteCode.readShort(), codePos );
                             stack.pop();
                             stack.pop();
                             break;
                         case 167: // goto
-                            byteCode.readShort();
+                            addIncoming( codePos + byteCode.readShort(), codePos );
                             // the following code has ever a frame
                             stack.clear();
+                            fallThrough = false;
                             break;
                         case 200: // goto_w
-                            byteCode.readInt();
+                            addIncoming( codePos + byteCode.readInt(), codePos );
                             stack.clear();
+                            fallThrough = false;
                             break;
                         case 168: // jsr
                         case 169: // ret
@@ -580,12 +618,16 @@ class LocaleVariableManager {
                             throw new WasmException( "Finally block of Java 5 or older is not supported. Compile the sources with a Java SE 6 or newer: " + op, lineNumber );
                         case 170: // tableswitch
                         case 171: // lookupswitch
-                            skipSwitch( byteCode, op == 171 );
+                            for( int target : readSwitchTargets( byteCode, op == 171, codePos ) ) {
+                                addIncoming( target, codePos );
+                            }
                             stack.clear();
+                            fallThrough = false;
                             break;
                         case 176: // areturn
                             use( stack.pop(), returnType );
                             stack.clear();
+                            fallThrough = false;
                             break;
                         case 172: // ireturn
                         case 173: // lreturn
@@ -593,10 +635,12 @@ class LocaleVariableManager {
                         case 175: // dreturn
                         case 177: // return void
                             stack.clear();
+                            fallThrough = false;
                             break;
                         case 191: // athrow
                             use( stack.pop(), types.valueOf( "java/lang/Throwable" ) );
                             stack.clear();
+                            fallThrough = false;
                             break;
                         case 178: // getstatic
                             ConstantRef ref = (ConstantRef)constantPool.get( byteCode.readUnsignedShort() );
@@ -802,9 +846,10 @@ class LocaleVariableManager {
     }
 
     /**
-     * Set the slot based locals from the entries of a stack map frame. The types of the frame are dominant. All
-     * compatible variables of a slot are merged to a single variable because they can reach this code position on
-     * different paths.
+     * Set the slot based locals from the entries of a stack map frame. The types of the frame are dominant. The
+     * variables of a slot that reach this code position on different paths (fall through from the previous
+     * instruction, forward jumps and exceptions of a try block) are merged to a single variable. Variables of backward
+     * jumps are merged later in {@link #addIncoming(int, int)}.
      *
      * @param frameLocals
      *            the locals in StackMapTable notation, long and double use only one entry, null is Top
@@ -812,6 +857,16 @@ class LocaleVariableManager {
      *            the code position of the frame
      */
     private void applyFrameLocals( @Nonnull ArrayList<AnyType> frameLocals, int codePos ) {
+        // collect the locals of all paths that reach this code position
+        ArrayList<Variable[]> sources = new ArrayList<>();
+        if( fallThrough ) {
+            sources.add( locals.toArray( new Variable[locals.size()] ) );
+        }
+        ArrayList<Variable[]> jumps = incoming.remove( codePos );
+        if( jumps != null ) {
+            sources.addAll( jumps );
+        }
+
         locals.clear();
         for( AnyType type : frameLocals ) {
             int slot = locals.size();
@@ -820,9 +875,9 @@ class LocaleVariableManager {
                 continue;
             }
             Variable var = null;
-            for( int i = 0; i < allVariables.size(); i++ ) {
-                Variable v = allVariables.get( i );
-                if( v.mergedInto == null && v.slot == slot && isCompatible( v, type ) ) {
+            for( Variable[] source : sources ) {
+                Variable v = slot < source.length ? find( source[slot] ) : null;
+                if( v != null && isCompatible( v, type ) ) {
                     var = var == null ? v : merge( var, v );
                 }
             }
@@ -834,6 +889,63 @@ class LocaleVariableManager {
             locals.add( var );
             if( isCategory2( type ) ) {
                 locals.add( null );
+            }
+        }
+        frameStates.put( codePos, locals.toArray( new Variable[locals.size()] ) );
+    }
+
+    /**
+     * If the code between the two code positions is executed linear. That there is no jump target (stack map frame)
+     * in the range (from, to].
+     *
+     * @param from
+     *            the start code position (exclusive)
+     * @param to
+     *            the end code position (inclusive)
+     * @return true, if there is no jump target in the range
+     */
+    boolean isLinearCode( int from, int to ) {
+        for( Integer pos : frameStates.keySet() ) {
+            if( pos > from && pos <= to ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Register the current locals for a jump to the target code position. On a forward jump the locals are merged if
+     * the stack map frame of the target is applied. On a backward jump the frame was already applied and the variables
+     * are merged directly.
+     *
+     * @param target
+     *            the code position of the jump target or catch handler
+     * @param codePos
+     *            the code position of the jump instruction
+     */
+    private void addIncoming( int target, int codePos ) {
+        Variable[] current = locals.toArray( new Variable[locals.size()] );
+        if( target > codePos ) {
+            ArrayList<Variable[]> list = incoming.get( target );
+            if( list == null ) {
+                incoming.put( target, list = new ArrayList<>() );
+            } else if( Arrays.equals( list.get( list.size() - 1 ), current ) ) {
+                return; // no change of the locals, for example in a try block
+            }
+            list.add( current );
+            return;
+        }
+
+        Variable[] frameState = frameStates.get( target );
+        if( frameState == null ) {
+            return; // should not occur with valid byte code
+        }
+        for( int slot = 0; slot < frameState.length && slot < current.length; slot++ ) {
+            Variable frameVar = find( frameState[slot] );
+            Variable var = find( current[slot] );
+            if( frameVar != null && var != null && frameVar != var && isCompatible( frameVar, getType( var ) ) ) {
+                frameVar = merge( frameVar, var );
+                frameVar.touch( codePos );
             }
         }
     }
@@ -1224,29 +1336,38 @@ class LocaleVariableManager {
     }
 
     /**
-     * Skip the data of a tableswitch or lookupswitch operation.
+     * Read the data of a tableswitch or lookupswitch operation and return the jump targets.
      *
      * @param byteCode
      *            the current stream with a position after the operation code
      * @param isLookupSwitch
      *            true, if the operation was a lookupswitch; false, if the operation was a tableswitch
+     * @param codePos
+     *            the code position of the switch operation
+     * @return the code positions of the default and all case blocks
      * @throws IOException
      *             if any I/O error occur
      */
-    private static void skipSwitch( @Nonnull CodeInputStream byteCode, boolean isLookupSwitch ) throws IOException {
+    @Nonnull
+    private static ArrayList<Integer> readSwitchTargets( @Nonnull CodeInputStream byteCode, boolean isLookupSwitch, int codePos ) throws IOException {
         int padding = byteCode.getCodePosition() % 4;
         if( padding > 0 ) {
             byteCode.skip( 4 - padding );
         }
-        byteCode.readInt(); // default
-        int count;
+        ArrayList<Integer> targets = new ArrayList<>();
+        targets.add( codePos + byteCode.readInt() ); // default
         if( isLookupSwitch ) {
-            count = byteCode.readInt() * 2;
+            for( int count = byteCode.readInt(); count > 0; count-- ) {
+                byteCode.readInt(); // key
+                targets.add( codePos + byteCode.readInt() );
+            }
         } else {
             int low = byteCode.readInt();
-            count = byteCode.readInt() - low + 1;
+            for( int count = byteCode.readInt() - low + 1; count > 0; count-- ) {
+                targets.add( codePos + byteCode.readInt() );
+            }
         }
-        byteCode.skip( count * 4L );
+        return targets;
     }
 
     /**
